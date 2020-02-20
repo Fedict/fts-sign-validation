@@ -79,23 +79,22 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/XAdESLTA.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
 
-        // TODO serializer in tests
         // when
-//        WSReportsDTO result = this.restTemplate.postForObject("http://localhost:" + port + "/validation/validateSignature", toValidate, WSReportsDTO.class);
+        WSReportsDTO result = this.restTemplate.postForObject("http://localhost:" + port + "/validation/validateSignature", toValidate, WSReportsDTO.class);
 
         // then
-//        assertNotNull(result.getDiagnosticData());
-//        assertNotNull(result.getDetailedReport());
-//        assertNotNull(result.getSimpleReport());
-//        assertNotNull(result.getValidationReport());
-//
-//        assertEquals(1, result.getSimpleReport().getSignature().size());
-//        assertEquals(2, result.getDiagnosticData().getSignatures().get(0).getFoundTimestamps().size());
-//        assertEquals(result.getSimpleReport().getSignature().get(0).getIndication(), Indication.INDETERMINATE);
-//
-//        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-//                result.getValidationReport());
-//        assertNotNull(reports);
+        assertNotNull(result.getDiagnosticData());
+        assertNotNull(result.getDetailedReport());
+        assertNotNull(result.getSimpleReport());
+        assertNotNull(result.getValidationReport());
+
+        assertEquals(1, result.getSimpleReport().getSignature().size());
+        assertEquals(2, result.getDiagnosticData().getSignatures().get(0).getFoundTimestamps().size());
+        assertEquals(result.getSimpleReport().getSignature().get(0).getIndication(), Indication.INDETERMINATE);
+
+        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
+                result.getValidationReport());
+        assertNotNull(reports);
     }
 
     @Test
