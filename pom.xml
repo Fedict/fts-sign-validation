@@ -67,7 +67,13 @@
             </dependency>
             <dependency>
                 <groupId>eu.europa.ec.joinup.sd-dss</groupId>
-                <artifactId>dss-validation-rest</artifactId>
+                <artifactId>dss-validation-server-common</artifactId>
+                <version>${dss.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.joinup.sd-dss</groupId>
+                <artifactId>dss-certificate-validation-common</artifactId>
                 <version>${dss.version}</version>
                 <scope>compile</scope>
             </dependency>

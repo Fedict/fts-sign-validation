@@ -15,6 +15,7 @@ import eu.europa.esig.dss.tsl.service.TSLRepository;
 import eu.europa.esig.dss.tsl.service.TSLValidationJob;
 import eu.europa.esig.dss.validation.CertificateVerifier;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
+import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -166,6 +167,13 @@ public class DSSBeanConfig {
     @Bean
     public RemoteDocumentValidationService remoteValidationService() throws Exception {
         RemoteDocumentValidationService service = new RemoteDocumentValidationService();
+        service.setVerifier(certificateVerifier());
+        return service;
+    }
+
+    @Bean
+    public RemoteCertificateValidationService RemoteCertificateValidationService() throws Exception {
+        RemoteCertificateValidationService service = new RemoteCertificateValidationService();
         service.setVerifier(certificateVerifier());
         return service;
     }
