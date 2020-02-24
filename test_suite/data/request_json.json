@@ -1,0 +1,12 @@
+{
+    "signedDocument": {
+        "bytes": "",
+        "digestAlgorithm": null,
+        "name": "John Doe"
+    },
+    "originalDocuments": [
+        null
+    ],
+    "policy": null,
+    "signatureId": null
+}
