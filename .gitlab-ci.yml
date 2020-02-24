@@ -1,0 +1,67 @@
+stages:
+  - compile
+  - test
+  - package
+  - predeploy
+  - deploy
+
+before_script:
+  - echo "Logging into the docker repo"
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
+image: maven:latest
+
+cache:
+  key: "$CI_PIPELINE_ID"
+
+compile:
+  stage: compile
+  script:
+    - echo "Compiling project"
+    - mvn compile
+
+test:
+  stage: test
+  script:
+    - echo "Running unit tests"
+    - mvn test
+
+package:
+  stage: package
+  script:
+    - mvn clean install -DskipTests
+    - echo "Building the docker Image"
+    - docker build -t $CI_REGISTRY/eidas/sign-validation-dev .
+  except:
+    - master
+
+package_master:
+  stage: package
+  script:
+    - mvn clean install -DskipTests
+    - echo "Building the docker Image"
+    - docker build -t $CI_REGISTRY/eidas/sign-validation-master .
+  only:
+    - master
+  when:
+    - manual
+
+predeploy:
+  stage: predeploy
+  script:
+    - docker container run -it --publish 8081:8080 $CI_REGISTRY/eidas/sign-validation-dev
+    - cd test_suite
+    - pip install requirements.txt
+    - behave --tags=@active
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Pushing the image to the docker hub"
+    - docker push $CI_REGISTRY/eidas/sign-validation-dev:latest
+
+deploy_master:
+  stage: deploy
+  script:
+    - echo "Pushing the image to the docker hub"
+    - docker push $CI_REGISTRY/eidas/sign-validation-master:latest
