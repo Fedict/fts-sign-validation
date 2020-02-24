@@ -19,13 +19,10 @@ import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class ValidationControllerTest extends SignAndValidationTestBase {
 
@@ -213,7 +210,21 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
     }
 
     @Test
+    public void signatureWithNoFileProvided() {
+        // given
+        DataToValidateDTO toValidate = new DataToValidateDTO();
+
+        // when
+        Map<String, Object> result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, Map.class);
+
+        // then
+        assertEquals(BAD_REQUEST.value(), result.get("status"));
+        assertEquals("DSSDocument is null", result.get("message"));
+    }
+
+    @Test
     public void certificateWithCertificateChainAndValidationTime() {
+        // given
         RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
                 DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
         RemoteCertificate issuerCertificate = RemoteCertificateConverter
@@ -225,20 +236,22 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate,
                 Arrays.asList(issuerCertificate), validationDate);
 
+        // when
         CertificateReportsDTO reportsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateReportsDTO.class);
 
+        // then
         assertNotNull(reportsDTO.getDiagnosticData());
         assertNotNull(reportsDTO.getSimpleCertificateReport());
         assertNotNull(reportsDTO.getDetailedReport());
 
         XmlDiagnosticData diagnosticData = reportsDTO.getDiagnosticData();
         List<XmlCertificate> usedCertificates = diagnosticData.getUsedCertificates();
-        assertEquals(3, usedCertificates.size());
+        assertTrue(usedCertificates.size() > 1, "usedCertificates.size() > 1");
         List<XmlChainItem> chain = reportsDTO.getSimpleCertificateReport().getChain();
-        assertEquals(3, chain.size());
+        assertTrue(chain.size() > 1, "chain.size() > 1");
         for (XmlCertificate certificate : usedCertificates) {
             if (chain.get(0).getId().equals(certificate.getId())) {
-                assertEquals(2, certificate.getCertificateChain().size());
+                assertTrue(certificate.getCertificateChain().size() > 0, "certificate.getCertificateChain().size() > 0");
             }
         }
         assertEquals(0, validationDate.compareTo(diagnosticData.getValidationDate()));
@@ -246,6 +259,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
 
     @Test
     public void certificateWithNoValidationTime() {
+        // given
         RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
                 DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
         RemoteCertificate issuerCertificate = RemoteCertificateConverter
@@ -254,20 +268,22 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate,
                 Arrays.asList(issuerCertificate), null);
 
+        // when
         CertificateReportsDTO reportsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateReportsDTO.class);
 
+        // then
         assertNotNull(reportsDTO.getDiagnosticData());
         assertNotNull(reportsDTO.getSimpleCertificateReport());
         assertNotNull(reportsDTO.getDetailedReport());
 
         XmlDiagnosticData diagnosticData = reportsDTO.getDiagnosticData();
         List<XmlCertificate> usedCertificates = diagnosticData.getUsedCertificates();
-        assertEquals(3, usedCertificates.size());
+        assertTrue(usedCertificates.size() > 1, "usedCertificates.size() > 1");
         List<XmlChainItem> chain = reportsDTO.getSimpleCertificateReport().getChain();
-        assertEquals(3, chain.size());
+        assertTrue(chain.size() > 1, "chain.size() > 1");
         for (XmlCertificate certificate : usedCertificates) {
             if (chain.get(0).getId().equals(certificate.getId())) {
-                assertEquals(2, certificate.getCertificateChain().size());
+                assertTrue(certificate.getCertificateChain().size() > 0, "certificate.getCertificateChain().size() > 0");
             }
         }
         assertNotNull(diagnosticData.getValidationDate());
@@ -275,27 +291,43 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
 
     @Test
     public void certificateWithNoCertificateChain() {
+        // given
         RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
                 DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate);
 
+        // when
         CertificateReportsDTO reportsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateReportsDTO.class);
 
+        // then
         assertNotNull(reportsDTO.getDiagnosticData());
         assertNotNull(reportsDTO.getSimpleCertificateReport());
         assertNotNull(reportsDTO.getDetailedReport());
 
         XmlDiagnosticData diagnosticData = reportsDTO.getDiagnosticData();
         List<XmlCertificate> usedCertificates = diagnosticData.getUsedCertificates();
-        assertEquals(3, usedCertificates.size());
+        assertTrue(usedCertificates.size() > 1, "usedCertificates.size() > 1");
         List<XmlChainItem> chain = reportsDTO.getSimpleCertificateReport().getChain();
-        assertEquals(3, chain.size());
+        assertTrue(chain.size() > 1, "chain.size() > 1");
         for (XmlCertificate certificate : usedCertificates) {
             if (chain.get(0).getId().equals(certificate.getId())) {
-                assertEquals(2, certificate.getCertificateChain().size());
+                assertTrue(certificate.getCertificateChain().size() > 0, "certificate.getCertificateChain().size() > 0");
             }
         }
         assertNotNull(diagnosticData.getValidationDate());
+    }
+
+    @Test
+    public void certificateWithNoCertificateProvided() {
+        // given
+        CertificateToValidateDTO toValidate = new CertificateToValidateDTO();
+
+        // when
+        Map<String, Object> result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, Map.class);
+
+        // then
+        assertEquals(BAD_REQUEST.value(), result.get("status"));
+        assertEquals("The certificate is missing", result.get("message"));
     }
 
 }

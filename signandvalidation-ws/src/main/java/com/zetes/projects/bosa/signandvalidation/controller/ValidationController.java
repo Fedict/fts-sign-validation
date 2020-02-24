@@ -8,7 +8,9 @@ import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
@@ -29,12 +31,20 @@ public class ValidationController {
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public WSReportsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) {
-        return remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+        if (toValidate.getSignedDocument() != null) {
+            return remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+        } else {
+            throw new ResponseStatusException(BAD_REQUEST, "DSSDocument is null");
+        }
     }
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateReportsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
-        return remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+        if (toValidate.getCertificate() != null) {
+            return remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+        } else {
+            throw new ResponseStatusException(BAD_REQUEST, "The certificate is missing");
+        }
     }
 
 }
