@@ -1,5 +1,9 @@
 package com.zetes.projects.bosa.signandvalidation.config;
 
+import eu.europa.esig.dss.asic.cades.signature.ASiCWithCAdESService;
+import eu.europa.esig.dss.asic.xades.signature.ASiCWithXAdESService;
+import eu.europa.esig.dss.cades.signature.CAdESService;
+import eu.europa.esig.dss.pades.signature.PAdESService;
 import eu.europa.esig.dss.service.crl.JdbcCacheCRLSource;
 import eu.europa.esig.dss.service.crl.OnlineCRLSource;
 import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
@@ -11,12 +15,15 @@ import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
 import eu.europa.esig.dss.spi.client.http.DataLoader;
 import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
+import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.tsl.service.TSLRepository;
 import eu.europa.esig.dss.tsl.service.TSLValidationJob;
 import eu.europa.esig.dss.validation.CertificateVerifier;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
+import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureServiceImpl;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
+import eu.europa.esig.dss.xades.signature.XAdESService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -55,6 +62,9 @@ public class DSSBeanConfig {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private TSPSource tspSource;
 
     // can be null
     @Autowired(required = false)
@@ -162,6 +172,52 @@ public class DSSBeanConfig {
     @Bean
     public ClassPathResource defaultPolicy() {
         return new ClassPathResource(defaultValidationPolicy);
+    }
+
+    @Bean
+    public CAdESService cadesService() throws Exception {
+        CAdESService service = new CAdESService(certificateVerifier());
+        service.setTspSource(tspSource);
+        return service;
+    }
+
+    @Bean
+    public XAdESService xadesService() throws Exception {
+        XAdESService service = new XAdESService(certificateVerifier());
+        service.setTspSource(tspSource);
+        return service;
+    }
+
+    @Bean
+    public PAdESService padesService() throws Exception {
+        PAdESService service = new PAdESService(certificateVerifier());
+        service.setTspSource(tspSource);
+        return service;
+    }
+
+    @Bean
+    public ASiCWithCAdESService asicWithCadesService() throws Exception {
+        ASiCWithCAdESService service = new ASiCWithCAdESService(certificateVerifier());
+        service.setTspSource(tspSource);
+        return service;
+    }
+
+    @Bean
+    public ASiCWithXAdESService asicWithXadesService() throws Exception {
+        ASiCWithXAdESService service = new ASiCWithXAdESService(certificateVerifier());
+        service.setTspSource(tspSource);
+        return service;
+    }
+
+    @Bean
+    public RemoteDocumentSignatureServiceImpl remoteSignatureService() throws Exception {
+        RemoteDocumentSignatureServiceImpl service = new RemoteDocumentSignatureServiceImpl();
+        service.setAsicWithCAdESService(asicWithCadesService());
+        service.setAsicWithXAdESService(asicWithXadesService());
+        service.setCadesService(cadesService());
+        service.setXadesService(xadesService());
+        service.setPadesService(padesService());
+        return service;
     }
 
     @Bean

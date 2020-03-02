@@ -79,6 +79,12 @@
             </dependency>
             <dependency>
                 <groupId>eu.europa.ec.joinup.sd-dss</groupId>
+                <artifactId>dss-signature-remote</artifactId>
+                <version>${dss.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.joinup.sd-dss</groupId>
                 <artifactId>dss-token</artifactId>
                 <version>${dss.version}</version>
                 <scope>compile</scope>
