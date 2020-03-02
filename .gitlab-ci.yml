@@ -43,8 +43,7 @@ package_master:
     - docker build -t $CI_REGISTRY/eidas/sign-validation-master .
   only:
     - master
-  when:
-    - manual
+  when: manual
 
 predeploy:
   stage: predeploy
@@ -65,3 +64,6 @@ deploy_master:
   script:
     - echo "Pushing the image to the docker hub"
     - docker push $CI_REGISTRY/eidas/sign-validation-master:latest
+  when: manual
+  only:
+    - master
