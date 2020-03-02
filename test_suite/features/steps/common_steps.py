@@ -23,3 +23,8 @@ def validate_status_code(context, code):
 def validation_file(context, file):
     json = c.add_bytes_json(file)
     context.response = pv.validate_signature(json)
+
+
+@given("The user prepares the post")
+def ready_post(context):
+    context.json_file = c.add_bytes_json("/Signed_ok.xml")

@@ -23,3 +23,10 @@ def add_bytes_json(file):
     json_file["signedDocument"]["bytes"] = encoded.decode("utf-8")
 
     return json_file
+
+
+def change_property(json_file, property_change, value):
+    json_file[property_change] = value
+
+    return json_file
+

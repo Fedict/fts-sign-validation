@@ -5,7 +5,7 @@ Feature: Validation service
         Given A ping has been sent to the service
         Then A pong will be returned
 
-    @active @wip
+    @active
     Scenario Outline: Posting different signatures
         Given The user uploads "<file>"
         Then The indication is "<Indication>"
