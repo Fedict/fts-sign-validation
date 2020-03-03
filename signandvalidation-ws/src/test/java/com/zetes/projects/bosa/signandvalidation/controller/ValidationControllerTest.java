@@ -1,5 +1,6 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
+import com.zetes.projects.bosa.signandvalidation.model.IndicationsListDTO;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -21,6 +22,9 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.*;
 
+import static eu.europa.esig.dss.enumerations.Indication.INDETERMINATE;
+import static eu.europa.esig.dss.enumerations.Indication.PASSED;
+import static eu.europa.esig.dss.enumerations.SubIndication.OUT_OF_BOUNDS_NO_POE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -29,6 +33,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
     public static final String LOCALHOST = "http://localhost:";
     public static final String SIGNATURE_ENDPOINT = "/validation/validateSignature";
     public static final String CERTIFICATE_ENDPOINT = "/validation/validateCertificate";
+    public static final String CERTIFICATES_ENDPOINT = "/validation/validateCertificates";
 
     @Test
     public void pingShouldReturnPong() throws Exception {
@@ -104,7 +109,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
 
         assertEquals(1, result.getSimpleReport().getSignature().size());
         assertEquals(2, result.getDiagnosticData().getSignatures().get(0).getFoundTimestamps().size());
-        assertEquals(result.getSimpleReport().getSignature().get(0).getIndication(), Indication.INDETERMINATE);
+        assertEquals(result.getSimpleReport().getSignature().get(0).getIndication(), INDETERMINATE);
 
         Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
                 result.getValidationReport());
@@ -128,7 +133,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         assertNotNull(result.getValidationReport());
 
         assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(Indication.INDETERMINATE, result.getSimpleReport().getSignature().get(0).getIndication());
+        assertEquals(INDETERMINATE, result.getSimpleReport().getSignature().get(0).getIndication());
 
         Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
                 result.getValidationReport());
@@ -153,7 +158,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         assertNotNull(result.getValidationReport());
 
         assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(Indication.INDETERMINATE, result.getSimpleReport().getSignature().get(0).getIndication());
+        assertEquals(INDETERMINATE, result.getSimpleReport().getSignature().get(0).getIndication());
 
         Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
                 result.getValidationReport());
@@ -178,7 +183,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         assertNotNull(result.getValidationReport());
 
         assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(Indication.INDETERMINATE, result.getSimpleReport().getSignature().get(0).getIndication());
+        assertEquals(INDETERMINATE, result.getSimpleReport().getSignature().get(0).getIndication());
 
         Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
                 result.getValidationReport());
@@ -202,7 +207,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         assertNotNull(result.getValidationReport());
 
         assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(result.getSimpleReport().getSignature().get(0).getIndication(), Indication.INDETERMINATE);
+        assertEquals(result.getSimpleReport().getSignature().get(0).getIndication(), INDETERMINATE);
 
         Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
                 result.getValidationReport());
@@ -328,6 +333,29 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         // then
         assertEquals(BAD_REQUEST.value(), result.get("status"));
         assertEquals("The certificate is missing", result.get("message"));
+    }
+
+    @Test
+    public void certificatesWithNoPassedCertificates() {
+        // given
+        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
+                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
+        RemoteCertificate issuerCertificate = RemoteCertificateConverter
+                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
+
+        List<CertificateToValidateDTO> toValidateList = new ArrayList<>();
+        toValidateList.add(new CertificateToValidateDTO(remoteCertificate, null, null));
+        toValidateList.add(new CertificateToValidateDTO(issuerCertificate, null, null));
+
+        // when
+        IndicationsListDTO result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATES_ENDPOINT, toValidateList, IndicationsListDTO.class);
+
+        // then
+        assertNotNull(result.getIndications());
+        assertEquals(2, result.getIndications().size());
+        assertEquals(INDETERMINATE, result.getIndications().get(0).getIndication());
+        assertEquals(OUT_OF_BOUNDS_NO_POE, result.getIndications().get(0).getSubIndication());
+        assertEquals(PASSED, result.getIndications().get(1).getIndication());
     }
 
 }
