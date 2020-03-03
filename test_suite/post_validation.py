@@ -6,13 +6,6 @@ import json
 from jsonschema import validate
 
 
-def ping():
-    url = c.get_url()
-    req = requests.get(url=url + "validation/ping")
-
-    return req
-
-
 def validate_signature(file):
     url = c.get_url()
 

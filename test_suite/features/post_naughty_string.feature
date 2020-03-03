@@ -41,7 +41,7 @@ Feature: NaughtyString test
     #| dW5kZWZpbmVk  | 400  |
     #| YXBwbGVz      | 400  |
 
-    @security @active @wip
+    @security @active
     Scenario Outline: Send NaughtyStrings in signature
         Given The user prepares the post
         When Add <naughtystring> to the "/name"

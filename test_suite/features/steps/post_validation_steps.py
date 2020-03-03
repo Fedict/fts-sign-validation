@@ -4,6 +4,19 @@ import common as c
 import json
 
 
+@given('The user validates a "{file}"')
+def validation_file(context, file):
+    encoded = c.encode_file(file)
+    json = c.add_bytes_json(encoded)
+    context.response = pv.validate_signature(json)
+
+
+@given("The user prepares the post")
+def ready_post(context):
+    encoded = c.encode_file("/Signed_ok.xml")
+    context.json_file = c.add_bytes_json(encoded)
+
+
 @then('The indication is "{Indication}"')
 def validation_Indication(context, Indication):
     assert context.response.status_code == 200
@@ -45,8 +58,3 @@ def replace_signatureid(context, value, naughtystring):
     json_post = c.change_property(context.json_file, value, naughtystring)
     context.response = pv.validate_signature(json_post)
 
-
-@then("The response is {code}")
-def validate_response(context, code):
-    print(context.response.status_code)
-    assert context.response.status_code == int(code)

@@ -1,11 +1,10 @@
 from behave import *
-import post_validation as pv
 import common as c
 
 
 @given("A ping has been sent to the service")
 def post_ping(context):
-    context.response = pv.ping()
+    context.response = c.ping()
 
 
 @then("A pong will be returned")
@@ -19,12 +18,6 @@ def validate_status_code(context, code):
     assert context.response.status_code == code
 
 
-@given('The user uploads "{file}"')
-def validation_file(context, file):
-    json = c.add_bytes_json(file)
-    context.response = pv.validate_signature(json)
-
-
-@given("The user prepares the post")
-def ready_post(context):
-    context.json_file = c.add_bytes_json("/Signed_ok.xml")
+@then("The response is {code}")
+def validate_response(context, code):
+    assert context.response.status_code == int(code)
