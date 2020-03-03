@@ -15,6 +15,8 @@ def ping():
 
 def validate_signature(file):
     url = c.get_url()
+
+    # kept in comment in order to troubleshoot faster
     json_request = json.dumps(file)
     f = open("request.txt", "w+")
     f.write(json_request)

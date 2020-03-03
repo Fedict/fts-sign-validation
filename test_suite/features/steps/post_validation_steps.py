@@ -38,3 +38,15 @@ def validation_signatures(context, amount):
 @then("The response schema is valid")
 def validate_schema(context):
     assert pv.validate_json(json.loads(context.response.content)) is None
+
+
+@when('Add {naughtystring} to the "{value}"')
+def replace_signatureid(context, value, naughtystring):
+    json_post = c.change_property(context.json_file, value, naughtystring)
+    context.response = pv.validate_signature(json_post)
+
+
+@then("The response is {code}")
+def validate_response(context, code):
+    print(context.response.status_code)
+    assert context.response.status_code == int(code)

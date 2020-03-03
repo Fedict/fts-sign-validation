@@ -19,7 +19,17 @@ def add_bytes_json(file):
     with open("./data/request_json.json") as template:
         json_file = json.load(template)
 
-    json_file["signedDocument"]["name"] = file
+    json_file["signedDocument"]["name"] = file.replace("/", "")
     json_file["signedDocument"]["bytes"] = encoded.decode("utf-8")
 
     return json_file
+
+
+def change_property(json_file, property_change, value):
+    if "/" in property_change:
+        json_file["signedDocument"][property_change.replace("/", "")] = value
+    else:
+        json_file[property_change] = value
+
+    return json_file
+
