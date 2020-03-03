@@ -1,5 +1,8 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
+import com.zetes.projects.bosa.signandvalidation.model.IndicationsDTO;
+import com.zetes.projects.bosa.signandvalidation.model.IndicationsListDTO;
+import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO;
@@ -9,6 +12,9 @@ import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -23,6 +29,9 @@ public class ValidationController {
 
     @Autowired
     RemoteCertificateValidationService remoteCertificateValidationService;
+
+    @Autowired
+    ReportsService reportsService;
 
     @GetMapping(value = "/ping", produces = TEXT_PLAIN_VALUE)
     public String ping() {
@@ -45,6 +54,18 @@ public class ValidationController {
         } else {
             throw new ResponseStatusException(BAD_REQUEST, "The certificate is missing");
         }
+    }
+
+    @PostMapping(value = "/validateCertificates", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public IndicationsListDTO validateCertificates(@RequestBody List<CertificateToValidateDTO> toValidateList) {
+        List<IndicationsDTO> indications = new ArrayList<>();
+
+        for (CertificateToValidateDTO toValidate : toValidateList) {
+            CertificateReportsDTO certificateReportsDTO = validateCertificate(toValidate);
+            indications.add(reportsService.getIndicationsDTO(certificateReportsDTO));
+        }
+
+        return new IndicationsListDTO(indications);
     }
 
 }
