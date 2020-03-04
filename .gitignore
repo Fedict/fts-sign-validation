@@ -31,5 +31,6 @@ build/
 .vscode/
 
 ### Python ###
-/__pycache__/
+test_suite/__pycache__/
+test_suite/features/steps/__pycache__/
 test_suite/request.txt
