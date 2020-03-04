@@ -5,9 +5,12 @@ import requests
 import common as c
 
 
-def ping():
+def ping(service):
     url = c.get_url()
-    req = requests.get(url=url + "validation/ping")
+    if service == "validation":
+        req = requests.get(url=url + "validation/ping")
+    else:
+        req = requests.get(url=url + "signing/ping")
 
     return req
 
@@ -20,19 +23,24 @@ def get_url():
 
 
 def add_bytes_json(encoded):
-    with open("./data/request_validation_json.json") as template:
+    with open("./data/requests/request_validation.json") as template:
         json_file = json.load(template)
 
     json_file["signedDocument"]["bytes"] = encoded.decode("utf-8")
 
     return json_file
 
+
 def encode_file(file):
-    with open("./data/" + file, "rb") as f:
-        contents = f.read()
+    if file[-3:] in ["cer", "pem"]:
+        with open("./data/certificate/" + file, "rb") as f:
+            contents = f.read()
+    else:
+        with open("./data/signed_documents/" + file, "rb") as f:
+            contents = f.read()
 
     encoded = base64.b64encode(contents)
-    
+
     return encoded
 
 

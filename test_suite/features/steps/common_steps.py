@@ -2,9 +2,9 @@ from behave import *
 import common as c
 
 
-@given("A ping has been sent to the service")
-def post_ping(context):
-    context.response = c.ping()
+@given("A ping has been sent to the {service}")
+def post_ping(context, service):
+    context.response = c.ping(service)
 
 
 @then("A pong will be returned")

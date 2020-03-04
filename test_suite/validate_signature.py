@@ -23,7 +23,7 @@ def validate_signature(file):
 
 
 def validate_json(response):
-    with open("data/response_schema.json") as response_schema:
+    with open("data/requests/response_schema.json") as response_schema:
         schema = json.load(response_schema)
 
         return validate(instance=response, schema=schema)

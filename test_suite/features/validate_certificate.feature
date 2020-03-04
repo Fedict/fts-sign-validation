@@ -1,6 +1,6 @@
 Feature: Validation certificate service
 
-    @active @wip
+    @active
     Scenario Outline: Posting different certificate
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
