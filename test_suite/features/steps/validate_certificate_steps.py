@@ -1,5 +1,5 @@
 from behave import *
-import post_certificate as pc
+import validate_certificate as vc
 import common as c
 import json
 
@@ -16,6 +16,6 @@ def add_certificate(context, certificateChain):
 
 @when("The user validates the certificate")
 def validate_certicate(context):
-    context.response = pc.validate_certificate(
+    context.response = vc.validate_certificate(
         context.certificate_post_certificate, context.certificate_post_certificateChain
     )
