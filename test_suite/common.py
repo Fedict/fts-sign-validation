@@ -35,8 +35,11 @@ def encode_file(file):
     if file[-3:] in ["cer", "pem"]:
         with open("./data/certificate/" + file, "rb") as f:
             contents = f.read()
-    else:
+    elif file[-3:] in ["xml"]:
         with open("./data/signed_documents/" + file, "rb") as f:
+            contents = f.read()
+    else:
+        with open("./data/documents/" + file, "rb") as f:
             contents = f.read()
 
     encoded = base64.b64encode(contents)

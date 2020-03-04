@@ -20,4 +20,5 @@ def validate_status_code(context, code):
 
 @then("The response is {code}")
 def validate_response(context, code):
+    print(context.response.status_code)
     assert context.response.status_code == int(code)
