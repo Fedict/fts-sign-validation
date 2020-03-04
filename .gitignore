@@ -32,3 +32,4 @@ build/
 
 ### Python ###
 /__pycache__/
+test_suite/request.txt
