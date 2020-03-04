@@ -1,0 +1,70 @@
+{
+    "parameters": {
+        "archiveTimestampParameters": {
+            "canonicalizationMethod": "string",
+            "digestAlgorithm": "SHA1"
+        },
+        "asicContainerType": "ASiC_S",
+        "blevelParams": {
+            "claimedSignerRoles": [
+                "string"
+            ],
+            "commitmentTypeIndications": [
+                "string"
+            ],
+            "policyDescription": "string",
+            "policyDigestAlgorithm": "SHA1",
+            "policyDigestValue": "string",
+            "policyId": "string",
+            "policyQualifier": "string",
+            "policySpuri": "string",
+            "signerLocationCountry": "string",
+            "signerLocationLocality": "string",
+            "signerLocationPostalAddress": [
+                "string"
+            ],
+            "signerLocationPostalCode": "string",
+            "signerLocationStateOrProvince": "string",
+            "signerLocationStreet": "string",
+            "signingDate": "2020-03-04T08:56:05.055Z",
+            "trustAnchorBPPolicy": true
+        },
+        "certificateChain": [
+            {
+                "encodedCertificate": "string"
+            }
+        ],
+        "contentTimestampParameters": {
+            "canonicalizationMethod": "string",
+            "digestAlgorithm": "SHA1"
+        },
+        "detachedContents": [
+            {
+                "bytes": "string",
+                "digestAlgorithm": "SHA1",
+                "name": "string"
+            }
+        ],
+        "digestAlgorithm": "SHA1",
+        "encryptionAlgorithm": "RSA",
+        "generateTBSWithoutCertificate": true,
+        "maskGenerationFunction": "MGF1",
+        "referenceDigestAlgorithm": "SHA1",
+        "signWithExpiredCertificate": true,
+        "signatureAlgorithm": "RSA_RAW",
+        "signatureLevel": "XML-NOT-ETSI",
+        "signaturePackaging": "ENVELOPED",
+        "signatureTimestampParameters": {
+            "canonicalizationMethod": "string",
+            "digestAlgorithm": "SHA1"
+        },
+        "signingCertificate": {
+            "encodedCertificate": "string"
+        }
+    },
+    "toSignDocument": {
+        "bytes": "string",
+        "digestAlgorithm": "SHA1",
+        "name": "string"
+    }
+}

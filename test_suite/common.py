@@ -23,7 +23,7 @@ def get_url():
 
 
 def add_bytes_json(encoded):
-    with open("./data/requests/request_validation.json") as template:
+    with open("./data/requests/validation.json") as template:
         json_file = json.load(template)
 
     json_file["signedDocument"]["bytes"] = encoded.decode("utf-8")

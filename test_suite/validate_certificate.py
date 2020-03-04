@@ -6,7 +6,7 @@ import json
 
 def ready_json(certificate, certificateChain):
 
-    with open("./data/requests/request_certificate.json") as template:
+    with open("./data/requests/certificate.json") as template:
         json_file = json.load(template)
 
     json_file["certificate"]["encodedCertificate"] = certificate.decode("utf-8")
