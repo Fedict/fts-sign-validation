@@ -1,13 +1,18 @@
-Feature: Validation service
+Feature: Validation signature service
 
     @active
-    Scenario: Check if the service is online
-        Given A ping has been sent to the service
+    Scenario Outline: Check if the validation service is online
+        Given A ping has been sent to the "<service>"
         Then A pong will be returned
+
+        Examples:
+            | service    |
+            | validation |
+            | signing    |
 
     @active
     Scenario Outline: Posting different signatures
-        Given The user uploads "<file>"
+        Given The user validates a "<file>"
         Then The indication is "<Indication>"
         And The subindication is "<SubIndication>"
         And All <amount> of signatures are found
@@ -25,7 +30,7 @@ Feature: Validation service
 
     @active
     Scenario Outline: Validate json schema
-        Given The user uploads "<file>"
+        Given The user validates a "<file>"
         Then The response schema is valid
 
         Examples:

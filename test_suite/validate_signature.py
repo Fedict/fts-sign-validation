@@ -6,20 +6,13 @@ import json
 from jsonschema import validate
 
 
-def ping():
-    url = c.get_url()
-    req = requests.get(url=url + "validation/ping")
-
-    return req
-
-
 def validate_signature(file):
     url = c.get_url()
 
     # kept in comment in order to troubleshoot faster
-    json_request = json.dumps(file)
-    f = open("request.txt", "w+")
-    f.write(json_request)
+    # json_request = json.dumps(file)
+    # f = open("request.txt", "w+")
+    # f.write(json_request)
 
     req = requests.post(url=url + "validation/validateSignature", json=file)
 
@@ -30,7 +23,7 @@ def validate_signature(file):
 
 
 def validate_json(response):
-    with open("data/response_schema.json") as response_schema:
+    with open("data/requests/response_schema.json") as response_schema:
         schema = json.load(response_schema)
 
         return validate(instance=response, schema=schema)

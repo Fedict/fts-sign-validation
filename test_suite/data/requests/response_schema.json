@@ -2888,7 +2888,10 @@
             },
             "Url": {
               "$id": "#/properties/DiagnosticData/properties/ListOfTrustedLists/properties/Url",
-              "type": "string",
+              "type": [
+                "string",
+                "null"
+              ],
               "title": "The Url Schema",
               "default": "",
               "examples": [
@@ -6382,7 +6385,10 @@
                     },
                     "Warning": {
                       "$id": "#/properties/DetailedReport/properties/TLAnalysis/items/properties/Constraint/items/properties/Warning",
-                      "type": "null",
+                      "type": [
+                        "null",
+                        "object"
+                      ],
                       "title": "The Warning Schema",
                       "default": null,
                       "examples": [
@@ -6461,7 +6467,10 @@
                   },
                   "Warnings": {
                     "$id": "#/properties/DetailedReport/properties/TLAnalysis/items/properties/Conclusion/properties/Warnings",
-                    "type": "null",
+                    "type": [
+                      "null",
+                      "array"
+                    ],
                     "title": "The Warnings Schema",
                     "default": null,
                     "examples": [

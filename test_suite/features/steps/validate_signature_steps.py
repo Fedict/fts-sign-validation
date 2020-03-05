@@ -1,7 +1,20 @@
 from behave import *
-import post_validation as pv
+import validate_signature as vs
 import common as c
 import json
+
+
+@given('The user validates a "{file}"')
+def validation_file(context, file):
+    encoded = c.encode_file(file)
+    json = c.add_bytes_json(encoded)
+    context.response = vs.validate_signature(json)
+
+
+@given("The user prepares the post")
+def ready_post(context):
+    encoded = c.encode_file("/Signed_ok.xml")
+    context.json_file = c.add_bytes_json(encoded)
 
 
 @then('The indication is "{Indication}"')
@@ -37,16 +50,11 @@ def validation_signatures(context, amount):
 
 @then("The response schema is valid")
 def validate_schema(context):
-    assert pv.validate_json(json.loads(context.response.content)) is None
+    assert vs.validate_json(json.loads(context.response.content)) is None
 
 
 @when('Add {naughtystring} to the "{value}"')
 def replace_signatureid(context, value, naughtystring):
     json_post = c.change_property(context.json_file, value, naughtystring)
-    context.response = pv.validate_signature(json_post)
+    context.response = vs.validate_signature(json_post)
 
-
-@then("The response is {code}")
-def validate_response(context, code):
-    print(context.response.status_code)
-    assert context.response.status_code == int(code)
