@@ -45,13 +45,6 @@ package_master:
     - master
   when: manual
 
-predeploy:
-  stage: predeploy
-  script:
-    - docker container run -it --publish 8081:8080 $CI_REGISTRY/eidas/sign-validation-dev
-    - cd test_suite
-    - pip install requirements.txt
-    - behave --tags=@active
 
 deploy:
   stage: deploy
