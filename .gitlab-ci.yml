@@ -2,7 +2,6 @@ stages:
   - compile
   - test
   - package
-  - predeploy
   - deploy
 
 before_script:
