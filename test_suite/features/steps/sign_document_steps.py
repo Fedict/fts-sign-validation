@@ -4,9 +4,9 @@ import sign_document as sd
 import json
 
 
-@given("Add a {file} to the post")
-def prepare_post(context, file):
-    json = sd.fetch_json(file)
+@given("Add {property} and {value} to the post")
+def prepare_post(context, property, value):
+    json = sd.adapt_json(property, value)
     context.request_json = json
 
 
