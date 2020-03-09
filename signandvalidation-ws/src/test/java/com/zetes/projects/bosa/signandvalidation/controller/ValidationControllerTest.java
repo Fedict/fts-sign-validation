@@ -223,7 +223,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         DataToValidateDTO toValidate = new DataToValidateDTO();
 
         // when
-        Map<String, Object> result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, Map.class);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, Map.class);
 
         // then
         assertEquals(BAD_REQUEST.value(), result.get("status"));
@@ -332,7 +332,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO();
 
         // when
-        Map<String, Object> result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, Map.class);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, Map.class);
 
         // then
         assertEquals(BAD_REQUEST.value(), result.get("status"));
@@ -341,7 +341,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
 
     @Disabled("Temporary pipeline disable")
     @Test
-    public void certificatesWithNoPassedCertificates() {
+    public void certificatesWithPassedAndIndeterminateCertificates() {
         // given
         RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
                 DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));

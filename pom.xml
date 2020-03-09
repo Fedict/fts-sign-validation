@@ -17,6 +17,7 @@
 
     <modules>
         <module>signandvalidation-ws</module>
+        <module>resourcelocator</module>
     </modules>
 
     <properties>

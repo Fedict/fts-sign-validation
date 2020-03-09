@@ -25,13 +25,13 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 public class ValidationController {
 
     @Autowired
-    RemoteDocumentValidationService remoteDocumentValidationService;
+    private RemoteDocumentValidationService remoteDocumentValidationService;
 
     @Autowired
-    RemoteCertificateValidationService remoteCertificateValidationService;
+    private RemoteCertificateValidationService remoteCertificateValidationService;
 
     @Autowired
-    ReportsService reportsService;
+    private ReportsService reportsService;
 
     @GetMapping(value = "/ping", produces = TEXT_PLAIN_VALUE)
     public String ping() {

@@ -3,6 +3,8 @@ package com.zetes.projects.bosa.signandvalidation.service;
 import com.zetes.projects.bosa.signandvalidation.model.IndicationsDTO;
 import eu.europa.esig.dss.simplecertificatereport.SimpleCertificateReport;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
@@ -10,7 +12,10 @@ import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 @Service
 public class ReportsService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ReportsService.class);
+
     public IndicationsDTO getIndicationsDTO(CertificateReportsDTO certificateReportsDTO) {
+        LOG.info(("Getting indications for certificate report..."));
         SimpleCertificateReport simpleCertificateReport = new SimpleCertificateReport(certificateReportsDTO.getSimpleCertificateReport());
 
         for (String certId : simpleCertificateReport.getCertificateIds()) {
