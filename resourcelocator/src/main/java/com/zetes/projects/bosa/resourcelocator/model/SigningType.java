@@ -3,6 +3,8 @@ package com.zetes.projects.bosa.resourcelocator.model;
 import javax.persistence.*;
 import java.util.Set;
 
+import static javax.persistence.EnumType.STRING;
+
 @Entity
 @Table
 public class SigningType {
@@ -10,7 +12,7 @@ public class SigningType {
     @Id
     private String name;
 
-    @Column
+    @Column(nullable = false)
     private Boolean active;
 
     @Column
@@ -20,6 +22,7 @@ public class SigningType {
     private String minimumVersion;
 
     @ElementCollection(targetClass = CertificateType.class, fetch = FetchType.EAGER)
+    @Enumerated(value = STRING)
     private Set<CertificateType> certificateTypes;
 
     @Lob

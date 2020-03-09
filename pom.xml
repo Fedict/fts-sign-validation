@@ -27,6 +27,7 @@
         <hikaricp.version>3.3.1</hikaricp.version>
         <hsqldb.version>2.5.0</hsqldb.version>
         <springfox.version>2.9.2</springfox.version>
+        <postgresql.version>42.2.10</postgresql.version>
     </properties>
 
     <repositories>
@@ -101,6 +102,11 @@
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
                 <version>${hikaricp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
             </dependency>
 
             <!-- Swagger -->
