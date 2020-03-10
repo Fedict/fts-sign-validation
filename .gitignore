@@ -29,6 +29,7 @@ build/
 
 ### VS Code ###
 .vscode/
+test_suite/.vscode/
 
 ### Python ###
 test_suite/__pycache__/
