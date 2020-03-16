@@ -59,11 +59,11 @@ public class ResourceLocatorPersistenceConfig {
 
     private Map<String, String> addtionalProperties() {
         HashMap<String, String> properties = new HashMap<>();
-        properties.put("hibernate.show_sql", env.getProperty("resourceLocator.hibernate.show_sql"));
-        properties.put("hibernate.format_sql", env.getProperty("resourceLocator.hibernate.format_sql"));
-        properties.put("hibernate.hbm2ddl.auto", env.getProperty("resourceLocator.hibernate.hbm2ddl.auto"));
-        properties.put("hibernate.default_schema", env.getProperty("resourceLocator.hibernate.default_schema"));
-        properties.put("hibernate.dialect", env.getProperty("resourceLocator.hibernate.dialect"));
+        properties.put("hibernate.show_sql", env.getProperty("resourcelocator.hibernate.show_sql"));
+        properties.put("hibernate.format_sql", env.getProperty("resourcelocator.hibernate.format_sql"));
+        properties.put("hibernate.hbm2ddl.auto", env.getProperty("resourcelocator.hibernate.hbm2ddl.auto"));
+        properties.put("hibernate.default_schema", env.getProperty("resourcelocator.hibernate.default_schema"));
+        properties.put("hibernate.dialect", env.getProperty("resourcelocator.hibernate.dialect"));
 
         return properties;
     }

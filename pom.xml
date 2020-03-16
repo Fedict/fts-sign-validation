@@ -18,6 +18,7 @@
     <modules>
         <module>signandvalidation-ws</module>
         <module>resourcelocator</module>
+        <module>signingconfigurator</module>
     </modules>
 
     <properties>
@@ -90,6 +91,26 @@
                 <artifactId>dss-token</artifactId>
                 <version>${dss.version}</version>
                 <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.joinup.sd-dss</groupId>
+                <artifactId>dss-enumerations</artifactId>
+                <version>${dss.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.joinup.sd-dss</groupId>
+                <artifactId>dss-common-remote-dto</artifactId>
+                <version>${dss.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.joinup.sd-dss</groupId>
+                <artifactId>dss-signature-dto</artifactId>
+                <version>${dss.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.joinup.sd-dss</groupId>
+                <artifactId>dss-spi</artifactId>
+                <version>${dss.version}</version>
             </dependency>
 
             <!-- DB -->
