@@ -5,9 +5,12 @@ import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import eu.europa.esig.dss.enumerations.SignatureLevel;
-import eu.europa.esig.dss.enumerations.SignaturePackaging;
+import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignDTO;
+import com.zetes.projects.bosa.signandvalidation.model.SignDocumentDTO;
+import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
+import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
+import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
+import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.SignatureValue;
@@ -20,9 +23,7 @@ import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
-import eu.europa.esig.dss.ws.signature.dto.DataToSignOneDocumentDTO;
 import eu.europa.esig.dss.ws.signature.dto.ExtendDocumentDTO;
-import eu.europa.esig.dss.ws.signature.dto.SignOneDocumentDTO;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -31,10 +32,7 @@ import org.springframework.context.ApplicationContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.zetes.projects.bosa.resourcelocator.model.CertificateType.AUTHORISATION;
 import static com.zetes.projects.bosa.resourcelocator.model.CertificateType.NON_REPUDIATION;
@@ -54,11 +52,17 @@ public class SigningControllerTest extends SignAndValidationTestBase {
 
     @BeforeAll
     public static void fillDB(ApplicationContext applicationContext) {
-        SigningTypeDAO dao = applicationContext.getBean(SigningTypeDAO.class);
-        saveSigningType(dao, "auth", true, AUTHORISATION);
-        saveSigningType(dao, "non-rep", true, NON_REPUDIATION);
-        saveSigningType(dao, "all", true, AUTHORISATION, NON_REPUDIATION);
-        saveSigningType(dao, "inactive", false, AUTHORISATION, NON_REPUDIATION);
+        SigningTypeDAO signingTypeDao = applicationContext.getBean(SigningTypeDAO.class);
+        saveSigningType(signingTypeDao, "auth", true, AUTHORISATION);
+        saveSigningType(signingTypeDao, "non-rep", true, NON_REPUDIATION);
+        saveSigningType(signingTypeDao, "all", true, AUTHORISATION, NON_REPUDIATION);
+        saveSigningType(signingTypeDao, "inactive", false, AUTHORISATION, NON_REPUDIATION);
+
+        ProfileSignatureParametersDao profileSigParamDao = applicationContext.getBean(ProfileSignatureParametersDao.class);
+        saveProfileSignatureParameters(profileSigParamDao, "XADES_1", null, SignatureLevel.XAdES_BASELINE_B,
+                SignaturePackaging.ENVELOPING, null, SignatureAlgorithm.RSA_SHA256);
+        saveProfileSignatureParameters(profileSigParamDao, "XADES_2", null, SignatureLevel.XAdES_BASELINE_B,
+                SignaturePackaging.DETACHED, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
     }
 
     @Test
@@ -119,29 +123,26 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             List<DSSPrivateKeyEntry> keys = token.getKeys();
             DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
 
-            RemoteSignatureParameters parameters = new RemoteSignatureParameters();
-            parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_B);
-            parameters.setSigningCertificate(new RemoteCertificate(dssPrivateKeyEntry.getCertificate().getCertificate().getEncoded()));
-            parameters.setSignaturePackaging(SignaturePackaging.ENVELOPING);
-            parameters.setDigestAlgorithm(DigestAlgorithm.SHA256);
-
             FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.xml"));
             RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
-            DataToSignOneDocumentDTO dataToSignOneDocumentDTO = new DataToSignOneDocumentDTO(toSignDocument, parameters);
-            ToBeSignedDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignOneDocumentDTO, ToBeSignedDTO.class);
+
+            ClientSignatureParameters clientSignatureParameters = new ClientSignatureParameters();
+            clientSignatureParameters.setSigningCertificate(new RemoteCertificate(dssPrivateKeyEntry.getCertificate().getCertificate().getEncoded()));
+            clientSignatureParameters.setSigningDate(new Date());
+            GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_1", clientSignatureParameters);
+            ToBeSignedDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, ToBeSignedDTO.class);
             assertNotNull(dataToSign);
 
             SignatureValue signatureValue = token.sign(DTOConverter.toToBeSigned(dataToSign), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
-            SignOneDocumentDTO signDocument = new SignOneDocumentDTO(toSignDocument, parameters,
-                    new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue()));
-            RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocument, RemoteDocument.class);
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue());
+            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_1", clientSignatureParameters, signatureValueDto);
+            RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
 
             assertNotNull(signedDocument);
 
-            parameters = new RemoteSignatureParameters();
+            RemoteSignatureParameters parameters = new RemoteSignatureParameters();
             parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_T);
             ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, parameters);
-
             RemoteDocument extendedDocument = this.restTemplate.postForObject(LOCALHOST + port + EXTENDDOCUMENT_ENDPOINT, extendDocumentDTO, RemoteDocument.class);
 
             assertNotNull(extendedDocument);
@@ -159,28 +160,25 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             List<DSSPrivateKeyEntry> keys = token.getKeys();
             DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
 
-            RemoteSignatureParameters parameters = new RemoteSignatureParameters();
-            parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_B);
-            parameters.setSigningCertificate(new RemoteCertificate(dssPrivateKeyEntry.getCertificate().getCertificate().getEncoded()));
-            parameters.setSignaturePackaging(SignaturePackaging.DETACHED);
-            parameters.setDigestAlgorithm(DigestAlgorithm.SHA256);
-
             FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.xml"));
             RemoteDocument toSignDocument = new RemoteDocument(DSSUtils.digest(DigestAlgorithm.SHA256, fileToSign), DigestAlgorithm.SHA256,
                     fileToSign.getName());
-            DataToSignOneDocumentDTO dataToSignOneDocumentDTO = new DataToSignOneDocumentDTO(toSignDocument, parameters);
+            ClientSignatureParameters clientSignatureParameters = new ClientSignatureParameters();
+            clientSignatureParameters.setSigningCertificate(new RemoteCertificate(dssPrivateKeyEntry.getCertificate().getCertificate().getEncoded()));
+            clientSignatureParameters.setSigningDate(new Date());
+            GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_2", clientSignatureParameters);
 
-            ToBeSignedDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignOneDocumentDTO, ToBeSignedDTO.class);
+            ToBeSignedDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, ToBeSignedDTO.class);
             assertNotNull(dataToSign);
 
             SignatureValue signatureValue = token.sign(DTOConverter.toToBeSigned(dataToSign), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
-            SignOneDocumentDTO signDocument = new SignOneDocumentDTO(toSignDocument, parameters,
-                    new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue()));
-            RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocument, RemoteDocument.class);
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue());
+            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_2", clientSignatureParameters, signatureValueDto);
+            RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
 
             assertNotNull(signedDocument);
 
-            parameters = new RemoteSignatureParameters();
+            RemoteSignatureParameters parameters = new RemoteSignatureParameters();
             parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_T);
             parameters.setDetachedContents(Arrays.asList(toSignDocument));
             ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, parameters);
@@ -192,6 +190,24 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             InMemoryDocument iMD = new InMemoryDocument(extendedDocument.getBytes());
             iMD.save("target/test-digest.xml");
         }
+    }
+
+    private static void saveProfileSignatureParameters(ProfileSignatureParametersDao dao,
+                                                       String profileId,
+                                                       ASiCContainerType containerType,
+                                                       SignatureLevel signatureLevel,
+                                                       SignaturePackaging signaturePackaging,
+                                                       DigestAlgorithm referenceDigestAlgorithm,
+                                                       SignatureAlgorithm... supportedSigAlgos) {
+        ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
+        profileParams.setProfileId(profileId);
+        profileParams.setAsicContainerType(containerType);
+        profileParams.setSignatureLevel(signatureLevel);
+        profileParams.setSignaturePackaging(signaturePackaging);
+        profileParams.setSupportedSignatureAlgorithms(new HashSet<>(Arrays.asList(supportedSigAlgos)));
+        profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
+
+        dao.save(profileParams);
     }
 
     private static void saveSigningType(SigningTypeDAO dao, String name, Boolean active, CertificateType... certificateTypes) {

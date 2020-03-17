@@ -4,16 +4,22 @@ import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
 import com.zetes.projects.bosa.resourcelocator.service.LocatorService;
+import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignDTO;
+import com.zetes.projects.bosa.signandvalidation.model.SignDocumentDTO;
+import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
+import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
+import com.zetes.projects.bosa.signingconfigurator.exception.SignatureAlgoNotSupportedException;
+import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
-import eu.europa.esig.dss.ws.signature.dto.DataToSignOneDocumentDTO;
 import eu.europa.esig.dss.ws.signature.dto.ExtendDocumentDTO;
-import eu.europa.esig.dss.ws.signature.dto.SignOneDocumentDTO;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -24,6 +30,9 @@ public class SigningController {
 
     @Autowired
     private LocatorService locatorService;
+
+    @Autowired
+    private SigningConfiguratorService signingConfigService;
 
     @Autowired
     private RemoteDocumentSignatureService remoteDocumentSignatureService;
@@ -49,13 +58,32 @@ public class SigningController {
     }
 
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ToBeSignedDTO getDataToSign(@RequestBody DataToSignOneDocumentDTO dataToSignDto) {
-        return remoteDocumentSignatureService.getDataToSign(dataToSignDto.getToSignDocument(), dataToSignDto.getParameters());
+    public ToBeSignedDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
+        try {
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
+                    dataToSignDto.getSigningProfileId(),
+                    dataToSignDto.getClientSignatureParameters()
+            );
+
+            return remoteDocumentSignatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
+        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
     }
 
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument signDocument(@RequestBody SignOneDocumentDTO signDocumentDto) {
-        return remoteDocumentSignatureService.signDocument(signDocumentDto.getToSignDocument(), signDocumentDto.getParameters(), signDocumentDto.getSignatureValue());
+    public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
+        try {
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
+                    signDocumentDto.getSigningProfileId(),
+                    signDocumentDto.getClientSignatureParameters()
+            );
+
+            return remoteDocumentSignatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signDocumentDto.getSignatureValue());
+        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
+
     }
 
     @PostMapping(value = "/extendDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)

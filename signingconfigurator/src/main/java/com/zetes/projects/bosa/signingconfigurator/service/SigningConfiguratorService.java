@@ -25,7 +25,8 @@ public class SigningConfiguratorService {
 
     public RemoteSignatureParameters getSignatureParameters(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, SignatureAlgoNotSupportedException, NullParameterException {
         // TODO input validation service?
-        if (profileId == null || clientParams == null || clientParams.getSigningCertificate() == null) {
+        if (profileId == null || clientParams == null
+                || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
 

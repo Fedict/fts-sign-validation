@@ -18,6 +18,11 @@
             <artifactId>resourcelocator</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.zetes.projects.bosa</groupId>
+            <artifactId>signingconfigurator</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Spring -->
         <dependency>

@@ -45,9 +45,15 @@ public class SigningConfiguratorServiceTest {
 
     @Test
     public void throwsProfileNotFoundException() {
+        // given
+        ClientSignatureParameters clientParams = new ClientSignatureParameters();
+        clientParams.setSigningCertificate(getSha256Certificate());
+        clientParams.setSigningDate(new Date());
+
+        // then
         ProfileNotFoundException exception = assertThrows(
                 ProfileNotFoundException.class,
-                () -> service.getSignatureParameters("NOTFOUND", new ClientSignatureParameters())
+                () -> service.getSignatureParameters("NOTFOUND", clientParams)
         );
 
         assertEquals("NOTFOUND not found", exception.getMessage());
@@ -60,6 +66,7 @@ public class SigningConfiguratorServiceTest {
                 SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256, SignatureAlgorithm.RSA_SHA512);
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getSha1Certificate());
+        clientParams.setSigningDate(new Date());
 
         // then
         SignatureAlgoNotSupportedException exception = assertThrows(
@@ -77,6 +84,7 @@ public class SigningConfiguratorServiceTest {
                 SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getSha256Certificate());
+        clientParams.setSigningDate(new Date());
 
         // when
         RemoteSignatureParameters result = service.getSignatureParameters("XADES_B", clientParams);
@@ -100,6 +108,7 @@ public class SigningConfiguratorServiceTest {
                 SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getSha256Certificate());
+        clientParams.setSigningDate(new Date());
 
         // when
         RemoteSignatureParameters result = service.getSignatureParameters("XADES_B", clientParams);
