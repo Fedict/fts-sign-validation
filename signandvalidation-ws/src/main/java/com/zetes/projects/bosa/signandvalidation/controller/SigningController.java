@@ -6,15 +6,20 @@ import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
 import com.zetes.projects.bosa.resourcelocator.service.LocatorService;
 import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignDTO;
 import com.zetes.projects.bosa.signandvalidation.model.SignDocumentDTO;
+import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.exception.SignatureAlgoNotSupportedException;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
+import eu.europa.esig.dss.enumerations.Indication;
+import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
 import eu.europa.esig.dss.ws.signature.dto.ExtendDocumentDTO;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
+import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
+import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -35,7 +40,13 @@ public class SigningController {
     private SigningConfiguratorService signingConfigService;
 
     @Autowired
-    private RemoteDocumentSignatureService remoteDocumentSignatureService;
+    private RemoteDocumentSignatureService signatureService;
+
+    @Autowired
+    private RemoteDocumentValidationService validationService;
+
+    @Autowired
+    private ReportsService reportsService;
 
     @GetMapping(value = "/ping", produces = TEXT_PLAIN_VALUE)
     public String ping() {
@@ -65,7 +76,7 @@ public class SigningController {
                     dataToSignDto.getClientSignatureParameters()
             );
 
-            return remoteDocumentSignatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
+            return signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
         } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
@@ -79,16 +90,25 @@ public class SigningController {
                     signDocumentDto.getClientSignatureParameters()
             );
 
-            return remoteDocumentSignatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signDocumentDto.getSignatureValue());
+            RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signDocumentDto.getSignatureValue());
+
+            WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, null, null);
+
+            if (reportsService.isValidSignature(reportsDto)) {
+                return signedDoc;
+            } else {
+                Indication indication = reportsService.getIndication(reportsDto);
+                SubIndication subIndication = reportsService.getSubIndication(reportsDto);
+                throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
+            }
         } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
-
     }
 
     @PostMapping(value = "/extendDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO extendDocumentDto) {
-        return remoteDocumentSignatureService.extendDocument(extendDocumentDto.getToExtendDocument(), extendDocumentDto.getParameters());
+        return signatureService.extendDocument(extendDocumentDto.getToExtendDocument(), extendDocumentDto.getParameters());
     }
 
 }

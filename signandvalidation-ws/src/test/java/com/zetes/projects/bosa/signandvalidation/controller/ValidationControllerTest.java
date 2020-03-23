@@ -45,7 +45,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         assertEquals("pong", result);
     }
 
-    @Disabled("Temporary pipeline disable")
+    @Disabled("Temporary pipeline disable") // TODO
     @Test
     public void signatureWithTotalPassedFile() throws Exception {
         // given
@@ -70,7 +70,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         assertNotNull(reports);
     }
 
-    @Disabled("Temporary pipeline disable")
+    @Disabled("Temporary pipeline disable") // TODO
     @Test
     public void signatureWithTotalFailedFile() throws Exception {
         // given
@@ -297,7 +297,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         assertNotNull(diagnosticData.getValidationDate());
     }
 
-    @Disabled("Temporary pipeline disable")
+    @Disabled("Temporary pipeline disable") // TODO
     @Test
     public void certificateWithNoCertificateChain() {
         // given
@@ -339,7 +339,7 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         assertEquals("The certificate is missing", result.get("message"));
     }
 
-    @Disabled("Temporary pipeline disable")
+    @Disabled("Temporary pipeline disable") // TODO
     @Test
     public void certificatesWithPassedAndIndeterminateCertificates() {
         // given

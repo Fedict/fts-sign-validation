@@ -1,13 +1,17 @@
 package com.zetes.projects.bosa.signandvalidation.service;
 
 import com.zetes.projects.bosa.signandvalidation.model.IndicationsDTO;
+import eu.europa.esig.dss.enumerations.Indication;
+import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.simplecertificatereport.SimpleCertificateReport;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
+import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
+import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 
 @Service
 public class ReportsService {
@@ -26,6 +30,18 @@ public class ReportsService {
         }
 
         return new IndicationsDTO(PASSED);
+    }
+
+    public boolean isValidSignature(WSReportsDTO reportsDto) {
+        return reportsDto.getSimpleReport().getSignature().get(0).getIndication() == TOTAL_PASSED;
+    }
+
+    public Indication getIndication(WSReportsDTO reportsDto) {
+        return reportsDto.getSimpleReport().getSignature().get(0).getIndication();
+    }
+
+    public SubIndication getSubIndication(WSReportsDTO reportsDto) {
+        return reportsDto.getSimpleReport().getSignature().get(0).getSubIndication();
     }
 
 }
