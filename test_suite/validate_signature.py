@@ -9,21 +9,13 @@ from jsonschema import validate
 def validate_signature(file):
     url = c.get_url()
 
-    # kept in comment in order to troubleshoot faster
-    # json_request = json.dumps(file)
-    # f = open("request.txt", "w+")
-    # f.write(json_request)
-
     req = requests.post(url=url + "validation/validateSignature", json=file)
-
-    # data = dump.dump_all(req)
-    # print(data.decode("utf-8"))
 
     return req
 
 
-def validate_json(response):
-    with open("data/requests/response_schema.json") as response_schema:
+def validate_certificate_json(response):
+    with open("data/requests/response_certificate_schema.json") as response_schema:
         schema = json.load(response_schema)
 
         return validate(instance=response, schema=schema)

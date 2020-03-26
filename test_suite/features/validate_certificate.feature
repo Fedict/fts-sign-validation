@@ -11,5 +11,5 @@ Feature: Validation certificate service
             | certificate          | certificateChain     | code |
             | certificateChain.cer | certificate.cer      | 200  |
             | certificate.cer      | certificateChain.cer | 200  |
-# | CZ.cer      | Sign-5.xml       | 404  |
-# | Sign-5.xml  | CZ.cer           | 404  |
+            | certificate.cer      | Sign-5.xml           | 500  |
+            | Sign-5.xml           | certificate.cer      | 500  |

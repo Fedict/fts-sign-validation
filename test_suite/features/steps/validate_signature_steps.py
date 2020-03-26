@@ -1,4 +1,4 @@
-from behave import *
+from behave import given, then, when
 import validate_signature as vs
 import common as c
 import json
@@ -50,11 +50,10 @@ def validation_signatures(context, amount):
 
 @then("The response schema is valid")
 def validate_schema(context):
-    assert vs.validate_json(json.loads(context.response.content)) is None
+    assert vs.validate_certificate_json(json.loads(context.response.content)) is None
 
 
 @when('Add {naughtystring} to the "{value}"')
 def replace_signatureid(context, value, naughtystring):
     json_post = c.change_property(context.json_file, value, naughtystring)
     context.response = vs.validate_signature(json_post)
-

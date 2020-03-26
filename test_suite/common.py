@@ -54,4 +54,3 @@ def change_property(json_file, property_change, value):
         json_file[property_change] = value
 
     return json_file
-

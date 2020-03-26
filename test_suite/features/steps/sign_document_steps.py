@@ -1,7 +1,5 @@
-from behave import *
-import common as c
+from behave import given, when, then
 import sign_document as sd
-import json
 
 
 @given("Add {property} and {value} to the post")
@@ -13,3 +11,8 @@ def prepare_post(context, property, value):
 @when("Send the document")
 def sign_document(context):
     context.response = sd.sign_document(context.request_json)
+
+
+@then("The result is {result}")
+def sign_doc_result(context, result):
+    assert result in context.response.text

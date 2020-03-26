@@ -1,41 +1,25 @@
 Feature: Signing a document
 
-    @wip
+    @active @wip
     Scenario Outline: Sign a document
         Given Add <property> and <value> to the post
         When Send the document
         Then The response is <code>
+        And The result is <result>
 
         Examples:
-            | property                            | value          | code |
-            | parameters/blevelParams/signingDate | 1583325341312  | 200  |
-            | parameters/blevelParams/signingDate | 0              | 500  |
-            | parameters/blevelParams/signingDate | 20000000000000 | 500  |
+            | property                              | value          | code | result                            |
+            | clientSignatureParameters/signingDate | 1583325341312  | 400  | INDETERMINATE                     |
+            | clientSignatureParameters/signingDate | 0              | 500  | not in certificate validity range |
+            | clientSignatureParameters/signingDate | 20000000000000 | 500  | not in certificate validity range |
             # Boundary value testing
-            | parameters/blevelParams/signingDate | 1496921161000  | 200  |
-            | parameters/blevelParams/signingDate | 2445839844000  | 200  |
-            | parameters/blevelParams/signingDate | 1496921160999  | 500  |
-            | parameters/blevelParams/signingDate | 2445839844001  | 500  |
-            | signatureValue/value                | apples         | 400  |
-            | signatureValue/value                | YXBwbGVz       | 200  |
-            | signatureValue/algorithm            | RSA_SHA512     | 200  |
-            | signatureValue/algorithm            | apples         | 400  |
-            | toSignDocument/bytes                | apples         | 400  |
-            | toSignDocument/bytes                | YXBwbGVz       | 200  |
-
-
-
-
-
-
-
-
-
-
-
-#            | old_signing.json | 400  |
-#            | no_doc.json   | 400  |
-#            | no_signature.json          | 400  |
-#            | different_sig_algo.json    | 400  |
-#            | invalid_signature.json     | 400  |
-#            | invalid_b64_signature.json | 400  |
+            | clientSignatureParameters/signingDate | 1496921161000  | 400  | INDETERMINATE                     |
+            | clientSignatureParameters/signingDate | 2445839844000  | 400  | INDETERMINATE                     |
+            | clientSignatureParameters/signingDate | 1496921160999  | 500  | not in certificate validity range |
+            | clientSignatureParameters/signingDate | 2445839844001  | 500  | not in certificate validity range |
+            | signatureValue/value                  | apples         | 400  | Unexpected end of base64-encoded  |
+            | signatureValue/value                  | YXBwbGVz       | 400  | INDETERMINATE                     |
+            | signatureValue/algorithm              | RSA_SHA512     | 400  | INDETERMINATE                     |
+            | signatureValue/algorithm              | apples         | 400  | not one of the values accepted    |
+            | toSignDocument/bytes                  | apples         | 400  | Unexpected end of base64-encoded  |
+            | toSignDocument/bytes                  | YXBwbGVz       | 400  | INDETERMINATE                     |
