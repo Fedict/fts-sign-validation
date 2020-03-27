@@ -1,0 +1,24 @@
+[
+  {
+    "certificate": {
+      "encodedCertificate": "string"
+    },
+    "certificateChain": [
+      {
+        "encodedCertificate": "string"
+      }
+    ],
+    "validationTime": "2020-03-27T08:13:36.217Z"
+  },
+  {
+    "certificate": {
+      "encodedCertificate": "string"
+    },
+    "certificateChain": [
+      {
+        "encodedCertificate": "string"
+      }
+    ],
+    "validationTime": "2020-03-27T08:13:36.217Z"
+  }
+]

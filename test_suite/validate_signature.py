@@ -1,7 +1,5 @@
 import requests
-import fetch_config as fc
 import common as c
-from requests_toolbelt.utils import dump
 import json
 from jsonschema import validate
 

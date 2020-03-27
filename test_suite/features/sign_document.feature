@@ -1,6 +1,6 @@
 Feature: Signing a document
 
-    @active @wip
+    @active
     Scenario Outline: Sign a document
         Given Add <property> and <value> to the post
         When Send the document

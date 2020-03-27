@@ -1,12 +1,15 @@
-import fetch_config as fc
 import json
 import base64
 import requests
-import common as c
+
+
+def get_configuration():
+    with open("configuration.json") as json_file:
+        return json.load(json_file)
 
 
 def ping(service):
-    url = c.get_url()
+    url = get_url()
     if service == "validation":
         req = requests.get(url=url + "validation/ping")
     else:
@@ -16,7 +19,7 @@ def ping(service):
 
 
 def get_url():
-    config = fc.get_configuration()
+    config = get_configuration()
     url = config["url"]
 
     return url
