@@ -15,7 +15,7 @@ Feature: Validation certificate service
             | Sign-5.xml           | certificate.cer      | 500  |
 
 
-    @active @wip
+    @active
     Scenario Outline: Posting different certificate
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"

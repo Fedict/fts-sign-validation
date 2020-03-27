@@ -1,7 +1,7 @@
 Feature: Signing a document
 
     @active
-    Scenario Outline: Sign a document
+    Scenario Outline: Modify a document
         Given Add <property> and <value> to the post
         When Send the document
         Then The response is <code>
@@ -23,3 +23,14 @@ Feature: Signing a document
             | signatureValue/algorithm              | apples         | 400  | not one of the values accepted    |
             | toSignDocument/bytes                  | apples         | 400  | Unexpected end of base64-encoded  |
             | toSignDocument/bytes                  | YXBwbGVz       | 400  | INDETERMINATE                     |
+
+    @active
+    Scenario Outline: Sign a document
+        Given Prepare the <document>
+        When Send the document
+        Then The response is <code>
+        And The result is <result>
+
+        Examples:
+            | document      | code | result        |
+            | signable.json | 400  | INDETERMINATE |

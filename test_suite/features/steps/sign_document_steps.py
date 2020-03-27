@@ -3,9 +3,14 @@ import sign_document as sd
 
 
 @given("Add {property} and {value} to the post")
-def prepare_post(context, property, value):
+def modify_post(context, property, value):
     json = sd.adapt_json(property, value)
     context.request_json = json
+
+
+@given("Prepare the {file}")
+def prepare_post(context, file):
+    context.request_json = sd.fetch_json(file)
 
 
 @when("Send the document")
