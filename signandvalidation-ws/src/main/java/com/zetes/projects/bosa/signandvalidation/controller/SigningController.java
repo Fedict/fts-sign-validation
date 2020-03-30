@@ -4,6 +4,7 @@ import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
 import com.zetes.projects.bosa.resourcelocator.service.LocatorService;
+import com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO;
 import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignDTO;
 import com.zetes.projects.bosa.signandvalidation.model.SignDocumentDTO;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
@@ -16,7 +17,6 @@ import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
-import eu.europa.esig.dss.ws.signature.dto.ExtendDocumentDTO;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
@@ -108,7 +108,26 @@ public class SigningController {
 
     @PostMapping(value = "/extendDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO extendDocumentDto) {
-        return signatureService.extendDocument(extendDocumentDto.getToExtendDocument(), extendDocumentDto.getParameters());
+        try {
+            RemoteSignatureParameters parameters = signingConfigService.getExtensionParameters(
+                    extendDocumentDto.getExtendProfileId(),
+                    extendDocumentDto.getDetachedContents()
+            );
+
+            RemoteDocument extendedDoc = signatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
+
+            WSReportsDTO reportsDto = validationService.validateDocument(extendedDoc, null, null);
+
+            if (reportsService.isValidSignature(reportsDto)) {
+                return extendedDoc;
+            } else {
+                Indication indication = reportsService.getIndication(reportsDto);
+                SubIndication subIndication = reportsService.getSubIndication(reportsDto);
+                throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
+            }
+        } catch (ProfileNotFoundException | NullParameterException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
     }
 
 }

@@ -10,10 +10,13 @@ import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParamet
 import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
+import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteBLevelParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class SigningConfiguratorService {
@@ -79,6 +82,46 @@ public class SigningConfiguratorService {
         remoteBLevelParameters.setSignerLocationStateOrProvince(clientParams.getSignerLocationStateOrProvince());
         remoteBLevelParameters.setSignerLocationCountry(clientParams.getSignerLocationCountry());
         remoteBLevelParameters.setSignerLocationStreet(clientParams.getSignerLocationStreet());
+
+        remoteSignatureParameters.setBLevelParams(remoteBLevelParameters);
+
+        return remoteSignatureParameters;
+    }
+
+    public RemoteSignatureParameters getExtensionParameters(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException, NullParameterException {
+        // TODO input validation service?
+        if (profileId == null) {
+            throw new NullParameterException("Profile id should not be null");
+        }
+
+        ProfileSignatureParameters profileParams = getProfileSignatureParameters(profileId);
+
+        RemoteSignatureParameters remoteSignatureParameters = new RemoteSignatureParameters();
+
+        remoteSignatureParameters.setContentTimestampParameters(defaultParams.getContentTimestampParameters());
+        remoteSignatureParameters.setSignatureTimestampParameters(defaultParams.getSignatureTimestampParameters());
+        remoteSignatureParameters.setArchiveTimestampParameters(defaultParams.getArchiveTimestampParameters());
+        remoteSignatureParameters.setSignWithExpiredCertificate(defaultParams.isSignWithExpiredCertificate());
+        remoteSignatureParameters.setGenerateTBSWithoutCertificate(defaultParams.isGenerateTBSWithoutCertificate());
+
+        remoteSignatureParameters.setDetachedContents(detachedContents);
+
+        remoteSignatureParameters.setAsicContainerType(profileParams.getAsicContainerType());
+        remoteSignatureParameters.setSignatureLevel(profileParams.getSignatureLevel());
+        remoteSignatureParameters.setSignaturePackaging(profileParams.getSignaturePackaging());
+        remoteSignatureParameters.setReferenceDigestAlgorithm(profileParams.getReferenceDigestAlgorithm());
+
+        // remoteBLevelParameters
+        RemoteBLevelParameters remoteBLevelParameters = new RemoteBLevelParameters();
+
+        remoteBLevelParameters.setTrustAnchorBPPolicy(defaultParams.isTrustAnchorBPPolicy());
+        remoteBLevelParameters.setPolicyId(defaultParams.getPolicyId());
+        remoteBLevelParameters.setPolicyQualifier(defaultParams.getPolicyQualifier());
+        remoteBLevelParameters.setPolicyDescription(defaultParams.getPolicyDescription());
+        remoteBLevelParameters.setPolicyDigestAlgorithm(defaultParams.getPolicyDigestAlgorithm());
+        remoteBLevelParameters.setPolicyDigestValue(defaultParams.getPolicyDigestValue());
+        remoteBLevelParameters.setPolicySpuri(defaultParams.getPolicySpuri());
+        remoteBLevelParameters.setCommitmentTypeIndications(defaultParams.getCommitmentTypeIndications());
 
         remoteSignatureParameters.setBLevelParams(remoteBLevelParameters);
 

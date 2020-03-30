@@ -1,5 +1,6 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zetes.projects.bosa.resourcelocator.dao.SigningTypeDAO;
 import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningType;
@@ -28,6 +29,7 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import java.io.File;
@@ -43,6 +45,9 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 public class SigningControllerTest extends SignAndValidationTestBase {
+
+    @Autowired
+    ObjectMapper mapper;
 
     public static final String LOCALHOST = "http://localhost:";
     public static final String GETSIGNINGTYPE_ENDPOINT = "/signing/getSigningType";
@@ -64,6 +69,8 @@ public class SigningControllerTest extends SignAndValidationTestBase {
                 SignaturePackaging.ENVELOPING, null, SignatureAlgorithm.RSA_SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_2", null, SignatureLevel.XAdES_BASELINE_B,
                 SignaturePackaging.DETACHED, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
+        saveProfileSignatureParameters(profileSigParamDao, "XADES_T", null, SignatureLevel.XAdES_BASELINE_T,
+                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
     }
 
     @Test
@@ -252,6 +259,25 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             assertEquals(BAD_REQUEST.value(), result.get("status"));
             assertEquals("Signed document did not pass validation: INDETERMINATE, NO_CERTIFICATE_CHAIN_FOUND", result.get("message"));
         }
+    }
+
+    // TODO testExtension with valid signed file
+    @Test
+    public void testExtensionInvalidSignature() throws Exception {
+        com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO extendDocumentDTO = mapper.readValue("{\n" +
+                "  \"toExtendDocument\" : {\n" +
+                "    \"bytes\" : \"PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+PGRzOlNpZ25hdHVyZSB4bWxuczpkcz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnIyIgSWQ9ImlkLWUwNTAwMTY2YmQ4YjI4Njc0OGE2MTAwODQ1MjA0ZmZkIj48ZHM6U2lnbmVkSW5mbz48ZHM6Q2Fub25pY2FsaXphdGlvbk1ldGhvZCBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnL1RSLzIwMDEvUkVDLXhtbC1jMTRuLTIwMDEwMzE1Ii8+PGRzOlNpZ25hdHVyZU1ldGhvZCBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvMDQveG1sZHNpZy1tb3JlI3JzYS1zaGEyNTYiLz48ZHM6UmVmZXJlbmNlIElkPSJyLWlkLWUwNTAwMTY2YmQ4YjI4Njc0OGE2MTAwODQ1MjA0ZmZkLTEiIFR5cGU9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvMDkveG1sZHNpZyNPYmplY3QiIFVSST0iI28taWQtZTA1MDAxNjZiZDhiMjg2NzQ4YTYxMDA4NDUyMDRmZmQtMSI+PGRzOlRyYW5zZm9ybXM+PGRzOlRyYW5zZm9ybSBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvMDkveG1sZHNpZyNiYXNlNjQiLz48L2RzOlRyYW5zZm9ybXM+PGRzOkRpZ2VzdE1ldGhvZCBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvMDQveG1sZW5jI3NoYTI1NiIvPjxkczpEaWdlc3RWYWx1ZT56ZGhjVEpzYlE2cVg1ZThJa2RseUp6Qms5YkJ1VGY4TXlLcW15WVhaendZPTwvZHM6RGlnZXN0VmFsdWU+PC9kczpSZWZlcmVuY2U+PGRzOlJlZmVyZW5jZSBUeXBlPSJodHRwOi8vdXJpLmV0c2kub3JnLzAxOTAzI1NpZ25lZFByb3BlcnRpZXMiIFVSST0iI3hhZGVzLWlkLWUwNTAwMTY2YmQ4YjI4Njc0OGE2MTAwODQ1MjA0ZmZkIj48ZHM6VHJhbnNmb3Jtcz48ZHM6VHJhbnNmb3JtIEFsZ29yaXRobT0iaHR0cDovL3d3dy53My5vcmcvVFIvMjAwMS9SRUMteG1sLWMxNG4tMjAwMTAzMTUiLz48L2RzOlRyYW5zZm9ybXM+PGRzOkRpZ2VzdE1ldGhvZCBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvMDQveG1sZW5jI3NoYTI1NiIvPjxkczpEaWdlc3RWYWx1ZT5jV0N4ekw1eFJMc2c2ZFM2SUlPSnlidGxpUkJ6WGYrVU5ZNlowZVVjVTZVPTwvZHM6RGlnZXN0VmFsdWU+PC9kczpSZWZlcmVuY2U+PC9kczpTaWduZWRJbmZvPjxkczpTaWduYXR1cmVWYWx1ZSBJZD0idmFsdWUtaWQtZTA1MDAxNjZiZDhiMjg2NzQ4YTYxMDA4NDUyMDRmZmQiPmhCRVVmYjhZRElWZGRqUDhZWTAyc2l4Tyt6UTBHWkszb2J3SGlGWndidW01YzZMVktYWEw5UmJ2U0JMZ0dqYzd5WTBseWMzOVdjODRlWVpuMlpnT002RkhVeCtudG9mYURHTVVFbXNNWVR3WElYYk42RU9HQmtSb3ZlTExncGR3RWFrZWtLZC9yS0o4aFhvemZKa1MzUjNqRmc2WGNmUkl4NU9SMVFqRVVabllMZWo5K0kxMlhqWlVjczNIRHZDR0NLUEVsSWUzaUlQRnVhLzdDd1N0cTlJd2d3WEh1dDJrbXk5bnRnZllwT2R1djd1bU5wWFBIcUQzTldSVlVuRkY4aHJoT29HYkMxVWNRNS9sK0I5b2Z3a2ZQeFltaG91SWRMOCtSQ1BrUXBBbHpyL0xrYmpBTlVyNTZuYWUwaGFXVzVYOGEvUHN3UmtvUVREZ05NTDdtQT09PC9kczpTaWduYXR1cmVWYWx1ZT48ZHM6S2V5SW5mbz48ZHM6WDUwOURhdGE+PGRzOlg1MDlDZXJ0aWZpY2F0ZT5NSUlDNmpDQ0FkS2dBd0lCQWdJR0x0WVUxN3RYTUEwR0NTcUdTSWIzRFFFQkN3VUFNREF4R3pBWkJnTlZCQU1NRWxKdmIzUlRaV3htVTJsbmJtVmtSbUZyWlRFUk1BOEdBMVVFQ2d3SVJGTlRMWFJsYzNRd0hoY05NVGN3TmpBNE1URXlOakF4V2hjTk5EY3dOekEwTURjMU56STBXakFvTVJNd0VRWURWUVFEREFwVGFXZHVaWEpHWVd0bE1SRXdEd1lEVlFRS0RBaEVVMU10ZEdWemREQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU1JM2taaHRuaXBuK2lpWkhaOWF4OEZsZkU1T3cvY0Z3QlRmQUViM1IxWlFVcDYvQlFuQnQ3T28wSldCdGM5cWt2N0pVRGRjQkpYUFY1UVdTNUF5TVBIcHFRNzVIaXRqc3EvRnp1OGVIdGtLcEZpemN4R2E5Qlpka1FqaDRyU3J0TzFLanMwUmQ1RFF0V1Nna2VWQ0NOMDlrTjBac1owRU5ZK0lwOFF4U215enRzU3RrWVhkVUxxcHd6NEpFWFc5dno2NGVUYmRlNHZRSjZwakhHYXJKZjFnUU5FYzJYemhtSS9wclhMeXNXTnFDN2xaZzdQVVpVVHJkZWdBQlRVellDUkoxa1dCUlBtNHFvMExONDA1Yzk0UVFkNDVhNWtUZ293SHpFZ0xuQVFJMjh4ME0zQTU5VEtDK2llTmM2VkYxUHNUTHBVdzdQTkkyVnN0WDVqQXVhc0NBd0VBQWFNU01CQXdEZ1lEVlIwUEFRSC9CQVFEQWdFR01BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQ0s2TEdBMDFUUitybVU4cDZ5aEFpNE9rRE4yYjFkYklMOGw4aUNNWW9wTEN4eDh4cXEzdWJaQ094cWgxWDJqNnBnV3phcmIwYi9NVWl4MDBJb1V2TmJGT3hBVzdQQlpJS0RMbm02THNja1J4czFVMzJzQzlkMUxPSGUzV0tCTkI2R1pBTFQxZXdqaDdoU2JXamZ0bG1jb3ZxKzZlVkdBNWN2ZjJ1LzIrVGtLa3lIVi9OUjM5NG5YcmRzZHB2eWd3eXBFdFhqZXR6RDdVVDkzTnV3M3hjVjhWSWZ0SXZIZjlMalU3aCtVakdtS1hHOWMxNWVZcjNTelVtdjZreU9JMEJ2dzE0UFd0c1dHbDBRZE9TUnZJQkJyUDRhZENuR1RnamdqazlMVGNPOEI4Rktycis4bEhHdWMwYnA0bElVVG9pVWtHSUxYc2lFZUVnOVdBcW0rWHFPPC9kczpYNTA5Q2VydGlmaWNhdGU+PC9kczpYNTA5RGF0YT48L2RzOktleUluZm8+PGRzOk9iamVjdD48eGFkZXM6UXVhbGlmeWluZ1Byb3BlcnRpZXMgeG1sbnM6eGFkZXM9Imh0dHA6Ly91cmkuZXRzaS5vcmcvMDE5MDMvdjEuMy4yIyIgVGFyZ2V0PSIjaWQtZTA1MDAxNjZiZDhiMjg2NzQ4YTYxMDA4NDUyMDRmZmQiPjx4YWRlczpTaWduZWRQcm9wZXJ0aWVzIElkPSJ4YWRlcy1pZC1lMDUwMDE2NmJkOGIyODY3NDhhNjEwMDg0NTIwNGZmZCI+PHhhZGVzOlNpZ25lZFNpZ25hdHVyZVByb3BlcnRpZXM+PHhhZGVzOlNpZ25pbmdUaW1lPjIwMjAtMDMtMzBUMDg6MzQ6MjFaPC94YWRlczpTaWduaW5nVGltZT48eGFkZXM6U2lnbmluZ0NlcnRpZmljYXRlVjI+PHhhZGVzOkNlcnQ+PHhhZGVzOkNlcnREaWdlc3Q+PGRzOkRpZ2VzdE1ldGhvZCBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvMDQveG1sZW5jI3NoYTUxMiIvPjxkczpEaWdlc3RWYWx1ZT4xNHdNakRGemZzcWtkWlVzblBIMC9oK1pvOHJ6OERFd2lNcTJZTzF3TlRmcGxMM3drUTdFMGwyeVpQWWRlcUdLOVN4Q1RsenAxMVJORVVlTEtNc0NlUT09PC9kczpEaWdlc3RWYWx1ZT48L3hhZGVzOkNlcnREaWdlc3Q+PHhhZGVzOklzc3VlclNlcmlhbFYyPk1ENHdOS1F5TURBeEd6QVpCZ05WQkFNTUVsSnZiM1JUWld4bVUybG5ibVZrUm1GclpURVJNQThHQTFVRUNnd0lSRk5UTFhSbGMzUUNCaTdXRk5lN1Z3PT08L3hhZGVzOklzc3VlclNlcmlhbFYyPjwveGFkZXM6Q2VydD48L3hhZGVzOlNpZ25pbmdDZXJ0aWZpY2F0ZVYyPjx4YWRlczpTaWduYXR1cmVQb2xpY3lJZGVudGlmaWVyPjx4YWRlczpTaWduYXR1cmVQb2xpY3lJbXBsaWVkLz48L3hhZGVzOlNpZ25hdHVyZVBvbGljeUlkZW50aWZpZXI+PHhhZGVzOlNpZ25hdHVyZVByb2R1Y3Rpb25QbGFjZVYyLz48L3hhZGVzOlNpZ25lZFNpZ25hdHVyZVByb3BlcnRpZXM+PHhhZGVzOlNpZ25lZERhdGFPYmplY3RQcm9wZXJ0aWVzPjx4YWRlczpEYXRhT2JqZWN0Rm9ybWF0IE9iamVjdFJlZmVyZW5jZT0iI3ItaWQtZTA1MDAxNjZiZDhiMjg2NzQ4YTYxMDA4NDUyMDRmZmQtMSI+PHhhZGVzOk1pbWVUeXBlPnRleHQveG1sPC94YWRlczpNaW1lVHlwZT48L3hhZGVzOkRhdGFPYmplY3RGb3JtYXQ+PC94YWRlczpTaWduZWREYXRhT2JqZWN0UHJvcGVydGllcz48L3hhZGVzOlNpZ25lZFByb3BlcnRpZXM+PC94YWRlczpRdWFsaWZ5aW5nUHJvcGVydGllcz48L2RzOk9iamVjdD48ZHM6T2JqZWN0IElkPSJvLWlkLWUwNTAwMTY2YmQ4YjI4Njc0OGE2MTAwODQ1MjA0ZmZkLTEiPlBHaGxiR3h2UG5kdmNteGtQQzlvWld4c2J6ND08L2RzOk9iamVjdD48L2RzOlNpZ25hdHVyZT4=\",\n" +
+                "    \"digestAlgorithm\" : null,\n" +
+                "    \"name\" : \"sample-signed-xades-baseline-b.xml\"\n" +
+                "  },\n" +
+                "  \"extendProfileId\" : \"XADES_T\"\n" +
+                "}", com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO.class);
+
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + EXTENDDOCUMENT_ENDPOINT, extendDocumentDTO, Map.class);
+
+        // then
+        assertEquals(BAD_REQUEST.value(), result.get("status"));
+        assertEquals("Signed document did not pass validation: INDETERMINATE, NO_CERTIFICATE_CHAIN_FOUND", result.get("message"));
     }
 
     private static void saveProfileSignatureParameters(ProfileSignatureParametersDao dao,
