@@ -35,7 +35,7 @@ def add_bytes_json(encoded):
 
 
 def encode_file(file):
-    if file[-3:] in ["cer", "pem"]:
+    if file[-3:] in ["cer", "pem", "crt"]:
         with open("./data/certificate/" + file, "rb") as f:
             contents = f.read()
     elif file[-3:] in ["xml"]:

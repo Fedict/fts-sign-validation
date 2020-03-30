@@ -1,6 +1,7 @@
-from behave import given, when
+from behave import given, when, then
 import validate_certificate as vc
 import common as c
+import json
 
 
 @given('Preparing the certificate "{certificate}"')
@@ -30,6 +31,14 @@ def validate_certicate(context):
     )
 
 
+@then("The certificate is {result}")
+def validation_result(context, result):
+    response_dict = json.loads(context.response.content)
+    assert (
+        response_dict["simpleCertificateReport"]["ChainItem"][0]["Indication"] == result
+    )
+
+
 @when("The user validates the certificates")
 def validate_certicates(context):
     context.response = vc.validate_certificates(
@@ -38,3 +47,10 @@ def validate_certicates(context):
         context.cert_post_certificate_second,
         context.cert_post_certificateChain_second,
     )
+
+
+@then("The results are {first_result} and {second_result}")
+def validation_results(context, first_result, second_result):
+    response_dict = json.loads(context.response.content)
+    assert response_dict["indications"][0]["indication"] == first_result
+    assert response_dict["indications"][1]["indication"] == second_result
