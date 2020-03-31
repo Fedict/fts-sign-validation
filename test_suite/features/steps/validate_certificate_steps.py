@@ -11,7 +11,7 @@ def add_certificate(context, certificate):
 
 @given('Preparing the chain "{certificateChain}"')
 def add_certificateChain(context, certificateChain):
-    context.cert_post_certificateChain = c.encode_file(certificateChain)
+    context.certificateChain = vc.prepare_certificateChain(certificateChain)
 
 
 @given('Preparing another certificate "{certificate}"')
@@ -27,7 +27,7 @@ def add_second_certificateChain(context, certificateChain):
 @when("The user validates the certificate")
 def validate_certicate(context):
     context.response = vc.validate_certificate(
-        context.cert_post_certificate, context.cert_post_certificateChain
+        context.cert_post_certificate, context.certificateChain
     )
 
 

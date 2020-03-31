@@ -1,6 +1,6 @@
 Feature: Validation signature service
 
-    @active
+    @active @wip
     Scenario Outline: Check if the validation service is online
         Given A ping has been sent to the "<service>"
         Then A pong will be returned

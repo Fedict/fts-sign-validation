@@ -9,11 +9,30 @@ def ready_certificate_json(certificate, certificateChain):
         json_file = json.load(template)
 
     json_file["certificate"]["encodedCertificate"] = certificate.decode("utf-8")
-    json_file["certificateChain"][0]["encodedCertificate"] = certificateChain.decode(
-        "utf-8"
-    )
+    json_file["certificateChain"] = certificateChain
+
+    print(json_file)
 
     return json_file
+
+
+def prepare_certificateChain(certificateChain):
+    chainlinks = certificateChain.split()
+    encoded_chainlinks = []
+    certificateChain_json = []
+    i = 0
+    while i < len(chainlinks):
+        encoded_chainlinks.append(chainlinks[i])
+
+        with open("./data/requests/encodedCertificateChain.json") as template:
+            json_file = json.load(template)
+
+        json_file["encodedCertificate"] = encoded_chainlinks[i].decode("utf-8")
+        certificateChain_json.append(json_file)
+
+        i += 1
+
+    return certificateChain_json
 
 
 def ready_certificates_json(

@@ -21,6 +21,18 @@ Feature: Validation certificate service
         And Preparing the chain "<certificateChain>"
         When The user validates the certificate
         Then The response is <code>
+
+        Examples:
+            | certificate     | certificateChain     | code |
+            | single_cert.crt | belgium.crt root.crt | 200  |
+
+
+    @active
+    Scenario Outline: Posting different certificate
+        Given Preparing the certificate "<certificate>"
+        And Preparing the chain "<certificateChain>"
+        When The user validates the certificate
+        Then The response is <code>
         And The certificate is <result>
 
         Examples:
@@ -28,6 +40,7 @@ Feature: Validation certificate service
             | certificateChain.cer            | certificate.cer      | 200  | PASSED        |
             | Zetes+PASS+CA.crt               | certificateChain.cer | 200  | INDETERMINATE |
             | ChambersofCommerceRoot-2008.crt | certificateChain.cer | 200  | INDETERMINATE |
+            | single_cert.crt                 | belgium.crt          | 500  | passed        |
 
 
     @active
@@ -49,7 +62,7 @@ Feature: Validation certificate service
             | certificate.cer      | certificateChain.cer | certificate.cer      | Sign-5.xml              | 500  |
 
 
-    @active @wip
+    @active
     Scenario Outline: Posting different certificate
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"

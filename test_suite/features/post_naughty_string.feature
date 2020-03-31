@@ -1,6 +1,6 @@
 Feature: NaughtyString test
 
-    @security @active
+    @security @active @wip
     Scenario: Check if the service is online
         Given A ping has been sent to the service
         Then A pong will be returned
