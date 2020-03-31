@@ -1,22 +1,22 @@
 Feature: Validation certificate service
 
     @active
-    Scenario Outline: Posting different certificate
+    Scenario Outline: Posting simple certificate
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
         When The user validates the certificate
         Then The response is <code>
 
         Examples:
-            | certificate          | certificateChain     | code |
-            | certificateChain.cer | certificate.cer      | 200  |
-            | certificate.cer      | certificateChain.cer | 200  |
-            | certificate.cer      | Sign-5.xml           | 500  |
-            | Sign-5.xml           | certificate.cer      | 500  |
+            | certificate     | certificateChain | code |
+            | root.crt        | certificate.cer  | 200  |
+            | certificate.cer | root.crt         | 200  |
+            | certificate.cer | Sign-5.xml       | 500  |
+            | Sign-5.xml      | certificate.cer  | 500  |
 
 
     @active @wip
-    Scenario Outline: Posting different certificate
+    Scenario Outline: Posting longer certificateChain
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
         When The user validates the certificate
@@ -27,8 +27,8 @@ Feature: Validation certificate service
             | single_cert.crt | belgium.crt root.crt | 200  |
 
 
-    @active
-    Scenario Outline: Posting different certificate
+    @active @wip
+    Scenario Outline: Validating certificate validation result
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
         When The user validates the certificate
@@ -37,14 +37,14 @@ Feature: Validation certificate service
 
         Examples:
             | certificate                     | certificateChain     | code | result        |
-            | certificateChain.cer            | certificate.cer      | 200  | PASSED        |
-            | Zetes+PASS+CA.crt               | certificateChain.cer | 200  | INDETERMINATE |
-            | ChambersofCommerceRoot-2008.crt | certificateChain.cer | 200  | INDETERMINATE |
-            | single_cert.crt                 | belgium.crt          | 500  | passed        |
+            | root.crt                        | certificate.cer      | 200  | PASSED        |
+            | Zetes+PASS+CA.crt               | root.crt             | 200  | INDETERMINATE |
+            | ChambersofCommerceRoot-2008.crt | root.crt             | 200  | INDETERMINATE |
+            | single_cert.crt                 | belgium.crt root.crt | 200  | PASSED        |
 
 
-    @active
-    Scenario Outline: Posting different certificate
+    @active @wip
+    Scenario Outline: Posting several certificates
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
         Given Preparing another certificate "<second_certificate>"
@@ -53,17 +53,17 @@ Feature: Validation certificate service
         Then The response is <code>
 
         Examples:
-            | certificate          | certificateChain     | second_certificate   | second_certificateChain | code |
-            | certificateChain.cer | certificate.cer      | certificateChain.cer | certificate.cer         | 200  |
-            | certificate.cer      | certificateChain.cer | certificate.cer      | certificateChain.cer    | 200  |
-            | Sign-5.xml           | certificate.cer      | certificateChain.cer | certificate.cer         | 500  |
-            | certificate.cer      | Sign-5.xml           | certificate.cer      | certificateChain.cer    | 500  |
-            | certificate.cer      | certificateChain.cer | Sign-5.xml           | certificateChain.cer    | 500  |
-            | certificate.cer      | certificateChain.cer | certificate.cer      | Sign-5.xml              | 500  |
+            | certificate     | certificateChain            | second_certificate | second_certificateChain     | code |
+            | root.crt        | belgium.crt certificate.cer | root.crt           | belgium.crt certificate.cer | 200  |
+            | certificate.cer | belgium.crt root.crt        | certificate.cer    | belgium.crt root.crt        | 200  |
+            | Sign-5.xml      | certificate.cer             | root.crt           | certificate.cer             | 500  |
+            | certificate.cer | Sign-5.xml                  | certificate.cer    | root.crt                    | 500  |
+            | certificate.cer | root.crt                    | Sign-5.xml         | root.crt                    | 500  |
+            | certificate.cer | root.crt                    | certificate.cer    | Sign-5.xml                  | 500  |
 
 
     @active
-    Scenario Outline: Posting different certificate
+    Scenario Outline: Validating the several certificates validation
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
         Given Preparing another certificate "<second_certificate>"
@@ -73,7 +73,7 @@ Feature: Validation certificate service
         And The results are <first_result> and <second_result>
 
         Examples:
-            | certificate          | certificateChain     | first_result  | second_certificate   | second_certificateChain | second_result | code |
-            | certificate.cer      | certificateChain.cer | INDETERMINATE | certificate.cer      | certificateChain.cer    | INDETERMINATE | 200  |
-            | certificateChain.cer | certificate.cer      | PASSED        | certificateChain.cer | certificate.cer         | PASSED        | 200  |
+            | certificate     | certificateChain | first_result  | second_certificate | second_certificateChain | second_result | code |
+            | certificate.cer | root.crt         | INDETERMINATE | certificate.cer    | root.crt                | INDETERMINATE | 200  |
+            | root.crt        | certificate.cer  | PASSED        | root.crt           | certificate.cer         | PASSED        | 200  |
 

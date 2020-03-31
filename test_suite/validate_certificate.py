@@ -8,10 +8,8 @@ def ready_certificate_json(certificate, certificateChain):
     with open("./data/requests/certificate.json") as template:
         json_file = json.load(template)
 
-    json_file["certificate"]["encodedCertificate"] = certificate.decode("utf-8")
+    json_file["certificate"]["encodedCertificate"] = certificate
     json_file["certificateChain"] = certificateChain
-
-    print(json_file)
 
     return json_file
 
@@ -22,12 +20,12 @@ def prepare_certificateChain(certificateChain):
     certificateChain_json = []
     i = 0
     while i < len(chainlinks):
-        encoded_chainlinks.append(chainlinks[i])
+        encoded_chainlinks.append(c.encode_file(chainlinks[i]))
 
         with open("./data/requests/encodedCertificateChain.json") as template:
             json_file = json.load(template)
 
-        json_file["encodedCertificate"] = encoded_chainlinks[i].decode("utf-8")
+        json_file["encodedCertificate"] = encoded_chainlinks[i]
         certificateChain_json.append(json_file)
 
         i += 1
@@ -42,16 +40,10 @@ def ready_certificates_json(
     with open("./data/requests/certificates.json") as template:
         json_file = json.load(template)
 
-    json_file[0]["certificate"]["encodedCertificate"] = certificate.decode("utf-8")
-    json_file[0]["certificateChain"][0]["encodedCertificate"] = certificateChain.decode(
-        "utf-8"
-    )
-    json_file[1]["certificate"]["encodedCertificate"] = second_certificate.decode(
-        "utf-8"
-    )
-    json_file[1]["certificateChain"][0][
-        "encodedCertificate"
-    ] = second_certificateChain.decode("utf-8")
+    json_file[0]["certificate"]["encodedCertificate"] = certificate
+    json_file[0]["certificateChain"] = certificateChain
+    json_file[1]["certificate"]["encodedCertificate"] = second_certificate
+    json_file[1]["certificateChain"] = second_certificateChain
 
     return json_file
 
@@ -63,7 +55,7 @@ def validate_certificates(
     json = ready_certificates_json(
         certificate, certificateChain, second_certificate, second_certificateChain
     )
-
+    print(json)
     req = requests.post(url=url + "validation/validateCertificates", json=json)
 
     return req

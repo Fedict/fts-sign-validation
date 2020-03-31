@@ -6,7 +6,7 @@ import json
 
 @given('Preparing the certificate "{certificate}"')
 def add_certificate(context, certificate):
-    context.cert_post_certificate = c.encode_file(certificate)
+    context.certificate = c.encode_file(certificate)
 
 
 @given('Preparing the chain "{certificateChain}"')
@@ -16,18 +16,18 @@ def add_certificateChain(context, certificateChain):
 
 @given('Preparing another certificate "{certificate}"')
 def add_second_certificate(context, certificate):
-    context.cert_post_certificate_second = c.encode_file(certificate)
+    context.certificate_second = c.encode_file(certificate)
 
 
 @given('Preparing another chain "{certificateChain}"')
 def add_second_certificateChain(context, certificateChain):
-    context.cert_post_certificateChain_second = c.encode_file(certificateChain)
+    context.certificateChain_second = vc.prepare_certificateChain(certificateChain)
 
 
 @when("The user validates the certificate")
 def validate_certicate(context):
     context.response = vc.validate_certificate(
-        context.cert_post_certificate, context.certificateChain
+        context.certificate, context.certificateChain
     )
 
 
@@ -42,10 +42,10 @@ def validation_result(context, result):
 @when("The user validates the certificates")
 def validate_certicates(context):
     context.response = vc.validate_certificates(
-        context.cert_post_certificate,
-        context.cert_post_certificateChain,
-        context.cert_post_certificate_second,
-        context.cert_post_certificateChain_second,
+        context.certificate,
+        context.certificateChain,
+        context.certificate_second,
+        context.certificateChain_second,
     )
 
 
