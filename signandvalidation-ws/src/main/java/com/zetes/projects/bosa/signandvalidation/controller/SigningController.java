@@ -4,9 +4,7 @@ import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
 import com.zetes.projects.bosa.resourcelocator.service.LocatorService;
-import com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO;
-import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignDTO;
-import com.zetes.projects.bosa.signandvalidation.model.SignDocumentDTO;
+import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
@@ -17,6 +15,7 @@ import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
+import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureService;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
@@ -41,6 +40,9 @@ public class SigningController {
 
     @Autowired
     private RemoteDocumentSignatureService signatureService;
+
+    @Autowired
+    private RemoteMultipleDocumentsSignatureService signatureServiceMultiple;
 
     @Autowired
     private RemoteDocumentValidationService validationService;
@@ -82,6 +84,20 @@ public class SigningController {
         }
     }
 
+    @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public ToBeSignedDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
+        try {
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
+                    dataToSignDto.getSigningProfileId(),
+                    dataToSignDto.getClientSignatureParameters()
+            );
+
+            return signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
+        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
+    }
+
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
@@ -92,7 +108,31 @@ public class SigningController {
 
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signDocumentDto.getSignatureValue());
 
-            WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, null, null);
+            WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
+
+            if (reportsService.isValidSignature(reportsDto)) {
+                return signedDoc;
+            } else {
+                Indication indication = reportsService.getIndication(reportsDto);
+                SubIndication subIndication = reportsService.getSubIndication(reportsDto);
+                throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
+            }
+        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
+        try {
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
+                    signDocumentDto.getSigningProfileId(),
+                    signDocumentDto.getClientSignatureParameters()
+            );
+
+            RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signDocumentDto.getSignatureValue());
+
+            WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
 
             if (reportsService.isValidSignature(reportsDto)) {
                 return signedDoc;
@@ -116,7 +156,31 @@ public class SigningController {
 
             RemoteDocument extendedDoc = signatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            WSReportsDTO reportsDto = validationService.validateDocument(extendedDoc, null, null);
+            WSReportsDTO reportsDto = validationService.validateDocument(extendedDoc, extendDocumentDto.getDetachedContents(), null);
+
+            if (reportsService.isValidSignature(reportsDto)) {
+                return extendedDoc;
+            } else {
+                Indication indication = reportsService.getIndication(reportsDto);
+                SubIndication subIndication = reportsService.getSubIndication(reportsDto);
+                throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
+            }
+        } catch (ProfileNotFoundException | NullParameterException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/extendDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO extendDocumentDto) {
+        try {
+            RemoteSignatureParameters parameters = signingConfigService.getExtensionParameters(
+                    extendDocumentDto.getExtendProfileId(),
+                    extendDocumentDto.getDetachedContents()
+            );
+
+            RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
+
+            WSReportsDTO reportsDto = validationService.validateDocument(extendedDoc, extendDocumentDto.getDetachedContents(), null);
 
             if (reportsService.isValidSignature(reportsDto)) {
                 return extendedDoc;
