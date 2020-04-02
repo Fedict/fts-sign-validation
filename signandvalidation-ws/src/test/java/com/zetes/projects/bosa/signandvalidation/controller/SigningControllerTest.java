@@ -6,6 +6,7 @@ import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
+import com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO;
 import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignDTO;
 import com.zetes.projects.bosa.signandvalidation.model.SignDocumentDTO;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
@@ -24,8 +25,6 @@ import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
-import eu.europa.esig.dss.ws.signature.dto.ExtendDocumentDTO;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -59,12 +58,14 @@ public class SigningControllerTest extends SignAndValidationTestBase {
     @BeforeAll
     public static void fillDB(ApplicationContext applicationContext) {
         SigningTypeDAO signingTypeDao = applicationContext.getBean(SigningTypeDAO.class);
+        signingTypeDao.deleteAll();
         saveSigningType(signingTypeDao, "auth", true, AUTHORISATION);
         saveSigningType(signingTypeDao, "non-rep", true, NON_REPUDIATION);
         saveSigningType(signingTypeDao, "all", true, AUTHORISATION, NON_REPUDIATION);
         saveSigningType(signingTypeDao, "inactive", false, AUTHORISATION, NON_REPUDIATION);
 
         ProfileSignatureParametersDao profileSigParamDao = applicationContext.getBean(ProfileSignatureParametersDao.class);
+        profileSigParamDao.deleteAll();
         saveProfileSignatureParameters(profileSigParamDao, "XADES_1", null, SignatureLevel.XAdES_BASELINE_B,
                 SignaturePackaging.ENVELOPING, null, SignatureAlgorithm.RSA_SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_2", null, SignatureLevel.XAdES_BASELINE_B,
@@ -149,9 +150,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
 
             assertNotNull(signedDocument);
 
-            RemoteSignatureParameters parameters = new RemoteSignatureParameters();
-            parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_T);
-            ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, parameters);
+            ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, "XADES_T", null);
             RemoteDocument extendedDocument = this.restTemplate.postForObject(LOCALHOST + port + EXTENDDOCUMENT_ENDPOINT, extendDocumentDTO, RemoteDocument.class);
 
             assertNotNull(extendedDocument);
@@ -162,7 +161,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
     }
 
     @Test
-    public void testSigningAndExtensionInvalidSignature() throws Exception {
+    public void testSigningInvalidSignature() throws Exception {
         try (Pkcs12SignatureToken token = new Pkcs12SignatureToken(new FileInputStream("src/test/resources/user_a_rsa.p12"),
                 new KeyStore.PasswordProtection("password".toCharArray()))) {
 
@@ -217,10 +216,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
 
             assertNotNull(signedDocument);
 
-            RemoteSignatureParameters parameters = new RemoteSignatureParameters();
-            parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_T);
-            parameters.setDetachedContents(Arrays.asList(toSignDocument));
-            ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, parameters);
+            ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, "XADES_T", null);
 
             RemoteDocument extendedDocument = this.restTemplate.postForObject(LOCALHOST + port + EXTENDDOCUMENT_ENDPOINT, extendDocumentDTO, RemoteDocument.class);
 
@@ -232,7 +228,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
     }
 
     @Test
-    public void testSigningAndExtensionDigestDocumentInvalidSignature() throws Exception {
+    public void testSigningDigestDocumentInvalidSignature() throws Exception {
         try (Pkcs12SignatureToken token = new Pkcs12SignatureToken(new FileInputStream("src/test/resources/user_a_rsa.p12"),
                 new KeyStore.PasswordProtection("password".toCharArray()))) {
 
