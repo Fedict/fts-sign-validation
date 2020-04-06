@@ -39,7 +39,6 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
     @Autowired
     ObjectMapper mapper;
 
-    public static final String LOCALHOST = "http://localhost:";
     public static final String GETDATATOSIGN_ENDPOINT = "/signing/getDataToSignMultiple";
     public static final String SIGNDOCUMENT_ENDPOINT = "/signing/signDocumentMultiple";
     public static final String EXTENDDOCUMENT_ENDPOINT = "/signing/extendDocumentMultiple";

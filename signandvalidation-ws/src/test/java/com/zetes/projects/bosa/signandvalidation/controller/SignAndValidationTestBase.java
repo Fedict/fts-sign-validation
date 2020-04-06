@@ -18,13 +18,21 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("localh2")
 class SignAndValidationTestBase {
+
+    public static final String LOCALHOST = "http://localhost:";
 
     @LocalServerPort
     int port;
@@ -41,6 +49,33 @@ class SignAndValidationTestBase {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void testCorsAllowed() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Origin", "abc");
+        HttpEntity entityReq = new HttpEntity(headers);
+        ResponseEntity<String> respEntity = restTemplate.exchange(LOCALHOST + port + "/signing/ping", HttpMethod.GET, entityReq, String.class);
+
+        assertEquals("pong", respEntity.getBody());
+
+        headers = new HttpHeaders();
+        headers.set("Origin", "def");
+        entityReq = new HttpEntity(headers);
+        respEntity = restTemplate.exchange(LOCALHOST + port + "/signing/ping", HttpMethod.GET, entityReq, String.class);
+
+        assertEquals("pong", respEntity.getBody());
+    }
+
+    @Test
+    void testCorsNotAllowed() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Origin", "xyz");
+        HttpEntity entityReq = new HttpEntity(headers);
+        ResponseEntity<String> respEntity = restTemplate.exchange(LOCALHOST + port + "/signing/ping", HttpMethod.GET, entityReq, String.class);
+
+        assertEquals("Invalid CORS request", respEntity.getBody());
     }
 
     private static class XmlTimestampedObjectDeserializer extends StdDeserializer<XmlTimestampedObject> {

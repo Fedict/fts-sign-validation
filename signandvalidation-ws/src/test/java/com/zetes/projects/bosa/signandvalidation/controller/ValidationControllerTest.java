@@ -31,7 +31,6 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class ValidationControllerTest extends SignAndValidationTestBase {
 
-    public static final String LOCALHOST = "http://localhost:";
     public static final String SIGNATURE_ENDPOINT = "/validation/validateSignature";
     public static final String CERTIFICATE_ENDPOINT = "/validation/validateCertificate";
     public static final String CERTIFICATES_ENDPOINT = "/validation/validateCertificates";

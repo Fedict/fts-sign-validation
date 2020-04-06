@@ -48,7 +48,6 @@ public class SigningControllerTest extends SignAndValidationTestBase {
     @Autowired
     ObjectMapper mapper;
 
-    public static final String LOCALHOST = "http://localhost:";
     public static final String GETSIGNINGTYPE_ENDPOINT = "/signing/getSigningType";
     public static final String GETSIGNINGTYPES_ENDPOINT = "/signing/getSigningTypes";
     public static final String GETDATATOSIGN_ENDPOINT = "/signing/getDataToSign";
