@@ -97,6 +97,10 @@
             <artifactId>dss-token</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>eu.europa.ec.joinup.sd-dss</groupId>
+            <artifactId>dss-pades-pdfbox</artifactId>
+        </dependency>
 
         <!-- DB -->
         <dependency>
