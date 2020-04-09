@@ -54,7 +54,7 @@ public class SigningController {
 
     @GetMapping(value = "/ping", produces = TEXT_PLAIN_VALUE)
     public String ping() {
-        return "pong";
+        return "poooooong";
     }
 
     @GetMapping(value = "/getSigningType/{name}", produces = APPLICATION_JSON_VALUE)
