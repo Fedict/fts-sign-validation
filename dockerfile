@@ -1,7 +1,8 @@
 FROM tomcat:9.0
 USER root
 
-RUN apt-get install -y net-tools
+RUN apt-get update && \
+     apt-get install -y net-tools
 
 RUN  mkdir -p /usr/local/tomcat/conf \
     && chown -R 1001:root  /usr/local/tomcat/conf \
