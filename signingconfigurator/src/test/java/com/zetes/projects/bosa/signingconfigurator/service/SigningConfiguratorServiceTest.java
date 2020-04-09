@@ -2,7 +2,6 @@ package com.zetes.projects.bosa.signingconfigurator.service;
 
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
-import com.zetes.projects.bosa.signingconfigurator.exception.SignatureAlgoNotSupportedException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import eu.europa.esig.dss.enumerations.*;
@@ -20,7 +19,6 @@ import javax.xml.crypto.dsig.CanonicalizationMethod;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -57,24 +55,6 @@ public class SigningConfiguratorServiceTest {
         );
 
         assertEquals("NOTFOUND not found", exception.getMessage());
-    }
-
-    @Test
-    public void throwsSignatureAlgoNotSupportedException() {
-        // given
-        saveProfileSignatureParameters("XADES_B", null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256, SignatureAlgorithm.RSA_SHA512);
-        ClientSignatureParameters clientParams = new ClientSignatureParameters();
-        clientParams.setSigningCertificate(getSha1Certificate());
-        clientParams.setSigningDate(new Date());
-
-        // then
-        SignatureAlgoNotSupportedException exception = assertThrows(
-                SignatureAlgoNotSupportedException.class,
-                () -> service.getSignatureParameters("XADES_B", clientParams)
-        );
-
-        assertEquals("RSA_SHA1 is not supported by profile XADES_B", exception.getMessage());
     }
 
     @Test
@@ -199,13 +179,13 @@ public class SigningConfiguratorServiceTest {
                                                 SignatureLevel signatureLevel,
                                                 SignaturePackaging signaturePackaging,
                                                 DigestAlgorithm referenceDigestAlgorithm,
-                                                SignatureAlgorithm... supportedSigAlgos) {
+                                                SignatureAlgorithm signatureAlgorithm) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setAsicContainerType(containerType);
         profileParams.setSignatureLevel(signatureLevel);
         profileParams.setSignaturePackaging(signaturePackaging);
-        profileParams.setSupportedSignatureAlgorithms(new HashSet<>(Arrays.asList(supportedSigAlgos)));
+        profileParams.setSignatureAlgorithm(signatureAlgorithm);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
 
         dao.save(profileParams);

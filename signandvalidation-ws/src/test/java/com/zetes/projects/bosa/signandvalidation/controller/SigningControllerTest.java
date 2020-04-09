@@ -283,13 +283,13 @@ public class SigningControllerTest extends SignAndValidationTestBase {
                                                        SignatureLevel signatureLevel,
                                                        SignaturePackaging signaturePackaging,
                                                        DigestAlgorithm referenceDigestAlgorithm,
-                                                       SignatureAlgorithm... supportedSigAlgos) {
+                                                       SignatureAlgorithm signatureAlgorithm) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setAsicContainerType(containerType);
         profileParams.setSignatureLevel(signatureLevel);
         profileParams.setSignaturePackaging(signaturePackaging);
-        profileParams.setSupportedSignatureAlgorithms(new HashSet<>(Arrays.asList(supportedSigAlgos)));
+        profileParams.setSignatureAlgorithm(signatureAlgorithm);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
 
         dao.save(profileParams);

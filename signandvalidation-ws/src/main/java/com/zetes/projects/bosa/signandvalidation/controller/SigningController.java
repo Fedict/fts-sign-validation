@@ -8,7 +8,6 @@ import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
-import com.zetes.projects.bosa.signingconfigurator.exception.SignatureAlgoNotSupportedException;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -83,7 +82,7 @@ public class SigningController {
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
-        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+        } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
@@ -99,7 +98,7 @@ public class SigningController {
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
-        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+        } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
@@ -123,7 +122,7 @@ public class SigningController {
                 SubIndication subIndication = reportsService.getSubIndication(reportsDto);
                 throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
             }
-        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+        } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
@@ -147,7 +146,7 @@ public class SigningController {
                 SubIndication subIndication = reportsService.getSubIndication(reportsDto);
                 throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
             }
-        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+        } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }

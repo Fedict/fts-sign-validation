@@ -30,7 +30,10 @@ import org.springframework.context.ApplicationContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -166,13 +169,13 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
                                                        SignatureLevel signatureLevel,
                                                        SignaturePackaging signaturePackaging,
                                                        DigestAlgorithm referenceDigestAlgorithm,
-                                                       SignatureAlgorithm... supportedSigAlgos) {
+                                                       SignatureAlgorithm signatureAlgorithm) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setAsicContainerType(containerType);
         profileParams.setSignatureLevel(signatureLevel);
         profileParams.setSignaturePackaging(signaturePackaging);
-        profileParams.setSupportedSignatureAlgorithms(new HashSet<>(Arrays.asList(supportedSigAlgos)));
+        profileParams.setSignatureAlgorithm(signatureAlgorithm);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
 
         dao.save(profileParams);
