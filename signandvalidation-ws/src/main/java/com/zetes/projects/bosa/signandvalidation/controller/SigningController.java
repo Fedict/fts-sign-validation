@@ -10,8 +10,10 @@ import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterExcept
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.exception.SignatureAlgoNotSupportedException;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
+import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
@@ -71,28 +73,32 @@ public class SigningController {
     }
 
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ToBeSignedDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
+    public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
                     dataToSignDto.getSigningProfileId(),
                     dataToSignDto.getClientSignatureParameters()
             );
 
-            return signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
+            ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
+            DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
+            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
         } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
 
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ToBeSignedDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
+    public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
         try {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
                     dataToSignDto.getSigningProfileId(),
                     dataToSignDto.getClientSignatureParameters()
             );
 
-            return signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
+            ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
+            DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
+            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
         } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }

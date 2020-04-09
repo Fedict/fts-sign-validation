@@ -6,6 +6,7 @@ import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
+import com.zetes.projects.bosa.signandvalidation.model.DataToSignDTO;
 import com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO;
 import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignDTO;
 import com.zetes.projects.bosa.signandvalidation.model.SignDocumentDTO;
@@ -16,6 +17,7 @@ import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.SignatureValue;
+import eu.europa.esig.dss.model.ToBeSigned;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
@@ -174,10 +176,10 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             clientSignatureParameters.setSigningCertificate(new RemoteCertificate(dssPrivateKeyEntry.getCertificate().getCertificate().getEncoded()));
             clientSignatureParameters.setSigningDate(new Date());
             GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_1", clientSignatureParameters);
-            ToBeSignedDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, ToBeSignedDTO.class);
+            DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, DataToSignDTO.class);
             assertNotNull(dataToSign);
 
-            SignatureValue signatureValue = token.sign(DTOConverter.toToBeSigned(dataToSign), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
+            SignatureValue signatureValue = token.sign(new ToBeSigned(dataToSign.getDigest()), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue());
             SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_1", clientSignatureParameters, signatureValueDto);
             Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, Map.class);
@@ -242,10 +244,10 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             clientSignatureParameters.setSigningDate(new Date());
             GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_2", clientSignatureParameters);
 
-            ToBeSignedDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, ToBeSignedDTO.class);
+            DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, DataToSignDTO.class);
             assertNotNull(dataToSign);
 
-            SignatureValue signatureValue = token.sign(DTOConverter.toToBeSigned(dataToSign), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
+            SignatureValue signatureValue = token.sign(new ToBeSigned(dataToSign.getDigest()), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue());
             SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_2", clientSignatureParameters, signatureValueDto);
             Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, Map.class);

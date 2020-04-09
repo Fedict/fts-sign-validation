@@ -1,6 +1,7 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zetes.projects.bosa.signandvalidation.model.DataToSignDTO;
 import com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO;
 import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignMultipleDTO;
 import com.zetes.projects.bosa.signandvalidation.model.SignDocumentMultipleDTO;
@@ -11,6 +12,7 @@ import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.SignatureValue;
+import eu.europa.esig.dss.model.ToBeSigned;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
@@ -115,10 +117,10 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
             clientSignatureParameters.setSigningDate(new Date());
 
             GetDataToSignMultipleDTO dataToSignDTO = new GetDataToSignMultipleDTO(toSignDocuments, "XADES_B", clientSignatureParameters);
-            ToBeSignedDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, ToBeSignedDTO.class);
+            DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, DataToSignDTO.class);
             assertNotNull(dataToSign);
 
-            SignatureValue signatureValue = token.sign(DTOConverter.toToBeSigned(dataToSign), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
+            SignatureValue signatureValue = token.sign(new ToBeSigned(dataToSign.getDigest()), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue());
 
             SignDocumentMultipleDTO signDocumentDTO = new SignDocumentMultipleDTO(toSignDocuments, "XADES_B", clientSignatureParameters, signatureValueDto);
