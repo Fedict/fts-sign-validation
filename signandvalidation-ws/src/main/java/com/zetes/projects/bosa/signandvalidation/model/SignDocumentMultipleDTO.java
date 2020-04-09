@@ -2,7 +2,6 @@ package com.zetes.projects.bosa.signandvalidation.model;
 
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 
 import java.util.List;
 
@@ -11,12 +10,12 @@ public class SignDocumentMultipleDTO {
     private List<RemoteDocument> toSignDocuments;
     private String signingProfileId;
     private ClientSignatureParameters clientSignatureParameters;
-    private SignatureValueDTO signatureValue;
+    private byte[] signatureValue;
 
     public SignDocumentMultipleDTO() {
     }
 
-    public SignDocumentMultipleDTO(List<RemoteDocument> toSignDocuments, String signingProfileId, ClientSignatureParameters clientSignatureParameters, SignatureValueDTO signatureValue) {
+    public SignDocumentMultipleDTO(List<RemoteDocument> toSignDocuments, String signingProfileId, ClientSignatureParameters clientSignatureParameters, byte[] signatureValue) {
         this.toSignDocuments = toSignDocuments;
         this.signingProfileId = signingProfileId;
         this.clientSignatureParameters = clientSignatureParameters;
@@ -47,11 +46,11 @@ public class SignDocumentMultipleDTO {
         this.clientSignatureParameters = clientSignatureParameters;
     }
 
-    public SignatureValueDTO getSignatureValue() {
+    public byte[] getSignatureValue() {
         return signatureValue;
     }
 
-    public void setSignatureValue(SignatureValueDTO signatureValue) {
+    public void setSignatureValue(byte[] signatureValue) {
         this.signatureValue = signatureValue;
     }
 }

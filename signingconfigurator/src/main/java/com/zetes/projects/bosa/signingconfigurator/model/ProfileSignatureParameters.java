@@ -4,8 +4,6 @@ import eu.europa.esig.dss.enumerations.*;
 
 import javax.persistence.*;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
 
 // parameters which are retrieved from the database based on the profile id
 @Entity
@@ -42,9 +40,9 @@ public class ProfileSignatureParameters {
     @Enumerated(EnumType.STRING)
     private SignaturePackaging signaturePackaging;
 
-    @ElementCollection(targetClass = SignatureAlgorithm.class, fetch = FetchType.EAGER)
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Set<SignatureAlgorithm> supportedSignatureAlgorithms;
+    private SignatureAlgorithm signatureAlgorithm;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -130,14 +128,12 @@ public class ProfileSignatureParameters {
         this.signaturePackaging = signaturePackaging;
     }
 
-    public Set<SignatureAlgorithm> getSupportedSignatureAlgorithms() {
-        if (supportedSignatureAlgorithms == null) {
-            supportedSignatureAlgorithms = new HashSet<>();
-        }
-        return supportedSignatureAlgorithms;
+    public SignatureAlgorithm getSignatureAlgorithm() {
+        return signatureAlgorithm;
     }
 
-    public void setSupportedSignatureAlgorithms(Set<SignatureAlgorithm> supportedSignatureAlgorithms) {
-        this.supportedSignatureAlgorithms = supportedSignatureAlgorithms;
+    public void setSignatureAlgorithm(SignatureAlgorithm signatureAlgorithm) {
+        this.signatureAlgorithm = signatureAlgorithm;
     }
+
 }

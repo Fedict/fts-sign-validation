@@ -8,11 +8,13 @@ import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
-import com.zetes.projects.bosa.signingconfigurator.exception.SignatureAlgoNotSupportedException;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
+import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureService;
@@ -71,29 +73,33 @@ public class SigningController {
     }
 
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ToBeSignedDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
+    public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
                     dataToSignDto.getSigningProfileId(),
                     dataToSignDto.getClientSignatureParameters()
             );
 
-            return signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
-        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+            ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
+            DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
+            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+        } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
 
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ToBeSignedDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
+    public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
         try {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
                     dataToSignDto.getSigningProfileId(),
                     dataToSignDto.getClientSignatureParameters()
             );
 
-            return signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
-        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+            ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
+            DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
+            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+        } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
@@ -106,7 +112,8 @@ public class SigningController {
                     signDocumentDto.getClientSignatureParameters()
             );
 
-            RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
+            RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
             WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
 
@@ -117,7 +124,7 @@ public class SigningController {
                 SubIndication subIndication = reportsService.getSubIndication(reportsDto);
                 throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
             }
-        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+        } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
@@ -130,7 +137,8 @@ public class SigningController {
                     signDocumentDto.getClientSignatureParameters()
             );
 
-            RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
+            RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
             WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
 
@@ -141,7 +149,7 @@ public class SigningController {
                 SubIndication subIndication = reportsService.getSubIndication(reportsDto);
                 throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
             }
-        } catch (ProfileNotFoundException | SignatureAlgoNotSupportedException | NullParameterException e) {
+        } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }

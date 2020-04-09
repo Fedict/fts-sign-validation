@@ -3,13 +3,9 @@ package com.zetes.projects.bosa.signingconfigurator.service;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
-import com.zetes.projects.bosa.signingconfigurator.exception.SignatureAlgoNotSupportedException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.DefaultSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
-import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
-import eu.europa.esig.dss.spi.DSSUtils;
-import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteBLevelParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
@@ -26,7 +22,7 @@ public class SigningConfiguratorService {
 
     private static final DefaultSignatureParameters defaultParams = new DefaultSignatureParameters();
 
-    public RemoteSignatureParameters getSignatureParameters(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, SignatureAlgoNotSupportedException, NullParameterException {
+    public RemoteSignatureParameters getSignatureParameters(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         // TODO input validation service?
         if (profileId == null || clientParams == null
                 || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
@@ -34,13 +30,6 @@ public class SigningConfiguratorService {
         }
 
         ProfileSignatureParameters profileParams = getProfileSignatureParameters(profileId);
-        SignatureAlgorithm signatureAlgorithm = getSigningCertificateSignatureAlgorithm(clientParams.getSigningCertificate());
-
-        if (!profileParams.getSupportedSignatureAlgorithms().contains(signatureAlgorithm)) {
-            throw new SignatureAlgoNotSupportedException(
-                    String.format("%s is not supported by profile %s", signatureAlgorithm.toString(), profileId)
-            );
-        }
 
         RemoteSignatureParameters remoteSignatureParameters = new RemoteSignatureParameters();
 
@@ -57,9 +46,9 @@ public class SigningConfiguratorService {
         remoteSignatureParameters.setAsicContainerType(profileParams.getAsicContainerType());
         remoteSignatureParameters.setSignatureLevel(profileParams.getSignatureLevel());
         remoteSignatureParameters.setSignaturePackaging(profileParams.getSignaturePackaging());
-        remoteSignatureParameters.setDigestAlgorithm(signatureAlgorithm.getDigestAlgorithm());
-        remoteSignatureParameters.setEncryptionAlgorithm(signatureAlgorithm.getEncryptionAlgorithm());
-        remoteSignatureParameters.setMaskGenerationFunction(signatureAlgorithm.getMaskGenerationFunction());
+        remoteSignatureParameters.setDigestAlgorithm(profileParams.getSignatureAlgorithm().getDigestAlgorithm());
+        remoteSignatureParameters.setEncryptionAlgorithm(profileParams.getSignatureAlgorithm().getEncryptionAlgorithm());
+        remoteSignatureParameters.setMaskGenerationFunction(profileParams.getSignatureAlgorithm().getMaskGenerationFunction());
         remoteSignatureParameters.setReferenceDigestAlgorithm(profileParams.getReferenceDigestAlgorithm());
 
         // remoteBLevelParameters
@@ -126,12 +115,6 @@ public class SigningConfiguratorService {
         remoteSignatureParameters.setBLevelParams(remoteBLevelParameters);
 
         return remoteSignatureParameters;
-    }
-
-    private SignatureAlgorithm getSigningCertificateSignatureAlgorithm(RemoteCertificate signingCert) {
-        String sigAlgOID = DSSUtils.loadCertificate(signingCert.getEncodedCertificate()).getCertificate().getSigAlgOID();
-
-        return SignatureAlgorithm.forOID(sigAlgOID);
     }
 
     private ProfileSignatureParameters getProfileSignatureParameters(String profileId) throws ProfileNotFoundException {
