@@ -58,14 +58,14 @@ class SignAndValidationTestBase {
         HttpEntity entityReq = new HttpEntity(headers);
         ResponseEntity<String> respEntity = restTemplate.exchange(LOCALHOST + port + "/signing/ping", HttpMethod.GET, entityReq, String.class);
 
-        assertEquals("poooooong", respEntity.getBody());
+        assertEquals("pong", respEntity.getBody());
 
         headers = new HttpHeaders();
         headers.set("Origin", "def");
         entityReq = new HttpEntity(headers);
         respEntity = restTemplate.exchange(LOCALHOST + port + "/signing/ping", HttpMethod.GET, entityReq, String.class);
 
-        assertEquals("poooooong", respEntity.getBody());
+        assertEquals("pong", respEntity.getBody());
     }
 
     @Test
