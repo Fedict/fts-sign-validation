@@ -41,8 +41,7 @@ public class ProxyConfiguration {
 
     @Bean
     public ProxyConfig proxyConfig() {
-        LOG.info("Proxy config: proxy.http.enabled: " + httpEnabled + ", proxy.http.host:" + httpHost +", proxy.http.port:" + httpPort);
-        LOG.info("Proxy config: proxy.https.enabled: " + httpsEnabled + ", proxy.https.host:" + httpsHost +", proxy.https.port:" + httpsPort);
+        LOG.info("Proxy config: proxy.http.enabled: " + httpEnabled + ", proxy.http.host:" + httpHost);
         if (!httpEnabled && !httpsEnabled) {
             return null;
         }
