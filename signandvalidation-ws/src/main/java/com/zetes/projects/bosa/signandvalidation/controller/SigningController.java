@@ -14,6 +14,7 @@ import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureService;
@@ -111,7 +112,8 @@ public class SigningController {
                     signDocumentDto.getClientSignatureParameters()
             );
 
-            RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
+            RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
             WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
 
@@ -135,7 +137,8 @@ public class SigningController {
                     signDocumentDto.getClientSignatureParameters()
             );
 
-            RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
+            RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
             WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
 

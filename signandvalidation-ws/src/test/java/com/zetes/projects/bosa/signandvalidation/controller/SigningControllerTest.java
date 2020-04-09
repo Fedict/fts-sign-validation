@@ -25,7 +25,6 @@ import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.converter.DTOConverter;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -145,8 +144,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             assertNotNull(dataToSign);
 
             SignatureValue signatureValue = token.sign(DTOConverter.toToBeSigned(dataToSign), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue());
-            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_1", clientSignatureParameters, signatureValueDto);
+            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_1", clientSignatureParameters, signatureValue.getValue());
             RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
 
             assertNotNull(signedDocument);
@@ -180,8 +178,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             assertNotNull(dataToSign);
 
             SignatureValue signatureValue = token.sign(new ToBeSigned(dataToSign.getDigest()), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue());
-            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_1", clientSignatureParameters, signatureValueDto);
+            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_1", clientSignatureParameters, signatureValue.getValue());
             Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, Map.class);
 
             // then
@@ -211,8 +208,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             assertNotNull(dataToSign);
 
             SignatureValue signatureValue = token.sign(DTOConverter.toToBeSigned(dataToSign), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue());
-            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_2", clientSignatureParameters, signatureValueDto);
+            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_2", clientSignatureParameters, signatureValue.getValue());
             RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
 
             assertNotNull(signedDocument);
@@ -248,8 +244,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
             assertNotNull(dataToSign);
 
             SignatureValue signatureValue = token.sign(new ToBeSigned(dataToSign.getDigest()), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(signatureValue.getAlgorithm(), signatureValue.getValue());
-            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_2", clientSignatureParameters, signatureValueDto);
+            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_2", clientSignatureParameters, signatureValue.getValue());
             Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, Map.class);
 
             // then
