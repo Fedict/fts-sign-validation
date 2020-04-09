@@ -6,7 +6,9 @@ import json
 def sign_document(json_request):
     url = c.get_url()
 
-    req = requests.post(url=url + "signing/signDocument", json=json_request)
+    req = requests.post(
+        url=url + "signing/signDocument", json=json_request, verify=False
+    )
 
     return req
 

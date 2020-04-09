@@ -11,9 +11,9 @@ def get_configuration():
 def ping(service):
     url = get_url()
     if service == "validation":
-        req = requests.get(url=url + "validation/ping")
+        req = requests.get(url=url + "validation/ping", verify=False)
     else:
-        req = requests.get(url=url + "signing/ping")
+        req = requests.get(url=url + "signing/ping", verify=False)
 
     return req
 

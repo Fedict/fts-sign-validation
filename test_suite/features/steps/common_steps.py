@@ -1,10 +1,17 @@
 from behave import given, then
 import common as c
+import requests
+from urllib3.exceptions import InsecureRequestWarning
 
 
 @given("A ping has been sent to the {service}")
 def post_ping(context, service):
     context.response = c.ping(service)
+
+
+@given("The ssl verification is disabled")
+def disable_ssl_verification(context):
+    requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 
 @then("A pong will be returned")

@@ -2419,7 +2419,7 @@
         },
         "ListOfTrustedLists": {
           "$id": "#/properties/DiagnosticData/properties/ListOfTrustedLists",
-          "type": "object",
+          "type": ["object", "null"],
           "title": "The Listoftrustedlists Schema",
           "required": [
             "CountryCode",
@@ -2434,7 +2434,7 @@
           "properties": {
             "CountryCode": {
               "$id": "#/properties/DiagnosticData/properties/ListOfTrustedLists/properties/CountryCode",
-              "type": "string",
+              "type": ["string", "null"],
               "title": "The Countrycode Schema",
               "default": "",
               "examples": ["EU"],

@@ -23,6 +23,7 @@ def validation_Indication(context, Indication):
     response_dict = json.loads(context.response.content)
     i = 0
     while i < len(response_dict["SimpleReport"]["Signature"]):
+        print(response_dict["SimpleReport"]["Signature"][i]["Indication"])
         assert response_dict["SimpleReport"]["Signature"][i]["Indication"] == Indication
         i += 1
 
@@ -35,6 +36,7 @@ def validation_subconclusion(context, SubIndication):
         if response_dict["SimpleReport"]["Signature"][i]["SubIndication"] is None:
             return True
         else:
+            print(response_dict["SimpleReport"]["Signature"][i]["SubIndication"])
             assert (
                 response_dict["SimpleReport"]["Signature"][i]["SubIndication"]
                 == SubIndication

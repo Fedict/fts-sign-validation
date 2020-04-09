@@ -55,8 +55,9 @@ def validate_certificates(
     json = ready_certificates_json(
         certificate, certificateChain, second_certificate, second_certificateChain
     )
-    print(json)
-    req = requests.post(url=url + "validation/validateCertificates", json=json)
+    req = requests.post(
+        url=url + "validation/validateCertificates", json=json, verify=False
+    )
 
     return req
 
@@ -65,6 +66,8 @@ def validate_certificate(certificate, certificateChain):
     url = c.get_url()
     json = ready_certificate_json(certificate, certificateChain)
 
-    req = requests.post(url=url + "validation/validateCertificate", json=json)
+    req = requests.post(
+        url=url + "validation/validateCertificate", json=json, verify=False
+    )
 
     return req

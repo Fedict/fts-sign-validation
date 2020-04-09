@@ -1,5 +1,8 @@
 Feature: Validation certificate service
 
+    Background: disabled SSL Verfication
+        Given The ssl verification is disabled
+
     @active
     Scenario Outline: Posting simple certificate
         Given Preparing the certificate "<certificate>"
@@ -15,7 +18,7 @@ Feature: Validation certificate service
             | Sign-5.xml      | certificate.cer  | 500  |
 
 
-    @active @wip
+    @active
     Scenario Outline: Posting longer certificateChain
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
@@ -27,7 +30,7 @@ Feature: Validation certificate service
             | single_cert.crt | belgium.crt root.crt | 200  |
 
 
-    @active @wip
+    @active
     Scenario Outline: Validating certificate validation result
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
@@ -43,7 +46,7 @@ Feature: Validation certificate service
             | single_cert.crt                 | belgium.crt root.crt | 200  | PASSED        |
 
 
-    @active @wip
+    @active
     Scenario Outline: Posting several certificates
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
