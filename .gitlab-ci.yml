@@ -1,6 +1,6 @@
 stages:
   - compile
-  - test
+  # - test
   - package
   - deploy
 
