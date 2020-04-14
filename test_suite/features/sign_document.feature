@@ -3,7 +3,7 @@ Feature: Signing a document
     Background: disabled SSL Verfication
         Given The ssl verification is disabled
 
-    @active
+    @active @wip
     Scenario Outline: Modify a document
         Given Add <property> and <value> to the post
         When Send the document
@@ -20,12 +20,11 @@ Feature: Signing a document
             | clientSignatureParameters/signingDate | 2445839844000  | 400  | INDETERMINATE                     |
             | clientSignatureParameters/signingDate | 1496921160999  | 500  | not in certificate validity range |
             | clientSignatureParameters/signingDate | 2445839844001  | 500  | not in certificate validity range |
-            | signatureValue/value                  | apples         | 400  | Unexpected end of base64-encoded  |
-            | signatureValue/value                  | YXBwbGVz       | 400  | INDETERMINATE                     |
-            | signatureValue/algorithm              | RSA_SHA512     | 400  | INDETERMINATE                     |
-            | signatureValue/algorithm              | apples         | 400  | not one of the values accepted    |
+            | signatureValue                        | apples         | 400  | Unexpected end of base64-encoded  |
+            | signatureValue                        | YXBwbGVz       | 400  | INDETERMINATE                     |
             | toSignDocument/bytes                  | apples         | 400  | Unexpected end of base64-encoded  |
             | toSignDocument/bytes                  | YXBwbGVz       | 400  | INDETERMINATE                     |
+            | signingProfileId                      | YXBwbGVz       | 400  | not found                         |
 
     @active
     Scenario Outline: Sign a document

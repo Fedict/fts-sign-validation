@@ -2,6 +2,8 @@ import requests
 import common as c
 import json
 
+from requests_toolbelt.utils import dump
+
 
 def sign_document(json_request):
     url = c.get_url()
@@ -9,6 +11,9 @@ def sign_document(json_request):
     req = requests.post(
         url=url + "signing/signDocument", json=json_request, verify=False
     )
+
+    data = dump.dump_all(req)
+    print(data.decode("utf-8"))
 
     return req
 

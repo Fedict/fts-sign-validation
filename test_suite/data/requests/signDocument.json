@@ -20,8 +20,5 @@
     "signerLocationCountry": null,
     "signerLocationStreet": null
   },
-  "signatureValue": {
-    "algorithm": "RSA_SHA256",
-    "value": "QXoBKzHPRYgSx/+la+D7LE9LCUT04ngpKcw6c+UY+Za2ckpGPC0tdtGV0WyRyLDrKxiiFapGnBxvvqhoGQn/IXF+7rWPLC2AHPruSkEcQx9wuLkyeC247YGP95TkmDytoSokREWXK7fJEjGFWh8Z/kh3nxeDCvLdpAJSqagPG0XTN8TjNKnnQecdTX2uAyTfhJ6ijHGGYLAT9f4QmjQWyBIBWv+ar8cKoSkwCMjRSmXa5IiEhZSHrBI4kELJ3YY7mIiK/rTwodZq7WB7nx5QKhCgiyGWTpFLtqA4p7OQCTpSwozFykG93b+18icsEZW5Bo6hclQjHrXALEdxBQd2Fw=="
-  }
+  "signatureValue": "QXoBKzHPRYgSx/+la+D7LE9LCUT04ngpKcw6c+UY+Za2ckpGPC0tdtGV0WyRyLDrKxiiFapGnBxvvqhoGQn/IXF+7rWPLC2AHPruSkEcQx9wuLkyeC247YGP95TkmDytoSokREWXK7fJEjGFWh8Z/kh3nxeDCvLdpAJSqagPG0XTN8TjNKnnQecdTX2uAyTfhJ6ijHGGYLAT9f4QmjQWyBIBWv+ar8cKoSkwCMjRSmXa5IiEhZSHrBI4kELJ3YY7mIiK/rTwodZq7WB7nx5QKhCgiyGWTpFLtqA4p7OQCTpSwozFykG93b+18icsEZW5Bo6hclQjHrXALEdxBQd2Fw=="
 }

@@ -13,7 +13,7 @@ Feature: Validation signature service
             | validation |
             | signing    |
 
-    @active @wip
+    @active
     Scenario Outline: Posting different signatures
         Given The user validates a "<file>"
         Then The indication is "<Indication>"
