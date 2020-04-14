@@ -25,8 +25,6 @@ import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureServiceImpl
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureServiceImpl;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.xades.signature.XAdESService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -41,8 +39,6 @@ import java.sql.SQLException;
 
 @Configuration
 public class DSSBeanConfig {
-
-    private static final Logger LOG = LoggerFactory.getLogger(DSSBeanConfig.class);
 
     @Value("${default.validation.policy}")
     private String defaultValidationPolicy;
@@ -102,7 +98,6 @@ public class DSSBeanConfig {
     @Bean
     public CommonsDataLoader dataLoader() {
         CommonsDataLoader dataLoader = new CommonsDataLoader();
-        LOG.info("Proxy host: " + (proxyConfig != null ? proxyConfig.getHttpProperties().getHost() : "null"));
         dataLoader.setProxyConfig(proxyConfig);
         return dataLoader;
     }

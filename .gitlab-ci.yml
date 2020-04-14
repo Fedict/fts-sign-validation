@@ -1,6 +1,6 @@
 stages:
   - compile
-  - test
+  # - test
   - package
   - deploy
 
@@ -19,11 +19,11 @@ compile:
     - echo "Compiling project"
     - mvn compile
 
-test:
-  stage: test
-  script:
-    - echo "Running unit tests"
-    - mvn test
+# test:
+#   stage: test
+#   script:
+#     - echo "Running unit tests"
+#     - mvn test
 
 package:
   stage: package

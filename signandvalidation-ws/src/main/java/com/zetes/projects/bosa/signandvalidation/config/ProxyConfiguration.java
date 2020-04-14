@@ -2,16 +2,12 @@ package com.zetes.projects.bosa.signandvalidation.config;
 
 import eu.europa.esig.dss.service.http.proxy.ProxyConfig;
 import eu.europa.esig.dss.service.http.proxy.ProxyProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ProxyConfiguration {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ProxyConfiguration.class);
 
     @Value("${proxy.http.enabled}")
     private boolean httpEnabled;
@@ -41,7 +37,6 @@ public class ProxyConfiguration {
 
     @Bean
     public ProxyConfig proxyConfig() {
-        LOG.info("Proxy config: proxy.http.enabled: " + httpEnabled + ", proxy.http.host:" + httpHost);
         if (!httpEnabled && !httpsEnabled) {
             return null;
         }
