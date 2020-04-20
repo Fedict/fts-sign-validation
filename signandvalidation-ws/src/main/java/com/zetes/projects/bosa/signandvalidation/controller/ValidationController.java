@@ -1,11 +1,11 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
-import com.zetes.projects.bosa.signandvalidation.model.IndicationsDTO;
+import com.zetes.projects.bosa.signandvalidation.model.CertificateIndicationsDTO;
+import com.zetes.projects.bosa.signandvalidation.model.CertificateToValidateDTO;
 import com.zetes.projects.bosa.signandvalidation.model.IndicationsListDTO;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
-import eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
@@ -48,9 +48,10 @@ public class ValidationController {
     }
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public CertificateReportsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
+    public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
         if (toValidate.getCertificate() != null) {
-            return remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+            CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+            return reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
         } else {
             throw new ResponseStatusException(BAD_REQUEST, "The certificate is missing");
         }
@@ -58,11 +59,10 @@ public class ValidationController {
 
     @PostMapping(value = "/validateCertificates", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public IndicationsListDTO validateCertificates(@RequestBody List<CertificateToValidateDTO> toValidateList) {
-        List<IndicationsDTO> indications = new ArrayList<>();
+        List<CertificateIndicationsDTO> indications = new ArrayList<>();
 
         for (CertificateToValidateDTO toValidate : toValidateList) {
-            CertificateReportsDTO certificateReportsDTO = validateCertificate(toValidate);
-            indications.add(reportsService.getIndicationsDTO(certificateReportsDTO));
+            indications.add(validateCertificate(toValidate));
         }
 
         return new IndicationsListDTO(indications);

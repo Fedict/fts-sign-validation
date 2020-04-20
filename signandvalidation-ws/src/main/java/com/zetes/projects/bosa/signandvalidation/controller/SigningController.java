@@ -120,8 +120,8 @@ public class SigningController {
             if (reportsService.isValidSignature(reportsDto)) {
                 return signedDoc;
             } else {
-                Indication indication = reportsService.getIndication(reportsDto);
-                SubIndication subIndication = reportsService.getSubIndication(reportsDto);
+                Indication indication = reportsService.getSignatureIndication(reportsDto);
+                SubIndication subIndication = reportsService.getSignatureSubIndication(reportsDto);
                 throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
             }
         } catch (ProfileNotFoundException | NullParameterException e) {
@@ -145,8 +145,8 @@ public class SigningController {
             if (reportsService.isValidSignature(reportsDto)) {
                 return signedDoc;
             } else {
-                Indication indication = reportsService.getIndication(reportsDto);
-                SubIndication subIndication = reportsService.getSubIndication(reportsDto);
+                Indication indication = reportsService.getSignatureIndication(reportsDto);
+                SubIndication subIndication = reportsService.getSignatureSubIndication(reportsDto);
                 throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
             }
         } catch (ProfileNotFoundException | NullParameterException e) {
@@ -169,8 +169,8 @@ public class SigningController {
             if (reportsService.isValidSignature(reportsDto)) {
                 return extendedDoc;
             } else {
-                Indication indication = reportsService.getIndication(reportsDto);
-                SubIndication subIndication = reportsService.getSubIndication(reportsDto);
+                Indication indication = reportsService.getSignatureIndication(reportsDto);
+                SubIndication subIndication = reportsService.getSignatureSubIndication(reportsDto);
                 throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
             }
         } catch (ProfileNotFoundException | NullParameterException e) {
@@ -193,8 +193,8 @@ public class SigningController {
             if (reportsService.isValidSignature(reportsDto)) {
                 return extendedDoc;
             } else {
-                Indication indication = reportsService.getIndication(reportsDto);
-                SubIndication subIndication = reportsService.getSubIndication(reportsDto);
+                Indication indication = reportsService.getSignatureIndication(reportsDto);
+                SubIndication subIndication = reportsService.getSignatureSubIndication(reportsDto);
                 throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
             }
         } catch (ProfileNotFoundException | NullParameterException e) {

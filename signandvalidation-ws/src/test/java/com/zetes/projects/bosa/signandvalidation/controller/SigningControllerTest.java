@@ -6,6 +6,7 @@ import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningType;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
+import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
 import com.zetes.projects.bosa.signandvalidation.model.DataToSignDTO;
 import com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO;
 import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignDTO;
@@ -72,15 +73,6 @@ public class SigningControllerTest extends SignAndValidationTestBase {
                 SignaturePackaging.DETACHED, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_T", null, SignatureLevel.XAdES_BASELINE_T,
                 SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
-    }
-
-    @Test
-    public void pingShouldReturnPong() throws Exception {
-        // when
-        String result = this.restTemplate.getForObject(LOCALHOST + port + "/signing/ping", String.class);
-
-        // then
-        assertEquals("pong", result);
     }
 
     @Test

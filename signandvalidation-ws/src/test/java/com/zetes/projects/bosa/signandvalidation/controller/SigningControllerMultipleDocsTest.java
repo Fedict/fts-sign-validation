@@ -1,6 +1,7 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
 import com.zetes.projects.bosa.signandvalidation.model.DataToSignDTO;
 import com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO;
 import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignMultipleDTO;

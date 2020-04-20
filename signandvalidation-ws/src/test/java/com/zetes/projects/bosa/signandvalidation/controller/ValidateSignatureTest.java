@@ -1,48 +1,28 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
-import com.zetes.projects.bosa.signandvalidation.model.IndicationsListDTO;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
+import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.model.FileDocument;
-import eu.europa.esig.dss.simplecertificatereport.jaxb.XmlChainItem;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.validation.reports.Reports;
-import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
-import eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO;
-import eu.europa.esig.dss.ws.converter.RemoteCertificateConverter;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
-import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.util.*;
+import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.Indication.INDETERMINATE;
-import static eu.europa.esig.dss.enumerations.Indication.PASSED;
-import static eu.europa.esig.dss.enumerations.SubIndication.OUT_OF_BOUNDS_NO_POE;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-public class ValidationControllerTest extends SignAndValidationTestBase {
+public class ValidateSignatureTest extends SignAndValidationTestBase {
 
     public static final String SIGNATURE_ENDPOINT = "/validation/validateSignature";
-    public static final String CERTIFICATE_ENDPOINT = "/validation/validateCertificate";
-    public static final String CERTIFICATES_ENDPOINT = "/validation/validateCertificates";
-
-    @Test
-    public void pingShouldReturnPong() throws Exception {
-        // when
-        String result = this.restTemplate.getForObject(LOCALHOST + port + "/validation/ping", String.class);
-
-        // then
-        assertEquals("pong", result);
-    }
 
     @Disabled("Temporary pipeline disable") // TODO
     @Test
@@ -227,139 +207,6 @@ public class ValidationControllerTest extends SignAndValidationTestBase {
         // then
         assertEquals(BAD_REQUEST.value(), result.get("status"));
         assertEquals("DSSDocument is null", result.get("message"));
-    }
-
-    @Test
-    public void certificateWithCertificateChainAndValidationTime() {
-        // given
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-        RemoteCertificate issuerCertificate = RemoteCertificateConverter
-                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(2018, 12, 31);
-        Date validationDate = calendar.getTime();
-        validationDate.setTime((validationDate.getTime() / 1000) * 1000); // clean millis
-        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate,
-                Arrays.asList(issuerCertificate), validationDate);
-
-        // when
-        CertificateReportsDTO reportsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateReportsDTO.class);
-
-        // then
-        assertNotNull(reportsDTO.getDiagnosticData());
-        assertNotNull(reportsDTO.getSimpleCertificateReport());
-        assertNotNull(reportsDTO.getDetailedReport());
-
-        XmlDiagnosticData diagnosticData = reportsDTO.getDiagnosticData();
-        List<XmlCertificate> usedCertificates = diagnosticData.getUsedCertificates();
-        assertTrue(usedCertificates.size() > 1, "usedCertificates.size() > 1");
-        List<XmlChainItem> chain = reportsDTO.getSimpleCertificateReport().getChain();
-        assertTrue(chain.size() > 1, "chain.size() > 1");
-        for (XmlCertificate certificate : usedCertificates) {
-            if (chain.get(0).getId().equals(certificate.getId())) {
-                assertTrue(certificate.getCertificateChain().size() > 0, "certificate.getCertificateChain().size() > 0");
-            }
-        }
-        assertEquals(0, validationDate.compareTo(diagnosticData.getValidationDate()));
-    }
-
-    @Test
-    public void certificateWithNoValidationTime() {
-        // given
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-        RemoteCertificate issuerCertificate = RemoteCertificateConverter
-                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
-
-        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate,
-                Arrays.asList(issuerCertificate), null);
-
-        // when
-        CertificateReportsDTO reportsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateReportsDTO.class);
-
-        // then
-        assertNotNull(reportsDTO.getDiagnosticData());
-        assertNotNull(reportsDTO.getSimpleCertificateReport());
-        assertNotNull(reportsDTO.getDetailedReport());
-
-        XmlDiagnosticData diagnosticData = reportsDTO.getDiagnosticData();
-        List<XmlCertificate> usedCertificates = diagnosticData.getUsedCertificates();
-        assertTrue(usedCertificates.size() > 1, "usedCertificates.size() > 1");
-        List<XmlChainItem> chain = reportsDTO.getSimpleCertificateReport().getChain();
-        assertTrue(chain.size() > 1, "chain.size() > 1");
-        for (XmlCertificate certificate : usedCertificates) {
-            if (chain.get(0).getId().equals(certificate.getId())) {
-                assertTrue(certificate.getCertificateChain().size() > 0, "certificate.getCertificateChain().size() > 0");
-            }
-        }
-        assertNotNull(diagnosticData.getValidationDate());
-    }
-
-    @Disabled("Temporary pipeline disable") // TODO
-    @Test
-    public void certificateWithNoCertificateChain() {
-        // given
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate);
-
-        // when
-        CertificateReportsDTO reportsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateReportsDTO.class);
-
-        // then
-        assertNotNull(reportsDTO.getDiagnosticData());
-        assertNotNull(reportsDTO.getSimpleCertificateReport());
-        assertNotNull(reportsDTO.getDetailedReport());
-
-        XmlDiagnosticData diagnosticData = reportsDTO.getDiagnosticData();
-        List<XmlCertificate> usedCertificates = diagnosticData.getUsedCertificates();
-        assertTrue(usedCertificates.size() > 1, "usedCertificates.size() > 1");
-        List<XmlChainItem> chain = reportsDTO.getSimpleCertificateReport().getChain();
-        assertTrue(chain.size() > 1, "chain.size() > 1");
-        for (XmlCertificate certificate : usedCertificates) {
-            if (chain.get(0).getId().equals(certificate.getId())) {
-                assertTrue(certificate.getCertificateChain().size() > 0, "certificate.getCertificateChain().size() > 0");
-            }
-        }
-        assertNotNull(diagnosticData.getValidationDate());
-    }
-
-    @Test
-    public void certificateWithNoCertificateProvided() {
-        // given
-        CertificateToValidateDTO toValidate = new CertificateToValidateDTO();
-
-        // when
-        Map result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, Map.class);
-
-        // then
-        assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assertEquals("The certificate is missing", result.get("message"));
-    }
-
-    @Disabled("Temporary pipeline disable") // TODO
-    @Test
-    public void certificatesWithPassedAndIndeterminateCertificates() {
-        // given
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-        RemoteCertificate issuerCertificate = RemoteCertificateConverter
-                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
-
-        List<CertificateToValidateDTO> toValidateList = new ArrayList<>();
-        toValidateList.add(new CertificateToValidateDTO(remoteCertificate, null, null));
-        toValidateList.add(new CertificateToValidateDTO(issuerCertificate, null, null));
-
-        // when
-        IndicationsListDTO result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATES_ENDPOINT, toValidateList, IndicationsListDTO.class);
-
-        // then
-        assertNotNull(result.getIndications());
-        assertEquals(2, result.getIndications().size());
-        assertEquals(INDETERMINATE, result.getIndications().get(0).getIndication());
-        assertEquals(OUT_OF_BOUNDS_NO_POE, result.getIndications().get(0).getSubIndication());
-        assertEquals(PASSED, result.getIndications().get(1).getIndication());
     }
 
 }
