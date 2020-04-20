@@ -25,7 +25,6 @@ public class ReportsService {
         LOG.info(("Getting indications for certificate report..."));
         List<XmlChainItem> chain = certificateReportsDTO.getSimpleCertificateReport().getChain();
         String firstCommonName = chain.get(0).getSubject().getCommonName();
-        System.out.println(chain.get(0).getKeyUsages());
         boolean keyUsageCheckOk = chain.get(0).getKeyUsages().contains(expectedKeyUsage);
 
 
