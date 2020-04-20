@@ -80,7 +80,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
         String result = this.restTemplate.getForObject(LOCALHOST + port + "/signing/ping", String.class);
 
         // then
-        assertEquals("pong", result);
+        assertEquals("NOT pong", result);
     }
 
     @Test
