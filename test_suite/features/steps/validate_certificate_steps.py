@@ -34,9 +34,7 @@ def validate_certicate(context):
 @then("The certificate is {result}")
 def validation_result(context, result):
     response_dict = json.loads(context.response.content)
-    assert (
-        response_dict["simpleCertificateReport"]["ChainItem"][0]["Indication"] == result
-    )
+    assert response_dict["indication"] == result
 
 
 @when("The user validates the certificates")

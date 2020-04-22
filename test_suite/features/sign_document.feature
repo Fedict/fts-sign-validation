@@ -3,7 +3,7 @@ Feature: Signing a document
     Background: disabled SSL Verfication
         Given The ssl verification is disabled
 
-    @active @wip
+    @active
     Scenario Outline: Modify a document
         Given Add <property> and <value> to the post
         When Send the document
