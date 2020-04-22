@@ -36,3 +36,15 @@ Feature: Signing a document
         Examples:
             | document      | code | result        |
             | signable.json | 400  | INDETERMINATE |
+
+
+    @active @wip
+    Scenario Outline: Sign a document
+        Given Prepare the <document>
+        When Send the documents
+        Then The response is <code>
+        And The result is <result>
+
+        Examples:
+            | document       | code | result        |
+            | signables.json | 400  | INDETERMINATE |

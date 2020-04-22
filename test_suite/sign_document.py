@@ -12,8 +12,15 @@ def sign_document(json_request):
         url=url + "signing/signDocument", json=json_request, verify=False
     )
 
-    data = dump.dump_all(req)
-    print(data.decode("utf-8"))
+    return req
+
+
+def sign_documents(json_request):
+    url = c.get_url()
+
+    req = requests.post(
+        url=url + "signing/signDocumentMultiple", json=json_request, verify=False
+    )
 
     return req
 

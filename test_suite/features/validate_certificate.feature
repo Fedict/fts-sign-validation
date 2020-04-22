@@ -30,7 +30,7 @@ Feature: Validation certificate service
             | single_cert.crt | belgium.crt root.crt | 200  |
 
 
-    @active @wip
+    @active
     Scenario Outline: Validating certificate validation result
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"

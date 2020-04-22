@@ -18,6 +18,11 @@ def sign_document(context):
     context.response = sd.sign_document(context.request_json)
 
 
+@when("Send the documents")
+def sign_documents(context):
+    context.response = sd.sign_documents(context.request_json)
+
+
 @then("The result is {result}")
 def sign_doc_result(context, result):
     print(context.response.text)
