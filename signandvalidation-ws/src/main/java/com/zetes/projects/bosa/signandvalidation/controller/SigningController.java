@@ -10,8 +10,6 @@ import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterExcept
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import eu.europa.esig.dss.enumerations.Indication;
-import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
@@ -25,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -116,13 +115,14 @@ public class SigningController {
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
             WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
+            SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
 
-            if (reportsService.isValidSignature(reportsDto)) {
+            if (indications.getIndication() == TOTAL_PASSED) {
                 return signedDoc;
             } else {
-                Indication indication = reportsService.getSignatureIndication(reportsDto);
-                SubIndication subIndication = reportsService.getSignatureSubIndication(reportsDto);
-                throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
+                throw new ResponseStatusException(BAD_REQUEST,
+                        String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
+                );
             }
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
@@ -141,13 +141,14 @@ public class SigningController {
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
             WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
+            SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
 
-            if (reportsService.isValidSignature(reportsDto)) {
+            if (indications.getIndication() == TOTAL_PASSED) {
                 return signedDoc;
             } else {
-                Indication indication = reportsService.getSignatureIndication(reportsDto);
-                SubIndication subIndication = reportsService.getSignatureSubIndication(reportsDto);
-                throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
+                throw new ResponseStatusException(BAD_REQUEST,
+                        String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
+                );
             }
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
@@ -165,13 +166,14 @@ public class SigningController {
             RemoteDocument extendedDoc = signatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
             WSReportsDTO reportsDto = validationService.validateDocument(extendedDoc, extendDocumentDto.getDetachedContents(), null);
+            SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
 
-            if (reportsService.isValidSignature(reportsDto)) {
+            if (indications.getIndication() == TOTAL_PASSED) {
                 return extendedDoc;
             } else {
-                Indication indication = reportsService.getSignatureIndication(reportsDto);
-                SubIndication subIndication = reportsService.getSignatureSubIndication(reportsDto);
-                throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
+                throw new ResponseStatusException(BAD_REQUEST,
+                        String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
+                );
             }
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
@@ -189,13 +191,14 @@ public class SigningController {
             RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
             WSReportsDTO reportsDto = validationService.validateDocument(extendedDoc, extendDocumentDto.getDetachedContents(), null);
+            SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
 
-            if (reportsService.isValidSignature(reportsDto)) {
+            if (indications.getIndication() == TOTAL_PASSED) {
                 return extendedDoc;
             } else {
-                Indication indication = reportsService.getSignatureIndication(reportsDto);
-                SubIndication subIndication = reportsService.getSignatureSubIndication(reportsDto);
-                throw new ResponseStatusException(BAD_REQUEST, String.format("Signed document did not pass validation: %s, %s", indication, subIndication));
+                throw new ResponseStatusException(BAD_REQUEST,
+                        String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
+                );
             }
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());

@@ -1,6 +1,7 @@
 package com.zetes.projects.bosa.signandvalidation.service;
 
 import com.zetes.projects.bosa.signandvalidation.model.CertificateIndicationsDTO;
+import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.KeyUsageBit;
 import eu.europa.esig.dss.enumerations.SubIndication;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
-import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 
 @Service
 public class ReportsService {
@@ -42,16 +42,10 @@ public class ReportsService {
         return new CertificateIndicationsDTO(firstCommonName, PASSED, keyUsageCheckOk);
     }
 
-    public boolean isValidSignature(WSReportsDTO reportsDto) {
-        return reportsDto.getSimpleReport().getSignature().get(0).getIndication() == TOTAL_PASSED;
-    }
-
-    public Indication getSignatureIndication(WSReportsDTO reportsDto) {
-        return reportsDto.getSimpleReport().getSignature().get(0).getIndication();
-    }
-
-    public SubIndication getSignatureSubIndication(WSReportsDTO reportsDto) {
-        return reportsDto.getSimpleReport().getSignature().get(0).getSubIndication();
+    public SignatureIndicationsDTO getSignatureIndicationsDto(WSReportsDTO reportsDto) {
+        Indication indication = reportsDto.getSimpleReport().getSignature().get(0).getIndication();
+        SubIndication subIndication = reportsDto.getSimpleReport().getSignature().get(0).getSubIndication();
+        return new SignatureIndicationsDTO(indication, subIndication);
     }
 
 }

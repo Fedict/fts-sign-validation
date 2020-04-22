@@ -1,23 +1,21 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
+import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.spi.DSSUtils;
-import eu.europa.esig.dss.validation.reports.Reports;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static eu.europa.esig.dss.enumerations.Indication.INDETERMINATE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static eu.europa.esig.dss.enumerations.Indication.*;
+import static eu.europa.esig.dss.enumerations.SubIndication.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class ValidateSignatureTest extends SignAndValidationTestBase {
@@ -32,21 +30,12 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
 
         // when
-        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, WSReportsDTO.class);
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         // then
-        assertNotNull(result.getDiagnosticData());
-        assertNotNull(result.getDetailedReport());
-        assertNotNull(result.getSimpleReport());
-        assertNotNull(result.getValidationReport());
-
-        assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(0, result.getDiagnosticData().getSignatures().get(0).getFoundTimestamps().size());
-        assertEquals(Indication.TOTAL_PASSED, result.getSimpleReport().getSignature().get(0).getIndication());
-
-        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-                result.getValidationReport());
-        assertNotNull(reports);
+        assertNotNull(result);
+        assertEquals(TOTAL_PASSED, result.getIndication());
+        assertNull(result.getSubIndication());
     }
 
     @Disabled("Temporary pipeline disable") // TODO
@@ -57,21 +46,12 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
 
         // when
-        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, WSReportsDTO.class);
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         // then
-        assertNotNull(result.getDiagnosticData());
-        assertNotNull(result.getDetailedReport());
-        assertNotNull(result.getSimpleReport());
-        assertNotNull(result.getValidationReport());
-
-        assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(0, result.getDiagnosticData().getSignatures().get(0).getFoundTimestamps().size());
-        assertEquals(Indication.TOTAL_FAILED, result.getSimpleReport().getSignature().get(0).getIndication());
-
-        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-                result.getValidationReport());
-        assertNotNull(reports);
+        assertNotNull(result);
+        assertEquals(TOTAL_FAILED, result.getIndication());
+        assertEquals(SIG_CRYPTO_FAILURE, result.getSubIndication());
     }
 
     @Test
@@ -81,21 +61,12 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
 
         // when
-        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, WSReportsDTO.class);
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         // then
-        assertNotNull(result.getDiagnosticData());
-        assertNotNull(result.getDetailedReport());
-        assertNotNull(result.getSimpleReport());
-        assertNotNull(result.getValidationReport());
-
-        assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(2, result.getDiagnosticData().getSignatures().get(0).getFoundTimestamps().size());
-        assertEquals(result.getSimpleReport().getSignature().get(0).getIndication(), INDETERMINATE);
-
-        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-                result.getValidationReport());
-        assertNotNull(reports);
+        assertNotNull(result);
+        assertEquals(INDETERMINATE, result.getIndication());
+        assertEquals(NO_POE, result.getSubIndication());
     }
 
     @Test
@@ -106,20 +77,12 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, null);
 
         // when
-        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, WSReportsDTO.class);
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         // then
-        assertNotNull(result.getDiagnosticData());
-        assertNotNull(result.getDetailedReport());
-        assertNotNull(result.getSimpleReport());
-        assertNotNull(result.getValidationReport());
-
-        assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(INDETERMINATE, result.getSimpleReport().getSignature().get(0).getIndication());
-
-        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-                result.getValidationReport());
-        assertNotNull(reports);
+        assertNotNull(result);
+        assertEquals(INDETERMINATE, result.getIndication());
+        assertEquals(NO_CERTIFICATE_CHAIN_FOUND, result.getSubIndication());
     }
 
     @Test
@@ -131,20 +94,12 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, null);
 
         // when
-        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, WSReportsDTO.class);
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         // then
-        assertNotNull(result.getDiagnosticData());
-        assertNotNull(result.getDetailedReport());
-        assertNotNull(result.getSimpleReport());
-        assertNotNull(result.getValidationReport());
-
-        assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(INDETERMINATE, result.getSimpleReport().getSignature().get(0).getIndication());
-
-        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-                result.getValidationReport());
-        assertNotNull(reports);
+        assertNotNull(result);
+        assertEquals(INDETERMINATE, result.getIndication());
+        assertEquals(NO_CERTIFICATE_CHAIN_FOUND, result.getSubIndication());
     }
 
     @Test
@@ -156,20 +111,12 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, policy);
 
         // when
-        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, WSReportsDTO.class);
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         // then
-        assertNotNull(result.getDiagnosticData());
-        assertNotNull(result.getDetailedReport());
-        assertNotNull(result.getSimpleReport());
-        assertNotNull(result.getValidationReport());
-
-        assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(INDETERMINATE, result.getSimpleReport().getSignature().get(0).getIndication());
-
-        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-                result.getValidationReport());
-        assertNotNull(reports);
+        assertNotNull(result);
+        assertEquals(INDETERMINATE, result.getIndication());
+        assertEquals(NO_CERTIFICATE_CHAIN_FOUND, result.getSubIndication());
     }
 
     @Test
@@ -180,20 +127,12 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, policy);
 
         // when
-        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, WSReportsDTO.class);
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         // then
-        assertNotNull(result.getDiagnosticData());
-        assertNotNull(result.getDetailedReport());
-        assertNotNull(result.getSimpleReport());
-        assertNotNull(result.getValidationReport());
-
-        assertEquals(1, result.getSimpleReport().getSignature().size());
-        assertEquals(result.getSimpleReport().getSignature().get(0).getIndication(), INDETERMINATE);
-
-        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-                result.getValidationReport());
-        assertNotNull(reports);
+        assertNotNull(result);
+        assertEquals(INDETERMINATE, result.getIndication());
+        assertEquals(NO_CERTIFICATE_CHAIN_FOUND, result.getSubIndication());
     }
 
     @Test
