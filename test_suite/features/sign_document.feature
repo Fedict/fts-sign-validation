@@ -39,6 +39,7 @@ Feature: Signing a document
 
 
     @active @wip
+    # max seems to be 1374 documents
     Scenario Outline: Sign a document
         Given Prepare the <document>
         When Send the documents
@@ -48,3 +49,4 @@ Feature: Signing a document
         Examples:
             | document       | code | result        |
             | signables.json | 400  | INDETERMINATE |
+# | signable_huge.json | 400  | INDETERMINATE |
