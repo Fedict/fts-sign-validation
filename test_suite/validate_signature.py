@@ -12,10 +12,3 @@ def validate_signature(file):
     )
 
     return req
-
-
-def validate_certificate_json(response):
-    with open("data/requests/response_certificate_schema.json") as response_schema:
-        schema = json.load(response_schema)
-
-        return validate(instance=response, schema=schema)

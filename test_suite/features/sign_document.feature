@@ -38,7 +38,7 @@ Feature: Signing a document
             | signable.json | 400  | INDETERMINATE |
 
 
-    @active @wip
+    @active
     # max seems to be 1374 documents
     Scenario Outline: Sign a document
         Given Prepare the <document>

@@ -19,40 +19,18 @@ def ready_post(context):
 
 @then('The indication is "{Indication}"')
 def validation_Indication(context, Indication):
-    assert context.response.status_code == 200
     response_dict = json.loads(context.response.content)
-    i = 0
-    while i < len(response_dict["SimpleReport"]["Signature"]):
-        print(response_dict["SimpleReport"]["Signature"][i]["Indication"])
-        assert response_dict["SimpleReport"]["Signature"][i]["Indication"] == Indication
-        i += 1
+    assert context.response.status_code == 200
+    assert response_dict["indication"] == Indication
 
 
 @then('The subindication is "{SubIndication}"')
 def validation_subconclusion(context, SubIndication):
     response_dict = json.loads(context.response.content)
-    i = 0
-    while i < len(response_dict["SimpleReport"]["Signature"]):
-        if response_dict["SimpleReport"]["Signature"][i]["SubIndication"] is None:
-            return True
-        else:
-            print(response_dict["SimpleReport"]["Signature"][i]["SubIndication"])
-            assert (
-                response_dict["SimpleReport"]["Signature"][i]["SubIndication"]
-                == SubIndication
-            )
-            i += 1
-
-
-@then("All {amount} of signatures are found")
-def validation_signatures(context, amount):
-    response_dict = json.loads(context.response.content)
-    assert str(len(response_dict["DiagnosticData"]["Signature"])) == amount
-
-
-@then("The response schema is valid")
-def validate_schema(context):
-    assert vs.validate_certificate_json(json.loads(context.response.content)) is None
+    if response_dict["subIndication"] is None:
+        return True
+    else:
+        assert response_dict["subIndication"]
 
 
 @when('Add {naughtystring} to the "{value}"')
