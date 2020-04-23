@@ -3,6 +3,7 @@ package com.zetes.projects.bosa.signandvalidation.controller;
 import com.zetes.projects.bosa.signandvalidation.model.CertificateIndicationsDTO;
 import com.zetes.projects.bosa.signandvalidation.model.CertificateToValidateDTO;
 import com.zetes.projects.bosa.signandvalidation.model.IndicationsListDTO;
+import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
@@ -39,9 +40,11 @@ public class ValidationController {
     }
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public WSReportsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) {
+    public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) {
         if (toValidate.getSignedDocument() != null) {
-            return remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+            WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+
+            return reportsService.getSignatureIndicationsDto(reportsDto);
         } else {
             throw new ResponseStatusException(BAD_REQUEST, "DSSDocument is null");
         }
