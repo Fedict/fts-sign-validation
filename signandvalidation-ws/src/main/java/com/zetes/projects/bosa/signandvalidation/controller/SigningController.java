@@ -8,6 +8,7 @@ import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
+import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.spi.DSSUtils;
@@ -22,6 +23,8 @@ import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -74,10 +77,7 @@ public class SigningController {
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
-                    dataToSignDto.getSigningProfileId(),
-                    dataToSignDto.getClientSignatureParameters()
-            );
+            RemoteSignatureParameters parameters = getSignatureParameters(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -90,10 +90,7 @@ public class SigningController {
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
-                    dataToSignDto.getSigningProfileId(),
-                    dataToSignDto.getClientSignatureParameters()
-            );
+            RemoteSignatureParameters parameters = getSignatureParameters(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
 
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -106,24 +103,12 @@ public class SigningController {
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
-                    signDocumentDto.getSigningProfileId(),
-                    signDocumentDto.getClientSignatureParameters()
-            );
+            RemoteSignatureParameters parameters = getSignatureParameters(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
-            WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
-            SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
-
-            if (indications.getIndication() == TOTAL_PASSED) {
-                return signedDoc;
-            } else {
-                throw new ResponseStatusException(BAD_REQUEST,
-                        String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
-                );
-            }
+            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
@@ -132,24 +117,12 @@ public class SigningController {
     @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParameters(
-                    signDocumentDto.getSigningProfileId(),
-                    signDocumentDto.getClientSignatureParameters()
-            );
+            RemoteSignatureParameters parameters = getSignatureParameters(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
-            WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
-            SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
-
-            if (indications.getIndication() == TOTAL_PASSED) {
-                return signedDoc;
-            } else {
-                throw new ResponseStatusException(BAD_REQUEST,
-                        String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
-                );
-            }
+            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
@@ -158,23 +131,11 @@ public class SigningController {
     @PostMapping(value = "/extendDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getExtensionParameters(
-                    extendDocumentDto.getExtendProfileId(),
-                    extendDocumentDto.getDetachedContents()
-            );
+            RemoteSignatureParameters parameters = getExtensionParameters(extendDocumentDto.getExtendProfileId(), extendDocumentDto.getDetachedContents());
 
             RemoteDocument extendedDoc = signatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            WSReportsDTO reportsDto = validationService.validateDocument(extendedDoc, extendDocumentDto.getDetachedContents(), null);
-            SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
-
-            if (indications.getIndication() == TOTAL_PASSED) {
-                return extendedDoc;
-            } else {
-                throw new ResponseStatusException(BAD_REQUEST,
-                        String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
-                );
-            }
+            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), null);
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
@@ -183,25 +144,42 @@ public class SigningController {
     @PostMapping(value = "/extendDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getExtensionParameters(
-                    extendDocumentDto.getExtendProfileId(),
-                    extendDocumentDto.getDetachedContents()
-            );
+            RemoteSignatureParameters parameters = getExtensionParameters(extendDocumentDto.getExtendProfileId(), extendDocumentDto.getDetachedContents());
 
             RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            WSReportsDTO reportsDto = validationService.validateDocument(extendedDoc, extendDocumentDto.getDetachedContents(), null);
-            SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
-
-            if (indications.getIndication() == TOTAL_PASSED) {
-                return extendedDoc;
-            } else {
-                throw new ResponseStatusException(BAD_REQUEST,
-                        String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
-                );
-            }
+            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), null);
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    private RemoteSignatureParameters getSignatureParameters(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
+        if (profileId == null) {
+            return signingConfigService.getSignatureParametersDefaultProfile(clientParams);
+        } else {
+            return signingConfigService.getSignatureParameters(profileId, clientParams);
+        }
+    }
+
+    private RemoteSignatureParameters getExtensionParameters(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException, NullParameterException {
+        if (profileId == null) {
+            return signingConfigService.getExtensionParametersDefaultProfile(detachedContents);
+        } else {
+            return signingConfigService.getExtensionParameters(profileId, detachedContents);
+        }
+    }
+
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteDocument policy) {
+        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, policy);
+        SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
+
+        if (indications.getIndication() == TOTAL_PASSED) {
+            return signedDoc;
+        } else {
+            throw new ResponseStatusException(BAD_REQUEST,
+                    String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
+            );
         }
     }
 
