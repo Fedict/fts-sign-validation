@@ -22,6 +22,9 @@ public class ProfileSignatureParameters {
     @Column(nullable = false)
     private Instant updated;
 
+    @Column(unique = true)
+    private Boolean isDefault;
+
     @Version
     private int version;
 
@@ -84,6 +87,14 @@ public class ProfileSignatureParameters {
 
     public void setUpdated(Instant updated) {
         this.updated = updated;
+    }
+
+    public Boolean getIsDefault() {
+        return isDefault;
+    }
+
+    public void setIsDefault(Boolean isDefault) {
+        this.isDefault = isDefault;
     }
 
     public int getVersion() {
