@@ -23,7 +23,7 @@ Feature: Signing a document
             | signatureValue                        | apples         | 400  | Unexpected end of base64-encoded  |
             | signatureValue                        | YXBwbGVz       | 400  | INDETERMINATE                     |
             | toSignDocument/bytes                  | apples         | 400  | Unexpected end of base64-encoded  |
-            | toSignDocument/bytes                  | YXBwbGVz       | 400  | INDETERMINATE                     |
+            | toSignDocument/bytes                  | YXBwbGVz       | 500  | XML expected                      |
             | signingProfileId                      | YXBwbGVz       | 400  | not found                         |
 
     @active
@@ -38,7 +38,7 @@ Feature: Signing a document
             | signable.json | 400  | INDETERMINATE |
 
 
-    @active
+    @active @wip
     # max seems to be 1374 documents
     Scenario Outline: Sign a document
         Given Prepare the <document>
@@ -48,5 +48,5 @@ Feature: Signing a document
 
         Examples:
             | document       | code | result        |
-            | signables.json | 400  | INDETERMINATE |
+            | signables.json | 500  | INDETERMINATE |
 # | signable_huge.json | 400  | INDETERMINATE |
