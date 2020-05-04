@@ -47,6 +47,6 @@ Feature: Signing a document
         And The result is <result>
 
         Examples:
-            | document       | code | result        |
-            | signables.json | 500  | INDETERMINATE |
+            | document       | code | result                  |
+            | signables.json | 500  | Not supported operation |
 # | signable_huge.json | 400  | INDETERMINATE |
