@@ -3,7 +3,7 @@ Feature: Signing a document
     Background: disabled SSL Verfication
         Given The ssl verification is disabled
 
-    @active
+    @active @wip
     Scenario Outline: Modify a document
         Given Add <property> and <value> to the post
         When Send the document
@@ -25,6 +25,9 @@ Feature: Signing a document
             | toSignDocument/bytes                  | apples         | 400  | Unexpected end of base64-encoded  |
             | toSignDocument/bytes                  | YXBwbGVz       | 500  | XML expected                      |
             | signingProfileId                      | YXBwbGVz       | 400  | not found                         |
+            | signingProfileId                      | XADES_1        | 400  | NO_CERTIFICATE_CHAIN_FOUND        |
+            | signingProfileId                      | XADES_2        | 400  | NO_CERTIFICATE_CHAIN_FOUND        |
+
 
     @active
     Scenario Outline: Sign a document
