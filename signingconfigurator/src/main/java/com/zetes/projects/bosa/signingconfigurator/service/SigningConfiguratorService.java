@@ -4,7 +4,6 @@ import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParameter
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.zetes.projects.bosa.signingconfigurator.model.DefaultSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteBLevelParameters;
@@ -20,106 +19,104 @@ public class SigningConfiguratorService {
     @Autowired
     ProfileSignatureParametersDao dao;
 
-    private static final DefaultSignatureParameters defaultParams = new DefaultSignatureParameters();
-
-    public RemoteSignatureParameters getSignatureParameters(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
+    public RemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         if (profileId == null || clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
 
         ProfileSignatureParameters profileParams = findProfileParamsById(profileId);
-        return fillRemoteSignatureParameters(clientParams, profileParams);
+        return fillRemoteSignatureParams(clientParams, profileParams);
     }
 
-    public RemoteSignatureParameters getSignatureParametersDefaultProfile(ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
+    public RemoteSignatureParameters getSignatureParamsDefaultProfile(ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         if (clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
 
         ProfileSignatureParameters profileParams = findDefaultProfileParams();
-        return fillRemoteSignatureParameters(clientParams, profileParams);
+        return fillRemoteSignatureParams(clientParams, profileParams);
     }
 
-    public RemoteSignatureParameters getExtensionParameters(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException, NullParameterException {
+    public RemoteSignatureParameters getExtensionParams(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException, NullParameterException {
         if (profileId == null) {
             throw new NullParameterException("Profile id should not be null");
         }
 
         ProfileSignatureParameters profileParams = findProfileParamsById(profileId);
-        return fillExtensionParameters(detachedContents, profileParams);
+        return fillExtensionParams(detachedContents, profileParams);
     }
 
-    public RemoteSignatureParameters getExtensionParametersDefaultProfile(List<RemoteDocument> detachedContents) throws ProfileNotFoundException {
+    public RemoteSignatureParameters getExtensionParamsDefaultProfile(List<RemoteDocument> detachedContents) throws ProfileNotFoundException {
         ProfileSignatureParameters profileParams = findDefaultProfileParams();
-        return fillExtensionParameters(detachedContents, profileParams);
+        return fillExtensionParams(detachedContents, profileParams);
     }
 
-    private RemoteSignatureParameters fillRemoteSignatureParameters(ClientSignatureParameters clientParams, ProfileSignatureParameters profileParams) {
-        RemoteSignatureParameters remoteSignatureParameters = new RemoteSignatureParameters();
-        RemoteBLevelParameters remoteBLevelParameters = new RemoteBLevelParameters();
+    private RemoteSignatureParameters fillRemoteSignatureParams(ClientSignatureParameters clientParams, ProfileSignatureParameters profileParams) {
+        RemoteSignatureParameters remoteSignatureParams = new RemoteSignatureParameters();
+        RemoteBLevelParameters remoteBLevelParams = new RemoteBLevelParameters();
 
-        fillDefaultParams(remoteSignatureParameters, remoteBLevelParameters);
-        fillProfileParams(profileParams, remoteSignatureParameters);
-        fillClientParams(clientParams, remoteSignatureParameters, remoteBLevelParameters);
+        fillDefaultParams(profileParams, remoteSignatureParams, remoteBLevelParams);
+        fillProfileParams(profileParams, remoteSignatureParams);
+        fillClientParams(clientParams, remoteSignatureParams, remoteBLevelParams);
 
-        remoteSignatureParameters.setBLevelParams(remoteBLevelParameters);
+        remoteSignatureParams.setBLevelParams(remoteBLevelParams);
 
-        return remoteSignatureParameters;
+        return remoteSignatureParams;
     }
 
-    private RemoteSignatureParameters fillExtensionParameters(List<RemoteDocument> detachedContents, ProfileSignatureParameters profileParams) {
-        RemoteSignatureParameters remoteSignatureParameters = new RemoteSignatureParameters();
-        RemoteBLevelParameters remoteBLevelParameters = new RemoteBLevelParameters();
+    private RemoteSignatureParameters fillExtensionParams(List<RemoteDocument> detachedContents, ProfileSignatureParameters profileParams) {
+        RemoteSignatureParameters remoteSignatureParams = new RemoteSignatureParameters();
+        RemoteBLevelParameters remoteBLevelParams = new RemoteBLevelParameters();
 
-        fillDefaultParams(remoteSignatureParameters, remoteBLevelParameters);
-        fillProfileParams(profileParams, remoteSignatureParameters);
-        remoteSignatureParameters.setDetachedContents(detachedContents);
+        fillDefaultParams(profileParams, remoteSignatureParams, remoteBLevelParams);
+        fillProfileParams(profileParams, remoteSignatureParams);
+        remoteSignatureParams.setDetachedContents(detachedContents);
 
-        remoteSignatureParameters.setBLevelParams(remoteBLevelParameters);
+        remoteSignatureParams.setBLevelParams(remoteBLevelParams);
 
-        return remoteSignatureParameters;
+        return remoteSignatureParams;
     }
 
-    private void fillDefaultParams(RemoteSignatureParameters remoteSignatureParameters, RemoteBLevelParameters remoteBLevelParameters) {
-        remoteSignatureParameters.setContentTimestampParameters(defaultParams.getContentTimestampParameters());
-        remoteSignatureParameters.setSignatureTimestampParameters(defaultParams.getSignatureTimestampParameters());
-        remoteSignatureParameters.setArchiveTimestampParameters(defaultParams.getArchiveTimestampParameters());
-        remoteSignatureParameters.setSignWithExpiredCertificate(defaultParams.isSignWithExpiredCertificate());
-        remoteSignatureParameters.setGenerateTBSWithoutCertificate(defaultParams.isGenerateTBSWithoutCertificate());
+    private void fillDefaultParams(ProfileSignatureParameters profileParams, RemoteSignatureParameters remoteSignatureParams, RemoteBLevelParameters remoteBLevelParams) {
+        remoteSignatureParams.setContentTimestampParameters(profileParams.getContentTimestampParameters());
+        remoteSignatureParams.setSignatureTimestampParameters(profileParams.getSignatureTimestampParameters());
+        remoteSignatureParams.setArchiveTimestampParameters(profileParams.getArchiveTimestampParameters());
+        remoteSignatureParams.setSignWithExpiredCertificate(profileParams.getSignWithExpiredCertificate());
+        remoteSignatureParams.setGenerateTBSWithoutCertificate(profileParams.getGenerateTBSWithoutCertificate());
 
-        remoteBLevelParameters.setTrustAnchorBPPolicy(defaultParams.isTrustAnchorBPPolicy());
-        remoteBLevelParameters.setPolicyId(defaultParams.getPolicyId());
-        remoteBLevelParameters.setPolicyQualifier(defaultParams.getPolicyQualifier());
-        remoteBLevelParameters.setPolicyDescription(defaultParams.getPolicyDescription());
-        remoteBLevelParameters.setPolicyDigestAlgorithm(defaultParams.getPolicyDigestAlgorithm());
-        remoteBLevelParameters.setPolicyDigestValue(defaultParams.getPolicyDigestValue());
-        remoteBLevelParameters.setPolicySpuri(defaultParams.getPolicySpuri());
-        remoteBLevelParameters.setCommitmentTypeIndications(defaultParams.getCommitmentTypeIndications());
+        remoteBLevelParams.setTrustAnchorBPPolicy(profileParams.getTrustAnchorBPPolicy());
+        remoteBLevelParams.setPolicyId(profileParams.getPolicyId());
+        remoteBLevelParams.setPolicyQualifier(profileParams.getPolicyQualifier());
+        remoteBLevelParams.setPolicyDescription(profileParams.getPolicyDescription());
+        remoteBLevelParams.setPolicyDigestAlgorithm(profileParams.getPolicyDigestAlgorithm());
+        remoteBLevelParams.setPolicyDigestValue(profileParams.getPolicyDigestValue());
+        remoteBLevelParams.setPolicySpuri(profileParams.getPolicySpuri());
+        remoteBLevelParams.setCommitmentTypeIndications(profileParams.getCommitmentTypeIndications());
     }
 
-    private void fillProfileParams(ProfileSignatureParameters profileParams, RemoteSignatureParameters remoteSignatureParameters) {
-        remoteSignatureParameters.setAsicContainerType(profileParams.getAsicContainerType());
-        remoteSignatureParameters.setSignatureLevel(profileParams.getSignatureLevel());
-        remoteSignatureParameters.setSignaturePackaging(profileParams.getSignaturePackaging());
-        remoteSignatureParameters.setDigestAlgorithm(profileParams.getSignatureAlgorithm().getDigestAlgorithm());
-        remoteSignatureParameters.setEncryptionAlgorithm(profileParams.getSignatureAlgorithm().getEncryptionAlgorithm());
-        remoteSignatureParameters.setMaskGenerationFunction(profileParams.getSignatureAlgorithm().getMaskGenerationFunction());
-        remoteSignatureParameters.setReferenceDigestAlgorithm(profileParams.getReferenceDigestAlgorithm());
+    private void fillProfileParams(ProfileSignatureParameters profileParams, RemoteSignatureParameters remoteSignatureParams) {
+        remoteSignatureParams.setAsicContainerType(profileParams.getAsicContainerType());
+        remoteSignatureParams.setSignatureLevel(profileParams.getSignatureLevel());
+        remoteSignatureParams.setSignaturePackaging(profileParams.getSignaturePackaging());
+        remoteSignatureParams.setDigestAlgorithm(profileParams.getSignatureAlgorithm().getDigestAlgorithm());
+        remoteSignatureParams.setEncryptionAlgorithm(profileParams.getSignatureAlgorithm().getEncryptionAlgorithm());
+        remoteSignatureParams.setMaskGenerationFunction(profileParams.getSignatureAlgorithm().getMaskGenerationFunction());
+        remoteSignatureParams.setReferenceDigestAlgorithm(profileParams.getReferenceDigestAlgorithm());
     }
 
-    private void fillClientParams(ClientSignatureParameters clientParams, RemoteSignatureParameters remoteSignatureParameters, RemoteBLevelParameters remoteBLevelParameters) {
-        remoteSignatureParameters.setSigningCertificate(clientParams.getSigningCertificate());
-        remoteSignatureParameters.setCertificateChain(clientParams.getCertificateChain());
-        remoteSignatureParameters.setDetachedContents(clientParams.getDetachedContents());
+    private void fillClientParams(ClientSignatureParameters clientParams, RemoteSignatureParameters remoteSignatureParams, RemoteBLevelParameters remoteBLevelParams) {
+        remoteSignatureParams.setSigningCertificate(clientParams.getSigningCertificate());
+        remoteSignatureParams.setCertificateChain(clientParams.getCertificateChain());
+        remoteSignatureParams.setDetachedContents(clientParams.getDetachedContents());
 
-        remoteBLevelParameters.setSigningDate(clientParams.getSigningDate());
-        remoteBLevelParameters.setClaimedSignerRoles(clientParams.getClaimedSignerRoles());
-        remoteBLevelParameters.setSignerLocationPostalAddress(clientParams.getSignerLocationPostalAddress());
-        remoteBLevelParameters.setSignerLocationPostalCode(clientParams.getSignerLocationPostalCode());
-        remoteBLevelParameters.setSignerLocationLocality(clientParams.getSignerLocationLocality());
-        remoteBLevelParameters.setSignerLocationStateOrProvince(clientParams.getSignerLocationStateOrProvince());
-        remoteBLevelParameters.setSignerLocationCountry(clientParams.getSignerLocationCountry());
-        remoteBLevelParameters.setSignerLocationStreet(clientParams.getSignerLocationStreet());
+        remoteBLevelParams.setSigningDate(clientParams.getSigningDate());
+        remoteBLevelParams.setClaimedSignerRoles(clientParams.getClaimedSignerRoles());
+        remoteBLevelParams.setSignerLocationPostalAddress(clientParams.getSignerLocationPostalAddress());
+        remoteBLevelParams.setSignerLocationPostalCode(clientParams.getSignerLocationPostalCode());
+        remoteBLevelParams.setSignerLocationLocality(clientParams.getSignerLocationLocality());
+        remoteBLevelParams.setSignerLocationStateOrProvince(clientParams.getSignerLocationStateOrProvince());
+        remoteBLevelParams.setSignerLocationCountry(clientParams.getSignerLocationCountry());
+        remoteBLevelParams.setSignerLocationStreet(clientParams.getSignerLocationStreet());
     }
 
     private ProfileSignatureParameters findProfileParamsById(String profileId) throws ProfileNotFoundException {

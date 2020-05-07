@@ -19,6 +19,8 @@ import org.springframework.test.context.ActiveProfiles;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import java.util.*;
 
+import static eu.europa.esig.dss.enumerations.DigestAlgorithm.*;
+import static javax.xml.crypto.dsig.CanonicalizationMethod.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -50,7 +52,7 @@ public class SigningConfiguratorServiceTest {
         // then
         ProfileNotFoundException exception = assertThrows(
                 ProfileNotFoundException.class,
-                () -> service.getSignatureParameters("NOTFOUND", clientParams)
+                () -> service.getSignatureParams("NOTFOUND", clientParams)
         );
 
         assertEquals("NOTFOUND not found", exception.getMessage());
@@ -66,7 +68,7 @@ public class SigningConfiguratorServiceTest {
         // then
         ProfileNotFoundException exception = assertThrows(
                 ProfileNotFoundException.class,
-                () -> service.getSignatureParametersDefaultProfile(clientParams)
+                () -> service.getSignatureParamsDefaultProfile(clientParams)
         );
 
         assertEquals("Default profile not found", exception.getMessage());
@@ -81,7 +83,7 @@ public class SigningConfiguratorServiceTest {
         ProfileNotFoundException exception = assertThrows(
                 ProfileNotFoundException.class,
                 () -> {
-                    service.getExtensionParameters("NOTFOUND", detachedContents);
+                    service.getExtensionParams("NOTFOUND", detachedContents);
                 }
         );
 
@@ -97,7 +99,7 @@ public class SigningConfiguratorServiceTest {
         ProfileNotFoundException exception = assertThrows(
                 ProfileNotFoundException.class,
                 () -> {
-                    service.getExtensionParametersDefaultProfile(detachedContents);
+                    service.getExtensionParamsDefaultProfile(detachedContents);
                 }
         );
 
@@ -108,7 +110,7 @@ public class SigningConfiguratorServiceTest {
     public void saveTwoDefaultThrowsException() {
         // given
         saveProfileSignatureParameters("XADES_1", true, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPING, SHA512, SignatureAlgorithm.RSA_SHA256);
 
         // then
         assertThrows(
@@ -122,20 +124,20 @@ public class SigningConfiguratorServiceTest {
     public void retrievesProfileParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPING, SHA512, SignatureAlgorithm.RSA_SHA256);
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getSha256Certificate());
         clientParams.setSigningDate(new Date());
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParameters("XADES_B", clientParams);
+        RemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams);
 
         // then
         assertNull(result.getAsicContainerType());
         assertEquals(SignatureLevel.XAdES_BASELINE_B, result.getSignatureLevel());
         assertEquals(SignaturePackaging.ENVELOPING, result.getSignaturePackaging());
         assertEquals(SignatureAlgorithm.RSA_SHA256, result.getSignatureAlgorithm());
-        assertEquals(DigestAlgorithm.SHA512, result.getReferenceDigestAlgorithm());
+        assertEquals(SHA512, result.getReferenceDigestAlgorithm());
 
         // based on SignatureAlgorithm
         assertEquals(DigestAlgorithm.SHA256, result.getDigestAlgorithm());
@@ -146,20 +148,20 @@ public class SigningConfiguratorServiceTest {
     public void retrievesDefaultProfileParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", true, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPING, SHA512, SignatureAlgorithm.RSA_SHA256);
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getSha256Certificate());
         clientParams.setSigningDate(new Date());
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParametersDefaultProfile(clientParams);
+        RemoteSignatureParameters result = service.getSignatureParamsDefaultProfile(clientParams);
 
         // then
         assertNull(result.getAsicContainerType());
         assertEquals(SignatureLevel.XAdES_BASELINE_B, result.getSignatureLevel());
         assertEquals(SignaturePackaging.ENVELOPING, result.getSignaturePackaging());
         assertEquals(SignatureAlgorithm.RSA_SHA256, result.getSignatureAlgorithm());
-        assertEquals(DigestAlgorithm.SHA512, result.getReferenceDigestAlgorithm());
+        assertEquals(SHA512, result.getReferenceDigestAlgorithm());
 
         // based on SignatureAlgorithm
         assertEquals(DigestAlgorithm.SHA256, result.getDigestAlgorithm());
@@ -170,13 +172,13 @@ public class SigningConfiguratorServiceTest {
     public void retrievesDefaultParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPING, SHA512, SignatureAlgorithm.RSA_SHA256);
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getSha256Certificate());
         clientParams.setSigningDate(new Date());
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParameters("XADES_B", clientParams);
+        RemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams);
 
         // then
         assertEquals(DigestAlgorithm.SHA256, result.getContentTimestampParameters().getDigestAlgorithm());
@@ -197,14 +199,51 @@ public class SigningConfiguratorServiceTest {
         assertNull(bLevelParams.getPolicyDigestAlgorithm());
         assertNull(bLevelParams.getPolicyDigestValue());
         assertNull(bLevelParams.getPolicySpuri());
-        assertNull(bLevelParams.getCommitmentTypeIndications());
+        assertEquals(0, bLevelParams.getCommitmentTypeIndications().size());
+    }
+
+    @Test
+    public void overridesDefaultParametersCorrectly() throws Exception {
+        // given
+        saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
+                SignaturePackaging.ENVELOPING, SHA512, SignatureAlgorithm.RSA_SHA256,
+                false, "id", "qualifier", "desc",
+                SHA224, "digest".getBytes(), "spuri", Arrays.asList("commitment"), true, true,
+                SHA1, INCLUSIVE, SHA384, EXCLUSIVE_WITH_COMMENTS, SHA512, INCLUSIVE_WITH_COMMENTS);
+        ClientSignatureParameters clientParams = new ClientSignatureParameters();
+        clientParams.setSigningCertificate(getSha256Certificate());
+        clientParams.setSigningDate(new Date());
+
+        // when
+        RemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams);
+
+        // then
+        assertEquals(SHA1, result.getContentTimestampParameters().getDigestAlgorithm());
+        assertEquals(INCLUSIVE, result.getContentTimestampParameters().getCanonicalizationMethod());
+        assertEquals(SHA384, result.getSignatureTimestampParameters().getDigestAlgorithm());
+        assertEquals(EXCLUSIVE_WITH_COMMENTS, result.getSignatureTimestampParameters().getCanonicalizationMethod());
+        assertEquals(SHA512, result.getArchiveTimestampParameters().getDigestAlgorithm());
+        assertEquals(INCLUSIVE_WITH_COMMENTS, result.getArchiveTimestampParameters().getCanonicalizationMethod());
+        assertTrue(result.isSignWithExpiredCertificate());
+        assertTrue(result.isGenerateTBSWithoutCertificate());
+
+        RemoteBLevelParameters bLevelParams = result.getBLevelParams();
+
+        assertFalse(bLevelParams.isTrustAnchorBPPolicy());
+        assertEquals("id", bLevelParams.getPolicyId());
+        assertEquals("qualifier", bLevelParams.getPolicyQualifier());
+        assertEquals("desc", bLevelParams.getPolicyDescription());
+        assertEquals(SHA224, bLevelParams.getPolicyDigestAlgorithm());
+        assertEquals("digest", new String(bLevelParams.getPolicyDigestValue()));
+        assertEquals("spuri", bLevelParams.getPolicySpuri());
+        assertEquals(1, bLevelParams.getCommitmentTypeIndications().size());
     }
 
     @Test
     public void retrievesClientParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPING, SHA512, SignatureAlgorithm.RSA_SHA256);
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getSha256Certificate());
         clientParams.setCertificateChain(Arrays.asList(new RemoteCertificate(), new RemoteCertificate()));
@@ -221,7 +260,7 @@ public class SigningConfiguratorServiceTest {
         clientParams.setSignerLocationStreet("street");
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParameters("XADES_B", clientParams);
+        RemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams);
 
         // then
         assertNotNull(result.getSigningCertificate());
@@ -244,18 +283,18 @@ public class SigningConfiguratorServiceTest {
     public void extensionRetrievesProfileParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPING, SHA512, SignatureAlgorithm.RSA_SHA256);
         List<RemoteDocument> detachedContents = new ArrayList<>();
 
         // when
-        RemoteSignatureParameters result = service.getExtensionParameters("XADES_B", detachedContents);
+        RemoteSignatureParameters result = service.getExtensionParams("XADES_B", detachedContents);
 
         // then
         assertNull(result.getAsicContainerType());
         assertEquals(SignatureLevel.XAdES_BASELINE_B, result.getSignatureLevel());
         assertEquals(SignaturePackaging.ENVELOPING, result.getSignaturePackaging());
         assertEquals(SignatureAlgorithm.RSA_SHA256, result.getSignatureAlgorithm());
-        assertEquals(DigestAlgorithm.SHA512, result.getReferenceDigestAlgorithm());
+        assertEquals(SHA512, result.getReferenceDigestAlgorithm());
 
         // based on SignatureAlgorithm
         assertEquals(DigestAlgorithm.SHA256, result.getDigestAlgorithm());
@@ -266,18 +305,18 @@ public class SigningConfiguratorServiceTest {
     public void extensionRetrievesDefaultProfileParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", true, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPING, SHA512, SignatureAlgorithm.RSA_SHA256);
         List<RemoteDocument> detachedContents = new ArrayList<>();
 
         // when
-        RemoteSignatureParameters result = service.getExtensionParametersDefaultProfile(detachedContents);
+        RemoteSignatureParameters result = service.getExtensionParamsDefaultProfile(detachedContents);
 
         // then
         assertNull(result.getAsicContainerType());
         assertEquals(SignatureLevel.XAdES_BASELINE_B, result.getSignatureLevel());
         assertEquals(SignaturePackaging.ENVELOPING, result.getSignaturePackaging());
         assertEquals(SignatureAlgorithm.RSA_SHA256, result.getSignatureAlgorithm());
-        assertEquals(DigestAlgorithm.SHA512, result.getReferenceDigestAlgorithm());
+        assertEquals(SHA512, result.getReferenceDigestAlgorithm());
 
         // based on SignatureAlgorithm
         assertEquals(DigestAlgorithm.SHA256, result.getDigestAlgorithm());
@@ -288,11 +327,11 @@ public class SigningConfiguratorServiceTest {
     public void extensionRetrievesDefaultParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA512, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPING, SHA512, SignatureAlgorithm.RSA_SHA256);
         List<RemoteDocument> detachedContents = new ArrayList<>();
 
         // when
-        RemoteSignatureParameters result = service.getExtensionParameters("XADES_B", detachedContents);
+        RemoteSignatureParameters result = service.getExtensionParams("XADES_B", detachedContents);
 
         // then
         assertEquals(DigestAlgorithm.SHA256, result.getContentTimestampParameters().getDigestAlgorithm());
@@ -313,7 +352,7 @@ public class SigningConfiguratorServiceTest {
         assertNull(bLevelParams.getPolicyDigestAlgorithm());
         assertNull(bLevelParams.getPolicyDigestValue());
         assertNull(bLevelParams.getPolicySpuri());
-        assertNull(bLevelParams.getCommitmentTypeIndications());
+        assertEquals(0, bLevelParams.getCommitmentTypeIndications().size());
     }
 
     private RemoteCertificate getSha1Certificate() {
@@ -349,6 +388,57 @@ public class SigningConfiguratorServiceTest {
         profileParams.setSignaturePackaging(signaturePackaging);
         profileParams.setSignatureAlgorithm(signatureAlgorithm);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
+
+        dao.save(profileParams);
+    }
+
+    private void saveProfileSignatureParameters(String profileId, Boolean isDefault,
+                                                ASiCContainerType containerType,
+                                                SignatureLevel signatureLevel,
+                                                SignaturePackaging signaturePackaging,
+                                                DigestAlgorithm referenceDigestAlgorithm,
+                                                SignatureAlgorithm signatureAlgorithm,
+                                                Boolean trustAnchorBPPolicy,
+                                                String policyId,
+                                                String policyQualifier,
+                                                String policyDescription,
+                                                DigestAlgorithm policyDigestAlgorithm,
+                                                byte[] policyDigestValue,
+                                                String policySpuri,
+                                                List<String> commitmentTypeIndications,
+                                                Boolean signWithExpiredCertificate,
+                                                Boolean generateTBSWithoutCertificate,
+                                                DigestAlgorithm contentTimestampDigestAlgorithm,
+                                                String contentTimestampCanonicalizationMethod,
+                                                DigestAlgorithm signatureTimestampDigestAlgorithm,
+                                                String signatureTimestampCanonicalizationMethod,
+                                                DigestAlgorithm archiveTimestampDigestAlgorithm,
+                                                String archiveTimestampCanonicalizationMethod) {
+        ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
+        profileParams.setProfileId(profileId);
+        profileParams.setIsDefault(isDefault);
+        profileParams.setAsicContainerType(containerType);
+        profileParams.setSignatureLevel(signatureLevel);
+        profileParams.setSignaturePackaging(signaturePackaging);
+        profileParams.setSignatureAlgorithm(signatureAlgorithm);
+        profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
+
+        profileParams.setTrustAnchorBPPolicy(trustAnchorBPPolicy);
+        profileParams.setPolicyId(policyId);
+        profileParams.setPolicyQualifier(policyQualifier);
+        profileParams.setPolicyDescription(policyDescription);
+        profileParams.setPolicyDigestAlgorithm(policyDigestAlgorithm);
+        profileParams.setPolicyDigestValue(policyDigestValue);
+        profileParams.setPolicySpuri(policySpuri);
+        profileParams.setCommitmentTypeIndications(commitmentTypeIndications);
+        profileParams.setSignWithExpiredCertificate(signWithExpiredCertificate);
+        profileParams.setGenerateTBSWithoutCertificate(generateTBSWithoutCertificate);
+        profileParams.setContentTimestampDigestAlgorithm(contentTimestampDigestAlgorithm);
+        profileParams.setContentTimestampCanonicalizationMethod(contentTimestampCanonicalizationMethod);
+        profileParams.setSignatureTimestampDigestAlgorithm(signatureTimestampDigestAlgorithm);
+        profileParams.setSignatureTimestampCanonicalizationMethod(signatureTimestampCanonicalizationMethod);
+        profileParams.setArchiveTimestampDigestAlgorithm(archiveTimestampDigestAlgorithm);
+        profileParams.setArchiveTimestampCanonicalizationMethod(archiveTimestampCanonicalizationMethod);
 
         dao.save(profileParams);
     }

@@ -1,9 +1,15 @@
 package com.zetes.projects.bosa.signingconfigurator.model;
 
 import eu.europa.esig.dss.enumerations.*;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 
 import javax.persistence.*;
+import javax.xml.crypto.dsig.CanonicalizationMethod;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import static javax.persistence.FetchType.EAGER;
 
 // parameters which are retrieved from the database based on the profile id
 @Entity
@@ -50,6 +56,61 @@ public class ProfileSignatureParameters {
     @Column
     @Enumerated(EnumType.STRING)
     private DigestAlgorithm referenceDigestAlgorithm;
+
+    /**
+     * Overridable default parameters
+     */
+    @Column
+    private Boolean trustAnchorBPPolicy;
+
+    @Column
+    private String policyId;
+
+    @Column
+    private String policyQualifier;
+
+    @Column
+    private String policyDescription;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private DigestAlgorithm policyDigestAlgorithm;
+
+    @Column
+    private byte[] policyDigestValue;
+
+    @Column
+    private String policySpuri;
+
+    @ElementCollection(fetch = EAGER)
+    private List<String> commitmentTypeIndications = new ArrayList<>();
+
+    @Column
+    private Boolean signWithExpiredCertificate;
+
+    @Column
+    private Boolean generateTBSWithoutCertificate;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private DigestAlgorithm contentTimestampDigestAlgorithm;
+
+    @Column
+    private String contentTimestampCanonicalizationMethod;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private DigestAlgorithm signatureTimestampDigestAlgorithm;
+
+    @Column
+    private String signatureTimestampCanonicalizationMethod;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private DigestAlgorithm archiveTimestampDigestAlgorithm;
+
+    @Column
+    private String archiveTimestampCanonicalizationMethod;
 
     public ProfileSignatureParameters() {
     }
@@ -145,6 +206,149 @@ public class ProfileSignatureParameters {
 
     public void setSignatureAlgorithm(SignatureAlgorithm signatureAlgorithm) {
         this.signatureAlgorithm = signatureAlgorithm;
+    }
+
+    public Boolean getTrustAnchorBPPolicy() {
+        return trustAnchorBPPolicy != null ? trustAnchorBPPolicy : true;
+    }
+
+    public void setTrustAnchorBPPolicy(Boolean trustAnchorBPPolicy) {
+        this.trustAnchorBPPolicy = trustAnchorBPPolicy;
+    }
+
+    public String getPolicyId() {
+        return policyId;
+    }
+
+    public void setPolicyId(String policyId) {
+        this.policyId = policyId;
+    }
+
+    public String getPolicyQualifier() {
+        return policyQualifier;
+    }
+
+    public void setPolicyQualifier(String policyQualifier) {
+        this.policyQualifier = policyQualifier;
+    }
+
+    public String getPolicyDescription() {
+        return policyDescription;
+    }
+
+    public void setPolicyDescription(String policyDescription) {
+        this.policyDescription = policyDescription;
+    }
+
+    public DigestAlgorithm getPolicyDigestAlgorithm() {
+        return policyDigestAlgorithm;
+    }
+
+    public void setPolicyDigestAlgorithm(DigestAlgorithm policyDigestAlgorithm) {
+        this.policyDigestAlgorithm = policyDigestAlgorithm;
+    }
+
+    public byte[] getPolicyDigestValue() {
+        return policyDigestValue;
+    }
+
+    public void setPolicyDigestValue(byte[] policyDigestValue) {
+        this.policyDigestValue = policyDigestValue;
+    }
+
+    public String getPolicySpuri() {
+        return policySpuri;
+    }
+
+    public void setPolicySpuri(String policySpuri) {
+        this.policySpuri = policySpuri;
+    }
+
+    public List<String> getCommitmentTypeIndications() {
+        return commitmentTypeIndications;
+    }
+
+    public void setCommitmentTypeIndications(List<String> commitmentTypeIndications) {
+        this.commitmentTypeIndications = commitmentTypeIndications;
+    }
+
+    public Boolean getSignWithExpiredCertificate() {
+        return signWithExpiredCertificate != null ? signWithExpiredCertificate : false;
+    }
+
+    public void setSignWithExpiredCertificate(Boolean signWithExpiredCertificate) {
+        this.signWithExpiredCertificate = signWithExpiredCertificate;
+    }
+
+    public Boolean getGenerateTBSWithoutCertificate() {
+        return generateTBSWithoutCertificate != null ? generateTBSWithoutCertificate : false;
+    }
+
+    public void setGenerateTBSWithoutCertificate(Boolean generateTBSWithoutCertificate) {
+        this.generateTBSWithoutCertificate = generateTBSWithoutCertificate;
+    }
+
+    public DigestAlgorithm getContentTimestampDigestAlgorithm() {
+        return contentTimestampDigestAlgorithm != null ? contentTimestampDigestAlgorithm : DigestAlgorithm.SHA256;
+    }
+
+    public void setContentTimestampDigestAlgorithm(DigestAlgorithm contentTimestampDigestAlgorithm) {
+        this.contentTimestampDigestAlgorithm = contentTimestampDigestAlgorithm;
+    }
+
+    public String getContentTimestampCanonicalizationMethod() {
+        return contentTimestampCanonicalizationMethod != null ? contentTimestampCanonicalizationMethod : CanonicalizationMethod.EXCLUSIVE;
+    }
+
+    public void setContentTimestampCanonicalizationMethod(String contentTimestampCanonicalizationMethod) {
+        this.contentTimestampCanonicalizationMethod = contentTimestampCanonicalizationMethod;
+    }
+
+    // combine ContentTimestampParameters
+    public RemoteTimestampParameters getContentTimestampParameters() {
+        return new RemoteTimestampParameters(getContentTimestampDigestAlgorithm(), getContentTimestampCanonicalizationMethod());
+    }
+
+    public DigestAlgorithm getSignatureTimestampDigestAlgorithm() {
+        return signatureTimestampDigestAlgorithm != null ? signatureTimestampDigestAlgorithm : DigestAlgorithm.SHA256;
+    }
+
+    public void setSignatureTimestampDigestAlgorithm(DigestAlgorithm signatureTimestampDigestAlgorithm) {
+        this.signatureTimestampDigestAlgorithm = signatureTimestampDigestAlgorithm;
+    }
+
+    public String getSignatureTimestampCanonicalizationMethod() {
+        return signatureTimestampCanonicalizationMethod != null ? signatureTimestampCanonicalizationMethod : CanonicalizationMethod.EXCLUSIVE;
+    }
+
+    public void setSignatureTimestampCanonicalizationMethod(String signatureTimestampCanonicalizationMethod) {
+        this.signatureTimestampCanonicalizationMethod = signatureTimestampCanonicalizationMethod;
+    }
+
+    // combine SignatureTimestampParameters
+    public RemoteTimestampParameters getSignatureTimestampParameters() {
+        return new RemoteTimestampParameters(getSignatureTimestampDigestAlgorithm(), getSignatureTimestampCanonicalizationMethod());
+    }
+
+    public DigestAlgorithm getArchiveTimestampDigestAlgorithm() {
+        return archiveTimestampDigestAlgorithm != null ? archiveTimestampDigestAlgorithm : DigestAlgorithm.SHA256;
+    }
+
+    public void setArchiveTimestampDigestAlgorithm(DigestAlgorithm archiveTimestampDigestAlgorithm) {
+        this.archiveTimestampDigestAlgorithm = archiveTimestampDigestAlgorithm;
+    }
+
+    public String getArchiveTimestampCanonicalizationMethod() {
+        return archiveTimestampCanonicalizationMethod != null ? archiveTimestampCanonicalizationMethod : CanonicalizationMethod.EXCLUSIVE;
+    }
+
+    public void setArchiveTimestampCanonicalizationMethod(String archiveTimestampCanonicalizationMethod) {
+        this.archiveTimestampCanonicalizationMethod = archiveTimestampCanonicalizationMethod;
+    }
+
+    // combine ArchiveTimestampParameters
+    public RemoteTimestampParameters getArchiveTimestampParameters() {
+        return new RemoteTimestampParameters(getArchiveTimestampDigestAlgorithm(), getArchiveTimestampCanonicalizationMethod());
     }
 
 }

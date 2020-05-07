@@ -156,17 +156,17 @@ public class SigningController {
 
     private RemoteSignatureParameters getSignatureParameters(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         if (profileId == null) {
-            return signingConfigService.getSignatureParametersDefaultProfile(clientParams);
+            return signingConfigService.getSignatureParamsDefaultProfile(clientParams);
         } else {
-            return signingConfigService.getSignatureParameters(profileId, clientParams);
+            return signingConfigService.getSignatureParams(profileId, clientParams);
         }
     }
 
     private RemoteSignatureParameters getExtensionParameters(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException, NullParameterException {
         if (profileId == null) {
-            return signingConfigService.getExtensionParametersDefaultProfile(detachedContents);
+            return signingConfigService.getExtensionParamsDefaultProfile(detachedContents);
         } else {
-            return signingConfigService.getExtensionParameters(profileId, detachedContents);
+            return signingConfigService.getExtensionParams(profileId, detachedContents);
         }
     }
 
