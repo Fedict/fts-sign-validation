@@ -5,17 +5,18 @@ import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
 import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
 import com.zetes.projects.bosa.resourcelocator.service.LocatorService;
 import com.zetes.projects.bosa.signandvalidation.model.*;
+import com.zetes.projects.bosa.signandvalidation.service.DocumentSignatureService;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
+import com.zetes.projects.bosa.signingconfigurator.model.ExtendedRemoteSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
-import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureService;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
@@ -43,7 +44,7 @@ public class SigningController {
     private SigningConfiguratorService signingConfigService;
 
     @Autowired
-    private RemoteDocumentSignatureService signatureService;
+    private DocumentSignatureService signatureService;
 
     @Autowired
     private RemoteMultipleDocumentsSignatureService signatureServiceMultiple;
@@ -103,7 +104,7 @@ public class SigningController {
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = getSignatureParameters(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
+            ExtendedRemoteSignatureParameters parameters = getSignatureParameters(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
@@ -154,7 +155,7 @@ public class SigningController {
         }
     }
 
-    private RemoteSignatureParameters getSignatureParameters(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
+    private ExtendedRemoteSignatureParameters getSignatureParameters(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         if (profileId == null) {
             return signingConfigService.getSignatureParamsDefaultProfile(clientParams);
         } else {

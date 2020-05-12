@@ -26,6 +26,9 @@ public class ClientSignatureParameters {
     private String signerLocationCountry;
     private String signerLocationStreet;
 
+    private String pdfSignatureFieldId;
+    private String pdfSignatureFieldText;
+
     public ClientSignatureParameters() {
     }
 
@@ -117,4 +120,19 @@ public class ClientSignatureParameters {
         this.signerLocationStreet = street;
     }
 
+    public String getPdfSignatureFieldId() {
+        return pdfSignatureFieldId;
+    }
+
+    public void setPdfSignatureFieldId(String pdfSignatureFieldId) {
+        this.pdfSignatureFieldId = pdfSignatureFieldId;
+    }
+
+    public String getPdfSignatureFieldText() {
+        return pdfSignatureFieldText;
+    }
+
+    public void setPdfSignatureFieldText(String pdfSignatureFieldText) {
+        this.pdfSignatureFieldText = pdfSignatureFieldText;
+    }
 }

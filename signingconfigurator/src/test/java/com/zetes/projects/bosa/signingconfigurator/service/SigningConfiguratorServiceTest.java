@@ -3,6 +3,7 @@ package com.zetes.projects.bosa.signingconfigurator.service;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
+import com.zetes.projects.bosa.signingconfigurator.model.ExtendedRemoteSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
@@ -250,6 +251,8 @@ public class SigningConfiguratorServiceTest {
         clientParams.setDetachedContents(Arrays.asList(new RemoteDocument(), new RemoteDocument()));
         Date signingDate = new Date();
         clientParams.setSigningDate(signingDate);
+        clientParams.setPdfSignatureFieldId("fieldId");
+        clientParams.setPdfSignatureFieldText("fieldText");
 
         clientParams.setClaimedSignerRoles(Arrays.asList("role1", "role2"));
         clientParams.setSignerLocationPostalAddress(Arrays.asList("addr1", "addr2"));
@@ -260,12 +263,14 @@ public class SigningConfiguratorServiceTest {
         clientParams.setSignerLocationStreet("street");
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams);
+        ExtendedRemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams);
 
         // then
         assertNotNull(result.getSigningCertificate());
         assertEquals(2, result.getCertificateChain().size());
         assertEquals(2, result.getDetachedContents().size());
+        assertEquals("fieldId", result.getPdfSignatureFieldId());
+        assertEquals("fieldText", result.getPdfSignatureFieldText());
 
         RemoteBLevelParameters bLevelParams = result.getBLevelParams();
 

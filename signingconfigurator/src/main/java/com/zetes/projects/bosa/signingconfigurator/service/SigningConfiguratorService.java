@@ -4,6 +4,7 @@ import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParameter
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
+import com.zetes.projects.bosa.signingconfigurator.model.ExtendedRemoteSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteBLevelParameters;
@@ -19,7 +20,7 @@ public class SigningConfiguratorService {
     @Autowired
     ProfileSignatureParametersDao dao;
 
-    public RemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
+    public ExtendedRemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         if (profileId == null || clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
@@ -28,7 +29,7 @@ public class SigningConfiguratorService {
         return fillRemoteSignatureParams(clientParams, profileParams);
     }
 
-    public RemoteSignatureParameters getSignatureParamsDefaultProfile(ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
+    public ExtendedRemoteSignatureParameters getSignatureParamsDefaultProfile(ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         if (clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
@@ -51,8 +52,8 @@ public class SigningConfiguratorService {
         return fillExtensionParams(detachedContents, profileParams);
     }
 
-    private RemoteSignatureParameters fillRemoteSignatureParams(ClientSignatureParameters clientParams, ProfileSignatureParameters profileParams) {
-        RemoteSignatureParameters remoteSignatureParams = new RemoteSignatureParameters();
+    private ExtendedRemoteSignatureParameters fillRemoteSignatureParams(ClientSignatureParameters clientParams, ProfileSignatureParameters profileParams) {
+        ExtendedRemoteSignatureParameters remoteSignatureParams = new ExtendedRemoteSignatureParameters();
         RemoteBLevelParameters remoteBLevelParams = new RemoteBLevelParameters();
 
         fillDefaultParams(profileParams, remoteSignatureParams, remoteBLevelParams);
@@ -104,10 +105,12 @@ public class SigningConfiguratorService {
         remoteSignatureParams.setReferenceDigestAlgorithm(profileParams.getReferenceDigestAlgorithm());
     }
 
-    private void fillClientParams(ClientSignatureParameters clientParams, RemoteSignatureParameters remoteSignatureParams, RemoteBLevelParameters remoteBLevelParams) {
+    private void fillClientParams(ClientSignatureParameters clientParams, ExtendedRemoteSignatureParameters remoteSignatureParams, RemoteBLevelParameters remoteBLevelParams) {
         remoteSignatureParams.setSigningCertificate(clientParams.getSigningCertificate());
         remoteSignatureParams.setCertificateChain(clientParams.getCertificateChain());
         remoteSignatureParams.setDetachedContents(clientParams.getDetachedContents());
+        remoteSignatureParams.setPdfSignatureFieldId(clientParams.getPdfSignatureFieldId());
+        remoteSignatureParams.setPdfSignatureFieldText(clientParams.getPdfSignatureFieldText());
 
         remoteBLevelParams.setSigningDate(clientParams.getSigningDate());
         remoteBLevelParams.setClaimedSignerRoles(clientParams.getClaimedSignerRoles());
