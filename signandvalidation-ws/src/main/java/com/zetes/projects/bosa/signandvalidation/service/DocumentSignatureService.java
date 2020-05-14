@@ -116,16 +116,14 @@ public class DocumentSignatureService extends AbstractRemoteSignatureServiceImpl
         PAdESSignatureParameters padesParams = new PAdESSignatureParameters();
         padesParams.setSignatureSize(9472 * 2); // double reserved space for signature
 
-        if (remoteParameters.getPdfSignatureFieldId() != null && remoteParameters.getPdfSignatureFieldText() != null) {
-            SignatureImageTextParameters textParameters = new SignatureImageTextParameters();
-            textParameters.setText(remoteParameters.getPdfSignatureFieldText());
+        SignatureImageTextParameters textParameters = new SignatureImageTextParameters();
+        textParameters.setText(remoteParameters.getPdfSignatureFieldText());
 
-            SignatureImageParameters imageParameters = new SignatureImageParameters();
-            imageParameters.setTextParameters(textParameters);
+        SignatureImageParameters imageParameters = new SignatureImageParameters();
+        imageParameters.setTextParameters(textParameters);
 
-            padesParams.setSignatureFieldId(remoteParameters.getPdfSignatureFieldId());
-            padesParams.setSignatureImageParameters(imageParameters);
-        }
+        padesParams.setSignatureFieldId(remoteParameters.getPdfSignatureFieldId());
+        padesParams.setSignatureImageParameters(imageParameters);
 
         return padesParams;
     }
