@@ -73,8 +73,6 @@ public class SigningControllerTest extends SignAndValidationTestBase {
                 SignaturePackaging.DETACHED, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_T", null, SignatureLevel.XAdES_BASELINE_T,
                 SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
-        saveProfileSignatureParameters(profileSigParamDao, "PADES_1", null, SignatureLevel.PAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
     }
 
     @Test
@@ -173,37 +171,6 @@ public class SigningControllerTest extends SignAndValidationTestBase {
 
             SignatureValue signatureValue = token.sign(new ToBeSigned(dataToSign.getDigest()), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
             SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_1", clientSignatureParameters, signatureValue.getValue());
-            Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, Map.class);
-
-            // then
-            assertEquals(BAD_REQUEST.value(), result.get("status"));
-            assertEquals("Signed document did not pass validation: INDETERMINATE, NO_CERTIFICATE_CHAIN_FOUND", result.get("message"));
-        }
-    }
-
-    @Test
-    public void testSigningPdfInvalidSignature() throws Exception {
-        try (Pkcs12SignatureToken token = new Pkcs12SignatureToken(new FileInputStream("src/test/resources/user_a_rsa.p12"),
-                new KeyStore.PasswordProtection("password".toCharArray()))) {
-
-            List<DSSPrivateKeyEntry> keys = token.getKeys();
-            DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
-
-            FileDocument fileToSign = new FileDocument(new File("src/test/resources/doc.pdf"));
-            RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
-
-            ClientSignatureParameters clientSignatureParameters = new ClientSignatureParameters();
-            clientSignatureParameters.setSigningCertificate(new RemoteCertificate(dssPrivateKeyEntry.getCertificate().getCertificate().getEncoded()));
-            clientSignatureParameters.setSigningDate(new Date());
-            clientSignatureParameters.setPdfSignatureFieldId("Signature1");
-            clientSignatureParameters.setPdfSignatureFieldText("Sig text");
-            GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "PADES_1", clientSignatureParameters);
-            DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, DataToSignDTO.class);
-            assertNotNull(dataToSign);
-
-            SignatureValue signatureValue = token.sign(new ToBeSigned(dataToSign.getDigest()), DigestAlgorithm.SHA256, dssPrivateKeyEntry);
-            SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "PADES_1", clientSignatureParameters, signatureValue.getValue());
-
             Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, Map.class);
 
             // then

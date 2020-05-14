@@ -1,6 +1,5 @@
 package com.zetes.projects.bosa.signandvalidation.config;
 
-import com.zetes.projects.bosa.signandvalidation.service.DocumentSignatureService;
 import eu.europa.esig.dss.asic.cades.signature.ASiCWithCAdESService;
 import eu.europa.esig.dss.asic.xades.signature.ASiCWithXAdESService;
 import eu.europa.esig.dss.cades.signature.CAdESService;
@@ -22,6 +21,7 @@ import eu.europa.esig.dss.tsl.service.TSLValidationJob;
 import eu.europa.esig.dss.validation.CertificateVerifier;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
+import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureServiceImpl;
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureServiceImpl;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.xades.signature.XAdESService;
@@ -211,8 +211,8 @@ public class DSSBeanConfig {
     }
 
     @Bean
-    public DocumentSignatureService remoteSignatureService() throws Exception {
-        DocumentSignatureService service = new DocumentSignatureService();
+    public RemoteDocumentSignatureServiceImpl remoteSignatureService() throws Exception {
+        RemoteDocumentSignatureServiceImpl service = new RemoteDocumentSignatureServiceImpl();
         service.setAsicWithCAdESService(asicWithCadesService());
         service.setAsicWithXAdESService(asicWithXadesService());
         service.setCadesService(cadesService());
