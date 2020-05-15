@@ -4,7 +4,13 @@ import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
 import com.zetes.projects.bosa.signandvalidation.model.CertificateIndicationsDTO;
 import com.zetes.projects.bosa.signandvalidation.model.CertificateToValidateDTO;
 import com.zetes.projects.bosa.signandvalidation.model.IndicationsListDTO;
+import eu.europa.esig.dss.diagnostic.CertificateWrapper;
+import eu.europa.esig.dss.diagnostic.DiagnosticData;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
+import eu.europa.esig.dss.simplecertificatereport.jaxb.XmlChainItem;
 import eu.europa.esig.dss.spi.DSSUtils;
+import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.converter.RemoteCertificateConverter;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import org.junit.jupiter.api.Disabled;
@@ -27,6 +33,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class ValidateCertificatesTest extends SignAndValidationTestBase {
 
     public static final String CERTIFICATE_ENDPOINT = "/validation/validateCertificate";
+    public static final String CERTIFICATEFULL_ENDPOINT = "/validation/validateCertificateFull";
     public static final String CERTIFICATES_ENDPOINT = "/validation/validateCertificates";
 
     @Test
@@ -121,6 +128,42 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase {
         assertEquals(PASSED, result.getIndications().get(1).getIndication());
         assertNull(result.getIndications().get(1).getSubIndication());
         assertTrue(result.getIndications().get(1).isKeyUsageCheckOk());
+    }
+
+    @Test
+    public void certificateFullIndeterminate() {
+        // given
+        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
+                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
+        RemoteCertificate issuerCertificate = RemoteCertificateConverter
+                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
+
+        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate,
+                Arrays.asList(issuerCertificate), null, NON_REPUDIATION);
+
+        // when
+        CertificateReportsDTO reportsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATEFULL_ENDPOINT, toValidate, CertificateReportsDTO.class);
+
+        // then
+        assertNotNull(reportsDTO.getDiagnosticData());
+        assertNotNull(reportsDTO.getSimpleCertificateReport());
+        assertNotNull(reportsDTO.getDetailedReport());
+
+        XmlDiagnosticData xmlDiagnosticData = reportsDTO.getDiagnosticData();
+        List<XmlCertificate> usedCertificates = xmlDiagnosticData.getUsedCertificates();
+        assertTrue(usedCertificates.size() > 1);
+        List<XmlChainItem> chain = reportsDTO.getSimpleCertificateReport().getChain();
+        assertTrue(chain.size() > 1);
+
+        DiagnosticData diagnosticData = new DiagnosticData(xmlDiagnosticData);
+        assertNotNull(diagnosticData);
+
+        for (XmlChainItem chainItem : chain) {
+            CertificateWrapper certificate = diagnosticData.getUsedCertificateById(chainItem.getId());
+            assertNotNull(certificate);
+            CertificateWrapper signingCertificate = certificate.getSigningCertificate();
+            assertTrue(signingCertificate != null || certificate.isTrusted() && certificate.isSelfSigned());
+        }
     }
 
 }

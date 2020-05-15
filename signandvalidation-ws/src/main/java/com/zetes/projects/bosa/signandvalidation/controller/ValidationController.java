@@ -50,11 +50,29 @@ public class ValidationController {
         }
     }
 
+    @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public WSReportsDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
+        if (toValidate.getSignedDocument() != null) {
+            return remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+        } else {
+            throw new ResponseStatusException(BAD_REQUEST, "DSSDocument is null");
+        }
+    }
+
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
         if (toValidate.getCertificate() != null) {
             CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
             return reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
+        } else {
+            throw new ResponseStatusException(BAD_REQUEST, "The certificate is missing");
+        }
+    }
+
+    @PostMapping(value = "/validateCertificateFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public CertificateReportsDTO validateCertificateFull(@RequestBody CertificateToValidateDTO toValidate) {
+        if (toValidate.getCertificate() != null) {
+            return remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
         } else {
             throw new ResponseStatusException(BAD_REQUEST, "The certificate is missing");
         }

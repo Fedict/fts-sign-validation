@@ -5,9 +5,11 @@ import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.spi.DSSUtils;
+import eu.europa.esig.dss.validation.reports.Reports;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
+import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +23,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class ValidateSignatureTest extends SignAndValidationTestBase {
 
     public static final String SIGNATURE_ENDPOINT = "/validation/validateSignature";
+    public static final String SIGNATUREFULL_ENDPOINT = "/validation/validateSignatureFull";
 
     @Disabled("Temporary pipeline disable") // TODO
     @Test
@@ -147,6 +150,27 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         // then
         assertEquals(BAD_REQUEST.value(), result.get("status"));
         assertEquals("DSSDocument is null", result.get("message"));
+    }
+
+    @Test
+    public void signatureFullWithNoPolicyAndOriginalFile() {
+        // given
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_ok.xml"));
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
+
+        // when
+        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATUREFULL_ENDPOINT, toValidate, WSReportsDTO.class);
+
+        // then
+        assertNotNull(result.getDiagnosticData());
+        assertNotNull(result.getDetailedReport());
+        assertNotNull(result.getSimpleReport());
+        assertNotNull(result.getValidationReport());
+
+        assertEquals(1, result.getSimpleReport().getSignature().size());
+        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
+                result.getValidationReport());
+        assertNotNull(reports);
     }
 
 }
