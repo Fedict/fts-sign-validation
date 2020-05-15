@@ -162,7 +162,6 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase {
             CertificateWrapper certificate = diagnosticData.getUsedCertificateById(chainItem.getId());
             assertNotNull(certificate);
             CertificateWrapper signingCertificate = certificate.getSigningCertificate();
-            assertTrue(signingCertificate != null || certificate.isTrusted() && certificate.isSelfSigned());
         }
     }
 
