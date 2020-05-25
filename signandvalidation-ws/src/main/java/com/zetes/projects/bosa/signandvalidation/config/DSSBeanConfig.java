@@ -40,9 +40,6 @@ import java.sql.SQLException;
 @Configuration
 public class DSSBeanConfig {
 
-    @Value("${default.validation.policy}")
-    private String defaultValidationPolicy;
-
     @Value("${current.lotl.url}")
     private String lotlUrl;
 
@@ -168,11 +165,6 @@ public class DSSBeanConfig {
         certificateVerifier.setCheckRevocationForUntrustedChains(false);
 
         return certificateVerifier;
-    }
-
-    @Bean
-    public ClassPathResource defaultPolicy() {
-        return new ClassPathResource(defaultValidationPolicy);
     }
 
     @Bean

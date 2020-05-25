@@ -111,7 +111,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         RemoteDocument originalFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
-        RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/constraint.xml"));
+        RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/constraint.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, policy);
 
         // when
@@ -127,7 +127,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
     public void signatureWithPolicyAndNoOriginalFile() throws Exception {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
-        RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/constraint.xml"));
+        RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/constraint.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, policy);
 
         // when
