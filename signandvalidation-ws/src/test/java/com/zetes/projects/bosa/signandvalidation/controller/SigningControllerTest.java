@@ -1,11 +1,6 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zetes.projects.bosa.resourcelocator.dao.SigningTypeDAO;
-import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
-import com.zetes.projects.bosa.resourcelocator.model.SigningType;
-import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
-import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
 import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
 import com.zetes.projects.bosa.signandvalidation.model.DataToSignDTO;
 import com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO;
@@ -36,14 +31,13 @@ import org.springframework.context.ApplicationContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
-import static com.zetes.projects.bosa.resourcelocator.model.CertificateType.AUTHORISATION;
-import static com.zetes.projects.bosa.resourcelocator.model.CertificateType.NON_REPUDIATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 public class SigningControllerTest extends SignAndValidationTestBase {
 
@@ -58,13 +52,6 @@ public class SigningControllerTest extends SignAndValidationTestBase {
 
     @BeforeAll
     public static void fillDB(ApplicationContext applicationContext) {
-        SigningTypeDAO signingTypeDao = applicationContext.getBean(SigningTypeDAO.class);
-        signingTypeDao.deleteAll();
-        saveSigningType(signingTypeDao, "auth", true, AUTHORISATION);
-        saveSigningType(signingTypeDao, "non-rep", true, NON_REPUDIATION);
-        saveSigningType(signingTypeDao, "all", true, AUTHORISATION, NON_REPUDIATION);
-        saveSigningType(signingTypeDao, "inactive", false, AUTHORISATION, NON_REPUDIATION);
-
         ProfileSignatureParametersDao profileSigParamDao = applicationContext.getBean(ProfileSignatureParametersDao.class);
         profileSigParamDao.deleteAll();
         saveProfileSignatureParameters(profileSigParamDao, "XADES_1", null, SignatureLevel.XAdES_BASELINE_B,
@@ -73,47 +60,6 @@ public class SigningControllerTest extends SignAndValidationTestBase {
                 SignaturePackaging.DETACHED, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_T", null, SignatureLevel.XAdES_BASELINE_T,
                 SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA256, SignatureAlgorithm.RSA_SHA256);
-    }
-
-    @Test
-    public void getSigningTypeNotFound() throws Exception {
-        // when
-        Map result = this.restTemplate.getForObject(LOCALHOST + port + GETSIGNINGTYPE_ENDPOINT + "/NOTFOUND", Map.class);
-
-        // then
-        assertEquals(NOT_FOUND.value(), result.get("status"));
-        assertEquals("Signing type NOTFOUND not found", result.get("message"));
-    }
-
-    @Test
-    public void getSigningTypeFound() throws Exception {
-        // when
-        SigningTypeDTO result = this.restTemplate.getForObject(LOCALHOST + port + GETSIGNINGTYPE_ENDPOINT + "/auth", SigningTypeDTO.class);
-
-        // then
-        assertNotNull(result);
-        assertEquals("auth", result.getName());
-    }
-
-    @Test
-    public void getSigningTypesInvalidCertificateType() throws Exception {
-        // when
-        Map result = this.restTemplate.getForObject(LOCALHOST + port + GETSIGNINGTYPES_ENDPOINT + "/NOTVALID", Map.class);
-
-        // then
-        assertEquals(BAD_REQUEST.value(), result.get("status"));
-    }
-
-    @Test
-    public void getSigningTypesValidCertificateType() throws Exception {
-        // when
-        SigningTypeListDTO result = this.restTemplate.getForObject(LOCALHOST + port + GETSIGNINGTYPES_ENDPOINT + "/NON_REPUDIATION", SigningTypeListDTO.class);
-
-        // then
-        assertNotNull(result.getSigningTypes());
-        assertEquals(2, result.getSigningTypes().size());
-        assertEquals("non-rep", result.getSigningTypes().get(0).getName());
-        assertEquals("all", result.getSigningTypes().get(1).getName());
     }
 
     @Disabled("Valid signature test") // TODO
@@ -280,15 +226,6 @@ public class SigningControllerTest extends SignAndValidationTestBase {
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
 
         dao.save(profileParams);
-    }
-
-    private static void saveSigningType(SigningTypeDAO dao, String name, Boolean active, CertificateType... certificateTypes) {
-        SigningType signingType = new SigningType();
-        signingType.setName(name);
-        signingType.setActive(active);
-        signingType.setCertificateTypes(new HashSet<>(Arrays.asList(certificateTypes)));
-
-        dao.save(signingType);
     }
 
 }

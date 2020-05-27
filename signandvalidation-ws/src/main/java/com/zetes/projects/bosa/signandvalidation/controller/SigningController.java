@@ -1,9 +1,5 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
-import com.zetes.projects.bosa.resourcelocator.model.CertificateType;
-import com.zetes.projects.bosa.resourcelocator.model.SigningTypeDTO;
-import com.zetes.projects.bosa.resourcelocator.model.SigningTypeListDTO;
-import com.zetes.projects.bosa.resourcelocator.service.LocatorService;
 import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
@@ -28,16 +24,12 @@ import java.util.List;
 
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 @RestController
 @RequestMapping(value = "/signing")
 public class SigningController {
-
-    @Autowired
-    private LocatorService locatorService;
 
     @Autowired
     private SigningConfiguratorService signingConfigService;
@@ -57,21 +49,6 @@ public class SigningController {
     @GetMapping(value = "/ping", produces = TEXT_PLAIN_VALUE)
     public String ping() {
         return "pong";
-    }
-
-    @GetMapping(value = "/getSigningType/{name}", produces = APPLICATION_JSON_VALUE)
-    public SigningTypeDTO getSigningType(@PathVariable String name) {
-        SigningTypeDTO signingTypeByName = locatorService.getSigningTypeByName(name);
-        if (signingTypeByName != null) {
-            return signingTypeByName;
-        } else {
-            throw new ResponseStatusException(NOT_FOUND, String.format("Signing type %s not found", name));
-        }
-    }
-
-    @GetMapping(value = "/getSigningTypes/{certificateType}", produces = APPLICATION_JSON_VALUE)
-    public SigningTypeListDTO getSigningTypes(@PathVariable CertificateType certificateType) {
-        return locatorService.getSigningTypesByCertificateType(certificateType);
     }
 
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
