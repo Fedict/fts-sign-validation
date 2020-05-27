@@ -12,6 +12,10 @@ public class SignatureIndicationsDTO {
     public SignatureIndicationsDTO() {
     }
 
+    public SignatureIndicationsDTO(Indication indication) {
+        this.indication = indication;
+    }
+
     public SignatureIndicationsDTO(Indication indication, SubIndication subIndication) {
         this.indication = indication;
         this.subIndication = subIndication;
