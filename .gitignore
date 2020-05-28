@@ -29,3 +29,9 @@ build/
 
 ### VS Code ###
 .vscode/
+test_suite/.vscode/
+
+### Python ###
+test_suite/__pycache__/
+test_suite/features/steps/__pycache__/
+test_suite/request.txt
