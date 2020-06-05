@@ -85,8 +85,8 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
 
         // then
         assertNotNull(result);
-        assertEquals(TOTAL_FAILED, result.getIndication());
-        assertEquals(HASH_FAILURE, result.getSubIndication());
+        assertEquals(INDETERMINATE, result.getIndication());
+        assertEquals(NO_CERTIFICATE_CHAIN_FOUND, result.getSubIndication());
     }
 
     @Test
@@ -102,8 +102,8 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
 
         // then
         assertNotNull(result);
-        assertEquals(TOTAL_FAILED, result.getIndication());
-        assertEquals(HASH_FAILURE, result.getSubIndication());
+        assertEquals(INDETERMINATE, result.getIndication());
+        assertEquals(NO_CERTIFICATE_CHAIN_FOUND, result.getSubIndication());
     }
 
     @Test
@@ -119,8 +119,8 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
 
         // then
         assertNotNull(result);
-        assertEquals(TOTAL_FAILED, result.getIndication());
-        assertEquals(HASH_FAILURE, result.getSubIndication());
+        assertEquals(INDETERMINATE, result.getIndication());
+        assertEquals(NO_CERTIFICATE_CHAIN_FOUND, result.getSubIndication());
     }
 
     @Test
@@ -136,7 +136,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         // then
         assertNotNull(result);
         assertEquals(INDETERMINATE, result.getIndication());
-        assertEquals(SIGNED_DATA_NOT_FOUND, result.getSubIndication());
+        assertEquals(NO_CERTIFICATE_CHAIN_FOUND, result.getSubIndication());
     }
 
     @Test
@@ -167,7 +167,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         assertNotNull(result.getSimpleReport());
         assertNotNull(result.getValidationReport());
 
-        assertEquals(1, result.getSimpleReport().getSignatureOrTimestamp().size());
+        assertEquals(1, result.getSimpleReport().getSignature().size());
         Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
                 result.getValidationReport());
         assertNotNull(reports);

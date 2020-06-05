@@ -129,7 +129,7 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
 
             // then
             assertEquals(BAD_REQUEST.value(), result.get("status"));
-            assertEquals("Signed document did not pass validation: TOTAL_FAILED, SIG_CRYPTO_FAILURE", result.get("message"));
+            assertEquals("Signed document did not pass validation: INDETERMINATE, NO_CERTIFICATE_CHAIN_FOUND", result.get("message"));
         }
     }
 

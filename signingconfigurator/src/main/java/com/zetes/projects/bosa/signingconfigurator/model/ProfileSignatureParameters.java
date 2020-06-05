@@ -306,7 +306,7 @@ public class ProfileSignatureParameters {
 
     // combine ContentTimestampParameters
     public RemoteTimestampParameters getContentTimestampParameters() {
-        return new RemoteTimestampParameters(null, getContentTimestampDigestAlgorithm(), getContentTimestampCanonicalizationMethod());
+        return new RemoteTimestampParameters(getContentTimestampDigestAlgorithm(), getContentTimestampCanonicalizationMethod());
     }
 
     public DigestAlgorithm getSignatureTimestampDigestAlgorithm() {
@@ -327,7 +327,7 @@ public class ProfileSignatureParameters {
 
     // combine SignatureTimestampParameters
     public RemoteTimestampParameters getSignatureTimestampParameters() {
-        return new RemoteTimestampParameters(null, getSignatureTimestampDigestAlgorithm(), getSignatureTimestampCanonicalizationMethod());
+        return new RemoteTimestampParameters(getSignatureTimestampDigestAlgorithm(), getSignatureTimestampCanonicalizationMethod());
     }
 
     public DigestAlgorithm getArchiveTimestampDigestAlgorithm() {
@@ -348,7 +348,7 @@ public class ProfileSignatureParameters {
 
     // combine ArchiveTimestampParameters
     public RemoteTimestampParameters getArchiveTimestampParameters() {
-        return new RemoteTimestampParameters(null, getArchiveTimestampDigestAlgorithm(), getArchiveTimestampCanonicalizationMethod());
+        return new RemoteTimestampParameters(getArchiveTimestampDigestAlgorithm(), getArchiveTimestampCanonicalizationMethod());
     }
 
 }
