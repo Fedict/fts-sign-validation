@@ -1,6 +1,6 @@
 package com.zetes.projects.bosa.signandvalidation.job;
 
-import eu.europa.esig.dss.tsl.service.TSLValidationJob;
+import eu.europa.esig.dss.tsl.job.TLValidationJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,17 +15,17 @@ public class TSLLoaderJob {
     private boolean enable;
 
     @Autowired
-    private TSLValidationJob job;
+    private TLValidationJob job;
 
     @PostConstruct
     public void init() {
-        job.initRepository();
+        job.offlineRefresh();
     }
 
     @Scheduled(initialDelayString = "${cron.initial.delay.tl.loader}", fixedDelayString = "${cron.delay.tl.loader}")
     public void refresh() {
         if (enable) {
-            job.refresh();
+            job.onlineRefresh();
         }
     }
 
