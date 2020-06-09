@@ -42,7 +42,6 @@ package_master:
     - docker build -t $CI_REGISTRY/eidas/sign-validation .
   only:
     - master
-  when: manual
 
 
 deploy:
