@@ -30,7 +30,7 @@ package:
   script:
     - mvn clean install -DskipTests
     - echo "Building the docker Image"
-    - docker build -t $CI_REGISTRY/eidas/sign-validation .
+    - docker build -t $CI_REGISTRY/eidas/sign-validation:latest .
   except:
     - master
 
@@ -39,7 +39,7 @@ package_master:
   script:
     - mvn clean install -DskipTests
     - echo "Building the docker Image"
-    - docker build -t $CI_REGISTRY/eidas/sign-validation .
+    - docker build -t $CI_REGISTRY/eidas/sign-validation:master .
   only:
     - master
 
@@ -51,13 +51,16 @@ deploy:
     - docker push $CI_REGISTRY/eidas/sign-validation:latest
     - export HTTPS_PROXY="$HTTPS_PROXY_SERVER"
     - oc login https://$OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN
-    - oc rollout latest dc/$OPENSHIFT_POD -n $OPENSHIFT_PROJECT
+    - oc rollout latest dc/$OPENSHIFT_POD -n $OPENSHIFT_PROJECT_TEST
 
 deploy_master:
   stage: deploy
   script:
     - echo "Pushing the image to the docker hub"
-    - docker push $CI_REGISTRY/eidas/sign-validation:latest
+    - docker push $CI_REGISTRY/eidas/sign-validation:master
+    - export HTTPS_PROXY="$HTTPS_PROXY_SERVER"
+    - oc login https://$OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN
+    - oc rollout latest dc/$OPENSHIFT_POD -n $OPENSHIFT_PROJECT_ACC
   when: manual
   only:
     - master
