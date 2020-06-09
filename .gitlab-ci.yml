@@ -59,6 +59,9 @@ deploy_master:
   script:
     - echo "Pushing the image to the docker hub"
     - docker push $CI_REGISTRY/eidas/sign-validation:master
+    - export HTTPS_PROXY="$HTTPS_PROXY_SERVER"
+    - oc login https://$OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN
+    - oc rollout latest dc/$OPENSHIFT_POD -n $OPENSHIFT_PROJECT
   when: manual
   only:
     - master
