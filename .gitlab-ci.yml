@@ -50,8 +50,10 @@ deploy:
     - echo "Pushing the image to the docker hub"
     - docker push $CI_REGISTRY/eidas/sign-validation:latest
     - export HTTPS_PROXY="$HTTPS_PROXY_SERVER"
-    - oc login https://$OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN
+    - oc login https://$OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN_TEST
     - oc rollout latest dc/$OPENSHIFT_POD -n $OPENSHIFT_PROJECT_TEST
+  except:
+    - master
 
 deploy_master:
   stage: deploy
@@ -59,7 +61,7 @@ deploy_master:
     - echo "Pushing the image to the docker hub"
     - docker push $CI_REGISTRY/eidas/sign-validation:master
     - export HTTPS_PROXY="$HTTPS_PROXY_SERVER"
-    - oc login https://$OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN
+    - oc login https://$OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN_ACC
     - oc rollout latest dc/$OPENSHIFT_POD -n $OPENSHIFT_PROJECT_ACC
   when: manual
   only:
