@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static eu.europa.esig.dss.enumerations.Indication.PASSED;
-import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
+import static eu.europa.esig.dss.enumerations.Indication.*;
+import static eu.europa.esig.dss.enumerations.SubIndication.SIGNED_DATA_NOT_FOUND;
 
 @Service
 public class ReportsService {
@@ -42,6 +42,10 @@ public class ReportsService {
     }
 
     public SignatureIndicationsDTO getSignatureIndicationsDto(WSReportsDTO reportsDto) {
+        if (reportsDto.getSimpleReport().getSignaturesCount() == 0) {
+            return new SignatureIndicationsDTO(INDETERMINATE, SIGNED_DATA_NOT_FOUND);
+        }
+
         for (XmlToken xmlToken : reportsDto.getSimpleReport().getSignatureOrTimestamp()) {
             if (!xmlToken.getIndication().equals(TOTAL_PASSED)) {
                 return new SignatureIndicationsDTO(xmlToken.getIndication(), xmlToken.getSubIndication());

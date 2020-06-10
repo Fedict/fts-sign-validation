@@ -74,6 +74,21 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
     }
 
     @Test
+    public void signatureWithUnsigedFile() throws Exception {
+        // given
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
+
+        // when
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
+
+        // then
+        assertNotNull(result);
+        assertEquals(INDETERMINATE, result.getIndication());
+        assertEquals(SIGNED_DATA_NOT_FOUND, result.getSubIndication());
+    }
+
+    @Test
     public void signatureWithNoPolicyAndOriginalFile() throws Exception {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
