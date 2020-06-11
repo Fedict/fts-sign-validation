@@ -16,6 +16,8 @@ import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
 import eu.europa.esig.dss.spi.client.http.DSSFileLoader;
 import eu.europa.esig.dss.spi.client.http.IgnoreDataLoader;
 import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
+import eu.europa.esig.dss.spi.x509.CertificateSource;
+import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
 import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.tsl.function.OfficialJournalSchemeInformationURI;
@@ -65,6 +67,15 @@ public class DSSBeanConfig {
 
     @Value("${oj.content.keystore.password}")
     private String ksPassword;
+
+    @Value("${test.keystore.type}")
+    private String testKsType;
+
+    @Value("${test.keystore.filename}")
+    private String testKsFilename;
+
+    @Value("${test.keystore.password}")
+    private String testKsPassword;
 
     @Autowired
     private DataSource dataSource;
@@ -160,13 +171,25 @@ public class DSSBeanConfig {
         return new TrustedListsCertificateSource();
     }
 
+    @Bean(name = "test-certificate-source")
+    public CertificateSource trustStoreSource() throws IOException {
+        KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(
+                new ClassPathResource(testKsFilename).getFile(), testKsType, testKsPassword
+        );
+
+        CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
+        trustedCertificateSource.importAsTrusted(keystore);
+
+        return trustedCertificateSource;
+    }
+
     @Bean
     public CertificateVerifier certificateVerifier() throws Exception {
         CommonCertificateVerifier certificateVerifier = new CommonCertificateVerifier();
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
         certificateVerifier.setDataLoader(dataLoader());
-        certificateVerifier.setTrustedCertSources(trustedListSource());
+        certificateVerifier.setTrustedCertSources(trustedListSource(), trustStoreSource());
 
         // Default configs
         certificateVerifier.setExceptionOnMissingRevocationData(true);

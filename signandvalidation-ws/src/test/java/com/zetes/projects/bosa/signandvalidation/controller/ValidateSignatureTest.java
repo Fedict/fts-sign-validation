@@ -10,13 +10,13 @@ import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.Indication.*;
-import static eu.europa.esig.dss.enumerations.SubIndication.*;
+import static eu.europa.esig.dss.enumerations.SubIndication.HASH_FAILURE;
+import static eu.europa.esig.dss.enumerations.SubIndication.SIGNED_DATA_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -25,11 +25,10 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
     public static final String SIGNATURE_ENDPOINT = "/validation/validateSignature";
     public static final String SIGNATUREFULL_ENDPOINT = "/validation/validateSignatureFull";
 
-    @Disabled("Temporary pipeline disable") // TODO
     @Test
-    public void signatureWithTotalPassedFile() throws Exception {
+    public void signatureB() {
         // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_ok.xml"));
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
 
         // when
@@ -41,11 +40,10 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         assertNull(result.getSubIndication());
     }
 
-    @Disabled("Temporary pipeline disable") // TODO
     @Test
-    public void signatureWithTotalFailedFile() throws Exception {
+    public void signatureT() {
         // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_nok.xml"));
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_t.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
 
         // when
@@ -53,24 +51,8 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
 
         // then
         assertNotNull(result);
-        assertEquals(TOTAL_FAILED, result.getIndication());
-        assertEquals(SIG_CRYPTO_FAILURE, result.getSubIndication());
-    }
-
-    @Disabled("Temporary pipeline disable") // TODO
-    @Test
-    public void signatureWithNoPolicyAndNoOriginalFile() throws Exception {
-        // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/XAdESLTA.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
-
-        // when
-        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
-
-        // then
-        assertNotNull(result);
-        assertEquals(INDETERMINATE, result.getIndication());
-        assertEquals(NO_POE, result.getSubIndication());
+        assertEquals(TOTAL_PASSED, result.getIndication());
+        assertNull(result.getSubIndication());
     }
 
     @Test
@@ -139,22 +121,6 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
     }
 
     @Test
-    public void signatureWithPolicyAndNoOriginalFile() throws Exception {
-        // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
-        RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/constraint.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, policy);
-
-        // when
-        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
-
-        // then
-        assertNotNull(result);
-        assertEquals(INDETERMINATE, result.getIndication());
-        assertEquals(SIGNED_DATA_NOT_FOUND, result.getSubIndication());
-    }
-
-    @Test
     public void signatureWithNoFileProvided() {
         // given
         DataToValidateDTO toValidate = new DataToValidateDTO();
@@ -170,7 +136,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
     @Test
     public void signatureFullWithNoPolicyAndOriginalFile() {
         // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_ok.xml"));
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
 
         // when
