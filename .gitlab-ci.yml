@@ -23,7 +23,7 @@ test:
    stage: test
    script:
     - echo "Running unit tests"
-    - mvn test
+    - mvn test -Dproxy.https.enabled=true -Dproxy.https.host="$HTTPS_PROXY_SERVER" -Dproxy.https.port=80
 
 package:
   stage: package
