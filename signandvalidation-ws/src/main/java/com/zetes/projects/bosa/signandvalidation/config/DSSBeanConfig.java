@@ -68,6 +68,9 @@ public class DSSBeanConfig {
     @Value("${oj.content.keystore.password}")
     private String ksPassword;
 
+    @Value("${test.keystore.enabled}")
+    private Boolean testKsenabled;
+
     @Value("${test.keystore.type}")
     private String testKsType;
 
@@ -172,15 +175,19 @@ public class DSSBeanConfig {
     }
 
     @Bean(name = "test-certificate-source")
-    public CertificateSource trustStoreSource() throws IOException {
-        KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(
-                new ClassPathResource(testKsFilename).getFile(), testKsType, testKsPassword
-        );
+    public CertificateSource testTrustStoreSource() throws IOException {
+        if (testKsenabled) {
+            KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(
+                    new ClassPathResource(testKsFilename).getFile(), testKsType, testKsPassword
+            );
 
-        CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
-        trustedCertificateSource.importAsTrusted(keystore);
+            CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
+            trustedCertificateSource.importAsTrusted(keystore);
 
-        return trustedCertificateSource;
+            return trustedCertificateSource;
+        } else {
+            return null;
+        }
     }
 
     @Bean
@@ -189,7 +196,10 @@ public class DSSBeanConfig {
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
         certificateVerifier.setDataLoader(dataLoader());
-        certificateVerifier.setTrustedCertSources(trustedListSource(), trustStoreSource());
+        certificateVerifier.setTrustedCertSource(trustedListSource());
+        if (testKsenabled) {
+            certificateVerifier.setTrustedCertSource(testTrustStoreSource());
+        }
 
         // Default configs
         certificateVerifier.setExceptionOnMissingRevocationData(true);
