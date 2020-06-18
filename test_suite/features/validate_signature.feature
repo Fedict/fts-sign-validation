@@ -13,7 +13,7 @@ Feature: Validation signature service
             | validation |
             | signing    |
 
-    @active
+    @active @wip
     Scenario Outline: Posting different signatures
         Given The user validates a "<file>"
         Then The indication is "<Indication>"
@@ -22,10 +22,10 @@ Feature: Validation signature service
         Examples:
             | file                                         | Indication    | SubIndication                |
             | Signed_ok.xml                                | TOTAL_PASSED  | None                         |
-            | Sign-5.xml                                   | INDETERMINATE | NO_POE                       |
+            | Sign-5.xml                                   | TOTAL_FAILED  | NO_POE                       |
             | Signed_nok.xml                               | TOTAL_FAILED  | SIG_CRYPTO_FAILURE           |
-            | Sign-1.bad_digest_in_timestamp.xml           | INDETERMINATE | NO_POE                       |
-            | Sign-1.bad_sig_in_CRL_for_BelgiumRootCA3.xml | INDETERMINATE | NO_POE                       |
-            | Sign-1.bad_sig_in_CRL_for_BelgiumRootCA4.xml | INDETERMINATE | NO_POE                       |
+            | Sign-1.bad_digest_in_timestamp.xml           | TOTAL_FAILED  | NO_POE                       |
+            | Sign-1.bad_sig_in_CRL_for_BelgiumRootCA3.xml | TOTAL_FAILED  | NO_POE                       |
+            | Sign-1.bad_sig_in_CRL_for_BelgiumRootCA4.xml | TOTAL_FAILED  | NO_POE                       |
             | Sign-1.bad_sig_of_EndUserCert.xml            | INDETERMINATE | NO_SIGNING_CERTIFICATE_FOUND |
-            | Sign-1.bad_sig_of_IssuingCA.xml              | INDETERMINATE | NO_CERTIFICATE_CHAIN_FOUND   |
+            | Sign-1.bad_sig_of_IssuingCA.xml              | TOTAL_FAILED  | NO_CERTIFICATE_CHAIN_FOUND   |
