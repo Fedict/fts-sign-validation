@@ -1,3 +1,13 @@
+# The following commands must be run in the 'psql' command line tool:
+
+CREATE DATABASE signing;
+
+\connect signing
+
+CREATE SCHEMA signing;
+
+SET search_path TO signing;
+
 CREATE TABLE "signing"."profilesignatureparameters" (
     "profileid" character varying(255) NOT NULL,
     "archivetimestampcanonicalizationmethod" character varying(255),
@@ -27,7 +37,6 @@ CREATE TABLE "signing"."profilesignatureparameters" (
     CONSTRAINT "profilesignatureparameters_pkey" PRIMARY KEY ("profileid"),
     CONSTRAINT "uk_ki2dvs5cm22t4ae3pbicjvd1u" UNIQUE ("isdefault")
 ) WITH (oids = false);
-
 
 CREATE TABLE "signing"."profilesignatureparameters_commitmenttypeindications" (
     "profilesignatureparameters_profileid" character varying(255) NOT NULL,
