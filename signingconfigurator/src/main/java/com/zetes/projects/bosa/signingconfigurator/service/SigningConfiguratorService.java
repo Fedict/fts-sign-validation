@@ -5,6 +5,8 @@ import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterExcept
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
+import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
+import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteBLevelParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
@@ -92,9 +94,8 @@ public class SigningConfiguratorService {
         remoteSignatureParams.setAsicContainerType(profileParams.getAsicContainerType());
         remoteSignatureParams.setSignatureLevel(profileParams.getSignatureLevel());
         remoteSignatureParams.setSignaturePackaging(profileParams.getSignaturePackaging());
-        remoteSignatureParams.setDigestAlgorithm(profileParams.getSignatureAlgorithm().getDigestAlgorithm());
-        remoteSignatureParams.setEncryptionAlgorithm(profileParams.getSignatureAlgorithm().getEncryptionAlgorithm());
-        remoteSignatureParams.setMaskGenerationFunction(profileParams.getSignatureAlgorithm().getMaskGenerationFunction());
+        remoteSignatureParams.setDigestAlgorithm(profileParams.getDigestAlgorithm());
+        remoteSignatureParams.setMaskGenerationFunction(profileParams.getMaskGenerationFunction());
         remoteSignatureParams.setReferenceDigestAlgorithm(profileParams.getReferenceDigestAlgorithm());
     }
 
@@ -102,6 +103,9 @@ public class SigningConfiguratorService {
         remoteSignatureParams.setSigningCertificate(clientParams.getSigningCertificate());
         remoteSignatureParams.setCertificateChain(clientParams.getCertificateChain());
         remoteSignatureParams.setDetachedContents(clientParams.getDetachedContents());
+
+        EncryptionAlgorithm encryptionAlgorithm = DSSUtils.loadCertificate(clientParams.getSigningCertificate().getEncodedCertificate()).getSignatureAlgorithm().getEncryptionAlgorithm();
+        remoteSignatureParams.setEncryptionAlgorithm(encryptionAlgorithm);
 
         remoteBLevelParams.setSigningDate(clientParams.getSigningDate());
         remoteBLevelParams.setClaimedSignerRoles(clientParams.getClaimedSignerRoles());

@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SigningControllerTest extends SignAndValidationTestBase {
@@ -48,13 +49,13 @@ public class SigningControllerTest extends SignAndValidationTestBase {
         ProfileSignatureParametersDao profileSigParamDao = applicationContext.getBean(ProfileSignatureParametersDao.class);
         profileSigParamDao.deleteAll();
         saveProfileSignatureParameters(profileSigParamDao, "XADES_B", null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPED, null, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPED, null, SHA256, null);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_T", null, SignatureLevel.XAdES_BASELINE_T,
-                SignaturePackaging.ENVELOPED, null, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPED, null, SHA256, null);
         saveProfileSignatureParameters(profileSigParamDao, "CADES_B", ASiCContainerType.ASiC_S, SignatureLevel.CAdES_BASELINE_B,
-                SignaturePackaging.DETACHED, null, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.DETACHED, null, SHA256, null);
         saveProfileSignatureParameters(profileSigParamDao, "PADES_B", null, SignatureLevel.PAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPED, null, SignatureAlgorithm.RSA_SHA256);
+                SignaturePackaging.ENVELOPED, null, SHA256, null);
     }
 
     @Test
@@ -174,13 +175,15 @@ public class SigningControllerTest extends SignAndValidationTestBase {
                                                        SignatureLevel signatureLevel,
                                                        SignaturePackaging signaturePackaging,
                                                        DigestAlgorithm referenceDigestAlgorithm,
-                                                       SignatureAlgorithm signatureAlgorithm) {
+                                                       DigestAlgorithm digestAlgorithm,
+                                                       MaskGenerationFunction maskGenerationFunction) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setAsicContainerType(containerType);
         profileParams.setSignatureLevel(signatureLevel);
         profileParams.setSignaturePackaging(signaturePackaging);
-        profileParams.setSignatureAlgorithm(signatureAlgorithm);
+        profileParams.setDigestAlgorithm(digestAlgorithm);
+        profileParams.setMaskGenerationFunction(maskGenerationFunction);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
 
         dao.save(profileParams);

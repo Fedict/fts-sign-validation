@@ -51,7 +51,10 @@ public class ProfileSignatureParameters {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private SignatureAlgorithm signatureAlgorithm;
+    private DigestAlgorithm digestAlgorithm;
+
+    @Enumerated(EnumType.STRING)
+    private MaskGenerationFunction maskGenerationFunction;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -200,12 +203,20 @@ public class ProfileSignatureParameters {
         this.signaturePackaging = signaturePackaging;
     }
 
-    public SignatureAlgorithm getSignatureAlgorithm() {
-        return signatureAlgorithm;
+    public DigestAlgorithm getDigestAlgorithm() {
+        return digestAlgorithm;
     }
 
-    public void setSignatureAlgorithm(SignatureAlgorithm signatureAlgorithm) {
-        this.signatureAlgorithm = signatureAlgorithm;
+    public void setDigestAlgorithm(DigestAlgorithm digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
+    }
+
+    public MaskGenerationFunction getMaskGenerationFunction() {
+        return maskGenerationFunction;
+    }
+
+    public void setMaskGenerationFunction(MaskGenerationFunction maskGenerationFunction) {
+        this.maskGenerationFunction = maskGenerationFunction;
     }
 
     public Boolean getTrustAnchorBPPolicy() {
