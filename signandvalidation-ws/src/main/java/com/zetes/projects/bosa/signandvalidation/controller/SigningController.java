@@ -4,7 +4,6 @@ import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
-import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.spi.DSSUtils;
@@ -54,7 +53,7 @@ public class SigningController {
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
-            RemoteSignatureParameters parameters = getSignatureParameters(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -67,7 +66,7 @@ public class SigningController {
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
         try {
-            RemoteSignatureParameters parameters = getSignatureParameters(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
 
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -80,7 +79,7 @@ public class SigningController {
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = getSignatureParameters(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
@@ -94,7 +93,7 @@ public class SigningController {
     @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = getSignatureParameters(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
@@ -108,12 +107,12 @@ public class SigningController {
     @PostMapping(value = "/extendDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = getExtensionParameters(extendDocumentDto.getExtendProfileId(), extendDocumentDto.getDetachedContents());
+            RemoteSignatureParameters parameters = signingConfigService.getExtensionParams(extendDocumentDto.getExtendProfileId(), extendDocumentDto.getDetachedContents());
 
             RemoteDocument extendedDoc = signatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
             return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), null);
-        } catch (ProfileNotFoundException | NullParameterException e) {
+        } catch (ProfileNotFoundException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
@@ -121,29 +120,13 @@ public class SigningController {
     @PostMapping(value = "/extendDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = getExtensionParameters(extendDocumentDto.getExtendProfileId(), extendDocumentDto.getDetachedContents());
+            RemoteSignatureParameters parameters = signingConfigService.getExtensionParams(extendDocumentDto.getExtendProfileId(), extendDocumentDto.getDetachedContents());
 
             RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
             return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), null);
-        } catch (ProfileNotFoundException | NullParameterException e) {
+        } catch (ProfileNotFoundException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
-        }
-    }
-
-    private RemoteSignatureParameters getSignatureParameters(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
-        if (profileId == null) {
-            return signingConfigService.getSignatureParamsDefaultProfile(clientParams);
-        } else {
-            return signingConfigService.getSignatureParams(profileId, clientParams);
-        }
-    }
-
-    private RemoteSignatureParameters getExtensionParameters(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException, NullParameterException {
-        if (profileId == null) {
-            return signingConfigService.getExtensionParamsDefaultProfile(detachedContents);
-        } else {
-            return signingConfigService.getExtensionParams(profileId, detachedContents);
         }
     }
 

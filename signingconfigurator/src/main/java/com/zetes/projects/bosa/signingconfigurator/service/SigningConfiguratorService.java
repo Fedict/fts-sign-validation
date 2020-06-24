@@ -20,34 +20,28 @@ public class SigningConfiguratorService {
     ProfileSignatureParametersDao dao;
 
     public RemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
-        if (profileId == null || clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
-            throw new NullParameterException("Parameters should not be null");
-        }
-
-        ProfileSignatureParameters profileParams = findProfileParamsById(profileId);
-        return fillRemoteSignatureParams(clientParams, profileParams);
-    }
-
-    public RemoteSignatureParameters getSignatureParamsDefaultProfile(ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         if (clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
 
-        ProfileSignatureParameters profileParams = findDefaultProfileParams();
+        ProfileSignatureParameters profileParams;
+        if (profileId == null) {
+            profileParams = findDefaultProfileParams();
+        } else {
+            profileParams = findProfileParamsById(profileId);
+        }
+
         return fillRemoteSignatureParams(clientParams, profileParams);
     }
 
-    public RemoteSignatureParameters getExtensionParams(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException, NullParameterException {
+    public RemoteSignatureParameters getExtensionParams(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException {
+        ProfileSignatureParameters profileParams;
         if (profileId == null) {
-            throw new NullParameterException("Profile id should not be null");
+            profileParams = findDefaultProfileParams();
+        } else {
+            profileParams = findProfileParamsById(profileId);
         }
 
-        ProfileSignatureParameters profileParams = findProfileParamsById(profileId);
-        return fillExtensionParams(detachedContents, profileParams);
-    }
-
-    public RemoteSignatureParameters getExtensionParamsDefaultProfile(List<RemoteDocument> detachedContents) throws ProfileNotFoundException {
-        ProfileSignatureParameters profileParams = findDefaultProfileParams();
         return fillExtensionParams(detachedContents, profileParams);
     }
 

@@ -68,7 +68,7 @@ public class SigningConfiguratorServiceTest {
         // then
         ProfileNotFoundException exception = assertThrows(
                 ProfileNotFoundException.class,
-                () -> service.getSignatureParamsDefaultProfile(clientParams)
+                () -> service.getSignatureParams(null, clientParams)
         );
 
         assertEquals("Default profile not found", exception.getMessage());
@@ -99,7 +99,7 @@ public class SigningConfiguratorServiceTest {
         ProfileNotFoundException exception = assertThrows(
                 ProfileNotFoundException.class,
                 () -> {
-                    service.getExtensionParamsDefaultProfile(detachedContents);
+                    service.getExtensionParams(null, detachedContents);
                 }
         );
 
@@ -154,7 +154,7 @@ public class SigningConfiguratorServiceTest {
         clientParams.setSigningDate(new Date());
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParamsDefaultProfile(clientParams);
+        RemoteSignatureParameters result = service.getSignatureParams(null, clientParams);
 
         // then
         assertNull(result.getAsicContainerType());
@@ -309,7 +309,7 @@ public class SigningConfiguratorServiceTest {
         List<RemoteDocument> detachedContents = new ArrayList<>();
 
         // when
-        RemoteSignatureParameters result = service.getExtensionParamsDefaultProfile(detachedContents);
+        RemoteSignatureParameters result = service.getExtensionParams(null, detachedContents);
 
         // then
         assertNull(result.getAsicContainerType());
