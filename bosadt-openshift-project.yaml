@@ -78,18 +78,3 @@ objects:
         name: signvalidation-svc
       port:
         targetPort: signvalidation-web-ssl
-
-  - apiVersion: v1
-    kind: Route
-    metadata:
-      name: signvalidation-sign # Needs to be unique compared to other routes
-      annotations:
-        description: "The route to expose the Sign  port"
-    spec:
-      host: sign.ta.fts.bosa.belgium.be # The part of your url before the slash. You cannot have routes using the same host in multiple projects unless this feature is activated for your cluster (security choice based on your governance).
-      path: / # The part of your url after the slash or just the slash (this field is optional)
-      to:
-        kind: Service
-        name: signvalidation-svc
-      port:
-        targetPort: signvalidation-web-ssl
