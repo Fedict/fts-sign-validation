@@ -18,8 +18,11 @@ import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.utils.Utils;
+import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import eu.europa.esig.dss.ws.signature.dto.TimestampOneDocumentDTO;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +46,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
     public static final String GETDATATOSIGN_ENDPOINT = "/signing/getDataToSign";
     public static final String SIGNDOCUMENT_ENDPOINT = "/signing/signDocument";
     public static final String EXTENDDOCUMENT_ENDPOINT = "/signing/extendDocument";
+    public static final String TIMESTAMP_ENDPOINT = "/signing/timestampDocument";
 
     @BeforeAll
     public static void fillDB(ApplicationContext applicationContext) {
@@ -154,6 +158,23 @@ public class SigningControllerTest extends SignAndValidationTestBase {
 
         InMemoryDocument iMD = new InMemoryDocument(signedDocument.getBytes());
         iMD.save("target/test.pdf");
+    }
+
+    @Test
+    public void testTimestampPdf() throws Exception {
+        RemoteTimestampParameters timestampParameters = new RemoteTimestampParameters(TimestampContainerForm.PDF, DigestAlgorithm.SHA512);
+
+        FileDocument fileToTimestamp = new FileDocument(new File("src/test/resources/sample.pdf"));
+        RemoteDocument remoteDocument = RemoteDocumentConverter.toRemoteDocument(fileToTimestamp);
+
+        TimestampOneDocumentDTO timestampOneDocumentDTO = new TimestampOneDocumentDTO(remoteDocument, timestampParameters);
+        RemoteDocument timestampedDocument = this.restTemplate.postForObject(LOCALHOST + port + TIMESTAMP_ENDPOINT, timestampOneDocumentDTO, RemoteDocument.class);
+
+        assertNotNull(timestampedDocument);
+
+        InMemoryDocument iMD = new InMemoryDocument(timestampedDocument.getBytes());
+        // iMD.save("target/testSigned.pdf");
+        assertNotNull(iMD);
     }
 
     private ClientSignatureParameters getClientSignatureParameters(DSSPrivateKeyEntry dssPrivateKeyEntry) {

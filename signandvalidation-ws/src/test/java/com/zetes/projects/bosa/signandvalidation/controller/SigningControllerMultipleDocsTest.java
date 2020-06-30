@@ -10,16 +10,16 @@ import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParameter
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import eu.europa.esig.dss.enumerations.*;
-import eu.europa.esig.dss.model.Digest;
-import eu.europa.esig.dss.model.FileDocument;
-import eu.europa.esig.dss.model.InMemoryDocument;
-import eu.europa.esig.dss.model.SignatureValue;
+import eu.europa.esig.dss.model.*;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
+import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import eu.europa.esig.dss.ws.signature.dto.TimestampMultipleDocumentDTO;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -43,6 +44,7 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
     public static final String GETDATATOSIGN_ENDPOINT = "/signing/getDataToSignMultiple";
     public static final String SIGNDOCUMENT_ENDPOINT = "/signing/signDocumentMultiple";
     public static final String EXTENDDOCUMENT_ENDPOINT = "/signing/extendDocumentMultiple";
+    public static final String TIMESTAMP_ENDPOINT = "/signing/timestampDocumentMultiple";
 
     @BeforeAll
     public static void fillDB(ApplicationContext applicationContext) {
@@ -90,6 +92,24 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
 
         InMemoryDocument iMD = new InMemoryDocument(extendedDocument.getBytes());
         iMD.save("target/test.asice");
+    }
+
+    @Test
+    public void timestampMultipleDocumentsTest() throws Exception {
+        RemoteTimestampParameters timestampParameters = new RemoteTimestampParameters(TimestampContainerForm.ASiC_E, DigestAlgorithm.SHA512);
+
+        List<DSSDocument> documentsToSign = new ArrayList<DSSDocument>(Arrays.asList(
+                new FileDocument(new File("src/test/resources/sample.xml")), new FileDocument(new File("src/test/resources/sample.pdf"))));
+        List<RemoteDocument> remoteDocuments = RemoteDocumentConverter.toRemoteDocuments(documentsToSign);
+
+        TimestampMultipleDocumentDTO timestampMultipleDocumentDTO = new TimestampMultipleDocumentDTO(remoteDocuments, timestampParameters);
+        RemoteDocument timestampedDocument = this.restTemplate.postForObject(LOCALHOST + port + TIMESTAMP_ENDPOINT, timestampMultipleDocumentDTO, RemoteDocument.class);
+
+        assertNotNull(timestampedDocument);
+
+        InMemoryDocument iMD = new InMemoryDocument(timestampedDocument.getBytes());
+        // iMD.save("target/testSigned.asice");
+        assertNotNull(iMD);
     }
 
     private ClientSignatureParameters getClientSignatureParameters(DSSPrivateKeyEntry dssPrivateKeyEntry) {

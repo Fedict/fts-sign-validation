@@ -12,6 +12,8 @@ import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureService;
+import eu.europa.esig.dss.ws.signature.dto.TimestampMultipleDocumentDTO;
+import eu.europa.esig.dss.ws.signature.dto.TimestampOneDocumentDTO;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
@@ -84,7 +86,7 @@ public class SigningController {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
-            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
+            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
@@ -98,7 +100,7 @@ public class SigningController {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
-            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), null);
+            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
@@ -111,7 +113,7 @@ public class SigningController {
 
             RemoteDocument extendedDoc = signatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), null);
+            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents());
         } catch (ProfileNotFoundException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
@@ -124,14 +126,24 @@ public class SigningController {
 
             RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), null);
+            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents());
         } catch (ProfileNotFoundException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteDocument policy) {
-        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, policy);
+    @PostMapping(value = "/timestampDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public RemoteDocument timestampDocument(@RequestBody TimestampOneDocumentDTO timestampDocumentDTO) {
+        return signatureService.timestamp(timestampDocumentDTO.getToTimestampDocument(), timestampDocumentDTO.getTimestampParameters());
+    }
+
+    @PostMapping(value = "/timestampDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampMultipleDocumentDTO timestampDocumentDTO) {
+        return signatureServiceMultiple.timestamp(timestampDocumentDTO.getToTimestampDocuments(), timestampDocumentDTO.getTimestampParameters());
+    }
+
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents) {
+        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null);
         SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
 
         if (indications.getIndication() == TOTAL_PASSED) {
