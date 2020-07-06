@@ -6,6 +6,7 @@ import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundExce
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
+import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteBLevelParameters;
@@ -21,6 +22,9 @@ public class SigningConfiguratorService {
     @Autowired
     ProfileSignatureParametersDao dao;
 
+    @Autowired
+    OnlineTSPSource tspSource;
+
     public RemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         if (clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
@@ -33,6 +37,7 @@ public class SigningConfiguratorService {
             profileParams = findProfileParamsById(profileId);
         }
 
+        tspSource.setTspServer(profileParams.getTspServer());
         return fillRemoteSignatureParams(clientParams, profileParams);
     }
 
@@ -44,6 +49,7 @@ public class SigningConfiguratorService {
             profileParams = findProfileParamsById(profileId);
         }
 
+        tspSource.setTspServer(profileParams.getTspServer());
         return fillExtensionParams(detachedContents, profileParams);
     }
 

@@ -4,8 +4,8 @@ import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSException;
 import eu.europa.esig.dss.model.TimestampBinary;
 import eu.europa.esig.dss.model.x509.CertificateToken;
+import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.spi.DSSASN1Utils;
-import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.token.KSPrivateKeyEntry;
 import eu.europa.esig.dss.token.KeyStoreSignatureTokenConnection;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -33,11 +33,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
-public class MockTSPSource implements TSPSource {
+public class MockOnlineTSPSource extends OnlineTSPSource {
 
     private static final long serialVersionUID = 8863748492343274842L;
 
-    private final Logger LOG = LoggerFactory.getLogger(MockTSPSource.class);
+    private final Logger LOG = LoggerFactory.getLogger(MockOnlineTSPSource.class);
 
     private static SecureRandom random = new SecureRandom();
 

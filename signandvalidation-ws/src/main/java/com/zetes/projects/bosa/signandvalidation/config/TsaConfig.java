@@ -1,10 +1,9 @@
 package com.zetes.projects.bosa.signandvalidation.config;
 
-import com.zetes.projects.bosa.signandvalidation.mocktsp.MockTSPSource;
+import com.zetes.projects.bosa.signandvalidation.mocktsp.MockOnlineTSPSource;
 import eu.europa.esig.dss.service.http.commons.TimestampDataLoader;
 import eu.europa.esig.dss.service.http.proxy.ProxyConfig;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
-import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.token.KeyStoreSignatureTokenConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,17 +25,14 @@ public class TsaConfig {
     @Value("${tsa.mock}")
     private boolean mock;
 
-    @Value("${tsa.server}")
-    private String tsaServer;
-
     // can be null
     @Autowired(required = false)
     private ProxyConfig proxyConfig;
 
     @Bean
-    TSPSource tspSource() {
+    OnlineTSPSource tspSource() {
         if (mock) {
-            MockTSPSource mockTSPSource = new MockTSPSource();
+            MockOnlineTSPSource mockTSPSource = new MockOnlineTSPSource();
             try (InputStream is = new ClassPathResource("/self-signed-tsa.p12").getInputStream()) {
                 mockTSPSource.setToken(new KeyStoreSignatureTokenConnection(is, "PKCS12", new KeyStore.PasswordProtection("ks-password".toCharArray())));
             } catch (IOException e) {
@@ -46,7 +42,7 @@ public class TsaConfig {
             return mockTSPSource;
 
         } else {
-            OnlineTSPSource onlineTSPSource = new OnlineTSPSource(tsaServer);
+            OnlineTSPSource onlineTSPSource = new OnlineTSPSource();
             TimestampDataLoader dataLoader = new TimestampDataLoader();
             dataLoader.setProxyConfig(proxyConfig);
             onlineTSPSource.setDataLoader(dataLoader);

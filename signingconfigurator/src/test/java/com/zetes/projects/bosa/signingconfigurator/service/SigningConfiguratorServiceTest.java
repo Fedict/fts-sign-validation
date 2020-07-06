@@ -5,6 +5,7 @@ import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundExce
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import eu.europa.esig.dss.enumerations.*;
+import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteBLevelParameters;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -26,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("localh2")
 public class SigningConfiguratorServiceTest {
+
+    @MockBean
+    private OnlineTSPSource tspSource;
 
     @Autowired
     private ProfileSignatureParametersDao dao;
@@ -110,13 +115,13 @@ public class SigningConfiguratorServiceTest {
     public void saveTwoDefaultThrowsException() {
         // given
         saveProfileSignatureParameters("XADES_1", true, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA512, SHA256, null, "tspServer");
 
         // then
         assertThrows(
                 DataIntegrityViolationException.class,
                 () -> saveProfileSignatureParameters("XADES_2", true, null, SignatureLevel.XAdES_BASELINE_B,
-                        SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA256, SHA256, null)
+                        SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA256, SHA256, null, "tspServer")
         );
     }
 
@@ -124,7 +129,7 @@ public class SigningConfiguratorServiceTest {
     public void retrievesProfileParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA512, SHA256, null, "tspServer");
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getRsaCertificate());
         clientParams.setSigningDate(new Date());
@@ -148,7 +153,7 @@ public class SigningConfiguratorServiceTest {
     public void retrievesDefaultProfileParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", true, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA512, SHA256, null, "tspServer");
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getRsaCertificate());
         clientParams.setSigningDate(new Date());
@@ -172,7 +177,7 @@ public class SigningConfiguratorServiceTest {
     public void retrievesSignatureAlgorithmCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", true, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA384, null);
+                SignaturePackaging.ENVELOPING, SHA512, SHA384, null, "tspServer");
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getEcCertificate());
         clientParams.setSigningDate(new Date());
@@ -192,7 +197,7 @@ public class SigningConfiguratorServiceTest {
     public void retrievesDefaultParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA512, SHA256, null, "tspServer");
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getRsaCertificate());
         clientParams.setSigningDate(new Date());
@@ -229,7 +234,7 @@ public class SigningConfiguratorServiceTest {
                 SignaturePackaging.ENVELOPING, SHA512, SHA256, null,
                 false, "id", "qualifier", "desc",
                 SHA224, "digest".getBytes(), "spuri", Arrays.asList("commitment"), true, true,
-                SHA1, INCLUSIVE, SHA384, EXCLUSIVE_WITH_COMMENTS, SHA512, INCLUSIVE_WITH_COMMENTS);
+                SHA1, INCLUSIVE, SHA384, EXCLUSIVE_WITH_COMMENTS, SHA512, INCLUSIVE_WITH_COMMENTS, "tspServer");
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getRsaCertificate());
         clientParams.setSigningDate(new Date());
@@ -263,7 +268,7 @@ public class SigningConfiguratorServiceTest {
     public void retrievesClientParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA512, SHA256, null, "tspServer");
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getRsaCertificate());
         clientParams.setCertificateChain(Arrays.asList(new RemoteCertificate(), new RemoteCertificate()));
@@ -303,7 +308,7 @@ public class SigningConfiguratorServiceTest {
     public void extensionRetrievesProfileParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA512, SHA256, null, "tspServer");
         List<RemoteDocument> detachedContents = new ArrayList<>();
 
         // when
@@ -325,7 +330,7 @@ public class SigningConfiguratorServiceTest {
     public void extensionRetrievesDefaultProfileParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", true, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA512, SHA256, null, "tspServer");
         List<RemoteDocument> detachedContents = new ArrayList<>();
 
         // when
@@ -347,7 +352,7 @@ public class SigningConfiguratorServiceTest {
     public void extensionRetrievesDefaultParametersCorrectly() throws Exception {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA512, SHA256, null, "tspServer");
         List<RemoteDocument> detachedContents = new ArrayList<>();
 
         // when
@@ -404,7 +409,8 @@ public class SigningConfiguratorServiceTest {
                                                 SignaturePackaging signaturePackaging,
                                                 DigestAlgorithm referenceDigestAlgorithm,
                                                 DigestAlgorithm digestAlgorithm,
-                                                MaskGenerationFunction maskGenerationFunction) {
+                                                MaskGenerationFunction maskGenerationFunction,
+                                                String tspServer) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setIsDefault(isDefault);
@@ -414,6 +420,8 @@ public class SigningConfiguratorServiceTest {
         profileParams.setDigestAlgorithm(digestAlgorithm);
         profileParams.setMaskGenerationFunction(maskGenerationFunction);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
+
+        profileParams.setTspServer(tspServer);
 
         dao.save(profileParams);
     }
@@ -440,7 +448,8 @@ public class SigningConfiguratorServiceTest {
                                                 DigestAlgorithm signatureTimestampDigestAlgorithm,
                                                 String signatureTimestampCanonicalizationMethod,
                                                 DigestAlgorithm archiveTimestampDigestAlgorithm,
-                                                String archiveTimestampCanonicalizationMethod) {
+                                                String archiveTimestampCanonicalizationMethod,
+                                                String tspServer) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setIsDefault(isDefault);
@@ -467,6 +476,8 @@ public class SigningConfiguratorServiceTest {
         profileParams.setSignatureTimestampCanonicalizationMethod(signatureTimestampCanonicalizationMethod);
         profileParams.setArchiveTimestampDigestAlgorithm(archiveTimestampDigestAlgorithm);
         profileParams.setArchiveTimestampCanonicalizationMethod(archiveTimestampCanonicalizationMethod);
+
+        profileParams.setTspServer(tspServer);
 
         dao.save(profileParams);
     }

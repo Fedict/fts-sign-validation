@@ -115,6 +115,9 @@ public class ProfileSignatureParameters {
     @Column
     private String archiveTimestampCanonicalizationMethod;
 
+    @Column(nullable = false)
+    private String tspServer;
+
     public ProfileSignatureParameters() {
     }
 
@@ -362,4 +365,11 @@ public class ProfileSignatureParameters {
         return new RemoteTimestampParameters(null, getArchiveTimestampDigestAlgorithm(), getArchiveTimestampCanonicalizationMethod());
     }
 
+    public String getTspServer() {
+        return tspServer;
+    }
+
+    public void setTspServer(String tspServer) {
+        this.tspServer = tspServer;
+    }
 }

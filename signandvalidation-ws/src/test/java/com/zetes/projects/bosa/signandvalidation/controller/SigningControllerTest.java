@@ -206,6 +206,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
         profileParams.setDigestAlgorithm(digestAlgorithm);
         profileParams.setMaskGenerationFunction(maskGenerationFunction);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
+        profileParams.setTspServer("http://tsa.belgium.be/connect");
 
         dao.save(profileParams);
     }
