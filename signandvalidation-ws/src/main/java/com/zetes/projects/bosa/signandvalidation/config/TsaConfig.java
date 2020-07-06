@@ -1,11 +1,14 @@
 package com.zetes.projects.bosa.signandvalidation.config;
 
 import com.zetes.projects.bosa.signandvalidation.mocktsp.MockTSPSource;
+import eu.europa.esig.dss.service.http.commons.TimestampDataLoader;
+import eu.europa.esig.dss.service.http.proxy.ProxyConfig;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.token.KeyStoreSignatureTokenConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +29,10 @@ public class TsaConfig {
     @Value("${tsa.server}")
     private String tsaServer;
 
+    // can be null
+    @Autowired(required = false)
+    private ProxyConfig proxyConfig;
+
     @Bean
     TSPSource tspSource() {
         if (mock) {
@@ -39,7 +46,11 @@ public class TsaConfig {
             return mockTSPSource;
 
         } else {
-            return new OnlineTSPSource(tsaServer);
+            OnlineTSPSource onlineTSPSource = new OnlineTSPSource(tsaServer);
+            TimestampDataLoader dataLoader = new TimestampDataLoader();
+            dataLoader.setProxyConfig(proxyConfig);
+            onlineTSPSource.setDataLoader(dataLoader);
+            return onlineTSPSource;
         }
     }
 
