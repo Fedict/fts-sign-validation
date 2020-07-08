@@ -11,5 +11,7 @@ RUN  mkdir -p /usr/local/tomcat/conf \
 RUN echo 'JAVA_OPTS="$JAVA_OPTS -Dtsa.mock=$TSA_MOCK -Dtest.keystore.enabled=$KEYSTORE_ENABLED -Dsigningconfigurator.datasource.url=$SIGNING_URL -Dsigningconfigurator.datasource.username=$SIGNING_USER -Dsigningconfigurator.datasource.password=$SIGNING_PW -Dsigningconfigurator.hibernate.default_schema=$SIGNING_SCHEMA -Dcors.allowedorigins=$CORS_ALLOWED_ORIGINS -Dproxy.http.enabled=true -Dproxy.http.host=$PROXY_HOST -Dproxy.http.port=$PROXY_PORT -Dproxy.http.exclude=$PROXY_NONPROXYHOST -Dproxy.https.enabled=true -Dproxy.https.host=$PROXY_HOST -Dproxy.https.port=$PROXY_PORT -Dproxy.https.exclude=$PROXY_NONPROXYHOST -Dlogging.level.eu.europa.esig.dss.tsl.service=DEBUG -Djava.net.preferIPv4Stack=true"' > /usr/local/tomcat/bin/setenv.sh
 
 ADD ./signandvalidation-ws/target/*.war /usr/local/tomcat/webapps/signandvalidation.war
+COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
 
 USER 1001
+CMD bin/catalina_wrapper.sh run
