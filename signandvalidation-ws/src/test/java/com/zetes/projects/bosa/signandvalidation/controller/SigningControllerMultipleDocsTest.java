@@ -2,13 +2,12 @@ package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
-import com.zetes.projects.bosa.signandvalidation.model.DataToSignDTO;
-import com.zetes.projects.bosa.signandvalidation.model.ExtendDocumentDTO;
-import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignMultipleDTO;
-import com.zetes.projects.bosa.signandvalidation.model.SignDocumentMultipleDTO;
+import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
+import com.zetes.projects.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
+import com.zetes.projects.bosa.signingconfigurator.model.ProfileTimestampParameters;
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.model.*;
 import eu.europa.esig.dss.model.x509.CertificateToken;
@@ -18,8 +17,6 @@ import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.signature.dto.TimestampMultipleDocumentDTO;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +31,8 @@ import java.util.Date;
 import java.util.List;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
+import static eu.europa.esig.dss.enumerations.TimestampContainerForm.ASiC_E;
+import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase {
@@ -54,6 +53,10 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
                 SignaturePackaging.DETACHED, null, SHA256, null);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_T", ASiCContainerType.ASiC_E, SignatureLevel.XAdES_BASELINE_T,
                 SignaturePackaging.DETACHED, DigestAlgorithm.SHA256, SHA256, null);
+
+        ProfileTimestampParametersDao timestampParamDao = applicationContext.getBean(ProfileTimestampParametersDao.class);
+        timestampParamDao.deleteAll();
+        saveProfileTimestampParameters(timestampParamDao, "PROFILE_1", SHA256, ENVELOPED, ASiC_E);
     }
 
     @Test
@@ -96,13 +99,11 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
 
     @Test
     public void timestampMultipleDocumentsTest() throws Exception {
-        RemoteTimestampParameters timestampParameters = new RemoteTimestampParameters(TimestampContainerForm.ASiC_E, DigestAlgorithm.SHA512);
-
         List<DSSDocument> documentsToSign = new ArrayList<DSSDocument>(Arrays.asList(
                 new FileDocument(new File("src/test/resources/sample.xml")), new FileDocument(new File("src/test/resources/sample.pdf"))));
         List<RemoteDocument> remoteDocuments = RemoteDocumentConverter.toRemoteDocuments(documentsToSign);
 
-        TimestampMultipleDocumentDTO timestampMultipleDocumentDTO = new TimestampMultipleDocumentDTO(remoteDocuments, timestampParameters);
+        TimestampDocumentMultipleDTO timestampMultipleDocumentDTO = new TimestampDocumentMultipleDTO(remoteDocuments, "PROFILE_1");
         RemoteDocument timestampedDocument = this.restTemplate.postForObject(LOCALHOST + port + TIMESTAMP_ENDPOINT, timestampMultipleDocumentDTO, RemoteDocument.class);
 
         assertNotNull(timestampedDocument);
@@ -141,6 +142,21 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
         profileParams.setDigestAlgorithm(digestAlgorithm);
         profileParams.setMaskGenerationFunction(maskGenerationFunction);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
+        profileParams.setTspServer("http://tsa.belgium.be/connect");
+
+        dao.save(profileParams);
+    }
+
+    private static void saveProfileTimestampParameters(ProfileTimestampParametersDao dao,
+                                                       String profileId,
+                                                       DigestAlgorithm digestAlgorithm,
+                                                       String canonicalizationMethod,
+                                                       TimestampContainerForm containerForm) {
+        ProfileTimestampParameters profileParams = new ProfileTimestampParameters();
+        profileParams.setProfileId(profileId);
+        profileParams.setDigestAlgorithm(digestAlgorithm);
+        profileParams.setCanonicalizationMethod(canonicalizationMethod);
+        profileParams.setContainerForm(containerForm);
         profileParams.setTspServer("http://tsa.belgium.be/connect");
 
         dao.save(profileParams);

@@ -12,9 +12,8 @@ import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureService;
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureService;
-import eu.europa.esig.dss.ws.signature.dto.TimestampMultipleDocumentDTO;
-import eu.europa.esig.dss.ws.signature.dto.TimestampOneDocumentDTO;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,13 +132,25 @@ public class SigningController {
     }
 
     @PostMapping(value = "/timestampDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument timestampDocument(@RequestBody TimestampOneDocumentDTO timestampDocumentDTO) {
-        return signatureService.timestamp(timestampDocumentDTO.getToTimestampDocument(), timestampDocumentDTO.getTimestampParameters());
+    public RemoteDocument timestampDocument(@RequestBody TimestampDocumentDTO timestampDocumentDto) {
+        try {
+            RemoteTimestampParameters parameters = signingConfigService.getTimestampParams(timestampDocumentDto.getProfileId());
+
+            return signatureService.timestamp(timestampDocumentDto.getDocument(), parameters);
+        } catch (ProfileNotFoundException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
     }
 
     @PostMapping(value = "/timestampDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampMultipleDocumentDTO timestampDocumentDTO) {
-        return signatureServiceMultiple.timestamp(timestampDocumentDTO.getToTimestampDocuments(), timestampDocumentDTO.getTimestampParameters());
+    public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampDocumentMultipleDTO timestampDocumentDto) {
+        try {
+            RemoteTimestampParameters parameters = signingConfigService.getTimestampParams(timestampDocumentDto.getProfileId());
+
+            return signatureServiceMultiple.timestamp(timestampDocumentDto.getDocuments(), parameters);
+        } catch (ProfileNotFoundException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
     }
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents) {

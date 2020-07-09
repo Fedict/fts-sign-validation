@@ -22,6 +22,7 @@ import javax.xml.crypto.dsig.CanonicalizationMethod;
 import java.util.*;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.*;
+import static eu.europa.esig.dss.enumerations.TimestampContainerForm.*;
 import static javax.xml.crypto.dsig.CanonicalizationMethod.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -234,7 +235,7 @@ public class SigningConfiguratorServiceTest {
                 SignaturePackaging.ENVELOPING, SHA512, SHA256, null,
                 false, "id", "qualifier", "desc",
                 SHA224, "digest".getBytes(), "spuri", Arrays.asList("commitment"), true, true,
-                SHA1, INCLUSIVE, SHA384, EXCLUSIVE_WITH_COMMENTS, SHA512, INCLUSIVE_WITH_COMMENTS, "tspServer");
+                SHA1, INCLUSIVE, PDF, SHA384, EXCLUSIVE_WITH_COMMENTS, ASiC_E, SHA512, INCLUSIVE_WITH_COMMENTS, ASiC_S, "tspServer");
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getRsaCertificate());
         clientParams.setSigningDate(new Date());
@@ -245,10 +246,13 @@ public class SigningConfiguratorServiceTest {
         // then
         assertEquals(SHA1, result.getContentTimestampParameters().getDigestAlgorithm());
         assertEquals(INCLUSIVE, result.getContentTimestampParameters().getCanonicalizationMethod());
+        assertEquals(PDF, result.getContentTimestampParameters().getTimestampContainerForm());
         assertEquals(SHA384, result.getSignatureTimestampParameters().getDigestAlgorithm());
         assertEquals(EXCLUSIVE_WITH_COMMENTS, result.getSignatureTimestampParameters().getCanonicalizationMethod());
+        assertEquals(ASiC_E, result.getSignatureTimestampParameters().getTimestampContainerForm());
         assertEquals(SHA512, result.getArchiveTimestampParameters().getDigestAlgorithm());
         assertEquals(INCLUSIVE_WITH_COMMENTS, result.getArchiveTimestampParameters().getCanonicalizationMethod());
+        assertEquals(ASiC_S, result.getArchiveTimestampParameters().getTimestampContainerForm());
         assertTrue(result.isSignWithExpiredCertificate());
         assertTrue(result.isGenerateTBSWithoutCertificate());
 
@@ -445,10 +449,13 @@ public class SigningConfiguratorServiceTest {
                                                 Boolean generateTBSWithoutCertificate,
                                                 DigestAlgorithm contentTimestampDigestAlgorithm,
                                                 String contentTimestampCanonicalizationMethod,
+                                                TimestampContainerForm contentTimestampContainerForm,
                                                 DigestAlgorithm signatureTimestampDigestAlgorithm,
                                                 String signatureTimestampCanonicalizationMethod,
+                                                TimestampContainerForm signatureTimestampContainerForm,
                                                 DigestAlgorithm archiveTimestampDigestAlgorithm,
                                                 String archiveTimestampCanonicalizationMethod,
+                                                TimestampContainerForm archiveTimestampContainerForm,
                                                 String tspServer) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
@@ -472,10 +479,13 @@ public class SigningConfiguratorServiceTest {
         profileParams.setGenerateTBSWithoutCertificate(generateTBSWithoutCertificate);
         profileParams.setContentTimestampDigestAlgorithm(contentTimestampDigestAlgorithm);
         profileParams.setContentTimestampCanonicalizationMethod(contentTimestampCanonicalizationMethod);
+        profileParams.setContentTimestampContainerForm(contentTimestampContainerForm);
         profileParams.setSignatureTimestampDigestAlgorithm(signatureTimestampDigestAlgorithm);
         profileParams.setSignatureTimestampCanonicalizationMethod(signatureTimestampCanonicalizationMethod);
+        profileParams.setSignatureTimestampContainerForm(signatureTimestampContainerForm);
         profileParams.setArchiveTimestampDigestAlgorithm(archiveTimestampDigestAlgorithm);
         profileParams.setArchiveTimestampCanonicalizationMethod(archiveTimestampCanonicalizationMethod);
+        profileParams.setArchiveTimestampContainerForm(archiveTimestampContainerForm);
 
         profileParams.setTspServer(tspServer);
 
