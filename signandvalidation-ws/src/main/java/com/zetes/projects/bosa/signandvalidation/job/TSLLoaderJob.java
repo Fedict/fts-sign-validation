@@ -1,6 +1,10 @@
 package com.zetes.projects.bosa.signandvalidation.job;
 
-import eu.europa.esig.dss.tsl.service.TSLValidationJob;
+import eu.europa.esig.dss.tsl.job.TLValidationJob;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,18 +18,29 @@ public class TSLLoaderJob {
     @Value("${cron.tl.loader.enable}")
     private boolean enable;
 
+    @Value("${lotl.completed.markfile}")
+    private String MARKFILE;
+
     @Autowired
-    private TSLValidationJob job;
+    private TLValidationJob job;
 
     @PostConstruct
     public void init() {
-        job.initRepository();
+        job.offlineRefresh();
     }
 
     @Scheduled(initialDelayString = "${cron.initial.delay.tl.loader}", fixedDelayString = "${cron.delay.tl.loader}")
     public void refresh() {
         if (enable) {
-            job.refresh();
+            job.onlineRefresh();
+            try {
+                if(MARKFILE != null && MARKFILE.length() > 0) {
+                    File file = new File(MARKFILE);
+                    file.createNewFile();
+                }
+            } catch (IOException ex) {
+                    Logger.getLogger(TSLLoaderJob.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 

@@ -51,7 +51,10 @@ public class ProfileSignatureParameters {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private SignatureAlgorithm signatureAlgorithm;
+    private DigestAlgorithm digestAlgorithm;
+
+    @Enumerated(EnumType.STRING)
+    private MaskGenerationFunction maskGenerationFunction;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -100,6 +103,10 @@ public class ProfileSignatureParameters {
 
     @Column
     @Enumerated(EnumType.STRING)
+    private TimestampContainerForm contentTimestampContainerForm;
+
+    @Column
+    @Enumerated(EnumType.STRING)
     private DigestAlgorithm signatureTimestampDigestAlgorithm;
 
     @Column
@@ -107,10 +114,21 @@ public class ProfileSignatureParameters {
 
     @Column
     @Enumerated(EnumType.STRING)
+    private TimestampContainerForm signatureTimestampContainerForm;
+
+    @Column
+    @Enumerated(EnumType.STRING)
     private DigestAlgorithm archiveTimestampDigestAlgorithm;
 
     @Column
     private String archiveTimestampCanonicalizationMethod;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private TimestampContainerForm archiveTimestampContainerForm;
+
+    @Column(nullable = false)
+    private String tspServer;
 
     public ProfileSignatureParameters() {
     }
@@ -200,12 +218,20 @@ public class ProfileSignatureParameters {
         this.signaturePackaging = signaturePackaging;
     }
 
-    public SignatureAlgorithm getSignatureAlgorithm() {
-        return signatureAlgorithm;
+    public DigestAlgorithm getDigestAlgorithm() {
+        return digestAlgorithm;
     }
 
-    public void setSignatureAlgorithm(SignatureAlgorithm signatureAlgorithm) {
-        this.signatureAlgorithm = signatureAlgorithm;
+    public void setDigestAlgorithm(DigestAlgorithm digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
+    }
+
+    public MaskGenerationFunction getMaskGenerationFunction() {
+        return maskGenerationFunction;
+    }
+
+    public void setMaskGenerationFunction(MaskGenerationFunction maskGenerationFunction) {
+        this.maskGenerationFunction = maskGenerationFunction;
     }
 
     public Boolean getTrustAnchorBPPolicy() {
@@ -304,9 +330,17 @@ public class ProfileSignatureParameters {
         this.contentTimestampCanonicalizationMethod = contentTimestampCanonicalizationMethod;
     }
 
+    public TimestampContainerForm getContentTimestampContainerForm() {
+        return contentTimestampContainerForm;
+    }
+
+    public void setContentTimestampContainerForm(TimestampContainerForm contentTimestampContainerForm) {
+        this.contentTimestampContainerForm = contentTimestampContainerForm;
+    }
+
     // combine ContentTimestampParameters
     public RemoteTimestampParameters getContentTimestampParameters() {
-        return new RemoteTimestampParameters(getContentTimestampDigestAlgorithm(), getContentTimestampCanonicalizationMethod());
+        return new RemoteTimestampParameters(getContentTimestampContainerForm(), getContentTimestampDigestAlgorithm(), getContentTimestampCanonicalizationMethod());
     }
 
     public DigestAlgorithm getSignatureTimestampDigestAlgorithm() {
@@ -325,9 +359,17 @@ public class ProfileSignatureParameters {
         this.signatureTimestampCanonicalizationMethod = signatureTimestampCanonicalizationMethod;
     }
 
+    public TimestampContainerForm getSignatureTimestampContainerForm() {
+        return signatureTimestampContainerForm;
+    }
+
+    public void setSignatureTimestampContainerForm(TimestampContainerForm signatureTimestampContainerForm) {
+        this.signatureTimestampContainerForm = signatureTimestampContainerForm;
+    }
+
     // combine SignatureTimestampParameters
     public RemoteTimestampParameters getSignatureTimestampParameters() {
-        return new RemoteTimestampParameters(getSignatureTimestampDigestAlgorithm(), getSignatureTimestampCanonicalizationMethod());
+        return new RemoteTimestampParameters(getSignatureTimestampContainerForm(), getSignatureTimestampDigestAlgorithm(), getSignatureTimestampCanonicalizationMethod());
     }
 
     public DigestAlgorithm getArchiveTimestampDigestAlgorithm() {
@@ -346,9 +388,24 @@ public class ProfileSignatureParameters {
         this.archiveTimestampCanonicalizationMethod = archiveTimestampCanonicalizationMethod;
     }
 
-    // combine ArchiveTimestampParameters
-    public RemoteTimestampParameters getArchiveTimestampParameters() {
-        return new RemoteTimestampParameters(getArchiveTimestampDigestAlgorithm(), getArchiveTimestampCanonicalizationMethod());
+    public TimestampContainerForm getArchiveTimestampContainerForm() {
+        return archiveTimestampContainerForm;
     }
 
+    public void setArchiveTimestampContainerForm(TimestampContainerForm archiveTimestampContainerForm) {
+        this.archiveTimestampContainerForm = archiveTimestampContainerForm;
+    }
+
+    // combine ArchiveTimestampParameters
+    public RemoteTimestampParameters getArchiveTimestampParameters() {
+        return new RemoteTimestampParameters(getArchiveTimestampContainerForm(), getArchiveTimestampDigestAlgorithm(), getArchiveTimestampCanonicalizationMethod());
+    }
+
+    public String getTspServer() {
+        return tspServer;
+    }
+
+    public void setTspServer(String tspServer) {
+        this.tspServer = tspServer;
+    }
 }

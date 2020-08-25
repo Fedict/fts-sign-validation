@@ -13,20 +13,15 @@ import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.converter.RemoteCertificateConverter;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static eu.europa.esig.dss.enumerations.Indication.INDETERMINATE;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 import static eu.europa.esig.dss.enumerations.KeyUsageBit.KEY_CERT_SIGN;
 import static eu.europa.esig.dss.enumerations.KeyUsageBit.NON_REPUDIATION;
-import static eu.europa.esig.dss.enumerations.SubIndication.OUT_OF_BOUNDS_NO_POE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -35,6 +30,21 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase {
     public static final String CERTIFICATE_ENDPOINT = "/validation/validateCertificate";
     public static final String CERTIFICATEFULL_ENDPOINT = "/validation/validateCertificateFull";
     public static final String CERTIFICATES_ENDPOINT = "/validation/validateCertificates";
+
+    @Test
+    public void certificatePassed() {
+        // given
+        RemoteCertificate passedCertificate = getPassedCertificate();
+        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(passedCertificate, null, null, NON_REPUDIATION);
+
+        // when
+        CertificateIndicationsDTO indicationsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateIndicationsDTO.class);
+
+        // then
+        assertEquals("TestSign CitizenCA", indicationsDTO.getCommonName());
+        assertEquals(PASSED, indicationsDTO.getIndication());
+        assertNull(indicationsDTO.getSubIndication());
+    }
 
     @Test
     public void certificateIndeterminate() {
@@ -53,7 +63,6 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase {
         // then
         assertEquals("Rostislav Šaler", indicationsDTO.getCommonName());
         assertEquals(INDETERMINATE, indicationsDTO.getIndication());
-//        assertEquals(OUT_OF_BOUNDS_NO_POE, indicationsDTO.getSubIndication()); // TODO "Temporary pipeline disable"
     }
 
     @Test
@@ -101,37 +110,8 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase {
         assertFalse(indicationsDTO.isKeyUsageCheckOk());
     }
 
-    @Disabled("Temporary pipeline disable") // TODO
     @Test
-    public void certificatesWithPassedAndIndeterminateCertificates() {
-        // given
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-        RemoteCertificate issuerCertificate = RemoteCertificateConverter
-                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
-
-        List<CertificateToValidateDTO> toValidateList = new ArrayList<>();
-        toValidateList.add(new CertificateToValidateDTO(remoteCertificate, null, null, NON_REPUDIATION));
-        toValidateList.add(new CertificateToValidateDTO(issuerCertificate, null, null, KEY_CERT_SIGN));
-
-        // when
-        IndicationsListDTO result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATES_ENDPOINT, toValidateList, IndicationsListDTO.class);
-
-        // then
-        assertNotNull(result.getIndications());
-        assertEquals(2, result.getIndications().size());
-        assertEquals("Rostislav Šaler", result.getIndications().get(0).getCommonName());
-        assertEquals(INDETERMINATE, result.getIndications().get(0).getIndication());
-        assertEquals(OUT_OF_BOUNDS_NO_POE, result.getIndications().get(0).getSubIndication());
-        assertTrue(result.getIndications().get(0).isKeyUsageCheckOk());
-        assertEquals("I.CA - Qualified Certification Authority, 09/2009", result.getIndications().get(1).getCommonName());
-        assertEquals(PASSED, result.getIndications().get(1).getIndication());
-        assertNull(result.getIndications().get(1).getSubIndication());
-        assertTrue(result.getIndications().get(1).isKeyUsageCheckOk());
-    }
-
-    @Test
-    public void certificateFullIndeterminate() {
+    public void certificateFull() {
         // given
         RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
                 DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
@@ -163,6 +143,45 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase {
             assertNotNull(certificate);
             CertificateWrapper signingCertificate = certificate.getSigningCertificate();
         }
+    }
+
+    @Test
+    public void certificatesPassedAndIndeterminate() {
+        // given
+        RemoteCertificate passedCertificate = getPassedCertificate();
+        CertificateToValidateDTO passedToValidate = new CertificateToValidateDTO(passedCertificate, null, null, NON_REPUDIATION);
+
+        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
+                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
+        RemoteCertificate issuerCertificate = RemoteCertificateConverter
+                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
+        CertificateToValidateDTO indeterminateToValidate = new CertificateToValidateDTO(remoteCertificate,
+                Collections.singletonList(issuerCertificate), null, NON_REPUDIATION);
+
+        List<CertificateToValidateDTO> toValidateList = new ArrayList<>();
+        toValidateList.add(passedToValidate);
+        toValidateList.add(indeterminateToValidate);
+
+        // when
+        IndicationsListDTO result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATES_ENDPOINT, toValidateList, IndicationsListDTO.class);
+
+        // then
+        assertNotNull(result.getIndications());
+        assertEquals(2, result.getIndications().size());
+
+        assertEquals("TestSign CitizenCA", result.getIndications().get(0).getCommonName());
+        assertEquals(PASSED, result.getIndications().get(0).getIndication());
+        assertNull(result.getIndications().get(0).getSubIndication());
+        assertFalse(result.getIndications().get(0).isKeyUsageCheckOk());
+
+        assertEquals("Rostislav Šaler", result.getIndications().get(1).getCommonName());
+        assertEquals(INDETERMINATE, result.getIndications().get(1).getIndication());
+        assertNotNull(result.getIndications().get(1).getSubIndication());
+        assertTrue(result.getIndications().get(1).isKeyUsageCheckOk());
+    }
+
+    private RemoteCertificate getPassedCertificate() {
+        return RemoteCertificateConverter.toRemoteCertificate(DSSUtils.loadCertificateFromBase64EncodedString("MIIDEzCCApigAwIBAgIRAIrCwoVCOYzX1jIQz06ouBAwCgYIKoZIzj0EAwMwMTELMAkGA1UEBhMCQkUxIjAgBgNVBAMMGVRlc3RTaWduIEJlbGdpdW0gUm9vdCBDQTYwHhcNMjAwMTE1MTQzMTM0WhcNMzIwMTE1MTQzMTM0WjBYMQswCQYDVQQGEwJCRTEbMBkGA1UECgwSQmVsZ2lhbiBHb3Zlcm5tZW50MRswGQYDVQQDDBJUZXN0U2lnbiBDaXRpemVuQ0ExDzANBgNVBAUTBjIwMjAwMTB2MBAGByqGSM49AgEGBSuBBAAiA2IABPnhhrdIIgz9aDKyMBkJOU1siv1nTs6OCx01ABYki83RwWJ9/i5Q5/hi7042x5Wc3VEinodQl2QIWAE4eARj9vU0sUlVROe+voMi6G6YO5FT1xMjJ6jN7C6XghV6/AG4vqOCAUswggFHMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdJQQWMBQGCCsGAQUFBwMEBggrBgEFBQcDAjAdBgNVHQ4EFgQUNhf7FN+hDfg+bJG9lMFaQ/3JkWAwHwYDVR0jBBgwFoAU3fBCho6noAuRtkDCNTbZxbBBWj4wNQYDVR0fBC4wLDAqoCigJoYkaHR0cDovL2hvbWUuc2NhcmxldC5iZS9zdGgvYnJjYTYuY3JsMEAGCCsGAQUFBwEBBDQwMjAwBggrBgEFBQcwAoYkaHR0cDovL2hvbWUuc2NhcmxldC5iZS9zdGgvYnJjYTYuY3J0MEkGA1UdIARCMEAwPgYEVR0gADA2MDQGCCsGAQUFBwIBFihodHRwczovL3JlcG9zaXRvcnkuZWlkcGtpLmJlbGdpdW0uYmUvZWlkMAoGCCqGSM49BAMDA2kAMGYCMQDutMmYelV3c9VDfEXx1KX9bu+1ATZibYu7wqo/B9r/nDs1ASN5OPR39/vEQ4eEodsCMQDu2fDqxlASFhwR1MMp/MDAbdIFTYmih+Q1gQasRZ5k6LOf9MeT3wUH8Lexi9Ruh8I="));
     }
 
 }

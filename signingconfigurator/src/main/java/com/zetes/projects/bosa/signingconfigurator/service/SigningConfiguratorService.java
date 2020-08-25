@@ -1,13 +1,19 @@
 package com.zetes.projects.bosa.signingconfigurator.service;
 
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
+import com.zetes.projects.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
+import com.zetes.projects.bosa.signingconfigurator.model.ProfileTimestampParameters;
+import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
+import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
+import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteBLevelParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,38 +23,52 @@ import java.util.List;
 public class SigningConfiguratorService {
 
     @Autowired
-    ProfileSignatureParametersDao dao;
+    ProfileSignatureParametersDao signatureDao;
+
+    @Autowired
+    ProfileTimestampParametersDao timestampDao;
+
+    @Autowired
+    OnlineTSPSource tspSource;
 
     public RemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
-        if (profileId == null || clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
-            throw new NullParameterException("Parameters should not be null");
-        }
-
-        ProfileSignatureParameters profileParams = findProfileParamsById(profileId);
-        return fillRemoteSignatureParams(clientParams, profileParams);
-    }
-
-    public RemoteSignatureParameters getSignatureParamsDefaultProfile(ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
         if (clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
 
-        ProfileSignatureParameters profileParams = findDefaultProfileParams();
+        ProfileSignatureParameters profileParams;
+        if (profileId == null) {
+            profileParams = findDefaultProfileParams();
+        } else {
+            profileParams = findProfileParamsById(profileId);
+        }
+
+        tspSource.setTspServer(profileParams.getTspServer());
         return fillRemoteSignatureParams(clientParams, profileParams);
     }
 
-    public RemoteSignatureParameters getExtensionParams(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException, NullParameterException {
+    public RemoteSignatureParameters getExtensionParams(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException {
+        ProfileSignatureParameters profileParams;
         if (profileId == null) {
-            throw new NullParameterException("Profile id should not be null");
+            profileParams = findDefaultProfileParams();
+        } else {
+            profileParams = findProfileParamsById(profileId);
         }
 
-        ProfileSignatureParameters profileParams = findProfileParamsById(profileId);
+        tspSource.setTspServer(profileParams.getTspServer());
         return fillExtensionParams(detachedContents, profileParams);
     }
 
-    public RemoteSignatureParameters getExtensionParamsDefaultProfile(List<RemoteDocument> detachedContents) throws ProfileNotFoundException {
-        ProfileSignatureParameters profileParams = findDefaultProfileParams();
-        return fillExtensionParams(detachedContents, profileParams);
+    public RemoteTimestampParameters getTimestampParams(String profileId) throws ProfileNotFoundException {
+        ProfileTimestampParameters profileParams;
+        if (profileId == null) {
+            profileParams = findDefaultTimestampProfileParams();
+        } else {
+            profileParams = findTimestampProfileParamsById(profileId);
+        }
+
+        tspSource.setTspServer(profileParams.getTspServer());
+        return new RemoteTimestampParameters(profileParams.getContainerForm(), profileParams.getDigestAlgorithm(), profileParams.getCanonicalizationMethod());
     }
 
     private RemoteSignatureParameters fillRemoteSignatureParams(ClientSignatureParameters clientParams, ProfileSignatureParameters profileParams) {
@@ -98,9 +118,8 @@ public class SigningConfiguratorService {
         remoteSignatureParams.setAsicContainerType(profileParams.getAsicContainerType());
         remoteSignatureParams.setSignatureLevel(profileParams.getSignatureLevel());
         remoteSignatureParams.setSignaturePackaging(profileParams.getSignaturePackaging());
-        remoteSignatureParams.setDigestAlgorithm(profileParams.getSignatureAlgorithm().getDigestAlgorithm());
-        remoteSignatureParams.setEncryptionAlgorithm(profileParams.getSignatureAlgorithm().getEncryptionAlgorithm());
-        remoteSignatureParams.setMaskGenerationFunction(profileParams.getSignatureAlgorithm().getMaskGenerationFunction());
+        remoteSignatureParams.setDigestAlgorithm(profileParams.getDigestAlgorithm());
+        remoteSignatureParams.setMaskGenerationFunction(profileParams.getMaskGenerationFunction());
         remoteSignatureParams.setReferenceDigestAlgorithm(profileParams.getReferenceDigestAlgorithm());
     }
 
@@ -108,6 +127,9 @@ public class SigningConfiguratorService {
         remoteSignatureParams.setSigningCertificate(clientParams.getSigningCertificate());
         remoteSignatureParams.setCertificateChain(clientParams.getCertificateChain());
         remoteSignatureParams.setDetachedContents(clientParams.getDetachedContents());
+
+        EncryptionAlgorithm encryptionAlgorithm = DSSUtils.loadCertificate(clientParams.getSigningCertificate().getEncodedCertificate()).getSignatureAlgorithm().getEncryptionAlgorithm();
+        remoteSignatureParams.setEncryptionAlgorithm(encryptionAlgorithm);
 
         remoteBLevelParams.setSigningDate(clientParams.getSigningDate());
         remoteBLevelParams.setClaimedSignerRoles(clientParams.getClaimedSignerRoles());
@@ -120,11 +142,19 @@ public class SigningConfiguratorService {
     }
 
     private ProfileSignatureParameters findProfileParamsById(String profileId) throws ProfileNotFoundException {
-        return dao.findById(profileId).orElseThrow(() -> new ProfileNotFoundException(String.format("%s not found", profileId)));
+        return signatureDao.findById(profileId).orElseThrow(() -> new ProfileNotFoundException(String.format("%s not found", profileId)));
     }
 
     private ProfileSignatureParameters findDefaultProfileParams() throws ProfileNotFoundException {
-        return dao.findDefault().orElseThrow(() -> new ProfileNotFoundException("Default profile not found"));
+        return signatureDao.findDefault().orElseThrow(() -> new ProfileNotFoundException("Default profile not found"));
+    }
+
+    private ProfileTimestampParameters findTimestampProfileParamsById(String profileId) throws ProfileNotFoundException {
+        return timestampDao.findById(profileId).orElseThrow(() -> new ProfileNotFoundException(String.format("%s not found", profileId)));
+    }
+
+    private ProfileTimestampParameters findDefaultTimestampProfileParams() throws ProfileNotFoundException {
+        return timestampDao.findDefault().orElseThrow(() -> new ProfileNotFoundException("Default profile not found"));
     }
 
 }

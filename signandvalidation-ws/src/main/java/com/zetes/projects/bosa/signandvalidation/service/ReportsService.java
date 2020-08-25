@@ -4,7 +4,7 @@ import com.zetes.projects.bosa.signandvalidation.model.CertificateIndicationsDTO
 import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.enumerations.KeyUsageBit;
 import eu.europa.esig.dss.simplecertificatereport.jaxb.XmlChainItem;
-import eu.europa.esig.dss.simplereport.jaxb.XmlSignature;
+import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.slf4j.Logger;
@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static eu.europa.esig.dss.enumerations.Indication.PASSED;
-import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
+import static eu.europa.esig.dss.enumerations.Indication.*;
+import static eu.europa.esig.dss.enumerations.SubIndication.SIGNED_DATA_NOT_FOUND;
 
 @Service
 public class ReportsService {
@@ -42,9 +42,13 @@ public class ReportsService {
     }
 
     public SignatureIndicationsDTO getSignatureIndicationsDto(WSReportsDTO reportsDto) {
-        for (XmlSignature xmlSignature : reportsDto.getSimpleReport().getSignature()) {
-            if (!xmlSignature.getIndication().equals(TOTAL_PASSED)) {
-                return new SignatureIndicationsDTO(xmlSignature.getIndication(), xmlSignature.getSubIndication());
+        if (reportsDto.getSimpleReport().getSignaturesCount() == 0) {
+            return new SignatureIndicationsDTO(INDETERMINATE, SIGNED_DATA_NOT_FOUND);
+        }
+
+        for (XmlToken xmlToken : reportsDto.getSimpleReport().getSignatureOrTimestamp()) {
+            if (!xmlToken.getIndication().equals(TOTAL_PASSED)) {
+                return new SignatureIndicationsDTO(xmlToken.getIndication(), xmlToken.getSubIndication());
             }
         }
 
