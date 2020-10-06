@@ -7,6 +7,7 @@ stages:
 before_script:
   - echo "Logging into the docker repo"
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  - docker login -u $AXONET_REGISTRY_USERNAME -p $AXONET_REGISTRY_PASS https://docker-registry.axonet.be
 
 image: maven:latest
 
@@ -30,7 +31,7 @@ package:
   script:
     - mvn clean install -DskipTests
     - echo "Building the docker Image"
-    - docker build -t $CI_REGISTRY/eidas/sign-validation:latest .
+    - docker build -t $CI_REGISTRY/eidas/sign-validation:latest -t docker-registry.axonet.be/bosadt/eidas/sign-validation:latest .
   except:
     - master
 
@@ -49,6 +50,7 @@ deploy:
   script:
     - echo "Pushing the image to the docker hub"
     - docker push $CI_REGISTRY/eidas/sign-validation:latest
+    - docker push docker-registry.axonet.be/bosadt/eidas/sign-validation:latest
     - export HTTPS_PROXY="$HTTPS_PROXY_SERVER"
     - oc login https://$OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN_TEST
     - oc rollout latest dc/$OPENSHIFT_POD -n $OPENSHIFT_PROJECT_TEST
