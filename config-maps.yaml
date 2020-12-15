@@ -4,7 +4,7 @@
     name: signvalidationsettings
   data:
     CORS_ALLOWED_ORIGINS: >-
-      http://localhost:3000,https://sign.ta.fts.bosa.belgium.be,https://idp.ta.fts.bosa.belgium.be
+      http://localhost:3000,https://sign.ta.fts.bosa.belgium.be,https://idp.ta.fts.bosa.belgium.be,https://validate.ta.fts.bosa.belgium.be
     KEYSTORE_ENABLED: 'true'
     TSA_MOCK: 'false'
   spec:
