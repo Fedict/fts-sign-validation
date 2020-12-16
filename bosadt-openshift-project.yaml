@@ -34,18 +34,32 @@ objects:
             application: signvalidation
         spec:
           containers:
-          - image: registry-fsf.services.belgium.be:5000/eidas/sign-validation:latest
-            imagePullPolicy: Always
-            name: signvalidation # The name your container will have within the pod (mostly relevant if you have multiple containers in a pod)
-            env: []
-            port: []
-            resources: # Specify the resources needed
-              requests: # Minimal resources needed for your application to run at an acceptable level (ideally you figure these out through stress-testing)
-                cpu: 50m
-                memory: 64Mi
-              limits: # Maximum resources you want your container to use (to limit costs)
-                cpu: 1000m
-                memory: 1024Mi
+            - image: registry-fsf.services.belgium.be:5000/eidas/sign-validation:latest
+              imagePullPolicy: Always
+              name: signvalidation # The name your container will have within the pod (mostly relevant if you have multiple containers in a pod)
+              env: []
+              port: []
+              resources: # Specify the resources needed
+                requests: # Minimal resources needed for your application to run at an acceptable level (ideally you figure these out through stress-testing)
+                  cpu: 50m
+                  memory: 64Mi
+                limits: # Maximum resources you want your container to use (to limit costs)
+                  cpu: 1000m
+                  memory: 1024Mi
+              volumeMounts:
+              - mountPath: '/usr/local/tomcat/logs'
+                name: logs
+                readOnly: false
+            - image: registry-fsf.services.belgium.be:5000/eidas/filebeat:latest
+              name: filebeat-agent
+              volumeMounts:
+              - mountPath: '/data/logs'
+                name: logs
+                readOnly: true
+          volumes:
+            - name: logs
+              emptyDir: {}
+
   - apiVersion: v1
     kind: Service
     metadata:
