@@ -96,6 +96,15 @@ public class SigningController {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
+    @GetMapping(value="/getDocumentForToken", produces = APPLICATION_JSON_VALUE)
+    public RemoteDocument getDocumentForToken(@RequestParam("token") String token) {
+        try {
+            return ObjStorageService.getDocumentForToken(token);
+        } catch (ObjectStorageService.InvalidTokenException ex) {
+            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
+        }
+    }
 
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
