@@ -1,6 +1,8 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
+import com.nimbusds.jose.JOSEException;
 import com.zetes.projects.bosa.signandvalidation.model.*;
+import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
@@ -23,7 +25,11 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
+import java.text.ParseException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
@@ -45,6 +51,9 @@ public class SigningController {
 
     @Autowired
     private ReportsService reportsService;
+    
+    @Autowired
+    private ObjectStorageService ObjStorageService;
 
     @GetMapping(value = "/ping", produces = TEXT_PLAIN_VALUE)
     public String ping() {
@@ -60,6 +69,30 @@ public class SigningController {
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
         } catch (ProfileNotFoundException | NullParameterException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
+    }
+    
+    @PostMapping(value="/getDataToSignForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
+        try {
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignForTokenDto.getSigningProfileId(), dataToSignForTokenDto.getClientSignatureParameters());
+            ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken()), parameters);
+            DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
+            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+        } catch (ProfileNotFoundException | NullParameterException
+                | ObjectStorageService.InvalidTokenException e) {
+            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
+    }
+    @PostMapping(value="/getTokenForDocument", produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public String getTokenForDocument(GetTokenForDocumentDTO tokenData) {
+        try {
+            if(!(ObjStorageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
+                throw new ResponseStatusException(FORBIDDEN, "invalid user name or password");
+            }
+            return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(), tokenData.getProf());
+        } catch (ObjectStorageService.TokenCreationFailureException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
@@ -88,6 +121,22 @@ public class SigningController {
             return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
         } catch (ProfileNotFoundException | NullParameterException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        }
+    }
+    
+    @PostMapping(value = "/signDocumentForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public RemoteDocument signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDocumentDto) {
+        try {
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(signDocumentDto.getToken()), signDocumentDto.getClientSignatureParameters());
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
+            RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(signDocumentDto.getToken(), 60 * 5), parameters, signatureValueDto);
+            ObjStorageService.storeDocumentForToken(signDocumentDto.getToken(), signedDoc);
+            return signedDoc;
+        } catch (JOSEException | ParseException | ProfileNotFoundException
+                | NullParameterException
+                | ObjectStorageService.InvalidTokenException ex) {
+            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
         }
     }
 
