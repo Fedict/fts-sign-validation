@@ -13,7 +13,6 @@ import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParamete
  */
 public class GetDataToSignForTokenDTO {
     private String token;
-    private String signingProfileId;
     private ClientSignatureParameters clientSignatureParameters;
     
     public GetDataToSignForTokenDTO() {
@@ -21,7 +20,6 @@ public class GetDataToSignForTokenDTO {
     
     public GetDataToSignForTokenDTO(String token, String signingProfileId, ClientSignatureParameters clientSignatureParameters) {
         this.token = token;
-        this.signingProfileId = signingProfileId;
         this.clientSignatureParameters = clientSignatureParameters;
     }
     
@@ -31,14 +29,6 @@ public class GetDataToSignForTokenDTO {
     
     public void setToken(String token) {
         this.token = token;
-    }
-    
-    public String getSigningProfileId() {
-        return signingProfileId;
-    }
-    
-    public void setSigningProfileId(String signingProfileId) {
-        this.signingProfileId = signingProfileId;
     }
     
     public ClientSignatureParameters getClientSignatureParameters() {
