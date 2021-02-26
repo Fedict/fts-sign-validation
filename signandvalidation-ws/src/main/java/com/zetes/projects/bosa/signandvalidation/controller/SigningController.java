@@ -76,12 +76,13 @@ public class SigningController {
     @PostMapping(value="/getDataToSignForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignForTokenDto.getSigningProfileId(), dataToSignForTokenDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(dataToSignForTokenDto.getToken()), dataToSignForTokenDto.getClientSignatureParameters());
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken()), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
         } catch (ProfileNotFoundException | NullParameterException
-                | ObjectStorageService.InvalidTokenException e) {
+                | ObjectStorageService.InvalidTokenException | JOSEException
+                | ParseException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
