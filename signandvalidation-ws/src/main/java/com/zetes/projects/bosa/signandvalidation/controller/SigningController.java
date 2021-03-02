@@ -104,8 +104,17 @@ public class SigningController {
         try {
             byte[] rv = ObjStorageService.getDocumentForToken(token).getBytes();
             HttpHeaders h = new HttpHeaders();
-            h.add("Content-Type", ObjStorageService.getTypeForToken(token));
+            h.add("Content-Type", ObjStorageService.getTypeForToken(token).getMimetype());
             return ResponseEntity.accepted().headers(h).body(rv);
+        } catch (ObjectStorageService.InvalidTokenException ex) {
+            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
+        }
+    }
+    @GetMapping(value="/getMetadataForToken")
+    public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String token) {
+        try {
+            return ObjStorageService.getTypeForToken(token);
         } catch (ObjectStorageService.InvalidTokenException ex) {
             Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
             throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());

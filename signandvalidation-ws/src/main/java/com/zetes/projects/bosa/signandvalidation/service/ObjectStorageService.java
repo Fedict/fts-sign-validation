@@ -235,13 +235,14 @@ public class ObjectStorageService {
             throw new InvalidTokenException();
         }
     }
-    public String getTypeForToken(String token) {
+    public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException {
         try {
-            return new MimetypesFileTypeMap().getContentType(new TokenParser(token, this).getIn());
-        } catch (JOSEException | ParseException ex) {
+            String filename = new TokenParser(token, this, 5).getIn();
+            return new DocumentMetadataDTO(filename, new MimetypesFileTypeMap().getContentType(filename));
+        } catch (JOSEException | ParseException | TokenExpiredException ex) {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+            throw new InvalidTokenException();
         }
-        return "application/octet-string";
     }
     public RemoteDocument getDocumentForToken(String token) throws InvalidTokenException {
         return getDocumentForToken(token, 5);
@@ -256,6 +257,12 @@ public class ObjectStorageService {
     public static class TokenCreationFailureException extends Exception {
 
         public TokenCreationFailureException() {
+        }
+    }
+
+    private static class TokenExpiredException extends Exception {
+
+        public TokenExpiredException() {
         }
     }
 }
