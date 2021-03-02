@@ -204,13 +204,13 @@ public class ObjectStorageService {
     public void storeDocumentForToken(String token, RemoteDocument document) throws InvalidTokenException {
         try {
             TokenParser tokenData = new TokenParser(token, this);
-            ByteArrayInputStream bais = new ByteArrayInputStream(document.getBytes());
-            getClient().putObject(PutObjectArgs.builder()
-                    .bucket(tokenData.getCid())
-                    .object(tokenData.getOut())
-                    .stream(bais, bais.available(), -1)
-                    .build());
-            bais.close();
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(document.getBytes())) {
+                getClient().putObject(PutObjectArgs.builder()
+                        .bucket(tokenData.getCid())
+                        .object(tokenData.getOut())
+                        .stream(bais, bais.available(), -1)
+                        .build());
+            }
         } catch (ErrorResponseException | InsufficientDataException
                 | InternalException | InvalidKeyException
                 | InvalidResponseException | IOException
