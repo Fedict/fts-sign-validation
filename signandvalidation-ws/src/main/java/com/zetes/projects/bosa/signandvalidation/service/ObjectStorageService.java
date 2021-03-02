@@ -37,6 +37,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.activation.MimetypesFileTypeMap;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
@@ -218,6 +219,14 @@ public class ObjectStorageService {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
             throw new InvalidTokenException();
         }
+    }
+    public String getTypeForToken(String token) {
+        try {
+            return new MimetypesFileTypeMap().getContentType(new TokenParser(token, this).getIn());
+        } catch (JOSEException | ParseException ex) {
+            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "application/octet-string";
     }
     public RemoteDocument getDocumentForToken(String token) throws InvalidTokenException {
         return getDocumentForToken(token, 5);

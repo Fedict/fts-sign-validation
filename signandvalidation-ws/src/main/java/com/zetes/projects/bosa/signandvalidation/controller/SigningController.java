@@ -28,10 +28,12 @@ import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping(value = "/signing")
@@ -97,10 +99,13 @@ public class SigningController {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
         }
     }
-    @GetMapping(value="/getDocumentForToken", produces = APPLICATION_JSON_VALUE)
-    public RemoteDocument getDocumentForToken(@RequestParam("token") String token) {
+    @GetMapping(value="/getDocumentForToken")
+    public ResponseEntity<byte[]> getDocumentForToken(@RequestParam("token") String token) {
         try {
-            return ObjStorageService.getDocumentForToken(token);
+            byte[] rv = ObjStorageService.getDocumentForToken(token).getBytes();
+            HttpHeaders h = new HttpHeaders();
+            h.add("Content-Type", ObjStorageService.getTypeForToken(token));
+            return ResponseEntity.accepted().headers(h).body(rv);
         } catch (ObjectStorageService.InvalidTokenException ex) {
             Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
             throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
