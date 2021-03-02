@@ -15,6 +15,7 @@ import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
+import com.zetes.projects.bosa.signandvalidation.model.DocumentMetadataDTO;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import io.minio.BucketExistsArgs;
 import io.minio.GetObjectArgs;
@@ -84,18 +85,38 @@ public class ObjectStorageService {
         private final String prof;
         private final Date iad;
         
-        public TokenParser(String token, ObjectStorageService os) throws JOSEException, ParseException {
+        private static JWTClaimsSet ParseToken(String token, ObjectStorageService os) throws ParseException, JOSEException {
             JWEObject jweObject = JWEObject.parse(token);
             JWEHeader header = jweObject.getHeader();
             SecretKey key = os.getKeyForId(header.getKeyID());
             jweObject.decrypt(new DirectDecrypter(key));
             PlainJWT jwt = PlainJWT.parse(jweObject.getPayload().toString());
-            JWTClaimsSet claims = jwt.getJWTClaimsSet();
+            return jwt.getJWTClaimsSet();
+        }
+        
+        public TokenParser(String token, ObjectStorageService os) throws JOSEException, ParseException {
+            JWTClaimsSet claims = ParseToken(token, os);
             cid = claims.getClaim("cid").toString();
             in = claims.getClaim("in").toString();
             out = claims.getClaim("out").toString();
             prof = claims.getClaim("prof").toString();
             iad = claims.getIssueTime();
+        }
+        public TokenParser(String token, ObjectStorageService os, int validMinutes) throws TokenExpiredException, ParseException, JOSEException {
+            JWTClaimsSet claims = ParseToken(token, os);
+            Date d = claims.getIssueTime();
+            Calendar c = Calendar.getInstance();
+            c.setTime(d);
+            c.add(Calendar.MINUTE, validMinutes);
+            Calendar now = Calendar.getInstance();
+            if(c.compareTo(now) < 0) {
+                throw new TokenExpiredException();
+            }
+            cid = claims.getClaim("cid").toString();
+            in = claims.getClaim("in").toString();
+            out = claims.getClaim("out").toString();
+            prof = claims.getClaim("prof").toString();
+            iad = d;
         }
         public String getCid() {
             return cid;
@@ -169,15 +190,7 @@ public class ObjectStorageService {
     public RemoteDocument getDocumentForToken(String token, int validMinutes) throws InvalidTokenException {
         RemoteDocument rv = new RemoteDocument();
         try {
-            TokenParser tokenData = new TokenParser(token, this);
-            Date iad = tokenData.getIad();
-            Calendar c = Calendar.getInstance();
-            c.setTime(iad);
-            c.add(Calendar.MINUTE, validMinutes);
-            Calendar now = Calendar.getInstance();
-            if(c.compareTo(now) < 0) {
-                throw new InvalidTokenException();
-            }
+            TokenParser tokenData = new TokenParser(token, this, validMinutes);
             InputStream stream = getClient().getObject(
                     GetObjectArgs.builder()
                             .bucket(tokenData.getCid())
@@ -198,6 +211,8 @@ public class ObjectStorageService {
                 | IOException | NoSuchAlgorithmException | ServerException
                 | XmlParserException ex) {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TokenExpiredException ex) {
+            throw new InvalidTokenException();
         }
         throw new InvalidTokenException();
     }
