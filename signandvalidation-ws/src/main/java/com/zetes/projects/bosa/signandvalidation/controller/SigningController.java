@@ -89,7 +89,7 @@ public class SigningController {
         }
     }
     @PostMapping(value="/getTokenForDocument", produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public String getTokenForDocument(GetTokenForDocumentDTO tokenData) {
+    public String getTokenForDocument(@RequestBody GetTokenForDocumentDTO tokenData) {
         try {
             if(!(ObjStorageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 throw new ResponseStatusException(FORBIDDEN, "invalid user name or password");
