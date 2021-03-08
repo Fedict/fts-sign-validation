@@ -3,6 +3,8 @@ package com.zetes.projects.bosa.signandvalidation.controller;
 import com.nimbusds.jose.JOSEException;
 import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService;
+import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.InvalidKeyConfigException;
+import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.TokenCreationFailureException;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
@@ -25,15 +27,17 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.springframework.http.HttpHeaders;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
-import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping(value = "/signing")
@@ -86,6 +90,9 @@ public class SigningController {
                 | ObjectStorageService.InvalidTokenException | JOSEException
                 | ParseException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        } catch (InvalidKeyConfigException ex) {
+            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
         }
     }
     @PostMapping(value="/getTokenForDocument", produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -95,20 +102,44 @@ public class SigningController {
                 throw new ResponseStatusException(FORBIDDEN, "invalid user name or password");
             }
             return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(), tokenData.getProf());
-        } catch (ObjectStorageService.TokenCreationFailureException e) {
+        } catch (TokenCreationFailureException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        } catch (InvalidKeyConfigException ex) {
+            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
         }
     }
     @GetMapping(value="/getDocumentForToken")
-    public ResponseEntity<byte[]> getDocumentForToken(@RequestParam("token") String token) {
+    public void getDocumentForToken(HttpServletResponse response,
+                                    HttpServletRequest request) {
         try {
+            String[] qs = request.getQueryString().split("&");
+            String token = null;
+            for(String item : qs) {
+                if(item.startsWith("token")) {
+                    token = item.substring(item.indexOf("=") + 1);
+                }
+            }
+            if(null == token) {
+                throw new ResponseStatusException(BAD_REQUEST, "Required parameter token not provided");
+            }
             byte[] rv = ObjStorageService.getDocumentForToken(token).getBytes();
-            HttpHeaders h = new HttpHeaders();
-            h.add("Content-Type", ObjStorageService.getTypeForToken(token).getMimetype());
-            return ResponseEntity.accepted().headers(h).body(rv);
-        } catch (ObjectStorageService.InvalidTokenException ex) {
+            DocumentMetadataDTO typeForToken = ObjStorageService.getTypeForToken(token);
+            response.setContentType(typeForToken.getMimetype());
+            if((typeForToken.getMimetype().equals("application/pdf"))) {
+                response.setHeader("Content-Disposition", "inline; filename=" + typeForToken.getFilename());
+            } else {
+                response.setHeader("Content-Disposition", "attachment; filename=" + typeForToken.getFilename());
+            }
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Cache-Control", "no-cache");
+            response.getOutputStream().write(rv);
+        } catch (ObjectStorageService.InvalidTokenException | IOException ex) {
             Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
             throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
+        } catch (ObjectStorageService.InvalidKeyConfigException ex) {
+            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
         }
     }
     @GetMapping(value="/getMetadataForToken")
@@ -118,6 +149,9 @@ public class SigningController {
         } catch (ObjectStorageService.InvalidTokenException ex) {
             Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
             throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
+        } catch (ObjectStorageService.InvalidKeyConfigException ex) {
+            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -161,6 +195,9 @@ public class SigningController {
                 | ObjectStorageService.InvalidTokenException ex) {
             Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
             throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
+        } catch (InvalidKeyConfigException ex) {
+            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
         }
     }
 
