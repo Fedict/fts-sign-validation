@@ -74,10 +74,10 @@ public class SigningController {
         try {
             Calendar oldest = Calendar.getInstance();
             oldest.setTime(new Date());
-            oldest.add(-5, Calendar.MINUTE);
+            oldest.add(Calendar.MINUTE, -5);
             Calendar newest = Calendar.getInstance();
             newest.setTime(new Date());
-            newest.add(5, Calendar.MINUTE);
+            newest.add(Calendar.MINUTE, 5);
             Date d = dataToSignDto.getClientSignatureParameters().getSigningDate();
             if(newest.before(d) || oldest.after(d)) {
                 throw new ResponseStatusException(BAD_REQUEST, "signing date out of bounds");
@@ -97,10 +97,10 @@ public class SigningController {
         try {
             Calendar oldest = Calendar.getInstance();
             oldest.setTime(new Date());
-            oldest.add(-5, Calendar.MINUTE);
+            oldest.add(Calendar.MINUTE, -5);
             Calendar newest = Calendar.getInstance();
             newest.setTime(new Date());
-            newest.add(5, Calendar.MINUTE);
+            newest.add(Calendar.MINUTE, 5);
             Date d = dataToSignForTokenDto.getClientSignatureParameters().getSigningDate();
             if(newest.before(d) || oldest.after(d)) {
                 throw new ResponseStatusException(BAD_REQUEST, "signing date out of bounds");
