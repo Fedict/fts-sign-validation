@@ -82,7 +82,6 @@ public class SigningController {
             if(newest.before(d) || oldest.after(d)) {
                 throw new ResponseStatusException(BAD_REQUEST, "signing date out of bounds");
             }
->>>>>>> 59005a9 (Check that the passed timestamp value is remotely sane)
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
