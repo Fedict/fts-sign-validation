@@ -166,6 +166,10 @@ public class ObjectStorageService {
     private SecretKey getKeyForId(String kid) throws InvalidKeyConfigException {
         try {
         if(!keys.containsKey(kid)) {
+            if(defaultKey.getKid().equals(kid)) {
+                keys.put(defaultKey.getKid(), defaultKey);
+                return defaultKey.getData();
+            }
             InputStream stream = getClient().getObject(GetObjectArgs.builder()
                     .bucket(secretBucket)
                     .object("keys/" + kid + ".json")
