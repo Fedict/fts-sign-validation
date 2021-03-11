@@ -30,6 +30,8 @@ import java.util.List;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -70,10 +72,17 @@ public class SigningController {
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
-            //we don't trust client date
-            //TODO check if we have to provide UTC or Local Time here
-            dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
-
+            Calendar oldest = Calendar.getInstance();
+            oldest.setTime(new Date());
+            oldest.add(-5, Calendar.MINUTE);
+            Calendar newest = Calendar.getInstance();
+            newest.setTime(new Date());
+            newest.add(5, Calendar.MINUTE);
+            Date d = dataToSignDto.getClientSignatureParameters().getSigningDate();
+            if(newest.before(d) || oldest.after(d)) {
+                throw new ResponseStatusException(BAD_REQUEST, "signing date out of bounds");
+            }
+>>>>>>> 59005a9 (Check that the passed timestamp value is remotely sane)
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
@@ -87,6 +96,16 @@ public class SigningController {
     @PostMapping(value="/getDataToSignForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
         try {
+            Calendar oldest = Calendar.getInstance();
+            oldest.setTime(new Date());
+            oldest.add(-5, Calendar.MINUTE);
+            Calendar newest = Calendar.getInstance();
+            newest.setTime(new Date());
+            newest.add(5, Calendar.MINUTE);
+            Date d = dataToSignForTokenDto.getClientSignatureParameters().getSigningDate();
+            if(newest.before(d) || oldest.after(d)) {
+                throw new ResponseStatusException(BAD_REQUEST, "signing date out of bounds");
+            }
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(dataToSignForTokenDto.getToken()), dataToSignForTokenDto.getClientSignatureParameters());
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken()), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
