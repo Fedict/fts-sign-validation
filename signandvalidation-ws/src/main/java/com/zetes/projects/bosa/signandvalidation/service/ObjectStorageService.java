@@ -38,6 +38,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -103,6 +104,7 @@ public class ObjectStorageService {
     }
     
     public ObjectStorageService() {
+        keys = new HashMap<>();
     }
 
     private static class TokenParser {
