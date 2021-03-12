@@ -27,7 +27,7 @@ public class StoredKey {
 
     public StoredKey() throws NoSuchAlgorithmException {
         KeyGenerator keygen = KeyGenerator.getInstance("AES");
-        keygen.init(128);
+        keygen.init(256);
         data = keygen.generateKey();
         Date generated = new Date();
         byte[] kidBytes = new byte[9];
