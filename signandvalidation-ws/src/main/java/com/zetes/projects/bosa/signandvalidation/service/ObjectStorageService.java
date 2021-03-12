@@ -84,7 +84,7 @@ public class ObjectStorageService {
     private String getKid() throws InvalidKeyConfigException {
         try {
             if(defaultKey == null || defaultKey.isTooOld()) {
-                defaultKey = new StoredKey();
+                StoredKey k = new StoredKey();
                 ObjectMapper om = new ObjectMapper();
                 byte[] json = om.writeValueAsBytes(defaultKey);
                 getClient().putObject(PutObjectArgs.builder()
@@ -93,6 +93,7 @@ public class ObjectStorageService {
                         .stream(new ByteArrayInputStream(json), json.length, -1)
                         .build()
                 );
+                defaultKey = k;
                 keys.put(defaultKey.getKid(), defaultKey);
             }
             return defaultKey.getKid();
