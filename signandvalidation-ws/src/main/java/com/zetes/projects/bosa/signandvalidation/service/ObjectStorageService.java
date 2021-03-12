@@ -68,6 +68,7 @@ public class ObjectStorageService {
     private Map<String, StoredKey> keys;
 
     private StoredKey defaultKey = null;
+    private MimetypesFileTypeMap mimeMap;
     
     private MinioClient client;
     private MinioClient getClient() {
@@ -106,6 +107,9 @@ public class ObjectStorageService {
     
     public ObjectStorageService() {
         keys = new HashMap<>();
+        mimeMap = new MimetypesFileTypeMap();
+        mimeMap.addMimeTypes("application/pdf PDF pdf");
+        mimeMap.addMimeTypes("application/xml xml XML docx");
     }
 
     private static class TokenParser {
@@ -281,7 +285,7 @@ public class ObjectStorageService {
     public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
         try {
             String filename = new TokenParser(token, this, 5).getIn();
-            return new DocumentMetadataDTO(filename, new MimetypesFileTypeMap().getContentType(filename));
+            return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename));
         } catch (JOSEException | ParseException | TokenExpiredException ex) {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
             throw new InvalidTokenException();
