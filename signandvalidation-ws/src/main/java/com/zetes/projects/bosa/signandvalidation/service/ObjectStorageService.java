@@ -92,6 +92,7 @@ public class ObjectStorageService {
                         .stream(new ByteArrayInputStream(json), json.length, -1)
                         .build()
                 );
+                keys.put(defaultKey.getKid(), defaultKey);
             }
             return defaultKey.getKid();
         } catch (NoSuchAlgorithmException | ErrorResponseException
@@ -165,24 +166,23 @@ public class ObjectStorageService {
     }
     private SecretKey getKeyForId(String kid) throws InvalidKeyConfigException {
         try {
-        if(!keys.containsKey(kid)) {
             if(defaultKey.getKid().equals(kid)) {
-                keys.put(defaultKey.getKid(), defaultKey);
                 return defaultKey.getData();
             }
-            InputStream stream = getClient().getObject(GetObjectArgs.builder()
-                    .bucket(secretBucket)
-                    .object("keys/" + kid + ".json")
-                    .build()
-            );
-            ObjectMapper om = new ObjectMapper();
-            StoredKey k = om.readValue(stream, StoredKey.class);
-            if(k.getKid() == null || !k.getKid().equals(kid)) {
-                throw new InvalidKeyConfigException();
+            if(!keys.containsKey(kid)) {
+                InputStream stream = getClient().getObject(GetObjectArgs.builder()
+                        .bucket(secretBucket)
+                        .object("keys/" + kid + ".json")
+                        .build()
+                );
+                ObjectMapper om = new ObjectMapper();
+                StoredKey k = om.readValue(stream, StoredKey.class);
+                if(k.getKid() == null || !k.getKid().equals(kid)) {
+                    throw new InvalidKeyConfigException();
+                }
+                keys.put(kid, k);
             }
-            keys.put(kid, k);
-        }
-        return keys.get(kid).getData();
+            return keys.get(kid).getData();
         } catch (ErrorResponseException | InsufficientDataException
                 | InternalException | InvalidKeyException
                 | InvalidResponseException | IOException
