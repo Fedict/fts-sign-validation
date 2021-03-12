@@ -44,6 +44,6 @@ public class StoredKey {
         return kid;
     }
     public boolean isTooOld() {
-        return validUntil.after(new Date());
+        return validUntil.before(new Date());
     }
 }
