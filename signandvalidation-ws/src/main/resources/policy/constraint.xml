@@ -68,38 +68,7 @@
 <!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
 <!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
 				<UsePseudonym Level="INFORM" />
-				<Cryptographic>
-					<AcceptableDigestAlgo>
-						<Algo>MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
-						<Algo>SHA1</Algo>
-						<Algo>SHA224</Algo>
-						<Algo>SHA256</Algo>
-						<Algo>SHA384</Algo>
-						<Algo>SHA512</Algo>
-						<Algo>SHA3-224</Algo>
-						<Algo>SHA3-256</Algo>
-						<Algo>SHA3-384</Algo>
-						<Algo>SHA3-512</Algo>
-						<Algo>RIPEMD160</Algo>
-						<Algo>WHIRLPOOL</Algo>
-					</AcceptableDigestAlgo>
-					<AlgoExpirationDate Format="yyyy">
-						<!-- Digest algorithms -->
-						<Algo Date="2007">MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
-						<Algo Date="2009">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-						<Algo Date="2023">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2011">RIPEMD160</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-						<Algo Date="2015">WHIRLPOOL</Algo> <!-- ETSI 119 312 V1.1.1 -->
-						<!-- end Digest algorithms -->
-					</AlgoExpirationDate>
-				</Cryptographic>
+				<Cryptographic />
 			</SigningCertificate>
 			<CACertificate>
 				<Signature Level="FAIL" />
@@ -109,38 +78,7 @@
 				<RevocationDataFreshness Level="FAIL" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
-				<Cryptographic>
-					<AcceptableDigestAlgo>
-						<Algo>MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
-						<Algo>SHA1</Algo>
-						<Algo>SHA224</Algo>
-						<Algo>SHA256</Algo>
-						<Algo>SHA384</Algo>
-						<Algo>SHA512</Algo>
-						<Algo>SHA3-224</Algo>
-						<Algo>SHA3-256</Algo>
-						<Algo>SHA3-384</Algo>
-						<Algo>SHA3-512</Algo>
-						<Algo>RIPEMD160</Algo>
-						<Algo>WHIRLPOOL</Algo>
-					</AcceptableDigestAlgo>
-					<AlgoExpirationDate Format="yyyy">
-						<!-- Digest algorithms -->
-						<Algo Date="2007">MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
-						<Algo Date="2009">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-						<Algo Date="2023">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2011">RIPEMD160</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-						<Algo Date="2015">WHIRLPOOL</Algo> <!-- ETSI 119 312 V1.1.1 -->
-						<!-- end Digest algorithms -->
-					</AlgoExpirationDate>
-				</Cryptographic>
+				<Cryptographic />
 			</CACertificate>
 			<Cryptographic />
 		</BasicSignatureConstraints>
@@ -203,38 +141,7 @@
 <!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
 <!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
 				<UsePseudonym Level="INFORM" />
-				<Cryptographic>
-					<AcceptableDigestAlgo>
-						<Algo>MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
-						<Algo>SHA1</Algo>
-						<Algo>SHA224</Algo>
-						<Algo>SHA256</Algo>
-						<Algo>SHA384</Algo>
-						<Algo>SHA512</Algo>
-						<Algo>SHA3-224</Algo>
-						<Algo>SHA3-256</Algo>
-						<Algo>SHA3-384</Algo>
-						<Algo>SHA3-512</Algo>
-						<Algo>RIPEMD160</Algo>
-						<Algo>WHIRLPOOL</Algo>
-					</AcceptableDigestAlgo>
-					<AlgoExpirationDate Format="yyyy">
-						<!-- Digest algorithms -->
-						<Algo Date="2007">MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
-						<Algo Date="2009">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-						<Algo Date="2023">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2011">RIPEMD160</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-						<Algo Date="2015">WHIRLPOOL</Algo> <!-- ETSI 119 312 V1.1.1 -->
-						<!-- end Digest algorithms -->
-					</AlgoExpirationDate>
-				</Cryptographic>
+				<Cryptographic />
 			</SigningCertificate>
 			<CACertificate>
 				<Signature Level="FAIL" />
@@ -244,38 +151,7 @@
 				<RevocationDataFreshness Level="FAIL" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
-				<Cryptographic>
-					<AcceptableDigestAlgo>
-						<Algo>MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
-						<Algo>SHA1</Algo>
-						<Algo>SHA224</Algo>
-						<Algo>SHA256</Algo>
-						<Algo>SHA384</Algo>
-						<Algo>SHA512</Algo>
-						<Algo>SHA3-224</Algo>
-						<Algo>SHA3-256</Algo>
-						<Algo>SHA3-384</Algo>
-						<Algo>SHA3-512</Algo>
-						<Algo>RIPEMD160</Algo>
-						<Algo>WHIRLPOOL</Algo>
-					</AcceptableDigestAlgo>
-					<AlgoExpirationDate Format="yyyy">
-						<!-- Digest algorithms -->
-						<Algo Date="2007">MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
-						<Algo Date="2009">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-						<Algo Date="2023">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2026">SHA3-512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-						<Algo Date="2011">RIPEMD160</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-						<Algo Date="2015">WHIRLPOOL</Algo> <!-- ETSI 119 312 V1.1.1 -->
-						<!-- end Digest algorithms -->
-					</AlgoExpirationDate>
-				</Cryptographic>
+				<Cryptographic />
 			</CACertificate>
 			<Cryptographic />
 		</BasicSignatureConstraints>
