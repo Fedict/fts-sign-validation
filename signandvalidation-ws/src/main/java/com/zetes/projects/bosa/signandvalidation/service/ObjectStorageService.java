@@ -86,10 +86,10 @@ public class ObjectStorageService {
             if(defaultKey == null || defaultKey.isTooOld()) {
                 StoredKey k = new StoredKey();
                 ObjectMapper om = new ObjectMapper();
-                byte[] json = om.writeValueAsBytes(defaultKey);
+                byte[] json = om.writeValueAsBytes(k);
                 getClient().putObject(PutObjectArgs.builder()
                         .bucket(secretBucket)
-                        .object("keys/" + defaultKey.getKid() + ".json")
+                        .object("keys/" + k.getKid() + ".json")
                         .stream(new ByteArrayInputStream(json), json.length, -1)
                         .build()
                 );
