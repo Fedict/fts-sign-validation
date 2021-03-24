@@ -40,7 +40,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
     @Bean
     public HeaderWriter docViewerHeaderWriter() {
-        final AntPathRequestMatcher matcher = new AntPathRequestMatcher("/**/viewDocumentForToken");
+        final AntPathRequestMatcher matcher = new AntPathRequestMatcher("/**/getDocumentForToken");
         final HeaderWriter hw = new XFrameOptionsHeaderWriter(new WhiteListedAllowFromStrategy(Arrays.asList(allowedOrigins.split(","))));
         return new DelegatingRequestMatcherHeaderWriter(matcher, hw);
     }
