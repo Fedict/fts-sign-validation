@@ -29,6 +29,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // javadoc uses frames
         http.headers().addHeaderWriter(javadocHeaderWriter());
+        http.headers().addHeaderWriter(docViewerHeaderWriter());
         http.headers().addHeaderWriter(serverEsigDSS());
     }
 
