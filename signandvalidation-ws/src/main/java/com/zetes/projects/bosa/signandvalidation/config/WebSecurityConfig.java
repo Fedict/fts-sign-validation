@@ -29,6 +29,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // javadoc uses frames
         http.headers().addHeaderWriter(javadocHeaderWriter());
+        // so does the GUI thing
         http.headers().addHeaderWriter(docViewerHeaderWriter());
         http.headers().addHeaderWriter(serverEsigDSS());
     }
@@ -41,7 +42,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
     @Bean
     public HeaderWriter docViewerHeaderWriter() {
-        final AntPathRequestMatcher matcher = new AntPathRequestMatcher("/**/getDocumentForToken");
+        final AntPathRequestMatcher matcher = new AntPathRequestMatcher("/signing/getDocumentForToken");
         final HeaderWriter hw = new XFrameOptionsHeaderWriter(new WhiteListedAllowFromStrategy(Arrays.asList(allowedOrigins.split(","))));
         return new DelegatingRequestMatcherHeaderWriter(matcher, hw);
     }
