@@ -1,6 +1,8 @@
 package com.zetes.projects.bosa.signandvalidation.config;
 
 import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +24,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${cors.allowedorigins")
     private String allowedOrigins;
 
+    private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
@@ -29,9 +33,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // javadoc uses frames
         http.headers().addHeaderWriter(javadocHeaderWriter());
-        // so does the GUI thing
-        http.headers().addHeaderWriter(docViewerHeaderWriter());
+        // so does the GUI thing, from a different domain even.
+        http.antMatcher("/signing/getDocumentForToken").headers().frameOptions().disable();
         http.headers().addHeaderWriter(serverEsigDSS());
+        LOG.info("WebSecurityConfig configured");
     }
 
     @Bean
@@ -39,12 +44,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         final AntPathRequestMatcher javadocAntPathRequestMatcher = new AntPathRequestMatcher("/apidocs/**");
         final HeaderWriter hw = new XFrameOptionsHeaderWriter(XFrameOptionsMode.SAMEORIGIN);
         return new DelegatingRequestMatcherHeaderWriter(javadocAntPathRequestMatcher, hw);
-    }
-    @Bean
-    public HeaderWriter docViewerHeaderWriter() {
-        final AntPathRequestMatcher matcher = new AntPathRequestMatcher("/signing/getDocumentForToken");
-        final HeaderWriter hw = new XFrameOptionsHeaderWriter(new WhiteListedAllowFromStrategy(Arrays.asList(allowedOrigins.split(","))));
-        return new DelegatingRequestMatcherHeaderWriter(matcher, hw);
     }
 
     public HeaderWriter serverEsigDSS() {
