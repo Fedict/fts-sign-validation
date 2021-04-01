@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.Indication.*;
+import static eu.europa.esig.dss.enumerations.SubIndication.CRYPTO_CONSTRAINTS_FAILURE;
 import static eu.europa.esig.dss.enumerations.SubIndication.HASH_FAILURE;
 import static eu.europa.esig.dss.enumerations.SubIndication.SIGNED_DATA_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.*;
@@ -152,6 +153,21 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
         Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
                 result.getValidationReport());
         assertNotNull(reports);
+    }
+
+    @Test
+    public void signatureSHA1() {
+        // given
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b_sha1.xml"));
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
+
+        // when
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
+
+        // then
+        assertNotNull(result);
+        assertEquals(TOTAL_FAILED, result.getIndication());
+        assertEquals(CRYPTO_CONSTRAINTS_FAILURE, result.getSubIndication());
     }
 
 }

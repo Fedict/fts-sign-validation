@@ -9,6 +9,7 @@ import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
+import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -55,7 +56,7 @@ public class SigningController {
     private RemoteMultipleDocumentsSignatureService signatureServiceMultiple;
 
     @Autowired
-    private RemoteDocumentValidationService validationService;
+    private BosaRemoteDocumentValidationService validationService;
 
     @Autowired
     private ReportsService reportsService;

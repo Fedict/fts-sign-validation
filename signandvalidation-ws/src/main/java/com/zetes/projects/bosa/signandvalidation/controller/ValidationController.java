@@ -5,6 +5,7 @@ import com.zetes.projects.bosa.signandvalidation.model.CertificateToValidateDTO;
 import com.zetes.projects.bosa.signandvalidation.model.IndicationsListDTO;
 import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
+import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
@@ -26,7 +27,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 public class ValidationController {
 
     @Autowired
-    private RemoteDocumentValidationService remoteDocumentValidationService;
+    private BosaRemoteDocumentValidationService remoteDocumentValidationService;
 
     @Autowired
     private RemoteCertificateValidationService remoteCertificateValidationService;
