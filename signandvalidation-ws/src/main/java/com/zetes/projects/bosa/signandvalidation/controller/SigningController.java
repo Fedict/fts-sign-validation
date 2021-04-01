@@ -211,8 +211,11 @@ public class SigningController {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(signDocumentDto.getToken()), signDocumentDto.getClientSignatureParameters());
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(signDocumentDto.getToken(), 60 * 5), parameters, signatureValueDto);
+
+            signedDoc = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
             ObjStorageService.storeDocumentForToken(signDocumentDto.getToken(), signedDoc);
-            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
+
+            return signedDoc;
         } catch (JOSEException | ParseException | ProfileNotFoundException
                 | NullParameterException
                 | ObjectStorageService.InvalidTokenException ex) {
