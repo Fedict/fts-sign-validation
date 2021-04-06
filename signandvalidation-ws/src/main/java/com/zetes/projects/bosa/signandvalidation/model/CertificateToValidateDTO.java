@@ -44,6 +44,9 @@ public class CertificateToValidateDTO {
     }
 
     public Date getValidationTime() {
+        if(validationTime == null) {
+            validationTime = new Date();
+        }
         return validationTime;
     }
 
