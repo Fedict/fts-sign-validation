@@ -9,9 +9,11 @@ import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
+import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.spi.DSSUtils;
+import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
 import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
@@ -29,6 +31,10 @@ import java.util.List;
 
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -72,16 +78,8 @@ public class SigningController {
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
-            Calendar oldest = Calendar.getInstance();
-            oldest.setTime(new Date());
-            oldest.add(Calendar.MINUTE, -5);
-            Calendar newest = Calendar.getInstance();
-            newest.setTime(new Date());
-            newest.add(Calendar.MINUTE, 5);
-            Date d = dataToSignDto.getClientSignatureParameters().getSigningDate();
-            if(newest.before(d) || oldest.after(d)) {
-                throw new ResponseStatusException(BAD_REQUEST, "signing date out of bounds");
-            }
+            checkDataToSign(dataToSignDto.getClientSignatureParameters());
+
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
@@ -95,17 +93,10 @@ public class SigningController {
     @PostMapping(value="/getDataToSignForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
         try {
-            Calendar oldest = Calendar.getInstance();
-            oldest.setTime(new Date());
-            oldest.add(Calendar.MINUTE, -5);
-            Calendar newest = Calendar.getInstance();
-            newest.setTime(new Date());
-            newest.add(Calendar.MINUTE, 5);
-            Date d = dataToSignForTokenDto.getClientSignatureParameters().getSigningDate();
-            if(newest.before(d) || oldest.after(d)) {
-                throw new ResponseStatusException(BAD_REQUEST, "signing date out of bounds");
-            }
+            checkDataToSign(dataToSignForTokenDto.getClientSignatureParameters());
+
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(dataToSignForTokenDto.getToken()), dataToSignForTokenDto.getClientSignatureParameters());
+
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken()), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
@@ -302,4 +293,40 @@ public class SigningController {
         }
     }
 
+    private void checkDataToSign(ClientSignatureParameters clientSigParams) throws ResponseStatusException {
+        // Check signing date
+        Date now = new Date();
+        Calendar oldest = Calendar.getInstance();
+        oldest.setTime(now);
+        oldest.add(Calendar.MINUTE, -5);
+        Calendar newest = Calendar.getInstance();
+        newest.setTime(now);
+        newest.add(Calendar.MINUTE, 5);
+        Date d = clientSigParams.getSigningDate();
+        if(newest.before(d) || oldest.after(d)) {
+            throw new ResponseStatusException(BAD_REQUEST, "signing date out of bounds");
+        }
+
+        // Check if the signing cert is present and not expired
+        try {
+        RemoteCertificate signingCert = clientSigParams.getSigningCertificate();
+        if (null == signingCert)
+            throw new ResponseStatusException(BAD_REQUEST, "no signing certificate provided");
+        byte[] signingCertBytes = signingCert.getEncodedCertificate();
+        if (null == signingCertBytes)
+            throw new ResponseStatusException(BAD_REQUEST, "no signing certificate provided");
+        X509Certificate signingCrt = (X509Certificate) CertificateFactory.getInstance("X509")
+            .generateCertificate(new ByteArrayInputStream(signingCertBytes));
+        if (now.after(signingCrt.getNotAfter()))
+            throw new ResponseStatusException(BAD_REQUEST, "signing certificate has expired");
+        }
+        catch (CertificateException e) {
+            throw new ResponseStatusException(BAD_REQUEST, "error parsing signing certificate: " + e.getMessage());
+        }
+
+        // Check if the cert chain is present (at least 2 certs)
+        List<RemoteCertificate> chain = clientSigParams.getCertificateChain();
+        if (null == chain || chain.size() < 2)
+            throw new ResponseStatusException(BAD_REQUEST, "no or incomplete certificate chain present");
+    }
 }

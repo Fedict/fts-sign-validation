@@ -31,11 +31,14 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
 import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class SigningControllerTest extends SignAndValidationTestBase {
 
@@ -176,6 +179,50 @@ public class SigningControllerTest extends SignAndValidationTestBase {
         InMemoryDocument iMD = new InMemoryDocument(timestampedDocument.getBytes());
         // iMD.save("target/testSigned.pdf");
         assertNotNull(iMD);
+    }
+
+    @Test
+    public void testExpired() throws Exception {
+        Pkcs12SignatureToken token = new Pkcs12SignatureToken(
+                new FileInputStream("src/test/resources/expired.p12"),
+                new KeyStore.PasswordProtection("123456".toCharArray())
+        );
+        List<DSSPrivateKeyEntry> keys = token.getKeys();
+        DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
+
+        ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
+
+        FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.xml"));
+        RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
+
+        // get data to sign
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, Map.class);
+
+        assertEquals(BAD_REQUEST.value(), result.get("status"));
+        assertEquals("signing certificate has expired", result.get("message"));
+    }
+
+    @Test
+    public void testNoChain() throws Exception {
+        Pkcs12SignatureToken token = new Pkcs12SignatureToken(
+                new FileInputStream("src/test/resources/nochain.p12"),
+                new KeyStore.PasswordProtection("123456".toCharArray())
+        );
+        List<DSSPrivateKeyEntry> keys = token.getKeys();
+        DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
+
+        ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
+
+        FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.xml"));
+        RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
+
+        // get data to sign
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, Map.class);
+
+        assertEquals(BAD_REQUEST.value(), result.get("status"));
+        assertEquals("no or incomplete certificate chain present", result.get("message"));
     }
 
     private ClientSignatureParameters getClientSignatureParameters(DSSPrivateKeyEntry dssPrivateKeyEntry) {
