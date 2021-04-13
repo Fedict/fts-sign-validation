@@ -203,6 +203,7 @@ public class SigningController implements ErrorStrings {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(signDocumentDto.getToken()), signDocumentDto.getClientSignatureParameters());
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(signDocumentDto.getToken(), 60 * 5), parameters, signatureValueDto);
+            signedDoc.setName(ObjStorageService.getTypeForToken(signDocumentDto.getToken()).getFilename());
 
             signedDoc = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
             ObjStorageService.storeDocumentForToken(signDocumentDto.getToken(), signedDoc);
