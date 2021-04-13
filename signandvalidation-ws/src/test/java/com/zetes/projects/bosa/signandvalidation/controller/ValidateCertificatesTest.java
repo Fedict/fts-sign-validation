@@ -24,8 +24,9 @@ import static eu.europa.esig.dss.enumerations.KeyUsageBit.KEY_CERT_SIGN;
 import static eu.europa.esig.dss.enumerations.KeyUsageBit.NON_REPUDIATION;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 
-public class ValidateCertificatesTest extends SignAndValidationTestBase {
+public class ValidateCertificatesTest extends SignAndValidationTestBase implements ErrorStrings {
 
     public static final String CERTIFICATE_ENDPOINT = "/validation/validateCertificate";
     public static final String CERTIFICATEFULL_ENDPOINT = "/validation/validateCertificateFull";
@@ -75,7 +76,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase {
 
         // then
         assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assertEquals("The certificate is missing", result.get("message"));
+        assertEquals(NO_CERT_TO_VALIDATE, result.get("message"));
     }
 
     @Test

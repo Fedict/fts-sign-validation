@@ -6,6 +6,7 @@ import com.zetes.projects.bosa.signandvalidation.model.IndicationsListDTO;
 import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
+import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
@@ -24,7 +25,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 @RestController
 @RequestMapping(value = "/validation")
-public class ValidationController {
+public class ValidationController implements ErrorStrings {
 
     @Autowired
     private BosaRemoteDocumentValidationService remoteDocumentValidationService;
@@ -47,7 +48,7 @@ public class ValidationController {
 
             return reportsService.getSignatureIndicationsDto(reportsDto);
         } else {
-            throw new ResponseStatusException(BAD_REQUEST, "DSSDocument is null");
+            throw new ResponseStatusException(BAD_REQUEST, NO_DOC_TO_VALIDATE);
         }
     }
 
@@ -56,7 +57,7 @@ public class ValidationController {
         if (toValidate.getSignedDocument() != null) {
             return remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
         } else {
-            throw new ResponseStatusException(BAD_REQUEST, "DSSDocument is null");
+            throw new ResponseStatusException(BAD_REQUEST, NO_DOC_TO_VALIDATE);
         }
     }
 
@@ -66,7 +67,7 @@ public class ValidationController {
             CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
             return reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
         } else {
-            throw new ResponseStatusException(BAD_REQUEST, "The certificate is missing");
+            throw new ResponseStatusException(BAD_REQUEST, NO_CERT_TO_VALIDATE);
         }
     }
 
@@ -75,7 +76,7 @@ public class ValidationController {
         if (toValidate.getCertificate() != null) {
             return remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
         } else {
-            throw new ResponseStatusException(BAD_REQUEST, "The certificate is missing");
+            throw new ResponseStatusException(BAD_REQUEST, NO_CERT_TO_VALIDATE);
         }
     }
 

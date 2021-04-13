@@ -3,6 +3,7 @@ package com.zetes.projects.bosa.signandvalidation.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
 import com.zetes.projects.bosa.signandvalidation.model.*;
+import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
@@ -40,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-public class SigningControllerTest extends SignAndValidationTestBase {
+public class SigningControllerTest extends SignAndValidationTestBase implements ErrorStrings {
 
     @Autowired
     ObjectMapper mapper;
@@ -200,7 +201,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
         Map result = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, Map.class);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assertEquals("signing certificate has expired", result.get("message"));
+        assertEquals(SIGN_CERT_EXPIRED, result.get("message"));
     }
 
     @Test
@@ -222,7 +223,7 @@ public class SigningControllerTest extends SignAndValidationTestBase {
         Map result = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, Map.class);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assertEquals("no or incomplete certificate chain present", result.get("message"));
+        assertEquals(CERT_CHAIN_INCOMPLETE, result.get("message"));
     }
 
     private ClientSignatureParameters getClientSignatureParameters(DSSPrivateKeyEntry dssPrivateKeyEntry) {

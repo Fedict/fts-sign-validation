@@ -11,6 +11,7 @@ import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundExce
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
+import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
@@ -50,7 +51,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 @RestController
 @RequestMapping(value = "/signing")
-public class SigningController {
+public class SigningController implements ErrorStrings {
 
     @Autowired
     private SigningConfiguratorService signingConfigService;
@@ -113,7 +114,7 @@ public class SigningController {
     public String getTokenForDocument(@RequestBody GetTokenForDocumentDTO tokenData) {
         try {
             if(!(ObjStorageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
-                throw new ResponseStatusException(FORBIDDEN, "invalid user name or password");
+                throw new ResponseStatusException(FORBIDDEN, INVALID_S3_LOGIN);
             }
             return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(), tokenData.getProf());
         } catch (TokenCreationFailureException e) {
@@ -135,7 +136,7 @@ public class SigningController {
                 }
             }
             if(null == token) {
-                throw new ResponseStatusException(BAD_REQUEST, "Required parameter token not provided");
+                throw new ResponseStatusException(BAD_REQUEST, NO_TOKEN);
             }
             byte[] rv = ObjStorageService.getDocumentForToken(token).getBytes();
             DocumentMetadataDTO typeForToken = ObjStorageService.getTypeForToken(token);
@@ -304,21 +305,21 @@ public class SigningController {
         newest.add(Calendar.MINUTE, 5);
         Date d = clientSigParams.getSigningDate();
         if(newest.before(d) || oldest.after(d)) {
-            throw new ResponseStatusException(BAD_REQUEST, "signing date out of bounds");
+            throw new ResponseStatusException(BAD_REQUEST, INVALID_SIG_DATE);
         }
 
         // Check if the signing cert is present and not expired
         try {
         RemoteCertificate signingCert = clientSigParams.getSigningCertificate();
         if (null == signingCert)
-            throw new ResponseStatusException(BAD_REQUEST, "no signing certificate provided");
+            throw new ResponseStatusException(BAD_REQUEST, NO_SIGN_CERT);
         byte[] signingCertBytes = signingCert.getEncodedCertificate();
         if (null == signingCertBytes)
-            throw new ResponseStatusException(BAD_REQUEST, "no signing certificate provided");
+            throw new ResponseStatusException(BAD_REQUEST, NO_SIGN_CERT);
         X509Certificate signingCrt = (X509Certificate) CertificateFactory.getInstance("X509")
             .generateCertificate(new ByteArrayInputStream(signingCertBytes));
         if (now.after(signingCrt.getNotAfter()))
-            throw new ResponseStatusException(BAD_REQUEST, "signing certificate has expired");
+            throw new ResponseStatusException(BAD_REQUEST, SIGN_CERT_EXPIRED);
         }
         catch (CertificateException e) {
             throw new ResponseStatusException(BAD_REQUEST, "error parsing signing certificate: " + e.getMessage());
@@ -327,6 +328,6 @@ public class SigningController {
         // Check if the cert chain is present (at least 2 certs)
         List<RemoteCertificate> chain = clientSigParams.getCertificateChain();
         if (null == chain || chain.size() < 2)
-            throw new ResponseStatusException(BAD_REQUEST, "no or incomplete certificate chain present");
+            throw new ResponseStatusException(BAD_REQUEST, CERT_CHAIN_INCOMPLETE);
     }
 }

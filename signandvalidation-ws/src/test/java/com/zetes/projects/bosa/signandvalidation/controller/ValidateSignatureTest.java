@@ -20,8 +20,9 @@ import static eu.europa.esig.dss.enumerations.SubIndication.HASH_FAILURE;
 import static eu.europa.esig.dss.enumerations.SubIndication.SIGNED_DATA_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 
-public class ValidateSignatureTest extends SignAndValidationTestBase {
+public class ValidateSignatureTest extends SignAndValidationTestBase implements ErrorStrings {
 
     public static final String SIGNATURE_ENDPOINT = "/validation/validateSignature";
     public static final String SIGNATUREFULL_ENDPOINT = "/validation/validateSignatureFull";
@@ -131,7 +132,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase {
 
         // then
         assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assertEquals("DSSDocument is null", result.get("message"));
+        assertEquals(NO_DOC_TO_VALIDATE, result.get("message"));
     }
 
     @Test
