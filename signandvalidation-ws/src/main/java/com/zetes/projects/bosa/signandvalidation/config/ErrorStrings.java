@@ -27,4 +27,7 @@ public interface ErrorStrings {
 
 	/** Required parameter token not provided */
 	public static String NO_TOKEN = "NO_TOKEN";
+
+	/** Certificate (probably the signing cert) revoked */
+	public static String CERT_REVOKED = "CERT_REVOKED";
 }

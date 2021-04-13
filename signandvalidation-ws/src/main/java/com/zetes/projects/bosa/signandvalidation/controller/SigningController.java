@@ -289,9 +289,10 @@ public class SigningController implements ErrorStrings {
         if (indications.getIndication() == TOTAL_PASSED) {
             return signedDoc;
         } else {
-            throw new ResponseStatusException(BAD_REQUEST,
-                    String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), indications.getSubIndication())
-            );
+            String subIndication = indications.getSubIndication();
+            String mesg = (subIndication.equals(CERT_REVOKED)) ? CERT_REVOKED :
+                String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), subIndication);
+            throw new ResponseStatusException(BAD_REQUEST, mesg);
         }
     }
 
