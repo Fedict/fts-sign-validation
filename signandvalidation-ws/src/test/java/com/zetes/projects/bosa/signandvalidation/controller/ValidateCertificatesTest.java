@@ -76,7 +76,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
 
         // then
         assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assertEquals(NO_CERT_TO_VALIDATE, result.get("message"));
+        assert(result.get("message").toString().endsWith(NO_CERT_TO_VALIDATE + "||"));
     }
 
     @Test
@@ -92,7 +92,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
         CertificateIndicationsDTO indicationsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateIndicationsDTO.class);
 
         // then
-        assertTrue(indicationsDTO.isKeyUsageCheckOk());
+        assert(indicationsDTO.isKeyUsageCheckOk());
     }
 
     @Test

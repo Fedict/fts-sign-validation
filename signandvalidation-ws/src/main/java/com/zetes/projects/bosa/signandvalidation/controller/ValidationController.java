@@ -25,7 +25,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 @RestController
 @RequestMapping(value = "/validation")
-public class ValidationController implements ErrorStrings {
+public class ValidationController extends ControllerBase implements ErrorStrings {
 
     @Autowired
     private BosaRemoteDocumentValidationService remoteDocumentValidationService;
@@ -48,8 +48,9 @@ public class ValidationController implements ErrorStrings {
 
             return reportsService.getSignatureIndicationsDto(reportsDto);
         } else {
-            throw new ResponseStatusException(BAD_REQUEST, NO_DOC_TO_VALIDATE);
+            logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -57,8 +58,9 @@ public class ValidationController implements ErrorStrings {
         if (toValidate.getSignedDocument() != null) {
             return remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
         } else {
-            throw new ResponseStatusException(BAD_REQUEST, NO_DOC_TO_VALIDATE);
+            logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -67,8 +69,9 @@ public class ValidationController implements ErrorStrings {
             CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
             return reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
         } else {
-            throw new ResponseStatusException(BAD_REQUEST, NO_CERT_TO_VALIDATE);
+            logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/validateCertificateFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -76,8 +79,9 @@ public class ValidationController implements ErrorStrings {
         if (toValidate.getCertificate() != null) {
             return remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
         } else {
-            throw new ResponseStatusException(BAD_REQUEST, NO_CERT_TO_VALIDATE);
+            logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/validateCertificates", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)

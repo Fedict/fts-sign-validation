@@ -30,4 +30,22 @@ public interface ErrorStrings {
 
 	/** Certificate (probably the signing cert) revoked */
 	public static String CERT_REVOKED = "CERT_REVOKED";
+
+	/** Unexpected exception thown */
+	public static String INTERNAL_ERR = "INTERNAL_ERR";
+
+	/** Document validation (after signing) failed */
+	public static String INVALID_DOC = "INVALID_DOC";
+
+	/** Unknown signature profile */
+	public static String UNKNOWN_PROFILE = "UNKNOWN_PROFILE";
+
+	/** Empty (null) parameter in request */
+	public static String EMPTY_PARAM = "EMPTY_PARAM";
+
+	/** Invalid token in request */
+	public static String INVALID_TOKEN = "INVALID_TOKEN";
+
+	/** Coudln't parse request */
+	public static String PARSE_ERROR = "PARSE_ERROR";
 }

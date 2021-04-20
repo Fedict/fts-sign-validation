@@ -132,7 +132,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
 
         // then
         assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assertEquals(NO_DOC_TO_VALIDATE, result.get("message"));
+        assert(result.get("message").toString().endsWith(NO_DOC_TO_VALIDATE + "||"));
     }
 
     @Test

@@ -201,7 +201,7 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
         Map result = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, Map.class);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assertEquals(SIGN_CERT_EXPIRED, result.get("message"));
+        assert(result.get("message").toString().endsWith(SIGN_CERT_EXPIRED + "||exp. date = 2021.03.06 12:28:05"));
     }
 
     @Test
@@ -223,7 +223,7 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
         Map result = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, Map.class);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assertEquals(CERT_CHAIN_INCOMPLETE, result.get("message"));
+        assert(result.get("message").toString().endsWith("CERT_CHAIN_INCOMPLETE" + "||cert count: 1"));
     }
 
     private ClientSignatureParameters getClientSignatureParameters(DSSPrivateKeyEntry dssPrivateKeyEntry) {

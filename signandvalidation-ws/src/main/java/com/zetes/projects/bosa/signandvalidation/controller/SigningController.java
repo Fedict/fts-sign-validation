@@ -26,11 +26,14 @@ import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.List;
+import java.text.SimpleDateFormat;
 
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
+import eu.europa.esig.dss.enumerations.Indication;
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateFactory;
@@ -43,6 +46,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -51,7 +55,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 @RestController
 @RequestMapping(value = "/signing")
-public class SigningController implements ErrorStrings {
+public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Autowired
     private SigningConfiguratorService signingConfigService;
@@ -76,6 +80,8 @@ public class SigningController implements ErrorStrings {
         return "pong";
     }
 
+    private static SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
@@ -86,9 +92,12 @@ public class SigningController implements ErrorStrings {
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
-        } catch (ProfileNotFoundException | NullParameterException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        } catch (ProfileNotFoundException e) {
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch(NullParameterException e) {
+            logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         }
+        return null; // We won't get here
     }
     
     @PostMapping(value="/getDataToSignForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -101,29 +110,35 @@ public class SigningController implements ErrorStrings {
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken()), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
-        } catch (ProfileNotFoundException | NullParameterException
-                | ObjectStorageService.InvalidTokenException | JOSEException
-                | ParseException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
-        } catch (InvalidKeyConfigException ex) {
-            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
+        } catch (JOSEException | ParseException e) {
+            logAndThrowEx(BAD_REQUEST, PARSE_ERROR, e);
+        } catch (ObjectStorageService.InvalidTokenException e) {
+            logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
+        } catch(NullParameterException e) {
+            logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch (ProfileNotFoundException e) {
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch (InvalidKeyConfigException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
+        return null; // We won't get here
     }
+
     @PostMapping(value="/getTokenForDocument", produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocument(@RequestBody GetTokenForDocumentDTO tokenData) {
         try {
             if(!(ObjStorageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
-                throw new ResponseStatusException(FORBIDDEN, INVALID_S3_LOGIN);
+                logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
             return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(), tokenData.getProf());
         } catch (TokenCreationFailureException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
-        } catch (InvalidKeyConfigException ex) {
-            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (InvalidKeyConfigException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
+        return null; // We won't get here
     }
+
     @GetMapping(value="/getDocumentForToken")
     public void getDocumentForToken(HttpServletResponse response,
                                     HttpServletRequest request) {
@@ -136,7 +151,7 @@ public class SigningController implements ErrorStrings {
                 }
             }
             if(null == token) {
-                throw new ResponseStatusException(BAD_REQUEST, NO_TOKEN);
+                logAndThrowEx(BAD_REQUEST, NO_TOKEN, null, null);
             }
             byte[] rv = ObjStorageService.getDocumentForToken(token).getBytes();
             DocumentMetadataDTO typeForToken = ObjStorageService.getTypeForToken(token);
@@ -149,25 +164,25 @@ public class SigningController implements ErrorStrings {
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Cache-Control", "no-cache");
             response.getOutputStream().write(rv);
-        } catch (ObjectStorageService.InvalidTokenException | IOException ex) {
-            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
-        } catch (ObjectStorageService.InvalidKeyConfigException ex) {
-            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
+        } catch (IOException e) {
+            logAndThrowEx(BAD_REQUEST, INTERNAL_ERR, e);
+        } catch (ObjectStorageService.InvalidTokenException e) {
+            logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
+        } catch (ObjectStorageService.InvalidKeyConfigException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
     }
+
     @GetMapping(value="/getMetadataForToken")
     public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String token) {
         try {
             return ObjStorageService.getTypeForToken(token);
-        } catch (ObjectStorageService.InvalidTokenException ex) {
-            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
-        } catch (ObjectStorageService.InvalidKeyConfigException ex) {
-            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
+        } catch (ObjectStorageService.InvalidTokenException e) {
+            logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
+        } catch (ObjectStorageService.InvalidKeyConfigException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -178,9 +193,12 @@ public class SigningController implements ErrorStrings {
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
-        } catch (ProfileNotFoundException | NullParameterException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        } catch (ProfileNotFoundException e) {
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch(NullParameterException e) {
+            logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -192,9 +210,12 @@ public class SigningController implements ErrorStrings {
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
             return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
-        } catch (ProfileNotFoundException | NullParameterException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        } catch (ProfileNotFoundException e) {
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch(NullParameterException e) {
+            logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         }
+        return null; // We won't get here
     }
     
     @PostMapping(value = "/signDocumentForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -209,15 +230,18 @@ public class SigningController implements ErrorStrings {
             ObjStorageService.storeDocumentForToken(signDocumentDto.getToken(), signedDoc);
 
             return signedDoc;
-        } catch (JOSEException | ParseException | ProfileNotFoundException
-                | NullParameterException
-                | ObjectStorageService.InvalidTokenException ex) {
-            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResponseStatusException(BAD_REQUEST, ex.getMessage());
-        } catch (InvalidKeyConfigException ex) {
-            Logger.getLogger(SigningController.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResponseStatusException(INTERNAL_SERVER_ERROR);
+        } catch (JOSEException | ParseException e) {
+          logAndThrowEx(BAD_REQUEST, PARSE_ERROR, e);
+        } catch(ObjectStorageService.InvalidTokenException e) {
+            logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e.getMessage());
+       } catch(NullParameterException e) {
+            logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch (ProfileNotFoundException e) {
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch (InvalidKeyConfigException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -229,9 +253,12 @@ public class SigningController implements ErrorStrings {
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
             return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
-        } catch (ProfileNotFoundException | NullParameterException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+        } catch (ProfileNotFoundException e) {
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch(NullParameterException e) {
+            logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/extendDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -243,8 +270,9 @@ public class SigningController implements ErrorStrings {
 
             return validateResult(extendedDoc, extendDocumentDto.getDetachedContents());
         } catch (ProfileNotFoundException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/extendDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -256,8 +284,9 @@ public class SigningController implements ErrorStrings {
 
             return validateResult(extendedDoc, extendDocumentDto.getDetachedContents());
         } catch (ProfileNotFoundException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/timestampDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -267,8 +296,9 @@ public class SigningController implements ErrorStrings {
 
             return signatureService.timestamp(timestampDocumentDto.getDocument(), parameters);
         } catch (ProfileNotFoundException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         }
+        return null; // We won't get here
     }
 
     @PostMapping(value = "/timestampDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -278,25 +308,29 @@ public class SigningController implements ErrorStrings {
 
             return signatureServiceMultiple.timestamp(timestampDocumentDto.getDocuments(), parameters);
         } catch (ProfileNotFoundException e) {
-            throw new ResponseStatusException(BAD_REQUEST, e.getMessage());
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         }
+        return null; // We won't get here
     }
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents) {
         WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null);
         SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
 
-        if (indications.getIndication() == TOTAL_PASSED) {
+        Indication indication = indications.getIndication();
+        if (indication == TOTAL_PASSED) {
             return signedDoc;
         } else {
             String subIndication = indications.getSubIndication();
-            String mesg = (subIndication.equals(CERT_REVOKED)) ? CERT_REVOKED :
-                String.format("Signed document did not pass validation: %s, %s", indications.getIndication(), subIndication);
-            throw new ResponseStatusException(BAD_REQUEST, mesg);
+            if (subIndication.equals(CERT_REVOKED))
+                logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
+            else
+                logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
         }
+        return null; // We won't get here
     }
 
-    private void checkDataToSign(ClientSignatureParameters clientSigParams) throws ResponseStatusException {
+    private void checkDataToSign(ClientSignatureParameters clientSigParams) {
         // Check signing date
         Date now = new Date();
         Calendar oldest = Calendar.getInstance();
@@ -307,29 +341,29 @@ public class SigningController implements ErrorStrings {
         newest.add(Calendar.MINUTE, 5);
         Date d = clientSigParams.getSigningDate();
         if(newest.before(d) || oldest.after(d)) {
-            throw new ResponseStatusException(BAD_REQUEST, INVALID_SIG_DATE);
+            logAndThrowEx(BAD_REQUEST, INVALID_SIG_DATE, dateTimeFormatter.format(d));
         }
 
         // Check if the signing cert is present and not expired
         try {
         RemoteCertificate signingCert = clientSigParams.getSigningCertificate();
         if (null == signingCert)
-            throw new ResponseStatusException(BAD_REQUEST, NO_SIGN_CERT);
+            logAndThrowEx(BAD_REQUEST, NO_SIGN_CERT, "no signing cert present in request");
         byte[] signingCertBytes = signingCert.getEncodedCertificate();
         if (null == signingCertBytes)
-            throw new ResponseStatusException(BAD_REQUEST, NO_SIGN_CERT);
+            logAndThrowEx(BAD_REQUEST, NO_SIGN_CERT, "could not get encoded signing cert from request");
         X509Certificate signingCrt = (X509Certificate) CertificateFactory.getInstance("X509")
             .generateCertificate(new ByteArrayInputStream(signingCertBytes));
         if (now.after(signingCrt.getNotAfter()))
-            throw new ResponseStatusException(BAD_REQUEST, SIGN_CERT_EXPIRED);
+            logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + dateTimeFormatter.format(signingCrt.getNotAfter()));
         }
         catch (CertificateException e) {
-            throw new ResponseStatusException(BAD_REQUEST, "error parsing signing certificate: " + e.getMessage());
+             logAndThrowEx(BAD_REQUEST, "error parsing signing cert", e.getMessage());
         }
 
         // Check if the cert chain is present (at least 2 certs)
         List<RemoteCertificate> chain = clientSigParams.getCertificateChain();
         if (null == chain || chain.size() < 2)
-            throw new ResponseStatusException(BAD_REQUEST, CERT_CHAIN_INCOMPLETE);
+            logAndThrowEx(BAD_REQUEST, CERT_CHAIN_INCOMPLETE, "cert count: " + chain.size());
     }
 }
