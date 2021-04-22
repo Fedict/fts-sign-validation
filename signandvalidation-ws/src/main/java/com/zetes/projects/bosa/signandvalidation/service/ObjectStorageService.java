@@ -12,10 +12,10 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
+import com.zetes.projects.bosa.signandvalidation.TokenParser;
 import com.zetes.projects.bosa.signandvalidation.model.DocumentMetadataDTO;
 import com.zetes.projects.bosa.signandvalidation.model.StoredKey;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -36,7 +36,6 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,10 +64,10 @@ public class ObjectStorageService {
     @Value("${objectstorage.secretbucket}")
     private String secretBucket;
     
-    private Map<String, StoredKey> keys;
+    private final Map<String, StoredKey> keys;
 
     private StoredKey defaultKey = null;
-    private MimetypesFileTypeMap mimeMap;
+    private final MimetypesFileTypeMap mimeMap;
     
     private MinioClient client;
     private MinioClient getClient() {
@@ -113,63 +112,7 @@ public class ObjectStorageService {
         mimeMap.addMimeTypes("application/xml xml XML docx");
     }
 
-    private static class TokenParser {
-        private final String cid;
-        private final String in;
-        private final String out;
-        private final String prof;
-        private final Date iad;
-        
-        private static JWTClaimsSet ParseToken(String token, ObjectStorageService os) throws ParseException, JOSEException, InvalidKeyConfigException {
-            JWEObject jweObject = JWEObject.parse(token);
-            JWEHeader header = jweObject.getHeader();
-            SecretKey key = os.getKeyForId(header.getKeyID());
-            jweObject.decrypt(new DirectDecrypter(key));
-            PlainJWT jwt = PlainJWT.parse(jweObject.getPayload().toString());
-            return jwt.getJWTClaimsSet();
-        }
-        
-        public TokenParser(String token, ObjectStorageService os) throws JOSEException, ParseException, InvalidKeyConfigException {
-            JWTClaimsSet claims = ParseToken(token, os);
-            cid = claims.getClaim("cid").toString();
-            in = claims.getClaim("in").toString();
-            out = claims.getClaim("out").toString();
-            prof = claims.getClaim("prof").toString();
-            iad = claims.getIssueTime();
-        }
-        public TokenParser(String token, ObjectStorageService os, int validMinutes) throws TokenExpiredException, ParseException, JOSEException, InvalidKeyConfigException {
-            JWTClaimsSet claims = ParseToken(token, os);
-            Date d = claims.getIssueTime();
-            Calendar c = Calendar.getInstance();
-            c.setTime(d);
-            c.add(Calendar.MINUTE, validMinutes);
-            Calendar now = Calendar.getInstance();
-            if(c.compareTo(now) < 0) {
-                throw new TokenExpiredException();
-            }
-            cid = claims.getClaim("cid").toString();
-            in = claims.getClaim("in").toString();
-            out = claims.getClaim("out").toString();
-            prof = claims.getClaim("prof").toString();
-            iad = d;
-        }
-        public String getCid() {
-            return cid;
-        }
-        public String getIn() {
-            return in;
-        }
-        public String getOut() {
-            return out;
-        }
-        public String getProf() {
-            return prof;
-        }
-        public Date getIad() {
-            return iad;
-        }
-    }
-    private SecretKey getKeyForId(String kid) throws InvalidKeyConfigException {
+    public SecretKey getKeyForId(String kid) throws InvalidKeyConfigException {
         try {
             if(defaultKey.getKid().equals(kid)) {
                 return defaultKey.getData();
@@ -259,7 +202,7 @@ public class ObjectStorageService {
                 | IOException | NoSuchAlgorithmException | ServerException
                 | XmlParserException ex) {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TokenExpiredException ex) {
+        } catch (TokenParser.TokenExpiredException ex) {
             throw new InvalidTokenException();
         }
         throw new InvalidTokenException();
@@ -287,7 +230,8 @@ public class ObjectStorageService {
         try {
             String filename = new TokenParser(token, this, 5).getIn();
             return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename));
-        } catch (JOSEException | ParseException | TokenExpiredException ex) {
+        } catch (JOSEException | ParseException
+                | TokenParser.TokenExpiredException ex) {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
             throw new InvalidTokenException();
         }
@@ -305,12 +249,6 @@ public class ObjectStorageService {
     public static class TokenCreationFailureException extends Exception {
 
         public TokenCreationFailureException() {
-        }
-    }
-
-    private static class TokenExpiredException extends Exception {
-
-        public TokenExpiredException() {
         }
     }
 
