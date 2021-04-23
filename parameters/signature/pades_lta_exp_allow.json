@@ -1,0 +1,8 @@
+{
+  "profileId": "PADES_LTA_EXP_ALLOW",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "PAdES_BASELINE_LTA",
+  "signaturePackaging":"ENVELOPED",
+  "tspServer": "http://tsa.belgium.be/connect",
+  "signWithExpiredCertificate": true
+}

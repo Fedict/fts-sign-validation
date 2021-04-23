@@ -40,10 +40,20 @@ public class ProfileSignatureParametersDao {
         } else {
             folder = new File("../parameters/signature");
         }
+
+        if (!folder.exists()) {
+            logger.log(Level.SEVERE, "Profiles dir does not exist: {0}", folder.getAbsolutePath());
+            throw new IOException("Profiles directory does not exist");
+        }
+        File[] profileFiles = folder.listFiles(new JsonFileFilter());
+        if (profileFiles.length == 0) {
+            logger.log(Level.SEVERE, "Profiles dir is emtpy", folder.getAbsolutePath());
+            throw new IOException("No profiles found");
+        }
         logger.log(Level.INFO, "Reading signature profiles from {0}", folder.getAbsolutePath());
+
         ObjectMapper mapper = new ObjectMapper();
-        
-        for(final File jsonFile : folder.listFiles(new JsonFileFilter())) {
+        for(final File jsonFile : profileFiles) {
             logger.log(Level.INFO, "Parsing {0}", jsonFile.getName());
             ProfileSignatureParameters p = mapper.readValue(jsonFile, ProfileSignatureParameters.class);
             parameters.put(p.getProfileId(), p);

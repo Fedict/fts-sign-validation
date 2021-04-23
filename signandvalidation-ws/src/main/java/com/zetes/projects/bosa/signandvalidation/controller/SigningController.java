@@ -79,9 +79,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
-            checkDataToSign(dataToSignDto.getClientSignatureParameters());
-
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
+
+            checkDataToSign(parameters);
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -97,9 +97,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value="/getDataToSignForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
         try {
-            checkDataToSign(dataToSignForTokenDto.getClientSignatureParameters());
-
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(dataToSignForTokenDto.getToken()), dataToSignForTokenDto.getClientSignatureParameters());
+
+            checkDataToSign(parameters);
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken()), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -203,7 +203,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
-            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
+            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters);
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
@@ -220,7 +220,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(signDocumentDto.getToken(), 60 * 5), parameters, signatureValueDto);
             signedDoc.setName(ObjStorageService.getTypeForToken(signDocumentDto.getToken()).getFilename());
 
-            signedDoc = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
+            signedDoc = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters);
             ObjStorageService.storeDocumentForToken(signDocumentDto.getToken(), signedDoc);
 
             return signedDoc;
@@ -246,7 +246,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
-            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents());
+            return validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters);
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
@@ -262,7 +262,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteDocument extendedDoc = signatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents());
+            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters);
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         }
@@ -276,7 +276,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents());
+            return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters);
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         }
@@ -307,12 +307,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents) {
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters) {
         WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null);
         SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
 
         Indication indication = indications.getIndication();
-        if (indication == TOTAL_PASSED) {
+        if (indication == TOTAL_PASSED || parameters.isSignWithExpiredCertificate()) {
             return signedDoc;
         } else {
             String subIndication = indications.getSubIndication();
@@ -324,7 +324,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    private void checkDataToSign(ClientSignatureParameters clientSigParams) {
+    private void checkDataToSign(RemoteSignatureParameters parameters) {
+        
         // Check signing date
         Date now = new Date();
         Calendar oldest = Calendar.getInstance();
@@ -333,30 +334,32 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         Calendar newest = Calendar.getInstance();
         newest.setTime(now);
         newest.add(Calendar.MINUTE, 5);
-        Date d = clientSigParams.getSigningDate();
+        Date d = parameters.getBLevelParams().getSigningDate();
         if(newest.before(d) || oldest.after(d)) {
             logAndThrowEx(BAD_REQUEST, INVALID_SIG_DATE, dateTimeFormatter.format(d));
         }
 
         // Check if the signing cert is present and not expired
         try {
-        RemoteCertificate signingCert = clientSigParams.getSigningCertificate();
-        if (null == signingCert)
-            logAndThrowEx(BAD_REQUEST, NO_SIGN_CERT, "no signing cert present in request");
-        byte[] signingCertBytes = signingCert.getEncodedCertificate();
-        if (null == signingCertBytes)
-            logAndThrowEx(BAD_REQUEST, NO_SIGN_CERT, "could not get encoded signing cert from request");
-        X509Certificate signingCrt = (X509Certificate) CertificateFactory.getInstance("X509")
-            .generateCertificate(new ByteArrayInputStream(signingCertBytes));
-        if (now.after(signingCrt.getNotAfter()))
-            logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + dateTimeFormatter.format(signingCrt.getNotAfter()));
+            RemoteCertificate signingCert = parameters.getSigningCertificate();
+            if (null == signingCert)
+                logAndThrowEx(BAD_REQUEST, NO_SIGN_CERT, "no signing cert present in request");
+            byte[] signingCertBytes = signingCert.getEncodedCertificate();
+            if (null == signingCertBytes)
+                logAndThrowEx(BAD_REQUEST, NO_SIGN_CERT, "could not get encoded signing cert from request");
+            X509Certificate signingCrt = (X509Certificate) CertificateFactory.getInstance("X509")
+                .generateCertificate(new ByteArrayInputStream(signingCertBytes));
+
+            // Don't do the expiry check if the profile says to ignore it (only used for testing)
+            if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
+                logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + dateTimeFormatter.format(signingCrt.getNotAfter()));
         }
         catch (CertificateException e) {
              logAndThrowEx(BAD_REQUEST, "error parsing signing cert", e.getMessage());
         }
 
         // Check if the cert chain is present (at least 2 certs)
-        List<RemoteCertificate> chain = clientSigParams.getCertificateChain();
+        List<RemoteCertificate> chain = parameters.getCertificateChain();
         if (null == chain || chain.size() < 2)
             logAndThrowEx(BAD_REQUEST, CERT_CHAIN_INCOMPLETE, "cert count: " + chain.size());
     }
