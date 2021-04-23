@@ -82,6 +82,7 @@ public class ProfileTimestampParametersDao {
     public void deleteAll() {
         defParam = null;
         parameters.clear();
+        isInited = true;
     }
     public void save(ProfileTimestampParameters p) {
         if(!isInited) {

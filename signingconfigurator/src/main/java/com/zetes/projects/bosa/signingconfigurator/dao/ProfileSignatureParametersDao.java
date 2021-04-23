@@ -85,6 +85,7 @@ public class ProfileSignatureParametersDao {
     public void deleteAll() {
         defParam = null;
         parameters.clear();
+        isInited = true;
     }
     public void save(ProfileSignatureParameters p) {
         if(!isInited) {
