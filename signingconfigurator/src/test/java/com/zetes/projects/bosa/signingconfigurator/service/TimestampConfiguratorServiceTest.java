@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
@@ -61,18 +60,6 @@ public class TimestampConfiguratorServiceTest {
         );
 
         assertEquals("Default profile not found", exception.getMessage());
-    }
-
-    @Test
-    public void saveTwoDefaultThrowsException() {
-        // given
-        saveProfileTimestampParameters("XADES_1", true, SHA256, ENVELOPED, PDF, "tspServer");
-
-        // then
-        assertThrows(
-                DataIntegrityViolationException.class,
-                () -> saveProfileTimestampParameters("XADES_2", true, SHA256, ENVELOPED, PDF, "tspServer")
-        );
     }
 
     @Test

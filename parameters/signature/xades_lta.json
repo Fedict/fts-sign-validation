@@ -1,0 +1,7 @@
+{
+  "profileId": "XADES_LTA",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "XAdES_BASELINE_LTA",
+  "signaturePackaging": "ENVELOPED",
+  "tspServer": "http://tsa.belgium.be/connect"
+}

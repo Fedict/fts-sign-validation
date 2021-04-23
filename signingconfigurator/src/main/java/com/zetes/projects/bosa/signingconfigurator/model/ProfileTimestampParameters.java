@@ -3,59 +3,30 @@ package com.zetes.projects.bosa.signingconfigurator.model;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.TimestampContainerForm;
 
-import javax.persistence.*;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
-import java.time.Instant;
 
 // parameters which are retrieved from the database based on the profile id
-@Entity
-@Table
 public class ProfileTimestampParameters {
 
     /**
      * The columns unrelated to timestamp parameters.
      */
-    @Id
     private String profileId;
 
-    @Column(nullable = false, updatable = false)
-    private Instant created;
-
-    @Column(nullable = false)
-    private Instant updated;
-
-    @Column(unique = true)
     private Boolean isDefault;
-
-    @Version
-    private int version;
 
     /**
      * The columns related to timestamp parameters.
      */
-    @Column
-    @Enumerated(EnumType.STRING)
     private DigestAlgorithm digestAlgorithm;
 
-    @Column
     private String canonicalizationMethod;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private TimestampContainerForm containerForm;
 
-    @Column(nullable = false)
     private String tspServer;
 
     public ProfileTimestampParameters() {
-    }
-
-    @PrePersist
-    public void generateCreationTimestamp() {
-        if (this.created == null) {
-            this.created = Instant.now();
-        }
-        this.updated = this.created;
     }
 
     /**
@@ -69,32 +40,15 @@ public class ProfileTimestampParameters {
         this.profileId = profileId;
     }
 
-    public Instant getCreated() {
-        return created;
-    }
-
-    public void setCreated(Instant created) {
-        this.created = created;
-    }
-
-    public Instant getUpdated() {
-        return updated;
-    }
-
-    public void setUpdated(Instant updated) {
-        this.updated = updated;
-    }
-
     public Boolean getIsDefault() {
-        return isDefault;
+        if(null != isDefault) {
+            return isDefault;
+        }
+        return false;
     }
 
     public void setIsDefault(Boolean isDefault) {
         this.isDefault = isDefault;
-    }
-
-    public int getVersion() {
-        return version;
     }
 
     /**

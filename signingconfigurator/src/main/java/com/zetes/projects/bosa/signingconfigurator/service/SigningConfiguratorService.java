@@ -142,19 +142,19 @@ public class SigningConfiguratorService {
     }
 
     private ProfileSignatureParameters findProfileParamsById(String profileId) throws ProfileNotFoundException {
-        return signatureDao.findById(profileId).orElseThrow(() -> new ProfileNotFoundException(String.format("%s not found", profileId)));
+        return signatureDao.findById(profileId);
     }
 
     private ProfileSignatureParameters findDefaultProfileParams() throws ProfileNotFoundException {
-        return signatureDao.findDefault().orElseThrow(() -> new ProfileNotFoundException("Default profile not found"));
+        return signatureDao.findDefault();
     }
 
     private ProfileTimestampParameters findTimestampProfileParamsById(String profileId) throws ProfileNotFoundException {
-        return timestampDao.findById(profileId).orElseThrow(() -> new ProfileNotFoundException(String.format("%s not found", profileId)));
+        return timestampDao.findById(profileId);
     }
 
     private ProfileTimestampParameters findDefaultTimestampProfileParams() throws ProfileNotFoundException {
-        return timestampDao.findDefault().orElseThrow(() -> new ProfileNotFoundException("Default profile not found"));
+        return timestampDao.findDefault();
     }
 
 }

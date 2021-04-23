@@ -1,0 +1,7 @@
+{
+  "profileId": "CADES_LTA_ENVELOPING",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "CAdES_BASELINE_LTA",
+  "signaturePackaging": "ENVELOPING",
+  "tspServer":"http://tsa.belgium.be/connect"
+}

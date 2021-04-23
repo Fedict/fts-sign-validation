@@ -3,146 +3,89 @@ package com.zetes.projects.bosa.signingconfigurator.model;
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 
-import javax.persistence.*;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import static javax.persistence.FetchType.EAGER;
-
 // parameters which are retrieved from the database based on the profile id
-@Entity
-@Table
 public class ProfileSignatureParameters {
 
     /**
      * The columns unrelated to signature parameters.
      */
-    @Id
     private String profileId;
 
-    @Column(nullable = false, updatable = false)
+    /*@Column(nullable = false, updatable = false)
     private Instant created;
 
     @Column(nullable = false)
-    private Instant updated;
+    private Instant updated;*/
 
-    @Column(unique = true)
     private Boolean isDefault;
-
-    @Version
-    private int version;
 
     /**
      * The columns related to signature parameters.
      */
-    @Column
-    @Enumerated(EnumType.STRING)
     private ASiCContainerType asicContainerType;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
     private SignatureLevel signatureLevel;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
     private SignaturePackaging signaturePackaging;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
     private DigestAlgorithm digestAlgorithm;
 
-    @Enumerated(EnumType.STRING)
     private MaskGenerationFunction maskGenerationFunction;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private DigestAlgorithm referenceDigestAlgorithm;
 
     /**
      * Overridable default parameters
      */
-    @Column
     private Boolean trustAnchorBPPolicy;
 
-    @Column
     private String policyId;
 
-    @Column
     private String policyQualifier;
 
-    @Column
     private String policyDescription;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private DigestAlgorithm policyDigestAlgorithm;
 
-    @Column
     private byte[] policyDigestValue;
 
-    @Column
     private String policySpuri;
 
-    @ElementCollection(fetch = EAGER)
     private List<String> commitmentTypeIndications = new ArrayList<>();
 
-    @Column
     private Boolean signWithExpiredCertificate;
 
-    @Column
     private Boolean generateTBSWithoutCertificate;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private DigestAlgorithm contentTimestampDigestAlgorithm;
 
-    @Column
     private String contentTimestampCanonicalizationMethod;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private TimestampContainerForm contentTimestampContainerForm;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private DigestAlgorithm signatureTimestampDigestAlgorithm;
 
-    @Column
     private String signatureTimestampCanonicalizationMethod;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private TimestampContainerForm signatureTimestampContainerForm;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private DigestAlgorithm archiveTimestampDigestAlgorithm;
 
-    @Column
     private String archiveTimestampCanonicalizationMethod;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private TimestampContainerForm archiveTimestampContainerForm;
 
-    @Column(nullable = false)
     private String tspServer;
 
     public ProfileSignatureParameters() {
     }
 
-    @PrePersist
-    public void generateCreationTimestamp() {
-        if (this.created == null) {
-            this.created = Instant.now();
-        }
-        this.updated = this.created;
-    }
-
-    /**
-     * The columns unrelated to signature parameters.
+    /*
+     * The values unrelated to signature parameters.
      */
     public String getProfileId() {
         return profileId;
@@ -152,36 +95,16 @@ public class ProfileSignatureParameters {
         this.profileId = profileId;
     }
 
-    public Instant getCreated() {
-        return created;
-    }
-
-    public void setCreated(Instant created) {
-        this.created = created;
-    }
-
-    public Instant getUpdated() {
-        return updated;
-    }
-
-    public void setUpdated(Instant updated) {
-        this.updated = updated;
-    }
-
     public Boolean getIsDefault() {
-        return isDefault;
+        return (isDefault == null) ? false : isDefault;
     }
 
     public void setIsDefault(Boolean isDefault) {
         this.isDefault = isDefault;
     }
 
-    public int getVersion() {
-        return version;
-    }
-
-    /**
-     * The columns related to signature parameters.
+    /*
+     * The values related to signature parameters.
      */
     public ASiCContainerType getAsicContainerType() {
         return asicContainerType;

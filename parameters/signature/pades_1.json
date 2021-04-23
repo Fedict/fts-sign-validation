@@ -1,0 +1,7 @@
+{
+  "profileId": "PADES_1",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "PAdES_BASELINE_B",
+  "signaturePackaging":"ENVELOPED",
+  "tspServer": "http://tsa.belgium.be/connect"
+}

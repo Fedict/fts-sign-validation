@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.xml.crypto.dsig.CanonicalizationMethod;
@@ -110,20 +109,6 @@ public class SigningConfiguratorServiceTest {
         );
 
         assertEquals("Default profile not found", exception.getMessage());
-    }
-
-    @Test
-    public void saveTwoDefaultThrowsException() {
-        // given
-        saveProfileSignatureParameters("XADES_1", true, null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA512, SHA256, null, "tspServer");
-
-        // then
-        assertThrows(
-                DataIntegrityViolationException.class,
-                () -> saveProfileSignatureParameters("XADES_2", true, null, SignatureLevel.XAdES_BASELINE_B,
-                        SignaturePackaging.ENVELOPING, DigestAlgorithm.SHA256, SHA256, null, "tspServer")
-        );
     }
 
     @Test

@@ -1,0 +1,8 @@
+{
+  "profileId": "CADES_2",
+  "asicContainerType": "ASiC_E",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "CAdES_BASELINE_B",
+  "signaturePackaging": "DETACHED",
+  "tspServer": "http://tsa.belgium.be/connect"
+}
