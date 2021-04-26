@@ -8,18 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 // parameters which are retrieved from the database based on the profile id
-public class ProfileSignatureParameters {
+public class ProfileSignatureParameters extends JsonObject {
 
     /**
      * The columns unrelated to signature parameters.
      */
     private String profileId;
-
-    /*@Column(nullable = false, updatable = false)
-    private Instant created;
-
-    @Column(nullable = false)
-    private Instant updated;*/
 
     private Boolean isDefault;
 
@@ -80,6 +74,8 @@ public class ProfileSignatureParameters {
     private TimestampContainerForm archiveTimestampContainerForm;
 
     private String tspServer;
+    
+    private Boolean devOnlyProfile;
 
     public ProfileSignatureParameters() {
     }
@@ -87,6 +83,7 @@ public class ProfileSignatureParameters {
     /*
      * The values unrelated to signature parameters.
      */
+    @Override
     public String getProfileId() {
         return profileId;
     }
@@ -95,6 +92,7 @@ public class ProfileSignatureParameters {
         this.profileId = profileId;
     }
 
+    @Override
     public Boolean getIsDefault() {
         return (isDefault == null) ? false : isDefault;
     }
@@ -330,5 +328,14 @@ public class ProfileSignatureParameters {
 
     public void setTspServer(String tspServer) {
         this.tspServer = tspServer;
+    }
+    
+    @Override
+    public Boolean getDevOnlyProfile() {
+        return (devOnlyProfile == null) ? false : devOnlyProfile;
+    }
+    
+    public void setDevOnlyProfile(Boolean devOnlyProfile) {
+        this.devOnlyProfile = devOnlyProfile;
     }
 }

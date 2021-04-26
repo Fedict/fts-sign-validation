@@ -6,7 +6,7 @@ import eu.europa.esig.dss.enumerations.TimestampContainerForm;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 
 // parameters which are retrieved from the database based on the profile id
-public class ProfileTimestampParameters {
+public class ProfileTimestampParameters extends JsonObject {
 
     /**
      * The columns unrelated to timestamp parameters.
@@ -25,6 +25,8 @@ public class ProfileTimestampParameters {
     private TimestampContainerForm containerForm;
 
     private String tspServer;
+    
+    private Boolean devOnlyProfile;
 
     public ProfileTimestampParameters() {
     }
@@ -32,6 +34,7 @@ public class ProfileTimestampParameters {
     /**
      * The columns unrelated to signature parameters.
      */
+    @Override
     public String getProfileId() {
         return profileId;
     }
@@ -40,6 +43,7 @@ public class ProfileTimestampParameters {
         this.profileId = profileId;
     }
 
+    @Override
     public Boolean getIsDefault() {
         if(null != isDefault) {
             return isDefault;
@@ -84,5 +88,14 @@ public class ProfileTimestampParameters {
 
     public void setTspServer(String tspServer) {
         this.tspServer = tspServer;
+    }
+
+    public void setDevOnlyProfile(Boolean devOnlyProfile) {
+        this.devOnlyProfile = devOnlyProfile;
+    }
+
+    @Override
+    public Boolean getDevOnlyProfile() {
+        return (devOnlyProfile == null) ? false : devOnlyProfile;
     }
 }
