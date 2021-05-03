@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -43,56 +44,71 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) {
-        if (toValidate.getSignedDocument() != null) {
-            WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
-
-            return reportsService.getSignatureIndicationsDto(reportsDto);
-        } else {
+        if (toValidate.getSignedDocument() == null)
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
+
+        try {
+            WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+            return reportsService.getSignatureIndicationsDto(reportsDto);
+	} catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
 
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public WSReportsDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
-        if (toValidate.getSignedDocument() != null) {
-            return remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
-        } else {
+        if (toValidate.getSignedDocument() == null)
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
+
+        try {
+            return remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
-        if (toValidate.getCertificate() != null) {
+        if (toValidate.getCertificate() == null)
+            logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
+
+        try {
             CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
             return reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
-        } else {
-            logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
 
     @PostMapping(value = "/validateCertificateFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateReportsDTO validateCertificateFull(@RequestBody CertificateToValidateDTO toValidate) {
-        if (toValidate.getCertificate() != null) {
-            return remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
-        } else {
+        if (toValidate.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
+
+        try {
+            return remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
 
     @PostMapping(value = "/validateCertificates", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public IndicationsListDTO validateCertificates(@RequestBody List<CertificateToValidateDTO> toValidateList) {
-        List<CertificateIndicationsDTO> indications = new ArrayList<>();
+        try {
+            List<CertificateIndicationsDTO> indications = new ArrayList<>();
 
-        for (CertificateToValidateDTO toValidate : toValidateList) {
-            indications.add(validateCertificate(toValidate));
-        }
+            for (CertificateToValidateDTO toValidate : toValidateList) {
+                indications.add(validateCertificate(toValidate));
+            }
 
         return new IndicationsListDTO(indications);
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        }
+        return null; // We won't get here
     }
-
 }

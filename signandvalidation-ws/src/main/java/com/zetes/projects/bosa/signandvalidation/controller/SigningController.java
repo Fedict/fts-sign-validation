@@ -90,6 +90,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -114,6 +116,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -128,6 +132,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (TokenCreationFailureException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (InvalidKeyConfigException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -164,6 +170,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         } catch (ObjectStorageService.InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
     }
 
@@ -174,6 +182,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (ObjectStorageService.InvalidTokenException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         } catch (ObjectStorageService.InvalidKeyConfigException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -191,6 +201,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -208,6 +220,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -234,6 +248,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -251,6 +267,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -265,6 +283,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters);
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -279,6 +299,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             return validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters);
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -291,6 +313,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             return signatureService.timestamp(timestampDocumentDto.getDocument(), parameters);
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -303,6 +327,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             return signatureServiceMultiple.timestamp(timestampDocumentDto.getDocuments(), parameters);
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }

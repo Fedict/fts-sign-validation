@@ -25,6 +25,9 @@ class ControllerBase {
     }
 
     protected void logAndThrowEx(HttpStatus httpStatus, String errConst, String details, Exception e) {
+        if (e instanceof ResponseStatusException)
+            throw (ResponseStatusException) e; // we already logged this exception
+
         String ref = logDateTimeFormatter.format(Instant.now());
         String mesg = ref + "||" + errConst + "||";
         if (null != details)
