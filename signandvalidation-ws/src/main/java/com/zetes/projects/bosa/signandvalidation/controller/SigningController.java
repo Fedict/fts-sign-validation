@@ -102,7 +102,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             checkDataToSign(parameters);
 
-            ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken()), parameters);
+            ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken(), 60 * 5), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
         } catch (JOSEException | ParseException e) {
