@@ -159,15 +159,18 @@ public class ObjectStorageService {
             return false;
         }
     }
-    public String getTokenForDocument(String bucket, String file, String outFile, String profile) throws TokenCreationFailureException, InvalidKeyConfigException {
+    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt) throws TokenCreationFailureException, InvalidKeyConfigException {
         try {
-            PlainJWT jwt = new PlainJWT(new JWTClaimsSet.Builder()
+            JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                     .claim("cid", bucket)
                     .claim("in", file)
                     .claim("out", outFile)
                     .claim("prof", profile)
-                    .issueTime(new Date())
-                    .build());
+                    .issueTime(new Date());
+            if(xslt != null) {
+                builder.claim("xslt", xslt);
+            }
+            PlainJWT jwt = new PlainJWT(builder.build());
             JWEObject jweObject = new JWEObject(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256)
                     .keyID(getKid())
                     .build(), new Payload(jwt.serialize()));
@@ -178,14 +181,15 @@ public class ObjectStorageService {
             throw new TokenCreationFailureException();
         }
     }
-    public RemoteDocument getDocumentForToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
+    public RemoteDocument getDocumentForToken(String token, boolean wantXslt, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
         RemoteDocument rv = new RemoteDocument();
         try {
             TokenParser tokenData = new TokenParser(token, this, validMinutes);
+            String dataName = wantXslt ? tokenData.getIn() : tokenData.getXslt();
             InputStream stream = getClient().getObject(
                     GetObjectArgs.builder()
                             .bucket(tokenData.getCid())
-                            .object(tokenData.getIn())
+                            .object(dataName)
                             .build()
             );
             ByteArrayOutputStream container = new ByteArrayOutputStream();
@@ -237,7 +241,13 @@ public class ObjectStorageService {
         }
     }
     public RemoteDocument getDocumentForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
-        return getDocumentForToken(token, 5);
+        return getDocumentForToken(token, false, 5);
+    }
+    public RemoteDocument getDocumentForToken(String token, boolean wantXslt) throws InvalidTokenException, InvalidKeyConfigException {
+        return getDocumentForToken(token, wantXslt, 5);
+    }
+    public RemoteDocument getDocumentForToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
+        return getDocumentForToken(token, false, validMinutes);
     }
 
     public static class InvalidTokenException extends Exception {

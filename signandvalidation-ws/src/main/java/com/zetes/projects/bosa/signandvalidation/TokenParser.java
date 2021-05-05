@@ -27,6 +27,7 @@ public class TokenParser {
     private final String out;
     private final String prof;
     private final Date iad;
+    private final String xslt;
         
     private static JWTClaimsSet ParseToken(String token, ObjectStorageService os) throws ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
         JWEObject jweObject = JWEObject.parse(token);
@@ -43,6 +44,11 @@ public class TokenParser {
         in = claims.getClaim("in").toString();
         out = claims.getClaim("out").toString();
         prof = claims.getClaim("prof").toString();
+        if(claims.getClaims().containsKey("xslt")) {
+            xslt = claims.getClaim("xslt").toString();
+        } else {
+            xslt = null;
+        }
         iad = claims.getIssueTime();
     }
     public TokenParser(String token, ObjectStorageService os, int validMinutes) throws TokenExpiredException, ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
@@ -59,6 +65,11 @@ public class TokenParser {
         in = claims.getClaim("in").toString();
         out = claims.getClaim("out").toString();
         prof = claims.getClaim("prof").toString();
+        if(claims.getClaims().containsKey("xslt")) {
+            xslt = claims.getClaim("xslt").toString();
+        } else {
+            xslt = null;
+        }
         iad = d;
     }
     public String getCid() {
@@ -75,6 +86,9 @@ public class TokenParser {
     }
     public Date getIad() {
         return iad;
+    }
+    public String getXslt() {
+        return xslt;
     }
 
     public static class TokenExpiredException extends Exception {

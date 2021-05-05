@@ -127,7 +127,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(!(ObjStorageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
-            return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(), tokenData.getProf());
+            return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(), tokenData.getProf(), tokenData.getXslt());
         } catch (TokenCreationFailureException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (InvalidKeyConfigException e) {
@@ -144,15 +144,27 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         try {
             String[] qs = request.getQueryString().split("&");
             String token = null;
+            String type = null;
             for(String item : qs) {
                 if(item.startsWith("token")) {
                     token = item.substring(item.indexOf("=") + 1);
+                }
+                if(item.startsWith("type")) {
+                    type = item.substring(item.indexOf("=") + 1);
                 }
             }
             if(null == token) {
                 logAndThrowEx(BAD_REQUEST, NO_TOKEN, null, null);
             }
-            byte[] rv = ObjStorageService.getDocumentForToken(token).getBytes();
+            boolean wantXslt = false;
+            if(type != null) {
+                if ("xslt".equals(type)) {
+                    wantXslt = true;
+                } else {
+                    logAndThrowEx(BAD_REQUEST, INVALID_TYPE, null, null);
+                }
+            }
+            byte[] rv = ObjStorageService.getDocumentForToken(token, wantXslt).getBytes();
             DocumentMetadataDTO typeForToken = ObjStorageService.getTypeForToken(token);
             response.setContentType(typeForToken.getMimetype());
             if((typeForToken.getMimetype().equals("application/pdf"))) {

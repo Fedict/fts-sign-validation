@@ -15,15 +15,17 @@ public class GetTokenForDocumentDTO {
     private String in;
     private String out;
     private String prof;
+    private String xslt;
 
     public GetTokenForDocumentDTO() {
     }
-    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof) {
+    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt) {
         this.name = name;
         this.pwd = pwd;
         this.in = in;
         this.out = out;
         this.prof = prof;
+        this.xslt = xslt;
     }
     public String getName() {
         return name;
@@ -54,5 +56,11 @@ public class GetTokenForDocumentDTO {
     }
     public void setProf(String prof) {
         this.prof = prof;
+    }
+    public String getXslt() {
+        return xslt;
+    }
+    public void setXslt(String xslt) {
+        this.xslt = xslt;
     }
 }
