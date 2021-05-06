@@ -140,6 +140,9 @@ public class ObjectStorageService {
             throw new InvalidKeyConfigException();
         }
     }
+    public String getProfileForToken(TokenParser token) {
+        return token.getProf();
+    }
     public String getProfileForToken(String token) throws JOSEException, ParseException, InvalidKeyConfigException {
         return new TokenParser(token, this).getProf();
     }
@@ -181,10 +184,9 @@ public class ObjectStorageService {
             throw new TokenCreationFailureException();
         }
     }
-    public RemoteDocument getDocumentForToken(String token, boolean wantXslt, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
+    public RemoteDocument getDocumentForToken(TokenParser tokenData, boolean wantXslt) throws InvalidTokenException {
         RemoteDocument rv = new RemoteDocument();
         try {
-            TokenParser tokenData = new TokenParser(token, this, validMinutes);
             String dataName = wantXslt ? tokenData.getXslt() : tokenData.getIn();
             InputStream stream = getClient().getObject(
                     GetObjectArgs.builder()
@@ -200,20 +202,17 @@ public class ObjectStorageService {
             }
             rv.setBytes(container.toByteArray());
             return rv;
-        } catch (ParseException | JOSEException | ErrorResponseException
+        } catch (ErrorResponseException
                 | InsufficientDataException | InternalException
                 | InvalidKeyException | InvalidResponseException
                 | IOException | NoSuchAlgorithmException | ServerException
                 | XmlParserException ex) {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TokenParser.TokenExpiredException ex) {
-            throw new InvalidTokenException();
         }
         throw new InvalidTokenException();
     }
-    public void storeDocumentForToken(String token, RemoteDocument document) throws InvalidTokenException, InvalidKeyConfigException {
+    public void storeDocumentForToken(TokenParser tokenData, RemoteDocument document) throws InvalidTokenException {
         try {
-            TokenParser tokenData = new TokenParser(token, this);
             try (ByteArrayInputStream bais = new ByteArrayInputStream(document.getBytes())) {
                 getClient().putObject(PutObjectArgs.builder()
                         .bucket(tokenData.getCid())
@@ -225,20 +224,20 @@ public class ObjectStorageService {
                 | InternalException | InvalidKeyException
                 | InvalidResponseException | IOException
                 | NoSuchAlgorithmException | ServerException
-                | XmlParserException | JOSEException | ParseException ex) {
+                | XmlParserException  ex) {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
             throw new InvalidTokenException();
         }
     }
+    public DocumentMetadataDTO getTypeForToken(TokenParser token) {
+        String filename = token.getIn();
+        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename));
+    }
     public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
-        try {
-            String filename = new TokenParser(token, this, 5).getIn();
-            return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename));
-        } catch (JOSEException | ParseException
-                | TokenParser.TokenExpiredException ex) {
-            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
-            throw new InvalidTokenException();
-        }
+        return getTypeForToken(parseToken(token, 5));
+    }
+    public RemoteDocument getDocumentForToken(String token, boolean wantXslt, int validMinutes) throws InvalidKeyConfigException, InvalidTokenException {
+        return getDocumentForToken(parseToken(token, validMinutes), wantXslt);
     }
     public RemoteDocument getDocumentForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
         return getDocumentForToken(token, false, 5);
@@ -248,6 +247,14 @@ public class ObjectStorageService {
     }
     public RemoteDocument getDocumentForToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
         return getDocumentForToken(token, false, validMinutes);
+    }
+    public TokenParser parseToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
+        try {
+            return new TokenParser(token, this, validMinutes);
+        } catch (ParseException | JOSEException | TokenParser.TokenExpiredException ex) {
+            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        throw new InvalidTokenException();
     }
 
     public static class InvalidTokenException extends Exception {

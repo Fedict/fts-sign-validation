@@ -1,6 +1,7 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.nimbusds.jose.JOSEException;
+import com.zetes.projects.bosa.signandvalidation.TokenParser;
 import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.InvalidKeyConfigException;
@@ -164,8 +165,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     logAndThrowEx(BAD_REQUEST, INVALID_TYPE, null, null);
                 }
             }
-            byte[] rv = ObjStorageService.getDocumentForToken(token, wantXslt).getBytes();
-            DocumentMetadataDTO typeForToken = ObjStorageService.getTypeForToken(token);
+            TokenParser tp = ObjStorageService.parseToken(token, 5);
+            byte[] rv = ObjStorageService.getDocumentForToken(tp, wantXslt).getBytes();
+            DocumentMetadataDTO typeForToken = ObjStorageService.getTypeForToken(tp);
             response.setContentType(typeForToken.getMimetype());
             if((typeForToken.getMimetype().equals("application/pdf"))) {
                 response.setHeader("Content-Disposition", "inline; filename=" + typeForToken.getFilename());
@@ -240,17 +242,16 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(signDocumentDto.getToken()), signDocumentDto.getClientSignatureParameters());
+            TokenParser tp = ObjStorageService.parseToken(signDocumentDto.getToken(), 60 * 5);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), signDocumentDto.getClientSignatureParameters());
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
-            RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(signDocumentDto.getToken(), 60 * 5), parameters, signatureValueDto);
-            signedDoc.setName(ObjStorageService.getTypeForToken(signDocumentDto.getToken()).getFilename());
+            RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(tp, false), parameters, signatureValueDto);
+            signedDoc.setName(ObjStorageService.getTypeForToken(tp).getFilename());
 
             signedDoc = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters);
-            ObjStorageService.storeDocumentForToken(signDocumentDto.getToken(), signedDoc);
+            ObjStorageService.storeDocumentForToken(tp, signedDoc);
 
             return signedDoc;
-        } catch (JOSEException | ParseException e) {
-          logAndThrowEx(BAD_REQUEST, PARSE_ERROR, e);
         } catch(ObjectStorageService.InvalidTokenException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e.getMessage());
        } catch(NullParameterException e) {
