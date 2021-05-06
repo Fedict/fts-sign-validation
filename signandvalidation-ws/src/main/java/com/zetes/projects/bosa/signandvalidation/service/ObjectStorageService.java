@@ -185,7 +185,7 @@ public class ObjectStorageService {
         RemoteDocument rv = new RemoteDocument();
         try {
             TokenParser tokenData = new TokenParser(token, this, validMinutes);
-            String dataName = wantXslt ? tokenData.getIn() : tokenData.getXslt();
+            String dataName = wantXslt ? tokenData.getXslt() : tokenData.getIn();
             InputStream stream = getClient().getObject(
                     GetObjectArgs.builder()
                             .bucket(tokenData.getCid())
