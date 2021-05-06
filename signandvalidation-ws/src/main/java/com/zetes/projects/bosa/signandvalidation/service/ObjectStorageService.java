@@ -114,7 +114,7 @@ public class ObjectStorageService {
 
     public SecretKey getKeyForId(String kid) throws InvalidKeyConfigException {
         try {
-            if(defaultKey.getKid().equals(kid)) {
+            if(defaultKey != null && defaultKey.getKid().equals(kid)) {
                 return defaultKey.getData();
             }
             if(!keys.containsKey(kid)) {
