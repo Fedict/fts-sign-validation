@@ -194,9 +194,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             return ObjStorageService.getTypeForToken(token);
         } catch (ObjectStorageService.InvalidTokenException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
-        } catch (ObjectStorageService.InvalidKeyConfigException e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } catch (RuntimeException e) {
+        } catch (ObjectStorageService.InvalidKeyConfigException | RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -258,9 +256,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
-        } catch (InvalidKeyConfigException e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } catch (RuntimeException e) {
+        } catch (InvalidKeyConfigException | RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
