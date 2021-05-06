@@ -110,6 +110,7 @@ public class ObjectStorageService {
         mimeMap = new MimetypesFileTypeMap();
         mimeMap.addMimeTypes("application/pdf PDF pdf");
         mimeMap.addMimeTypes("application/xml xml XML docx");
+        mimeMap.addMimeTypes("aplication/xslt+xml xslt XSLT");
     }
 
     public SecretKey getKeyForId(String kid) throws InvalidKeyConfigException {
