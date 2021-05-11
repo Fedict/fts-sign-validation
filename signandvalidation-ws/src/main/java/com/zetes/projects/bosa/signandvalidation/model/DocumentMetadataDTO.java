@@ -12,10 +12,12 @@ package com.zetes.projects.bosa.signandvalidation.model;
 public class DocumentMetadataDTO {
     private String filename;
     private String mimetype;
+    private String xsltUrl;
     
-    public DocumentMetadataDTO(String filename, String mimetype) {
+    public DocumentMetadataDTO(String filename, String mimetype, String xsltUrl) {
         this.filename = filename;
         this.mimetype = mimetype;
+        this.xsltUrl = xsltUrl;
     }
     public String getFilename() {
         return filename;
@@ -28,5 +30,11 @@ public class DocumentMetadataDTO {
     }
     public void setMimetype(String mimetype) {
         this.mimetype = mimetype;
+    }
+    public String getXsltUrl() {
+        return xsltUrl;
+    }
+    public void setXsltUrl(String xsltUrl) {
+        this.xsltUrl = xsltUrl;
     }
 }

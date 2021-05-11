@@ -232,7 +232,11 @@ public class ObjectStorageService {
     }
     public DocumentMetadataDTO getTypeForToken(TokenParser token) {
         String filename = token.getIn();
-        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename));
+        String xsltUrl = null;
+        if(token.getXslt() != null) {
+            xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + token.getRaw();
+        }
+        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl);
     }
     public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
         return getTypeForToken(parseToken(token, 5));
