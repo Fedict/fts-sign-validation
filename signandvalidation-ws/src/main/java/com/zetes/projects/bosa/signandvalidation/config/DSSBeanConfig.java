@@ -32,8 +32,10 @@ import eu.europa.esig.dss.ws.signature.common.RemoteDocumentSignatureServiceImpl
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureServiceImpl;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.xades.signature.XAdESService;
+import eu.europa.esig.dss.alert.LogOnStatusAlert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -198,13 +200,13 @@ public class DSSBeanConfig {
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
         certificateVerifier.setDataLoader(dataLoader());
-        certificateVerifier.setTrustedCertSource(trustedListSource());
+        certificateVerifier.setTrustedCertSources(trustedListSource());
         if (testKsenabled) {
-            certificateVerifier.setTrustedCertSource(testTrustStoreSource());
+            certificateVerifier.setTrustedCertSources(testTrustStoreSource());
         }
 
         // Default configs
-        certificateVerifier.setExceptionOnMissingRevocationData(true);
+        certificateVerifier.setAlertOnMissingRevocationData(new LogOnStatusAlert(Level.WARN));
         certificateVerifier.setCheckRevocationForUntrustedChains(false);
 
         return certificateVerifier;

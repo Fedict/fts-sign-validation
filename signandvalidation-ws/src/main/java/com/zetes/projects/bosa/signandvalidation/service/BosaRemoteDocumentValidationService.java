@@ -8,6 +8,7 @@ import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
+import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
@@ -34,7 +35,8 @@ public class BosaRemoteDocumentValidationService {
 	public WSReportsDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy) {
 
 		// Let DSS to it's normal validation
-		WSReportsDTO report = remoteDocumentValidationService.validateDocument(signedDocument, originalDocuments, policy);
+		WSReportsDTO report = remoteDocumentValidationService.validateDocument(
+			new DataToValidateDTO(signedDocument, originalDocuments, policy));
 
 		// Check if the signature algo is MD5 or SHA1
 		XmlDiagnosticData diagsData = report.getDiagnosticData();
