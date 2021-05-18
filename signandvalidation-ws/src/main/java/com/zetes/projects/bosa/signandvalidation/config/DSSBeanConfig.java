@@ -200,10 +200,10 @@ public class DSSBeanConfig {
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
         certificateVerifier.setDataLoader(dataLoader());
-        certificateVerifier.setTrustedCertSources(trustedListSource());
-        if (testKsenabled) {
-            certificateVerifier.setTrustedCertSources(testTrustStoreSource());
-        }
+        if (testKsenabled)
+            certificateVerifier.setTrustedCertSources(trustedListSource(), testTrustStoreSource());
+        else
+            certificateVerifier.setTrustedCertSources(trustedListSource());
 
         // Default configs
         certificateVerifier.setAlertOnMissingRevocationData(new LogOnStatusAlert(Level.WARN));
