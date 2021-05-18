@@ -38,10 +38,6 @@ public class SignatureIndicationsDTO {
         return subIndication;
     }
 
-    public void setSubIndication(SubIndication subIndication) {
-        this.subIndication = subIndication.toString();
-    }
-
     public void setSubIndication(String subIndication) {
         this.subIndication = subIndication;
     }
