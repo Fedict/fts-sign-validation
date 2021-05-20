@@ -75,7 +75,9 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 
         try {
-            CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+            CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(
+                new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
+			toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
             return reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -89,7 +91,9 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 
         try {
-            return remoteCertificateValidationService.validateCertificate(toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+            return remoteCertificateValidationService.validateCertificate(
+                new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
+			toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }

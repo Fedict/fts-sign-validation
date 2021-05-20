@@ -218,8 +218,8 @@ public class SigningConfiguratorServiceTest {
         // given
         saveProfileSignatureParameters("XADES_B", null, null, SignatureLevel.XAdES_BASELINE_B,
                 SignaturePackaging.ENVELOPING, SHA512, SHA256, null,
-                false, "id", "qualifier", "desc",
-                SHA224, "digest".getBytes(), "spuri", Arrays.asList("commitment"), true, true,
+                false, "id", ObjectIdentifierQualifier.OID_AS_URI, "desc",
+                SHA224, "digest".getBytes(), "spuri", Arrays.asList(CommitmentTypeEnum.ProofOfOrigin), true, true,
                 SHA1, INCLUSIVE, PDF, SHA384, EXCLUSIVE_WITH_COMMENTS, ASiC_E, SHA512, INCLUSIVE_WITH_COMMENTS, ASiC_S, "tspServer");
         ClientSignatureParameters clientParams = new ClientSignatureParameters();
         clientParams.setSigningCertificate(getRsaCertificate());
@@ -245,7 +245,7 @@ public class SigningConfiguratorServiceTest {
 
         assertFalse(bLevelParams.isTrustAnchorBPPolicy());
         assertEquals("id", bLevelParams.getPolicyId());
-        assertEquals("qualifier", bLevelParams.getPolicyQualifier());
+        assert(ObjectIdentifierQualifier.OID_AS_URI.equals(bLevelParams.getPolicyQualifier()));
         assertEquals("desc", bLevelParams.getPolicyDescription());
         assertEquals(SHA224, bLevelParams.getPolicyDigestAlgorithm());
         assertEquals("digest", new String(bLevelParams.getPolicyDigestValue()));
@@ -424,12 +424,12 @@ public class SigningConfiguratorServiceTest {
                                                 MaskGenerationFunction maskGenerationFunction,
                                                 Boolean trustAnchorBPPolicy,
                                                 String policyId,
-                                                String policyQualifier,
+                                                ObjectIdentifierQualifier policyQualifier,
                                                 String policyDescription,
                                                 DigestAlgorithm policyDigestAlgorithm,
                                                 byte[] policyDigestValue,
                                                 String policySpuri,
-                                                List<String> commitmentTypeIndications,
+                                                List<CommitmentTypeEnum> commitmentTypeIndications,
                                                 Boolean signWithExpiredCertificate,
                                                 Boolean generateTBSWithoutCertificate,
                                                 DigestAlgorithm contentTimestampDigestAlgorithm,

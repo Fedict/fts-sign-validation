@@ -39,7 +39,7 @@ public class ProfileSignatureParameters extends JsonObject {
 
     private String policyId;
 
-    private String policyQualifier;
+    private ObjectIdentifierQualifier policyQualifier;
 
     private String policyDescription;
 
@@ -49,7 +49,7 @@ public class ProfileSignatureParameters extends JsonObject {
 
     private String policySpuri;
 
-    private List<String> commitmentTypeIndications = new ArrayList<>();
+    private List<CommitmentTypeEnum> commitmentTypeIndications = new ArrayList<>();
 
     private Boolean signWithExpiredCertificate;
 
@@ -171,11 +171,11 @@ public class ProfileSignatureParameters extends JsonObject {
         this.policyId = policyId;
     }
 
-    public String getPolicyQualifier() {
+    public ObjectIdentifierQualifier getPolicyQualifier() {
         return policyQualifier;
     }
 
-    public void setPolicyQualifier(String policyQualifier) {
+    public void setPolicyQualifier(ObjectIdentifierQualifier policyQualifier) {
         this.policyQualifier = policyQualifier;
     }
 
@@ -211,11 +211,11 @@ public class ProfileSignatureParameters extends JsonObject {
         this.policySpuri = policySpuri;
     }
 
-    public List<String> getCommitmentTypeIndications() {
+    public List<CommitmentTypeEnum> getCommitmentTypeIndications() {
         return commitmentTypeIndications;
     }
 
-    public void setCommitmentTypeIndications(List<String> commitmentTypeIndications) {
+    public void setCommitmentTypeIndications(List<CommitmentTypeEnum> commitmentTypeIndications) {
         this.commitmentTypeIndications = commitmentTypeIndications;
     }
 

@@ -1,6 +1,7 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.nimbusds.jose.JOSEException;
+import com.zetes.projects.bosa.signandvalidation.TokenParser;
 import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.InvalidKeyConfigException;
@@ -102,7 +103,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             checkDataToSign(parameters);
 
-            ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken()), parameters);
+            ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken(), 60 * 5), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
         } catch (JOSEException | ParseException e) {
@@ -127,7 +128,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(!(ObjStorageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
-            return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(), tokenData.getProf());
+            return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(), tokenData.getProf(), tokenData.getXslt());
         } catch (TokenCreationFailureException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (InvalidKeyConfigException e) {
@@ -144,16 +145,29 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         try {
             String[] qs = request.getQueryString().split("&");
             String token = null;
+            String type = null;
             for(String item : qs) {
                 if(item.startsWith("token")) {
                     token = item.substring(item.indexOf("=") + 1);
+                }
+                if(item.startsWith("type")) {
+                    type = item.substring(item.indexOf("=") + 1);
                 }
             }
             if(null == token) {
                 logAndThrowEx(BAD_REQUEST, NO_TOKEN, null, null);
             }
-            byte[] rv = ObjStorageService.getDocumentForToken(token).getBytes();
-            DocumentMetadataDTO typeForToken = ObjStorageService.getTypeForToken(token);
+            boolean wantXslt = false;
+            if(type != null) {
+                if ("xslt".equals(type)) {
+                    wantXslt = true;
+                } else {
+                    logAndThrowEx(BAD_REQUEST, INVALID_TYPE, null, null);
+                }
+            }
+            TokenParser tp = ObjStorageService.parseToken(token, 5);
+            byte[] rv = ObjStorageService.getDocumentForToken(tp, wantXslt).getBytes();
+            DocumentMetadataDTO typeForToken = ObjStorageService.getTypeForToken(tp);
             response.setContentType(typeForToken.getMimetype());
             if((typeForToken.getMimetype().equals("application/pdf"))) {
                 response.setHeader("Content-Disposition", "inline; filename=" + typeForToken.getFilename());
@@ -180,9 +194,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             return ObjStorageService.getTypeForToken(token);
         } catch (ObjectStorageService.InvalidTokenException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
-        } catch (ObjectStorageService.InvalidKeyConfigException e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } catch (RuntimeException e) {
+        } catch (ObjectStorageService.InvalidKeyConfigException | RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -228,26 +240,23 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(signDocumentDto.getToken()), signDocumentDto.getClientSignatureParameters());
+            TokenParser tp = ObjStorageService.parseToken(signDocumentDto.getToken(), 60 * 5);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), signDocumentDto.getClientSignatureParameters());
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
-            RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(signDocumentDto.getToken(), 60 * 5), parameters, signatureValueDto);
-            signedDoc.setName(ObjStorageService.getTypeForToken(signDocumentDto.getToken()).getFilename());
+            RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(tp, false), parameters, signatureValueDto);
+            signedDoc.setName(ObjStorageService.getTypeForToken(tp).getFilename());
 
             signedDoc = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters);
-            ObjStorageService.storeDocumentForToken(signDocumentDto.getToken(), signedDoc);
+            ObjStorageService.storeDocumentForToken(tp, signedDoc);
 
             return signedDoc;
-        } catch (JOSEException | ParseException e) {
-          logAndThrowEx(BAD_REQUEST, PARSE_ERROR, e);
         } catch(ObjectStorageService.InvalidTokenException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e.getMessage());
        } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
-        } catch (InvalidKeyConfigException e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } catch (RuntimeException e) {
+        } catch (InvalidKeyConfigException | RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here

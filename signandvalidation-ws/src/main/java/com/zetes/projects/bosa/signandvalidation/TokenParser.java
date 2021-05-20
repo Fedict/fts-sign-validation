@@ -27,6 +27,8 @@ public class TokenParser {
     private final String out;
     private final String prof;
     private final Date iad;
+    private final String xslt;
+    private final String raw;
         
     private static JWTClaimsSet ParseToken(String token, ObjectStorageService os) throws ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
         JWEObject jweObject = JWEObject.parse(token);
@@ -38,14 +40,21 @@ public class TokenParser {
     }
         
     public TokenParser(String token, ObjectStorageService os) throws JOSEException, ParseException, ObjectStorageService.InvalidKeyConfigException {
+        raw = token;
         JWTClaimsSet claims = ParseToken(token, os);
         cid = claims.getClaim("cid").toString();
         in = claims.getClaim("in").toString();
         out = claims.getClaim("out").toString();
         prof = claims.getClaim("prof").toString();
+        if(claims.getClaims().containsKey("xslt")) {
+            xslt = claims.getClaim("xslt").toString();
+        } else {
+            xslt = null;
+        }
         iad = claims.getIssueTime();
     }
     public TokenParser(String token, ObjectStorageService os, int validMinutes) throws TokenExpiredException, ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
+        raw = token;
         JWTClaimsSet claims = ParseToken(token, os);
         Date d = claims.getIssueTime();
         Calendar c = Calendar.getInstance();
@@ -59,6 +68,11 @@ public class TokenParser {
         in = claims.getClaim("in").toString();
         out = claims.getClaim("out").toString();
         prof = claims.getClaim("prof").toString();
+        if(claims.getClaims().containsKey("xslt")) {
+            xslt = claims.getClaim("xslt").toString();
+        } else {
+            xslt = null;
+        }
         iad = d;
     }
     public String getCid() {
@@ -75,6 +89,12 @@ public class TokenParser {
     }
     public Date getIad() {
         return iad;
+    }
+    public String getXslt() {
+        return xslt;
+    }
+    public String getRaw() {
+        return raw;
     }
 
     public static class TokenExpiredException extends Exception {

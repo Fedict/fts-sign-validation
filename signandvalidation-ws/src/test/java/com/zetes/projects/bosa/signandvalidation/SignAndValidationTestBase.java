@@ -65,25 +65,25 @@ public class SignAndValidationTestBase {
             timestampedObject.setCategory(category);
 
             XmlAbstractToken token = null;
-            switch (category) {
-                case SIGNATURE:
+            switch (category.toString()) {
+                case "SIGNATURE":
                     token = new XmlSignature();
                     break;
-                case CERTIFICATE:
+                case "CERTIFICATE":
                     token = new XmlCertificate();
                     break;
-                case REVOCATION:
+                case "REVOCATION":
                     token = new XmlRevocation();
                     break;
-                case TIMESTAMP:
+                case "TIMESTAMP":
                     token = new XmlTimestamp();
                     break;
-                case SIGNED_DATA:
+                case "SIGNED_DATA":
                     token = new XmlSignerData();
                     break;
-                case ORPHAN:
-                    token = new XmlOrphanToken();
-                    break;
+                //case "ORPHAN":
+                //    token = new XmlOrphanToken();
+                //    break;
                 default:
                     throw new InvalidFormatException(jp, "Unsupported category value " + category, category, TimestampedObjectType.class);
             }
