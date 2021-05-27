@@ -13,12 +13,6 @@
     <name>Bosa: signandvalidation-ws</name>
 
     <dependencies>
-        <dependency>
-            <groupId>com.zetes.projects.bosa</groupId>
-            <artifactId>signingconfigurator</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- Spring -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
