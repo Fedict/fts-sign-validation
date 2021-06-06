@@ -22,13 +22,17 @@ import javax.crypto.SecretKey;
  * @author wouter
  */
 public class TokenParser {
-    private final String cid;
-    private final String in;
-    private final String out;
-    private final String prof;
-    private final Date iad;
-    private final String xslt;
-    private final String raw;
+    private String cid;
+    private String in;
+    private String out;
+    private String prof;
+    private Date iad;
+    private String xslt;  // XSLS file name
+    private String psp;   // PDF signature parameters file name
+    private String psfN;  // PDF signature field name
+    private String psfC;  // PDF signature field coordinates
+    private boolean psfP = false;  // Include eID photo as icon in the PDF signature field
+    private String raw;
         
     private static JWTClaimsSet ParseToken(String token, ObjectStorageService os) throws ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
         JWEObject jweObject = JWEObject.parse(token);
@@ -42,16 +46,7 @@ public class TokenParser {
     public TokenParser(String token, ObjectStorageService os) throws JOSEException, ParseException, ObjectStorageService.InvalidKeyConfigException {
         raw = token;
         JWTClaimsSet claims = ParseToken(token, os);
-        cid = claims.getClaim("cid").toString();
-        in = claims.getClaim("in").toString();
-        out = claims.getClaim("out").toString();
-        prof = claims.getClaim("prof").toString();
-        if(claims.getClaims().containsKey("xslt")) {
-            xslt = claims.getClaim("xslt").toString();
-        } else {
-            xslt = null;
-        }
-        iad = claims.getIssueTime();
+        init(claims, os, null);
     }
     public TokenParser(String token, ObjectStorageService os, int validMinutes) throws TokenExpiredException, ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
         raw = token;
@@ -64,6 +59,9 @@ public class TokenParser {
         if(c.compareTo(now) < 0) {
             throw new TokenExpiredException();
         }
+        init(claims, os, d);
+    }
+    protected void init(JWTClaimsSet claims, ObjectStorageService os, Date validity) throws JOSEException, ParseException, ObjectStorageService.InvalidKeyConfigException {
         cid = claims.getClaim("cid").toString();
         in = claims.getClaim("in").toString();
         out = claims.getClaim("out").toString();
@@ -73,7 +71,18 @@ public class TokenParser {
         } else {
             xslt = null;
         }
-        iad = d;
+        if(claims.getClaims().containsKey("psp"))
+            psp = claims.getClaim("psp").toString();
+        if(claims.getClaims().containsKey("psfN"))
+            psfN = claims.getClaim("psfN").toString();
+        if(claims.getClaims().containsKey("psfC"))
+            psfC = claims.getClaim("psfC").toString();
+        if(claims.getClaims().containsKey("psfP"))
+            psfP = "true".equals(claims.getClaim("psfP").toString());
+        if (null != validity)
+            iad = validity;
+        else
+            iad = claims.getIssueTime();
     }
     public String getCid() {
         return cid;
@@ -92,6 +101,18 @@ public class TokenParser {
     }
     public String getXslt() {
         return xslt;
+    }
+    public String getPsp() {
+        return psp;
+    }
+    public String getPsfN() {
+        return psfN;
+    }
+    public String getPsfC() {
+        return psfC;
+    }
+    public boolean getPsfP() {
+        return psfP;
     }
     public String getRaw() {
         return raw;

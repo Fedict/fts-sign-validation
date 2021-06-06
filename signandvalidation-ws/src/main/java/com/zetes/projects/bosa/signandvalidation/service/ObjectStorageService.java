@@ -163,7 +163,8 @@ public class ObjectStorageService {
             return false;
         }
     }
-    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt) throws TokenCreationFailureException, InvalidKeyConfigException {
+    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP)
+            throws TokenCreationFailureException, InvalidKeyConfigException {
         try {
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                     .claim("cid", bucket)
@@ -171,9 +172,16 @@ public class ObjectStorageService {
                     .claim("out", outFile)
                     .claim("prof", profile)
                     .issueTime(new Date());
-            if(xslt != null) {
+            if(xslt != null)
                 builder.claim("xslt", xslt);
-            }
+            if(psp != null)
+                builder.claim("psp", psp);
+            if(psfN != null)
+                builder.claim("psfN", psfN);
+            if(psfC != null)
+                builder.claim("psfC", psfC);
+            if(psfP != null)
+                builder.claim("psfP", psfP);
             PlainJWT jwt = new PlainJWT(builder.build());
             JWEObject jweObject = new JWEObject(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256)
                     .keyID(getKid())
@@ -185,13 +193,11 @@ public class ObjectStorageService {
             throw new TokenCreationFailureException();
         }
     }
-    public RemoteDocument getDocumentForToken(TokenParser tokenData, boolean wantXslt) throws InvalidTokenException {
-        RemoteDocument rv = new RemoteDocument();
+    public byte[] getFileForToken(String dataName, String cid) throws InvalidTokenException {
         try {
-            String dataName = wantXslt ? tokenData.getXslt() : tokenData.getIn();
             InputStream stream = getClient().getObject(
                     GetObjectArgs.builder()
-                            .bucket(tokenData.getCid())
+                            .bucket(cid)
                             .object(dataName)
                             .build()
             );
@@ -201,16 +207,19 @@ public class ObjectStorageService {
             while((len = stream.read(buf)) >= 0) {
                 container.write(buf, 0, len);
             }
-            rv.setBytes(container.toByteArray());
-            return rv;
-        } catch (ErrorResponseException
-                | InsufficientDataException | InternalException
-                | InvalidKeyException | InvalidResponseException
-                | IOException | NoSuchAlgorithmException | ServerException
-                | XmlParserException ex) {
-            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+            return container.toByteArray();
         }
-        throw new InvalidTokenException();
+        catch (Exception ex) {
+            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+            throw new InvalidTokenException("Error getting file '" + dataName + "':" + ex.getMessage());
+        }
+    }
+    public RemoteDocument getDocumentForToken(TokenParser tokenData, boolean wantXslt) throws InvalidTokenException {
+            String dataName = wantXslt ? tokenData.getXslt() : tokenData.getIn();
+            byte[] data = getFileForToken(dataName, tokenData.getCid());
+            RemoteDocument ret = new RemoteDocument();
+            ret.setBytes(data);
+            return ret;
     }
     public void storeDocumentForToken(TokenParser tokenData, RemoteDocument document) throws InvalidTokenException {
         try {
@@ -236,7 +245,8 @@ public class ObjectStorageService {
         if(token.getXslt() != null) {
             xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + token.getRaw();
         }
-        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl);
+        boolean readPhoto = token.getPsfP();
+        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl, readPhoto);
     }
     public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
         return getTypeForToken(parseToken(token, 5));
@@ -265,6 +275,9 @@ public class ObjectStorageService {
     public static class InvalidTokenException extends Exception {
 
         public InvalidTokenException() {
+        }
+        public InvalidTokenException(String mesg) {
+            super(mesg);
         }
     }
 

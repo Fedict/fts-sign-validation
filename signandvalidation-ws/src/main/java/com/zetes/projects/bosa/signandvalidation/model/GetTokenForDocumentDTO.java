@@ -16,16 +16,24 @@ public class GetTokenForDocumentDTO {
     private String out;
     private String prof;
     private String xslt;
+    private String psp;   // PDF signature parameters file name
+    private String psfN;  // PDF signature field name
+    private String psfC;  // PDF signature field coordinates
+    private String psfP;  // Include eID photo as icon in the PDF signature field
 
     public GetTokenForDocumentDTO() {
     }
-    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt) {
+    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt, String psp, String psfN, String psfC, String psfP) {
         this.name = name;
         this.pwd = pwd;
         this.in = in;
         this.out = out;
         this.prof = prof;
         this.xslt = xslt;
+        this.psp = psp;
+        this.psfN = psfN;
+        this.psfC = psfC;
+        this.psfP = psfP;
     }
     public String getName() {
         return name;
@@ -62,5 +70,29 @@ public class GetTokenForDocumentDTO {
     }
     public void setXslt(String xslt) {
         this.xslt = xslt;
+    }
+    public String getPsp() {
+        return psp;
+    }
+    public void setPsp(String psp) {
+        this.psp = psp;
+    }
+    public String getPsfN() {
+        return psfN;
+    }
+    public void setPsfN(String psfN) {
+        this.psfN = psfN;
+    }
+    public String getPsfC() {
+        return psfC;
+    }
+    public void setPsfC(String psfC) {
+        this.psfC = psfC;
+    }
+    public String getPsfP() {
+        return psfP;
+    }
+    public void setPsfP(String psfP) {
+        this.psfP = psfP;
     }
 }

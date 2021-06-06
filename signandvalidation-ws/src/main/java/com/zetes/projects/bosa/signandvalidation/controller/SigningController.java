@@ -1,9 +1,13 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
+import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
+
 import com.nimbusds.jose.JOSEException;
 import com.zetes.projects.bosa.signandvalidation.TokenParser;
 import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService;
+import com.zetes.projects.bosa.signandvalidation.service.PdfVisibleSignatureService;
+import com.zetes.projects.bosa.signandvalidation.service.PdfVisibleSignatureService.PdfVisibleSignatureException;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.InvalidKeyConfigException;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.TokenCreationFailureException;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
@@ -55,6 +59,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private SigningConfiguratorService signingConfigService;
 
     @Autowired
+    private PdfVisibleSignatureService pdfVisibleSignatureService;
+
+    @Autowired
     private RemoteDocumentSignatureService signatureService;
 
     @Autowired
@@ -88,6 +95,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch (PdfVisibleSignatureException e) {
+            logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException e) {
@@ -99,21 +108,29 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value="/getDataToSignForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(dataToSignForTokenDto.getToken()), dataToSignForTokenDto.getClientSignatureParameters());
+        ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
+            String token = dataToSignForTokenDto.getToken();
+            TokenParser tokenParser = ObjStorageService.parseToken(token, 60 * 5);
+
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(
+                tokenParser.getProf(), clientSigParams);
+            RemoteDocument document = ObjStorageService.getDocumentForToken(tokenParser, false);
 
             checkDataToSign(parameters);
+            if (parameters.getSignatureLevel().toString().startsWith("PAdES"))
+                pdfVisibleSignatureService.checkAndFillParams(parameters, document, tokenParser, clientSigParams.getPhoto());
 
-            ToBeSignedDTO dataToSign = signatureService.getDataToSign(ObjStorageService.getDocumentForToken(dataToSignForTokenDto.getToken(), 60 * 5), parameters);
+            ToBeSignedDTO dataToSign = signatureService.getDataToSign(document, parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
-        } catch (JOSEException | ParseException e) {
-            logAndThrowEx(BAD_REQUEST, PARSE_ERROR, e);
         } catch (ObjectStorageService.InvalidTokenException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch (PdfVisibleSignatureException e) {
+            logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch (InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (RuntimeException e) {
@@ -128,7 +145,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(!(ObjStorageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
-            return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(), tokenData.getProf(), tokenData.getXslt());
+            return ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(),
+                tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP());
         } catch (TokenCreationFailureException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (InvalidKeyConfigException e) {
@@ -240,13 +258,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDocumentDto) {
         try {
+            ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             TokenParser tp = ObjStorageService.parseToken(signDocumentDto.getToken(), 60 * 5);
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), signDocumentDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), clientSigParams);
+
+            if (parameters.getSignatureLevel().toString().startsWith("PAdES"))
+                pdfVisibleSignatureService.fillParams(parameters, tp, clientSigParams.getPhoto());
+
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(tp, false), parameters, signatureValueDto);
             signedDoc.setName(ObjStorageService.getTypeForToken(tp).getFilename());
 
-            signedDoc = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters);
+            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters);
             ObjStorageService.storeDocumentForToken(tp, signedDoc);
 
             return signedDoc;

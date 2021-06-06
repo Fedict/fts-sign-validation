@@ -26,6 +26,8 @@ public class ClientSignatureParameters {
     private String signerLocationCountry;
     private String signerLocationStreet;
 
+    private byte[] photo;
+
     public ClientSignatureParameters() {
     }
 
@@ -117,4 +119,11 @@ public class ClientSignatureParameters {
         this.signerLocationStreet = street;
     }
 
+    public byte[] getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(byte[] photo) {
+        this.photo = photo;
+    }
 }
