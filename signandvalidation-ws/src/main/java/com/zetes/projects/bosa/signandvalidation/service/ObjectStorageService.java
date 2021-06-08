@@ -248,28 +248,27 @@ public class ObjectStorageService {
         boolean readPhoto = token.getPsfP();
         return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl, readPhoto);
     }
-    public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
+    public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getTypeForToken(parseToken(token, 5));
     }
-    public RemoteDocument getDocumentForToken(String token, boolean wantXslt, int validMinutes) throws InvalidKeyConfigException, InvalidTokenException {
+    public RemoteDocument getDocumentForToken(String token, boolean wantXslt, int validMinutes) throws InvalidKeyConfigException, InvalidTokenException, TokenParser.TokenExpiredException {
         return getDocumentForToken(parseToken(token, validMinutes), wantXslt);
     }
-    public RemoteDocument getDocumentForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
+    public RemoteDocument getDocumentForToken(String token) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getDocumentForToken(token, false, 5);
     }
-    public RemoteDocument getDocumentForToken(String token, boolean wantXslt) throws InvalidTokenException, InvalidKeyConfigException {
+    public RemoteDocument getDocumentForToken(String token, boolean wantXslt) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getDocumentForToken(token, wantXslt, 5);
     }
-    public RemoteDocument getDocumentForToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
+    public RemoteDocument getDocumentForToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getDocumentForToken(token, false, validMinutes);
     }
-    public TokenParser parseToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
+    public TokenParser parseToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         try {
             return new TokenParser(token, this, validMinutes);
-        } catch (ParseException | JOSEException | TokenParser.TokenExpiredException ex) {
-            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException | JOSEException ex) {
+            throw new InvalidTokenException(ex);
         }
-        throw new InvalidTokenException();
     }
 
     public static class InvalidTokenException extends Exception {
@@ -278,6 +277,9 @@ public class ObjectStorageService {
         }
         public InvalidTokenException(String mesg) {
             super(mesg);
+        }
+        public InvalidTokenException(Exception e) {
+            super(e);
         }
     }
 

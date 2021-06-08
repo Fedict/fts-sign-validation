@@ -95,4 +95,23 @@ public class GetTokenForDocumentDTO {
     public void setPsfP(String psfP) {
         this.psfP = psfP;
     }
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"name\":\"").append(name)
+            .append("\", \"in\":\"").append(in)
+            .append("\", \"out\":\"").append(out)
+            .append("\", \"prof\":\"").append(prof);
+        if (null != xslt)
+            sb.append("\", \"xslt\":\"").append(xslt);
+        if (null != psp)
+            sb.append("\", \"psp\":\"").append(psp);
+        if (null != psfN)
+            sb.append("\", \"psfN\":\"").append(psfN);
+        if (null != psfC)
+            sb.append("\", \"psfC\":\"").append(psfC);
+        if (null != psfP)
+            sb.append("\", \"psfP\":\"").append(psfP);
+        sb.append("\"}");
+        return sb.toString();
+    }
 }

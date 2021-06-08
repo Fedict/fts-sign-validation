@@ -25,8 +25,8 @@ public class LoggingController extends ControllerBase {
 
         StringBuilder sb = new StringBuilder();
         sb.append(ref).append("||").append(feError.getErr())
+            .append(" token=...").append(feError.getToken())
             .append("\nresult: ").append(feError.getResult())
-            .append("\ntoken end: ").append(feError.getToken())
             .append("\nreport: ").append(feError.getReport());
 
         logger.log(Level.SEVERE, sb.toString());
