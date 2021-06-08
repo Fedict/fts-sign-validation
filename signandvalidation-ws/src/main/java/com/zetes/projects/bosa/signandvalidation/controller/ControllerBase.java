@@ -74,7 +74,7 @@ class ControllerBase {
         throw new ResponseStatusException(httpStatus, mesg);
     }
 
-    protected String token2str(String token) {
+    public static String token2str(String token) {
         if (null == token)
             return " token=<null>"; // shouldn't happen
         int len = token.length();
