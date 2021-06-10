@@ -28,6 +28,7 @@ public class TokenParser {
     private String prof;
     private Date iad;
     private String xslt;  // XSLS file name
+    private String lang;  // language: en (default), nl, fr, de
     private String psp;   // PDF signature parameters file name
     private String psfN;  // PDF signature field name
     private String psfC;  // PDF signature field coordinates
@@ -42,7 +43,7 @@ public class TokenParser {
         PlainJWT jwt = PlainJWT.parse(jweObject.getPayload().toString());
         return jwt.getJWTClaimsSet();
     }
-        
+
     public TokenParser(String token, ObjectStorageService os) throws JOSEException, ParseException, ObjectStorageService.InvalidKeyConfigException {
         raw = token;
         JWTClaimsSet claims = ParseToken(token, os);
@@ -71,6 +72,8 @@ public class TokenParser {
         } else {
             xslt = null;
         }
+        if(claims.getClaims().containsKey("lang"))
+            lang = claims.getClaim("lang").toString();
         if(claims.getClaims().containsKey("psp"))
             psp = claims.getClaim("psp").toString();
         if(claims.getClaims().containsKey("psfN"))
@@ -104,6 +107,9 @@ public class TokenParser {
     }
     public String getPsp() {
         return psp;
+    }
+    public String getLang() {
+        return lang;
     }
     public String getPsfN() {
         return psfN;

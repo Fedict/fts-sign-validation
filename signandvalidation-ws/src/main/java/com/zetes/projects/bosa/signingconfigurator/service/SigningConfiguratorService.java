@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Date;
 
 @Service
 public class SigningConfiguratorService {
@@ -131,7 +132,8 @@ public class SigningConfiguratorService {
         EncryptionAlgorithm encryptionAlgorithm = DSSUtils.loadCertificate(clientParams.getSigningCertificate().getEncodedCertificate()).getSignatureAlgorithm().getEncryptionAlgorithm();
         remoteSignatureParams.setEncryptionAlgorithm(encryptionAlgorithm);
 
-        remoteBLevelParams.setSigningDate(clientParams.getSigningDate());
+        Date signingDate = clientParams.getSigningDate();
+        remoteBLevelParams.setSigningDate(null == signingDate ? new Date() : signingDate);
         remoteBLevelParams.setClaimedSignerRoles(clientParams.getClaimedSignerRoles());
         remoteBLevelParams.setSignerLocationPostalAddress(clientParams.getSignerLocationPostalAddress());
         remoteBLevelParams.setSignerLocationPostalCode(clientParams.getSignerLocationPostalCode());

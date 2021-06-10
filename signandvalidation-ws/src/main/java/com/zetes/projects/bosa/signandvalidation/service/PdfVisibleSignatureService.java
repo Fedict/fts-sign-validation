@@ -33,6 +33,10 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 @Service
 public class PdfVisibleSignatureService {
@@ -76,12 +80,15 @@ public class PdfVisibleSignatureService {
             throws NullParameterException, ObjectStorageService.InvalidTokenException {
         String sigFieldId = tokenParser.getPsfN();
         String sigFieldCoords = tokenParser.getPsfC();
+        String lang = tokenParser.getLang();
 
         if (null == sigFieldId && null == sigFieldCoords)
             return;
 
+        Date signingDate = remoteSigParams.getBLevelParams().getSigningDate();
+
         // Defaults
-        String text = TEXT;
+        LinkedHashMap<String,String> texts = null;
         String font = FONT;
         int textPadding = TEXT_PADDING;
         int textSize = TEXT_SIZE;
@@ -101,7 +108,7 @@ public class PdfVisibleSignatureService {
                 PdfSignatureProfile psp = (new ObjectMapper()).readValue(new String(json), PdfSignatureProfile.class);
 
                 if (null != psp.bgColor)       bgColor = psp.bgColor;
-                if (null != psp.text)          text = psp.text;
+                if (null != psp.texts)         texts = psp.texts;
                 if (null != psp.font)          font = psp.font;
                 if (null != psp.textSize)      textSize = psp.textSize;
                 if (null != psp.textPadding)   textPadding = psp.textPadding;
@@ -112,7 +119,6 @@ public class PdfVisibleSignatureService {
                 if (null != psp.imageDpi)      imageDpi = psp.imageDpi;
                 if (null != psp.image)         image = psp.image;
                 if (null != psp.defaultCoordinates)    psfC = psp.defaultCoordinates;
-
             }
             catch (Exception e) {
                 throw new NullParameterException("Error parsing PDF Signature Profile file: " + e.getMessage());
@@ -138,10 +144,10 @@ public class PdfVisibleSignatureService {
             fillCoordinates(sigFieldParams, psfC);
         }
 
-        fillParams(remoteSigParams, text, font, textPadding, textSize, textAlignH, textAlignV, textPos, textColor, bgColor, imageDpi, image);
+        fillParams(remoteSigParams, texts, lang, signingDate, font, textPadding, textSize, textAlignH, textAlignV, textPos, textColor, bgColor, imageDpi, image);
     }
 
-    void fillParams(RemoteSignatureParameters remoteSigParams, String text, String font, int textPadding, int textSize,
+    void fillParams(RemoteSignatureParameters remoteSigParams, LinkedHashMap<String,String> texts, String lang, Date signingDate, String font, int textPadding, int textSize,
         SignerTextHorizontalAlignment textAlignH, SignerTextVerticalAlignment textAlignV, SignerTextPosition textPos,
         String textColor, String bgColor, int imageDpi, byte[] image) throws NullParameterException {
             RemoteSignatureImageParameters sigImgParams = remoteSigParams.getImageParameters();
@@ -156,7 +162,7 @@ public class PdfVisibleSignatureService {
 
             RemoteSignatureImageTextParameters sigImgTextParams = new RemoteSignatureImageTextParameters();
             sigImgParams.setTextParameters(sigImgTextParams);
-            sigImgTextParams.setText(makeText(text, remoteSigParams.getSigningCertificate()));
+            sigImgTextParams.setText(makeText(texts, lang, signingDate, remoteSigParams.getSigningCertificate()));
             sigImgTextParams.setTextColor(makeColor(textColor));
             sigImgTextParams.setSignerTextHorizontalAlignment(textAlignH);
             sigImgTextParams.setSignerTextVerticalAlignment(textAlignV);
@@ -212,16 +218,48 @@ public class PdfVisibleSignatureService {
         }
     }
 
-    static String makeText(String text, RemoteCertificate signingCert) {
+    static String makeText(LinkedHashMap<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
+        String text = TEXT;
+        if (null != texts && texts.size() != 0) {
+            if (null != lang) {
+                text = texts.get(lang);
+                if (null == text)
+                    throw new NullParameterException("language '" + lang + " not specified in the psp file");
+            }
+            else
+                text = texts.values().iterator().next(); // get the 1st text
+        }
+
         CertInfo certInfo = new CertInfo(signingCert);
 
-        text = text.replace("%%", "%");
-        if (text.contains("%s"))
-            text = text.replace("%s", certInfo.getSurname());
-        if (text.contains("%g"))
-            text = text.replace("%g", certInfo.getGivenName());
-        if (text.contains("%r"))
-            text = text.replace("%r", certInfo.getRRN());
+        if (text.contains("%sn%"))
+            text = text.replace("%sn%", certInfo.getSurname());
+        if (text.contains("%gn%"))
+            text = text.replace("%gn%", certInfo.getGivenName());
+        if (text.contains("%rrn%"))
+            text = text.replace("%rrn%", certInfo.getRRN());
+
+        if (null == lang)
+            lang = "en";
+        try {
+            int idx = text.indexOf("%d(");
+            while (-1 != idx) {
+                int endIdx = text.indexOf(")%", idx);
+                if (-1 == endIdx)
+                    break;
+                String dateFormat = text.substring(idx + 3, endIdx);
+                SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, new Locale(lang));
+                String dateStr = sdf.format(signingDate);
+                text = text.substring(0, idx) + dateStr + text.substring(endIdx + 2);
+
+                idx = text.indexOf("%d(", idx + 1);
+            }
+        }
+        catch (Exception e) {
+	    e.printStackTrace();
+            throw new NullParameterException("Bad date format for PDF visible signature: " + e.getMessage());
+        }
+
         return text;
     }
 
@@ -266,7 +304,7 @@ public class PdfVisibleSignatureService {
     private static final SignerTextHorizontalAlignment TEXT_HOR_ALIGN = SignerTextHorizontalAlignment.CENTER;
     private static final SignerTextVerticalAlignment TEXT_VER_ALIGN = SignerTextVerticalAlignment.MIDDLE;
     private static final SignerTextPosition TEXT_POS = SignerTextPosition.BOTTOM;
-    private static final String TEXT = "%g %s";
+    private static final String TEXT = "%gn% %sn%";
     private static final String TEXT_COLOR = "#0000FF"; // blue
     private static final String BG_COLOR = "#D0D0D0";   // light gray, same as IMAGE background color
     private static final int IMAGE_DPI = 400;

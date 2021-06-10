@@ -20,10 +20,11 @@ public class GetTokenForDocumentDTO {
     private String psfN;  // PDF signature field name
     private String psfC;  // PDF signature field coordinates
     private String psfP;  // Include eID photo as icon in the PDF signature field
+    private String lang;
 
     public GetTokenForDocumentDTO() {
     }
-    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt, String psp, String psfN, String psfC, String psfP) {
+    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt, String psp, String psfN, String psfC, String psfP, String lang) {
         this.name = name;
         this.pwd = pwd;
         this.in = in;
@@ -34,6 +35,7 @@ public class GetTokenForDocumentDTO {
         this.psfN = psfN;
         this.psfC = psfC;
         this.psfP = psfP;
+        this.lang = lang;
     }
     public String getName() {
         return name;
@@ -95,6 +97,12 @@ public class GetTokenForDocumentDTO {
     public void setPsfP(String psfP) {
         this.psfP = psfP;
     }
+    public String getLang() {
+        return lang;
+    }
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"name\":\"").append(name)
@@ -111,6 +119,8 @@ public class GetTokenForDocumentDTO {
             sb.append("\", \"psfC\":\"").append(psfC);
         if (null != psfP)
             sb.append("\", \"psfP\":\"").append(psfP);
+        if (null != lang)
+            sb.append("\", \"lang\":\"").append(lang);
         sb.append("\"}");
         return sb.toString();
     }
