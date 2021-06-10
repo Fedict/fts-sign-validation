@@ -151,7 +151,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
             String token = ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(),
-                tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP());
+                tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP(), tokenData.getLang());
             logger.log(Level.INFO, "getTokenForDocument()" +
                 token2str(token) + "\nparams: " + tokenData.toString());
             return token;

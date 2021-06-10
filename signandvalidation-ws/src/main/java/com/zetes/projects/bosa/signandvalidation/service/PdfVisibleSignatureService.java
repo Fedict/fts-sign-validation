@@ -89,7 +89,7 @@ public class PdfVisibleSignatureService {
 
         // Defaults
         LinkedHashMap<String,String> texts = null;
-        String font = FONT;
+        String font = null;
         int textPadding = TEXT_PADDING;
         int textSize = TEXT_SIZE;
         SignerTextHorizontalAlignment textAlignH = TEXT_HOR_ALIGN;
@@ -176,6 +176,8 @@ public class PdfVisibleSignatureService {
     }
 
     RemoteDocument readFont(String font) {
+        if (null == font)
+            return null;
         RemoteDocument fontDoc = fonts.get(font);
         if (null == fontDoc) {
             byte[] fontBytes = readFontFromFile(font);
@@ -224,7 +226,7 @@ public class PdfVisibleSignatureService {
             if (null != lang) {
                 text = texts.get(lang);
                 if (null == text)
-                    throw new NullParameterException("language '" + lang + " not specified in the psp file");
+                    throw new NullParameterException("language '" + lang + "' not specified in the psp file");
             }
             else
                 text = texts.values().iterator().next(); // get the 1st text
@@ -298,7 +300,6 @@ public class PdfVisibleSignatureService {
     ///////////////////////////////////////////////////////////////////////////
 
     // Default values
-    private static final String FONT = "AgreementSignature";
     private static final int TEXT_SIZE = 14;
     private static final int TEXT_PADDING = 20;
     private static final SignerTextHorizontalAlignment TEXT_HOR_ALIGN = SignerTextHorizontalAlignment.CENTER;

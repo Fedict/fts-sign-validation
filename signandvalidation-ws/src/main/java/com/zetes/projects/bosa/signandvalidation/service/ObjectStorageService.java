@@ -163,7 +163,7 @@ public class ObjectStorageService {
             return false;
         }
     }
-    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP)
+    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP, String lang)
             throws TokenCreationFailureException, InvalidKeyConfigException {
         try {
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
@@ -181,7 +181,9 @@ public class ObjectStorageService {
             if(psfC != null)
                 builder.claim("psfC", psfC);
             if(psfP != null)
-                builder.claim("psfP", psfP);
+                builder.claim("", psfP);
+            if(lang != null)
+                builder.claim("lang", lang);
             PlainJWT jwt = new PlainJWT(builder.build());
             JWEObject jweObject = new JWEObject(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256)
                     .keyID(getKid())
