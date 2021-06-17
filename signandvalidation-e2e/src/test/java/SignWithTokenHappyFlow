@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+<suite parallel="false" name="Suite">
+  <test name="Test">
+    <classes>
+      <class name="be.fgov.bosa.ts.e2e.SignWithTokenHappyFlow">
+      	<methods>
+            <include name="launchSite" />
+            <include name="startSignTestPdf" />
+            <include name="waitUntiPinCodeEntry" />
+            <include name="testCanSign" />
+            <include name="testIsRedirected" />
+        </methods>
+      </class>
+    </classes>
+  </test> <!-- Test -->
+</suite> <!-- Suite -->
