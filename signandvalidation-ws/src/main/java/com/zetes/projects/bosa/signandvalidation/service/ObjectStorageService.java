@@ -181,7 +181,7 @@ public class ObjectStorageService {
             if(psfC != null)
                 builder.claim("psfC", psfC);
             if(psfP != null)
-                builder.claim("", psfP);
+                builder.claim("psfP", psfP);
             if(lang != null)
                 builder.claim("lang", lang);
             PlainJWT jwt = new PlainJWT(builder.build());
