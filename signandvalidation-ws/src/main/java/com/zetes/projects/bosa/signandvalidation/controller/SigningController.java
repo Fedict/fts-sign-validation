@@ -410,7 +410,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         newest.setTime(now);
         newest.add(Calendar.MINUTE, 5);
         Date d = parameters.getBLevelParams().getSigningDate();
-        if(newest.before(d) || oldest.after(d)) {
+        if((d.compareTo(newest.getTime()) > 0) || (d.compareTo(oldest.getTime()) < 0)) {
             logAndThrowEx(BAD_REQUEST, INVALID_SIG_DATE, dateTimeFormatter.format(d));
         }
 
