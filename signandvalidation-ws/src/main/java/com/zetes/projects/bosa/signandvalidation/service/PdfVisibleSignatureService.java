@@ -19,7 +19,7 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageTextPa
 import eu.europa.esig.dss.pades.signature.PAdESService;
 import eu.europa.esig.dss.model.InMemoryDocument;
 
-import com.fasterxml.jackson.databind.ObjectMapper;;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;

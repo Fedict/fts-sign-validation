@@ -28,8 +28,11 @@ import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureSe
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
+import eu.europa.esig.dss.model.InMemoryDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -39,6 +42,7 @@ import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
@@ -83,7 +87,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return "pong";
     }
 
-    private static SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+    private static SimpleDateFormat logDateTimeFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+    private static SimpleDateFormat reportDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
@@ -285,7 +290,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(tp, false), parameters, signatureValueDto);
             signedDoc.setName(ObjStorageService.getTypeForToken(tp).getFilename());
 
-            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters);
+            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, tp);
             ObjStorageService.storeDocumentForToken(tp, signedDoc);
 
             return signedDoc;
@@ -383,9 +388,33 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters) {
-        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null);
-        SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
+        return validateResult(signedDoc, detachedContents, parameters, null);
+    }
 
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenParser tokenParser) {
+        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null);
+
+        if (null != tokenParser) {
+            try {
+                // Instead of saving the entire report, create our own report containing the simple/detailed reports and the signing cert
+                byte[] sigingCert = parameters.getSigningCertificate().getEncodedCertificate();
+                ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(), reportsDto.getDetailedReport(), sigingCert);
+
+                StringWriter out = new StringWriter();
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.setDateFormat(reportDateTimeFormat);
+                mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+                mapper.writeValue(out, reportDto);
+
+                RemoteDocument reportsDoc = new RemoteDocument();
+                reportsDoc.setBytes(out.toString().getBytes());
+                ObjStorageService.storeDocumentForToken(tokenParser, reportsDoc, ".validationreport.json");
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Failed to serialize or save the validation report", e);
+            }
+        }
+
+        SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
         Indication indication = indications.getIndication();
         if (indication == TOTAL_PASSED || parameters.isSignWithExpiredCertificate()) {
             return signedDoc;
@@ -411,7 +440,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         newest.add(Calendar.MINUTE, 5);
         Date d = parameters.getBLevelParams().getSigningDate();
         if((d.compareTo(newest.getTime()) > 0) || (d.compareTo(oldest.getTime()) < 0)) {
-            logAndThrowEx(BAD_REQUEST, INVALID_SIG_DATE, dateTimeFormatter.format(d));
+            logAndThrowEx(BAD_REQUEST, INVALID_SIG_DATE, logDateTimeFormat.format(d));
         }
 
         // Check if the signing cert is present and not expired
@@ -427,7 +456,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
             if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
-                logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + dateTimeFormatter.format(signingCrt.getNotAfter()));
+                logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + logDateTimeFormat.format(signingCrt.getNotAfter()));
         }
         catch (CertificateException e) {
              logAndThrowEx(BAD_REQUEST, "error parsing signing cert", e.getMessage());
