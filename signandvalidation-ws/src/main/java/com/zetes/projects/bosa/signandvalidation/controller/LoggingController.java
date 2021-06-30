@@ -5,6 +5,8 @@ import java.util.logging.Level;
 
 import com.zetes.projects.bosa.signandvalidation.model.FrontEndErrorReqDTO;
 import com.zetes.projects.bosa.signandvalidation.model.FrontEndErrorRespDTO;
+import com.zetes.projects.bosa.signandvalidation.model.FrontEndLogReqDTO;
+import com.zetes.projects.bosa.signandvalidation.model.FrontEndLogRespDTO;
 
 import org.springframework.web.bind.annotation.*;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -25,12 +27,25 @@ public class LoggingController extends ControllerBase {
 
         StringBuilder sb = new StringBuilder();
         sb.append(ref).append("||").append(feError.getErr())
+            .append(ControllerBase.token2str(feError.getToken()))
             .append("\nresult: ").append(feError.getResult())
-            .append("\ntoken end: ").append(feError.getToken())
             .append("\nreport: ").append(feError.getReport());
 
         logger.log(Level.SEVERE, sb.toString());
 
         return new FrontEndErrorRespDTO(ref);
+    }
+    @PostMapping(value = "/log", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public FrontEndLogRespDTO logMessage(@RequestBody FrontEndLogReqDTO feLog) {
+        String ref = logDateTimeFormatter.format(Instant.now());
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append(ref).append("||")
+                .append(ControllerBase.token2str(feLog.getToken()))
+                .append("\nmessage: ").append(feLog.getMessage());
+        
+        logger.log(feLog.getLevelEnum(), sb.toString());
+        
+        return new FrontEndLogRespDTO(ref);
     }
 }

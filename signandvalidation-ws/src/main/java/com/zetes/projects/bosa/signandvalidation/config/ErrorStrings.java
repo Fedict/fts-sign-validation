@@ -46,9 +46,12 @@ public interface ErrorStrings {
 	/** Invalid token in request */
 	public static String INVALID_TOKEN = "INVALID_TOKEN";
         
-        /** Invalid document type in request */
-        public static String INVALID_TYPE = "INVALID_TYPE";
+	/** Invalid document type in request */
+	public static String INVALID_TYPE = "INVALID_TYPE";
 
 	/** Coudln't parse request */
 	public static String PARSE_ERROR = "PARSE_ERROR";
+
+	/** PDF signature field problem: not specified when needed or invalid value */
+	public static String ERR_PDF_SIG_FIELD = "ERR_PDF_SIG_FIELD";
 }

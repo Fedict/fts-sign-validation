@@ -163,7 +163,8 @@ public class ObjectStorageService {
             return false;
         }
     }
-    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt) throws TokenCreationFailureException, InvalidKeyConfigException {
+    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP, String lang)
+            throws TokenCreationFailureException, InvalidKeyConfigException {
         try {
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                     .claim("cid", bucket)
@@ -171,9 +172,18 @@ public class ObjectStorageService {
                     .claim("out", outFile)
                     .claim("prof", profile)
                     .issueTime(new Date());
-            if(xslt != null) {
+            if(xslt != null)
                 builder.claim("xslt", xslt);
-            }
+            if(psp != null)
+                builder.claim("psp", psp);
+            if(psfN != null)
+                builder.claim("psfN", psfN);
+            if(psfC != null)
+                builder.claim("psfC", psfC);
+            if(psfP != null)
+                builder.claim("psfP", psfP);
+            if(lang != null)
+                builder.claim("lang", lang);
             PlainJWT jwt = new PlainJWT(builder.build());
             JWEObject jweObject = new JWEObject(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256)
                     .keyID(getKid())
@@ -185,13 +195,11 @@ public class ObjectStorageService {
             throw new TokenCreationFailureException();
         }
     }
-    public RemoteDocument getDocumentForToken(TokenParser tokenData, boolean wantXslt) throws InvalidTokenException {
-        RemoteDocument rv = new RemoteDocument();
+    public byte[] getFileForToken(String dataName, String cid) throws InvalidTokenException {
         try {
-            String dataName = wantXslt ? tokenData.getXslt() : tokenData.getIn();
             InputStream stream = getClient().getObject(
                     GetObjectArgs.builder()
-                            .bucket(tokenData.getCid())
+                            .bucket(cid)
                             .object(dataName)
                             .build()
             );
@@ -201,23 +209,29 @@ public class ObjectStorageService {
             while((len = stream.read(buf)) >= 0) {
                 container.write(buf, 0, len);
             }
-            rv.setBytes(container.toByteArray());
-            return rv;
-        } catch (ErrorResponseException
-                | InsufficientDataException | InternalException
-                | InvalidKeyException | InvalidResponseException
-                | IOException | NoSuchAlgorithmException | ServerException
-                | XmlParserException ex) {
-            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+            return container.toByteArray();
         }
-        throw new InvalidTokenException();
+        catch (Exception ex) {
+            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+            throw new InvalidTokenException("Error getting file '" + dataName + "':" + ex.getMessage());
+        }
+    }
+    public RemoteDocument getDocumentForToken(TokenParser tokenData, boolean wantXslt) throws InvalidTokenException {
+            String dataName = wantXslt ? tokenData.getXslt() : tokenData.getIn();
+            byte[] data = getFileForToken(dataName, tokenData.getCid());
+            RemoteDocument ret = new RemoteDocument();
+            ret.setBytes(data);
+            return ret;
     }
     public void storeDocumentForToken(TokenParser tokenData, RemoteDocument document) throws InvalidTokenException {
+        storeDocumentForToken(tokenData, document, "");
+    }
+    public void storeDocumentForToken(TokenParser tokenData, RemoteDocument document, String fileNameExtension) throws InvalidTokenException {
         try {
             try (ByteArrayInputStream bais = new ByteArrayInputStream(document.getBytes())) {
                 getClient().putObject(PutObjectArgs.builder()
                         .bucket(tokenData.getCid())
-                        .object(tokenData.getOut())
+                        .object(tokenData.getOut() + fileNameExtension)
                         .stream(bais, bais.available(), -1)
                         .build());
             }
@@ -236,35 +250,41 @@ public class ObjectStorageService {
         if(token.getXslt() != null) {
             xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + token.getRaw();
         }
-        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl);
+        boolean readPhoto = token.getPsfP();
+        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl, readPhoto);
     }
-    public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
+    public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getTypeForToken(parseToken(token, 5));
     }
-    public RemoteDocument getDocumentForToken(String token, boolean wantXslt, int validMinutes) throws InvalidKeyConfigException, InvalidTokenException {
+    public RemoteDocument getDocumentForToken(String token, boolean wantXslt, int validMinutes) throws InvalidKeyConfigException, InvalidTokenException, TokenParser.TokenExpiredException {
         return getDocumentForToken(parseToken(token, validMinutes), wantXslt);
     }
-    public RemoteDocument getDocumentForToken(String token) throws InvalidTokenException, InvalidKeyConfigException {
+    public RemoteDocument getDocumentForToken(String token) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getDocumentForToken(token, false, 5);
     }
-    public RemoteDocument getDocumentForToken(String token, boolean wantXslt) throws InvalidTokenException, InvalidKeyConfigException {
+    public RemoteDocument getDocumentForToken(String token, boolean wantXslt) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getDocumentForToken(token, wantXslt, 5);
     }
-    public RemoteDocument getDocumentForToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
+    public RemoteDocument getDocumentForToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getDocumentForToken(token, false, validMinutes);
     }
-    public TokenParser parseToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException {
+    public TokenParser parseToken(String token, int validMinutes) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         try {
             return new TokenParser(token, this, validMinutes);
-        } catch (ParseException | JOSEException | TokenParser.TokenExpiredException ex) {
-            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException | JOSEException ex) {
+            throw new InvalidTokenException(ex);
         }
-        throw new InvalidTokenException();
     }
 
     public static class InvalidTokenException extends Exception {
 
         public InvalidTokenException() {
+        }
+        public InvalidTokenException(String mesg) {
+            super(mesg);
+        }
+        public InvalidTokenException(Exception e) {
+            super(e);
         }
     }
 

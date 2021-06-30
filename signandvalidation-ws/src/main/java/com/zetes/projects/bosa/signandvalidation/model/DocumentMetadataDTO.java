@@ -13,11 +13,13 @@ public class DocumentMetadataDTO {
     private String filename;
     private String mimetype;
     private String xsltUrl;
+    private boolean readPhoto;
     
-    public DocumentMetadataDTO(String filename, String mimetype, String xsltUrl) {
+    public DocumentMetadataDTO(String filename, String mimetype, String xsltUrl, boolean readPhoto) {
         this.filename = filename;
         this.mimetype = mimetype;
         this.xsltUrl = xsltUrl;
+        this.readPhoto = readPhoto;
     }
     public String getFilename() {
         return filename;
@@ -36,5 +38,11 @@ public class DocumentMetadataDTO {
     }
     public void setXsltUrl(String xsltUrl) {
         this.xsltUrl = xsltUrl;
+    }
+    public boolean getReadPhoto() {
+        return readPhoto;
+    }
+    public void setReadPhoto(boolean readPhoto) {
+        this.readPhoto = readPhoto;
     }
 }
