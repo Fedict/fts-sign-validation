@@ -115,7 +115,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value="/getDataToSignForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
         String token = dataToSignForTokenDto.getToken();
-        logger.log(Level.INFO, "getDataToSignForToken()" + token2str(token));
+        logger.log(Level.INFO, "Entering getDataToSignForToken()" + token2str(token));
         try {
             ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
             TokenParser tokenParser = ObjStorageService.parseToken(token, 60 * 5);
@@ -130,7 +130,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(document, parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+
+            logger.log(Level.INFO, "Returning from getDataToSignForToken()" + token2str(token));
+
+            return ret;
         } catch (ObjectStorageService.InvalidTokenException e) {
             logAndThrowEx(token, BAD_REQUEST, INVALID_TOKEN, e);
         } catch(NullParameterException e) {
@@ -157,8 +161,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
             String token = ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(),
                 tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP(), tokenData.getLang());
-            logger.log(Level.INFO, "getTokenForDocument()" +
-                token2str(token) + "\nparams: " + tokenData.toString());
+            logger.log(Level.INFO, "Returning from getTokenForDocument()" + token2str(token) + "\nparams: " + tokenData.toString());
             return token;
         } catch (TokenCreationFailureException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -188,7 +191,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(null == token) {
                 logAndThrowEx(BAD_REQUEST, NO_TOKEN, "query=" + request.getQueryString(), null);
             }
-            logger.log(Level.INFO, "getDocumentForToken(type=" + type +")" + token2str(token));
+            logger.log(Level.INFO, "Entering getDocumentForToken(type=" + type +")" + token2str(token));
             boolean wantXslt = false;
             if(type != null) {
                 if ("xslt".equals(type)) {
@@ -209,6 +212,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Cache-Control", "no-cache");
             response.getOutputStream().write(rv);
+            logger.log(Level.INFO, "Returning from getDocumentForToken(type=" + type +")" + token2str(token));
         } catch (IOException e) {
             logAndThrowEx(token, BAD_REQUEST, INTERNAL_ERR, e);
         } catch (TokenParser.TokenExpiredException e) {
@@ -224,9 +228,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @GetMapping(value="/getMetadataForToken")
     public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String token) {
-        logger.log(Level.INFO, "getMetadataForToken()" + token2str(token));
+        logger.log(Level.INFO, "Entering getMetadataForToken()" + token2str(token));
         try {
-            return ObjStorageService.getTypeForToken(token);
+            DocumentMetadataDTO ret = ObjStorageService.getTypeForToken(token);
+            logger.log(Level.INFO, "Returning from getMetadataForToken()" + token2str(token));
+            return ret;
         } catch (TokenParser.TokenExpiredException e) {
             logAndThrowEx(token, BAD_REQUEST, INVALID_TOKEN, "token has expired");
         } catch (ObjectStorageService.InvalidTokenException e) {
@@ -277,7 +283,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDocumentDto) {
         String token = signDocumentDto.getToken();
-		logger.log(Level.INFO, "signDocumentForToken()" + token2str(token));
+        logger.log(Level.INFO, "Entering signDocumentForToken()" + token2str(token));
         try {
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             TokenParser tp = ObjStorageService.parseToken(token, 60 * 5);
@@ -290,8 +296,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(tp, false), parameters, signatureValueDto);
             signedDoc.setName(ObjStorageService.getTypeForToken(tp).getFilename());
 
+            logger.log(Level.INFO, "signDocumentForToken(): validating the signed doc" + token2str(token));
             signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, tp);
             ObjStorageService.storeDocumentForToken(tp, signedDoc);
+
+            logger.log(Level.INFO, "Returning from signDocumentForToken()" + token2str(token));
 
             return signedDoc;
         } catch(ObjectStorageService.InvalidTokenException e) {
