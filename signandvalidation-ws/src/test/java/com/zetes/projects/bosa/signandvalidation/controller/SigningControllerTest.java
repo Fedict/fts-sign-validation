@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Calendar;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
@@ -202,6 +203,50 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
         assert(result.get("message").toString().endsWith(SIGN_CERT_EXPIRED + "||exp. date = 2021.03.06 12:28:05"));
+    }
+
+    @Test
+    public void testSigningTime() throws Exception {
+        Pkcs12SignatureToken token = new Pkcs12SignatureToken(
+                new FileInputStream("src/test/resources/expired.p12"),
+                new KeyStore.PasswordProtection("123456".toCharArray())
+        );
+        List<DSSPrivateKeyEntry> keys = token.getKeys();
+        DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
+
+        ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
+
+        // 10 minutes too soon
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MINUTE, -10);
+        clientSignatureParameters.setSigningDate(cal.getTime());
+
+        FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.xml"));
+        RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
+
+        // get data to sign
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, Map.class);
+
+        assertEquals(BAD_REQUEST.value(), result.get("status"));
+        assert(result.get("message").toString().contains(INVALID_SIG_DATE));
+
+        // 10 minutes too late
+
+        cal = Calendar.getInstance();
+        cal.add(Calendar.MINUTE, 10);
+        clientSignatureParameters.setSigningDate(cal.getTime());
+
+        fileToSign = new FileDocument(new File("src/test/resources/sample.xml"));
+        toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
+
+        // get data to sign
+        dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters);
+        result = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, Map.class);
+
+        assertEquals(BAD_REQUEST.value(), result.get("status"));
+        assert(result.get("message").toString().contains(INVALID_SIG_DATE));
     }
 
     @Test

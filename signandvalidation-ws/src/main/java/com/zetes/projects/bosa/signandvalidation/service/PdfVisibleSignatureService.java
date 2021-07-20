@@ -19,7 +19,7 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageTextPa
 import eu.europa.esig.dss.pades.signature.PAdESService;
 import eu.europa.esig.dss.model.InMemoryDocument;
 
-import com.fasterxml.jackson.databind.ObjectMapper;;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -164,8 +164,8 @@ public class PdfVisibleSignatureService {
             sigImgParams.setTextParameters(sigImgTextParams);
             sigImgTextParams.setText(makeText(texts, lang, signingDate, remoteSigParams.getSigningCertificate()));
             sigImgTextParams.setTextColor(makeColor(textColor));
-            sigImgTextParams.setSignerTextHorizontalAlignment(textAlignH);
-            sigImgTextParams.setSignerTextVerticalAlignment(textAlignV);
+            if (null != textAlignH) sigImgTextParams.setSignerTextHorizontalAlignment(textAlignH);
+            if (null != textAlignV) sigImgTextParams.setSignerTextVerticalAlignment(textAlignV);
             sigImgTextParams.setSignerTextPosition(textPos);
             sigImgTextParams.setSize(textSize);
             sigImgTextParams.setPadding((float) textPadding);
@@ -302,8 +302,8 @@ public class PdfVisibleSignatureService {
     // Default values
     private static final int TEXT_SIZE = 14;
     private static final int TEXT_PADDING = 20;
-    private static final SignerTextHorizontalAlignment TEXT_HOR_ALIGN = SignerTextHorizontalAlignment.CENTER;
-    private static final SignerTextVerticalAlignment TEXT_VER_ALIGN = SignerTextVerticalAlignment.MIDDLE;
+    private static final SignerTextHorizontalAlignment TEXT_HOR_ALIGN = null; // NONE
+    private static final SignerTextVerticalAlignment TEXT_VER_ALIGN = null;   // NONE
     private static final SignerTextPosition TEXT_POS = SignerTextPosition.BOTTOM;
     private static final String TEXT = "%gn% %sn%";
     private static final String TEXT_COLOR = "#0000FF"; // blue

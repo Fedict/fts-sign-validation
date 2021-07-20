@@ -181,7 +181,7 @@ public class ObjectStorageService {
             if(psfC != null)
                 builder.claim("psfC", psfC);
             if(psfP != null)
-                builder.claim("", psfP);
+                builder.claim("psfP", psfP);
             if(lang != null)
                 builder.claim("lang", lang);
             PlainJWT jwt = new PlainJWT(builder.build());
@@ -224,11 +224,14 @@ public class ObjectStorageService {
             return ret;
     }
     public void storeDocumentForToken(TokenParser tokenData, RemoteDocument document) throws InvalidTokenException {
+        storeDocumentForToken(tokenData, document, "");
+    }
+    public void storeDocumentForToken(TokenParser tokenData, RemoteDocument document, String fileNameExtension) throws InvalidTokenException {
         try {
             try (ByteArrayInputStream bais = new ByteArrayInputStream(document.getBytes())) {
                 getClient().putObject(PutObjectArgs.builder()
                         .bucket(tokenData.getCid())
-                        .object(tokenData.getOut())
+                        .object(tokenData.getOut() + fileNameExtension)
                         .stream(bais, bais.available(), -1)
                         .build());
             }

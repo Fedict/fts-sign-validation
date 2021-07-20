@@ -28,8 +28,11 @@ import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureSe
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
+import eu.europa.esig.dss.model.InMemoryDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -39,6 +42,7 @@ import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
@@ -83,7 +87,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return "pong";
     }
 
-    private static SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+    private static SimpleDateFormat logDateTimeFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+    private static SimpleDateFormat reportDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
@@ -110,7 +115,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value="/getDataToSignForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
         String token = dataToSignForTokenDto.getToken();
-        logger.log(Level.INFO, "getDataToSignForToken()" + token2str(token));
+        logger.log(Level.INFO, "Entering getDataToSignForToken()" + token2str(token));
         try {
             ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
             TokenParser tokenParser = ObjStorageService.parseToken(token, 60 * 5);
@@ -125,7 +130,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(document, parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+
+            logger.log(Level.INFO, "Returning from getDataToSignForToken()" + token2str(token));
+
+            return ret;
         } catch (ObjectStorageService.InvalidTokenException e) {
             logAndThrowEx(token, BAD_REQUEST, INVALID_TOKEN, e);
         } catch(NullParameterException e) {
@@ -152,8 +161,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
             String token = ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(),
                 tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP(), tokenData.getLang());
-            logger.log(Level.INFO, "getTokenForDocument()" +
-                token2str(token) + "\nparams: " + tokenData.toString());
+            logger.log(Level.INFO, "Returning from getTokenForDocument()" + token2str(token) + "\nparams: " + tokenData.toString());
             return token;
         } catch (TokenCreationFailureException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -183,7 +191,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(null == token) {
                 logAndThrowEx(BAD_REQUEST, NO_TOKEN, "query=" + request.getQueryString(), null);
             }
-            logger.log(Level.INFO, "getDocumentForToken(type=" + type +")" + token2str(token));
+            logger.log(Level.INFO, "Entering getDocumentForToken(type=" + type +")" + token2str(token));
             boolean wantXslt = false;
             if(type != null) {
                 if ("xslt".equals(type)) {
@@ -204,6 +212,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Cache-Control", "no-cache");
             response.getOutputStream().write(rv);
+            logger.log(Level.INFO, "Returning from getDocumentForToken(type=" + type +")" + token2str(token));
         } catch (IOException e) {
             logAndThrowEx(token, BAD_REQUEST, INTERNAL_ERR, e);
         } catch (TokenParser.TokenExpiredException e) {
@@ -219,9 +228,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @GetMapping(value="/getMetadataForToken")
     public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String token) {
-        logger.log(Level.INFO, "getMetadataForToken()" + token2str(token));
+        logger.log(Level.INFO, "Entering getMetadataForToken()" + token2str(token));
         try {
-            return ObjStorageService.getTypeForToken(token);
+            DocumentMetadataDTO ret = ObjStorageService.getTypeForToken(token);
+            logger.log(Level.INFO, "Returning from getMetadataForToken()" + token2str(token));
+            return ret;
         } catch (TokenParser.TokenExpiredException e) {
             logAndThrowEx(token, BAD_REQUEST, INVALID_TOKEN, "token has expired");
         } catch (ObjectStorageService.InvalidTokenException e) {
@@ -272,7 +283,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDocumentDto) {
         String token = signDocumentDto.getToken();
-		logger.log(Level.INFO, "signDocumentForToken()" + token2str(token));
+        logger.log(Level.INFO, "Entering signDocumentForToken()" + token2str(token));
         try {
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             TokenParser tp = ObjStorageService.parseToken(token, 60 * 5);
@@ -285,8 +296,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(tp, false), parameters, signatureValueDto);
             signedDoc.setName(ObjStorageService.getTypeForToken(tp).getFilename());
 
-            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters);
+            logger.log(Level.INFO, "signDocumentForToken(): validating the signed doc" + token2str(token));
+            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, tp);
             ObjStorageService.storeDocumentForToken(tp, signedDoc);
+
+            logger.log(Level.INFO, "Returning from signDocumentForToken()" + token2str(token));
 
             return signedDoc;
         } catch(ObjectStorageService.InvalidTokenException e) {
@@ -383,9 +397,33 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters) {
-        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null);
-        SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
+        return validateResult(signedDoc, detachedContents, parameters, null);
+    }
 
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenParser tokenParser) {
+        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null);
+
+        if (null != tokenParser) {
+            try {
+                // Instead of saving the entire report, create our own report containing the simple/detailed reports and the signing cert
+                byte[] sigingCert = parameters.getSigningCertificate().getEncodedCertificate();
+                ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(), reportsDto.getDetailedReport(), sigingCert);
+
+                StringWriter out = new StringWriter();
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.setDateFormat(reportDateTimeFormat);
+                mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+                mapper.writeValue(out, reportDto);
+
+                RemoteDocument reportsDoc = new RemoteDocument();
+                reportsDoc.setBytes(out.toString().getBytes());
+                ObjStorageService.storeDocumentForToken(tokenParser, reportsDoc, ".validationreport.json");
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Failed to serialize or save the validation report", e);
+            }
+        }
+
+        SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
         Indication indication = indications.getIndication();
         if (indication == TOTAL_PASSED || parameters.isSignWithExpiredCertificate()) {
             return signedDoc;
@@ -410,8 +448,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         newest.setTime(now);
         newest.add(Calendar.MINUTE, 5);
         Date d = parameters.getBLevelParams().getSigningDate();
-        if(newest.before(d) || oldest.after(d)) {
-            logAndThrowEx(BAD_REQUEST, INVALID_SIG_DATE, dateTimeFormatter.format(d));
+        if((d.compareTo(newest.getTime()) > 0) || (d.compareTo(oldest.getTime()) < 0)) {
+            logAndThrowEx(BAD_REQUEST, INVALID_SIG_DATE, logDateTimeFormat.format(d));
         }
 
         // Check if the signing cert is present and not expired
@@ -427,7 +465,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
             if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
-                logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + dateTimeFormatter.format(signingCrt.getNotAfter()));
+                logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + logDateTimeFormat.format(signingCrt.getNotAfter()));
         }
         catch (CertificateException e) {
              logAndThrowEx(BAD_REQUEST, "error parsing signing cert", e.getMessage());
