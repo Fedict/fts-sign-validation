@@ -14,12 +14,14 @@ public class DocumentMetadataDTO {
     private String mimetype;
     private String xsltUrl;
     private boolean readPhoto;
+    private boolean disallowSignedDownloads;
     
-    public DocumentMetadataDTO(String filename, String mimetype, String xsltUrl, boolean readPhoto) {
+    public DocumentMetadataDTO(String filename, String mimetype, String xsltUrl, boolean readPhoto, boolean disallowSignedDownloads) {
         this.filename = filename;
         this.mimetype = mimetype;
         this.xsltUrl = xsltUrl;
         this.readPhoto = readPhoto;
+        this.disallowSignedDownloads = disallowSignedDownloads;
     }
     public String getFilename() {
         return filename;
@@ -44,5 +46,11 @@ public class DocumentMetadataDTO {
     }
     public void setReadPhoto(boolean readPhoto) {
         this.readPhoto = readPhoto;
+    }
+    public boolean getDisallowSignedDownloads() {
+        return disallowSignedDownloads;
+    }
+    public void setDisallowSignedDownloads(boolean disallowSignedDownloads) {
+        this.disallowSignedDownloads = disallowSignedDownloads;
     }
 }

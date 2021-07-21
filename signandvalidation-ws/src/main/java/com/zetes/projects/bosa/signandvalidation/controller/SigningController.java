@@ -51,11 +51,13 @@ import java.util.Calendar;
 import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping(value = "/signing")
@@ -160,7 +162,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
             String token = ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(),
-                tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP(), tokenData.getLang());
+                tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP(), tokenData.getLang(),
+                tokenData.getNoDownload());
             logger.log(Level.INFO, "Returning from getTokenForDocument()" + token2str(token) + "\nparams: " + tokenData.toString());
             return token;
         } catch (TokenCreationFailureException e) {
@@ -281,7 +284,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
     
     @PostMapping(value = "/signDocumentForToken", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDocumentDto) {
+    public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDocumentDto) {
         String token = signDocumentDto.getToken();
         logger.log(Level.INFO, "Entering signDocumentForToken()" + token2str(token));
         try {
@@ -302,10 +305,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             logger.log(Level.INFO, "Returning from signDocumentForToken()" + token2str(token));
 
-            return signedDoc;
+            if(tp.getNoDownload()) {
+                return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+            } else {
+                return new ResponseEntity<>(signedDoc, HttpStatus.OK);
+            }
         } catch(ObjectStorageService.InvalidTokenException e) {
             logAndThrowEx(token, BAD_REQUEST, INVALID_TOKEN, e.getMessage());
-       } catch(NullParameterException e) {
+        } catch(NullParameterException e) {
             logAndThrowEx(token, BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(token, BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
