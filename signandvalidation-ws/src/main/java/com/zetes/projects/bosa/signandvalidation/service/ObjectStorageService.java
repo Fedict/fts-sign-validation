@@ -163,7 +163,7 @@ public class ObjectStorageService {
             return false;
         }
     }
-    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP, String lang)
+    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload)
             throws TokenCreationFailureException, InvalidKeyConfigException {
         try {
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
@@ -171,6 +171,7 @@ public class ObjectStorageService {
                     .claim("in", file)
                     .claim("out", outFile)
                     .claim("prof", profile)
+                    .claim("nd", noDownload)
                     .issueTime(new Date());
             if(xslt != null)
                 builder.claim("xslt", xslt);
@@ -251,7 +252,8 @@ public class ObjectStorageService {
             xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + token.getRaw();
         }
         boolean readPhoto = token.getPsfP();
-        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl, readPhoto);
+        boolean noDownload = token.getNoDownload();
+        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl, readPhoto, noDownload);
     }
     public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getTypeForToken(parseToken(token, 5));

@@ -33,6 +33,7 @@ public class TokenParser {
     private String psfN;  // PDF signature field name
     private String psfC;  // PDF signature field coordinates
     private boolean psfP = false;  // Include eID photo as icon in the PDF signature field
+    private boolean noDownload;
     private String raw;
         
     private static JWTClaimsSet ParseToken(String token, ObjectStorageService os) throws ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
@@ -86,6 +87,7 @@ public class TokenParser {
             iad = validity;
         else
             iad = claims.getIssueTime();
+        noDownload = claims.getClaim("nd").equals(true);
     }
     public String getCid() {
         return cid;
@@ -122,6 +124,9 @@ public class TokenParser {
     }
     public String getRaw() {
         return raw;
+    }
+    public boolean getNoDownload() {
+        return noDownload;
     }
 
     public static class TokenExpiredException extends Exception {

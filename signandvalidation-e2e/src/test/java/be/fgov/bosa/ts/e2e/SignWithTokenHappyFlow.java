@@ -29,7 +29,9 @@ public class SignWithTokenHappyFlow extends BaseTest{
 	public void startSignTestPdf(){
 	  driver.findElement(By.linkText("test.pdf")).click();
 	  
-	  waitForHeaderText("Digital signing of 'test.pdf'");
+	  waitForHeaderText("Digital signature of 'test.pdf'");
+	  
+	  driver.findElement(By.id("documentReadCheckbox")).click();
 	  
 	  clickOnNextButton();
 	}
@@ -44,6 +46,7 @@ public class SignWithTokenHappyFlow extends BaseTest{
 	
 	@Test(description="Can sign")
 	public void testCanSign() throws AWTException{
+		waitUntiPinCodeEntry();
 		Robot robot = new Robot();
 		
 		String pincode = System.getProperty("bosa.ts_test.pin_code");
@@ -72,19 +75,22 @@ public class SignWithTokenHappyFlow extends BaseTest{
 		assertTrue(downloadedSignedFile.exists(), "Signed File not downloaded: "+ downloadedSignedFile.getPath());
 	}
 	
+	private boolean isRedirected() {
+		return driver.getCurrentUrl().startsWith("https://mintest");
+	}
+	
 	@Test(description = "User is redirected")
 	public void testIsRedirected() {
-		clickOnNextButton();
-		
 		int timeout = 200;
-		while(!driver.getCurrentUrl().contains("mintest") && timeout-- > 0) {
+		while(!isRedirected() && timeout-- > 0) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 			}
 		}
-		assertTrue(driver.getCurrentUrl().contains("mintest"));
+		assertTrue(isRedirected(), "Expect to be redirected but was: " + driver.getCurrentUrl());
 	}
+
 	
 	private void waitForHeaderText(String expectedHeader) {
 		assertNotNull(expectedHeader);
@@ -109,6 +115,15 @@ public class SignWithTokenHappyFlow extends BaseTest{
 	}
 
 	private void clickOnNextButton() {
-		driver.findElement(By.cssSelector(".card-footer > .btn-primary")).click();
+		int timeout = 100;
+		while(!driver.findElement(By.id("button_next")).isEnabled() && timeout-- > 0) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		assertTrue(driver.findElement(By.id("button_next")).isEnabled(), "The next button is disabled");
+		driver.findElement(By.id("button_next")).click();
 	}
 }
