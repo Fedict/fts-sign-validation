@@ -29,6 +29,7 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import eu.europa.esig.dss.model.InMemoryDocument;
+import eu.europa.esig.dss.model.x509.CertificateToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,7 +98,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         try {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
 
-            checkDataToSign(parameters);
+            checkDataToSign(parameters, null);
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -126,7 +127,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 tokenParser.getProf(), clientSigParams);
             RemoteDocument document = ObjStorageService.getDocumentForToken(tokenParser, false);
 
-            checkDataToSign(parameters);
+            checkDataToSign(parameters, token);
             if (parameters.getSignatureLevel().toString().startsWith("PAdES"))
                 pdfVisibleSignatureService.checkAndFillParams(parameters, document, tokenParser, clientSigParams.getPhoto());
 
@@ -444,7 +445,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    private void checkDataToSign(RemoteSignatureParameters parameters) {
+    private void checkDataToSign(RemoteSignatureParameters parameters, String token) {
         
         // Check signing date
         Date now = new Date();
@@ -469,6 +470,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(BAD_REQUEST, NO_SIGN_CERT, "could not get encoded signing cert from request");
             X509Certificate signingCrt = (X509Certificate) CertificateFactory.getInstance("X509")
                 .generateCertificate(new ByteArrayInputStream(signingCertBytes));
+
+            // Log the cert ID, so it can be linked to the token
+            if (null != token)
+                logger.log(Level.INFO, "Signing certificate ID for " + token2str(token) + " : " + new CertificateToken(signingCrt).getDSSIdAsString());            
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
             if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
