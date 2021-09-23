@@ -7,17 +7,18 @@ import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
+import static eu.europa.esig.dss.enumerations.Indication.PASSED;
+import eu.europa.esig.dss.simplecertificatereport.jaxb.XmlChainItem;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
-import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -78,7 +79,13 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(
                 new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
 			toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
-            return reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
+            CertificateIndicationsDTO rv = reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
+            if(rv.getIndication() != PASSED) {
+                certificateReportsDTO.getSimpleCertificateReport().getChain().forEach(item -> {
+                    logger.log(Level.SEVERE, "Certificate validation indication = {0}; certificate ID = {1}, issuer ID = {2}", new Object[]{rv.getIndication().toString(), item.getId(), item.getIssuerId()});
+                });
+            }
+            return rv;
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
