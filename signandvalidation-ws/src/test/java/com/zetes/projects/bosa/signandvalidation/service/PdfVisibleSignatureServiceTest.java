@@ -2,7 +2,6 @@ package com.zetes.projects.bosa.signandvalidation.service;
 
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 
-import eu.europa.esig.dss.ws.dto.RemoteColor;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
 
@@ -16,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.*;
+import java.awt.Color;
 
 @SpringBootTest
 @ActiveProfiles("localh2")
@@ -23,21 +23,16 @@ public class PdfVisibleSignatureServiceTest {
     @Test
     public void testFillCoordinates() throws Exception {
         RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
-        PdfVisibleSignatureService.fillCoordinates(sigFieldParams, "1,2,3,4,5");
+        int[] ret = PdfVisibleSignatureService.fillCoordinates(sigFieldParams, "1,2,3,4,5");
         assertEquals(1, sigFieldParams.getPage());
         assertEquals((float) 2.0, sigFieldParams.getOriginX());
         assertEquals((float) 3.0, sigFieldParams.getOriginY());
         assertEquals((float) 4.0, sigFieldParams.getWidth());
         assertEquals((float) 5.0, sigFieldParams.getHeight());
+        assertEquals(2, ret.length);
+        assertEquals(4, ret[0]);
+        assertEquals(5, ret[1]);
     }
-
-    @Test
-    public void testMakeColor() throws Exception {
-        RemoteColor color = PdfVisibleSignatureService.makeColor("#112233");
-        assertEquals(0x11, color.getRed());
-        assertEquals(0x22, color.getGreen());
-        assertEquals(0x33, color.getBlue());
-    } 
 
     @Test
     public void testMakeText() throws Exception {

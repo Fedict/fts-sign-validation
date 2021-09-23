@@ -1,0 +1,23 @@
+Java command line tool to create PDF visible signature fields
+Convenient for testing how they will look like in a PDF without having to make a signed PDF every time
+
+Code: signandvalidation-ws/src/main/java/com/zetes/projects/bosa/signandvalidation/service/PdfImageBuilder.java
+
+Build:
+  mvn package -Dmaven.test.skip=true
+  Or instead of building all sources:
+     mkdir signandvalidation-ws/target
+     mkdir signandvalidation-ws/target/classes
+     javac -d signandvalidation-ws/target/classes signandvalidation-ws/src/main/java/com/zetes/projects/bosa/signandvalidation/service/PdfImageBuilder.java
+
+Show command line params:
+  java -cp signandvalidation-ws/target/classes/ com.zetes.projects.bosa.signandvalidation.service.PdfImageBuilder
+
+Run:
+  java -cp signandvalidation-ws/target/classes/ com.zetes.projects.bosa.signandvalidation.service.PdfImageBuilder ...
+
+  
+Note: the fonts are taken from the OS (Linux in case of the FTS server)
+Most fonts differ from OS to OS but Serial and Courier fonts are likely present on all platforms.
+Also present on the FTS server is the 'freescpt' font.
+To try out this font, you can download it from https://fontsdata.com/37131/freestyle-script.htm and save in the current dir as freescpt.ttf (case sensitive)

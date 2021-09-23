@@ -292,12 +292,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             TokenParser tp = ObjStorageService.parseToken(token, 60 * 5);
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), clientSigParams);
+            RemoteDocument document = ObjStorageService.getDocumentForToken(tp, false);
 
             if (parameters.getSignatureLevel().toString().startsWith("PAdES"))
-                pdfVisibleSignatureService.fillParams(parameters, tp, clientSigParams.getPhoto());
+                pdfVisibleSignatureService.checkAndFillParams(parameters, document, tp, clientSigParams.getPhoto());
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
-            RemoteDocument signedDoc = signatureService.signDocument(ObjStorageService.getDocumentForToken(tp, false), parameters, signatureValueDto);
+            RemoteDocument signedDoc = signatureService.signDocument(document, parameters, signatureValueDto);
             signedDoc.setName(ObjStorageService.getTypeForToken(tp).getFilename());
 
             logger.log(Level.INFO, "signDocumentForToken(): validating the signed doc" + token2str(token));
