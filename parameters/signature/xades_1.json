@@ -4,5 +4,5 @@
   "isDefault": true,
   "signatureLevel": "XAdES_BASELINE_B",
   "signaturePackaging": "ENVELOPED",
-  "tspServer": "http://tsa.belgium.be/connect"
+  "tspServer": "http://tss.eidpki.belgium.be/"
 }
