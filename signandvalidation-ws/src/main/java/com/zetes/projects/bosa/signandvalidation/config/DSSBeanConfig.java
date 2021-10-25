@@ -190,7 +190,7 @@ public class DSSBeanConfig {
     @Bean(name = "extra-certificate-source")
     public CertificateSource extraTrustStoreSource() throws IOException {
         KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(
-            new ClassPathResource(extraKsFilename).getFile(), testKsType, testKsPassword
+            new ClassPathResource(extraKsFilename).getFile(), extraKsType, extraKsPassword
         );
 
         CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
