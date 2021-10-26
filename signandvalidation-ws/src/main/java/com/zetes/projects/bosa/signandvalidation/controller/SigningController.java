@@ -410,7 +410,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenParser tokenParser) {
-        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null);
+        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null, parameters);
 
         if (null != tokenParser) {
             try {

@@ -84,6 +84,15 @@ public class DSSBeanConfig {
     @Value("${test.keystore.password}")
     private String testKsPassword;
 
+    @Value("${extra.keystore.type}")
+    private String extraKsType;
+
+    @Value("${extra.keystore.filename}")
+    private String extraKsFilename;
+
+    @Value("${extra.keystore.password}")
+    private String extraKsPassword;
+
     @Autowired
     private DataSource dataSource;
 
@@ -178,6 +187,18 @@ public class DSSBeanConfig {
         return new TrustedListsCertificateSource();
     }
 
+    @Bean(name = "extra-certificate-source")
+    public CertificateSource extraTrustStoreSource() throws IOException {
+        KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(
+            new ClassPathResource(extraKsFilename).getFile(), extraKsType, extraKsPassword
+        );
+
+        CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
+        trustedCertificateSource.importAsTrusted(keystore);
+
+        return trustedCertificateSource;
+    }
+
     @Bean(name = "test-certificate-source")
     public CertificateSource testTrustStoreSource() throws IOException {
         if (testKsenabled) {
@@ -201,9 +222,9 @@ public class DSSBeanConfig {
         certificateVerifier.setOcspSource(cachedOCSPSource());
         certificateVerifier.setDataLoader(dataLoader());
         if (testKsenabled)
-            certificateVerifier.setTrustedCertSources(trustedListSource(), testTrustStoreSource());
+            certificateVerifier.setTrustedCertSources(trustedListSource(), extraTrustStoreSource(), testTrustStoreSource());
         else
-            certificateVerifier.setTrustedCertSources(trustedListSource());
+            certificateVerifier.setTrustedCertSources(trustedListSource(), extraTrustStoreSource());
 
         // Default configs
         certificateVerifier.setAlertOnMissingRevocationData(new LogOnStatusAlert(Level.WARN));

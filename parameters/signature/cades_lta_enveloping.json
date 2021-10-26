@@ -3,5 +3,5 @@
   "digestAlgorithm": "SHA256",
   "signatureLevel": "CAdES_BASELINE_LTA",
   "signaturePackaging": "ENVELOPING",
-  "tspServer":"http://tsa.belgium.be/connect"
+  "tspServer":"http://tss.eidpki.belgium.be/"
 }
