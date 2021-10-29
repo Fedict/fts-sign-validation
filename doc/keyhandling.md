@@ -1,4 +1,4 @@
-#AES key handling
+# AES key handling
 
 For creating signing tokens, the sign/validation backend uses AES keys
 that are randomly generated once every 5 hours. The key to *create* new
@@ -22,7 +22,7 @@ representations.
 The two classes have the following methods that are relevant to key
 handling:
 
-##StoredKey
+## StoredKey
 
 ### Constructor
 
