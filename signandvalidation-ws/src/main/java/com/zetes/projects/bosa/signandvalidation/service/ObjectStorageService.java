@@ -16,6 +16,7 @@ import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import com.zetes.projects.bosa.signandvalidation.TokenParser;
+import com.zetes.projects.bosa.signandvalidation.model.AllowedToSign;
 import com.zetes.projects.bosa.signandvalidation.model.DocumentMetadataDTO;
 import com.zetes.projects.bosa.signandvalidation.model.StoredKey;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -38,6 +39,8 @@ import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -163,7 +166,7 @@ public class ObjectStorageService {
             return false;
         }
     }
-    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload)
+    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload, List<AllowedToSign> allowedToSign)
             throws TokenCreationFailureException, InvalidKeyConfigException {
         try {
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
@@ -185,6 +188,13 @@ public class ObjectStorageService {
                 builder.claim("psfP", psfP);
             if(lang != null)
                 builder.claim("lang", lang);
+            if(allowedToSign != null && allowedToSign.size()>0){
+                List<String> rnrList = new LinkedList<String>();
+                for (AllowedToSign allowedToSignItem : allowedToSign) {
+                    rnrList.add(allowedToSignItem.getNN());
+                }
+                builder.claim("allowedToSign", rnrList);
+            }
             PlainJWT jwt = new PlainJWT(builder.build());
             JWEObject jweObject = new JWEObject(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256)
                     .keyID(getKid())

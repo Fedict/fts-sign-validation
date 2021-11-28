@@ -36,3 +36,4 @@ test_suite/__pycache__/
 test_suite/features/steps/__pycache__/
 test_suite/request.txt
 /signandvalidation-e2e/test-output
+signandvalidation-ws/src/main/resources/application-local.properties

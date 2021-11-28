@@ -15,6 +15,8 @@ import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+
 import javax.crypto.SecretKey;
 
 /**
@@ -35,6 +37,7 @@ public class TokenParser {
     private boolean psfP = false;  // Include eID photo as icon in the PDF signature field
     private boolean noDownload;
     private String raw;
+    private List<String> allowedToSign;
         
     private static JWTClaimsSet ParseToken(String token, ObjectStorageService os) throws ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
         JWEObject jweObject = JWEObject.parse(token);
@@ -88,6 +91,8 @@ public class TokenParser {
         else
             iad = claims.getIssueTime();
         noDownload = claims.getClaim("nd").equals(true);
+        if(claims.getClaims().containsKey("allowedToSign"))
+            allowedToSign = claims.getStringListClaim("allowedToSign");
     }
     public String getCid() {
         return cid;
@@ -127,6 +132,13 @@ public class TokenParser {
     }
     public boolean getNoDownload() {
         return noDownload;
+    }
+
+    public boolean isAllowedToSignCheckNeeded(){
+        return (allowedToSign != null && allowedToSign.size() > 0);
+    }
+    public boolean DoAllowedToSignListContains(String nn){
+        return (allowedToSign != null && allowedToSign.contains(nn));
     }
 
     public static class TokenExpiredException extends Exception {

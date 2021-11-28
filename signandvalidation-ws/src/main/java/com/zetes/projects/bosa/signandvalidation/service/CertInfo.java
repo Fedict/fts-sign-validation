@@ -8,11 +8,11 @@ import java.security.cert.X509Certificate;
 import java.security.cert.CertificateFactory;
 import javax.security.auth.x500.X500Principal;
 
-class CertInfo {
+public class CertInfo {
     RemoteCertificate signingCert = null;
     String subjectName = null;
 
-    CertInfo(RemoteCertificate signingCert) {
+    public CertInfo(RemoteCertificate signingCert) {
         this.signingCert = signingCert;
     }
 
@@ -28,7 +28,7 @@ class CertInfo {
         return getDnField(subjectName, "givenName");
     }
 
-    String getRRN() {
+    public String getRRN() {
         if (null == subjectName)
             subjectName = getSubjectName(signingCert);
         return getDnField(subjectName, "serialNumber");

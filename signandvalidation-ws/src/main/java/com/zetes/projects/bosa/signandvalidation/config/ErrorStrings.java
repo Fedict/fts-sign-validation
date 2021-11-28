@@ -52,6 +52,9 @@ public interface ErrorStrings {
 	/** Coudln't parse request */
 	public static String PARSE_ERROR = "PARSE_ERROR";
 
+	/** NN of the certificat is not in the allowed to sign list */
+	public static String NOT_ALLOWED_TO_SIGN = "NOT_ALLOWED_TO_SIGN";
+
 	/** PDF signature field problem: not specified when needed or invalid value */
 	public static String ERR_PDF_SIG_FIELD = "ERR_PDF_SIG_FIELD";
 }

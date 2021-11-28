@@ -12,10 +12,12 @@ import com.zetes.projects.bosa.signandvalidation.service.PdfVisibleSignatureServ
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.InvalidKeyConfigException;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.TokenCreationFailureException;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
+import com.zetes.projects.bosa.signingconfigurator.exception.NotAllowedToSignException;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
+import com.zetes.projects.bosa.signandvalidation.service.CertInfo;
 import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.spi.DSSUtils;
@@ -123,6 +125,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
             TokenParser tokenParser = ObjStorageService.parseToken(token, 60 * 5);
 
+            // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
+            if (tokenParser.isAllowedToSignCheckNeeded())
+            {
+                CertInfo certInfo = new CertInfo(clientSigParams.getSigningCertificate());
+                String nn = certInfo.getRRN();
+                if (!tokenParser.DoAllowedToSignListContains(nn))
+                {
+                    throw new NotAllowedToSignException("NN not allowed to sign");    
+                }
+            }
+            
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(
                 tokenParser.getProf(), clientSigParams);
             RemoteDocument document = ObjStorageService.getDocumentForToken(tokenParser, false);
@@ -150,6 +163,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (TokenParser.TokenExpiredException e) {
             logAndThrowEx(token, BAD_REQUEST, INVALID_TOKEN, "token has expired");
+        } catch (NotAllowedToSignException e) {
+            logAndThrowEx(token, BAD_REQUEST, NOT_ALLOWED_TO_SIGN, "not allowed to sign");
         } catch (RuntimeException e) {
             logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -164,7 +179,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
             String token = ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(),
                 tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP(), tokenData.getLang(),
-                tokenData.getNoDownload());
+                tokenData.getNoDownload(), tokenData.getAllowedToSign());
             logger.log(Level.INFO, "Returning from getTokenForDocument()" + token2str(token) + "\nparams: " + tokenData.toString());
             return token;
         } catch (TokenCreationFailureException e) {
@@ -291,6 +306,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         try {
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             TokenParser tp = ObjStorageService.parseToken(token, 60 * 5);
+
+            // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
+            if (tp.isAllowedToSignCheckNeeded())
+            {
+                CertInfo certInfo = new CertInfo(clientSigParams.getSigningCertificate());
+                String nn = certInfo.getRRN();
+                if (!tp.DoAllowedToSignListContains(nn))
+                {
+                    throw new NotAllowedToSignException("NN not allowed to sign");    
+                }
+            }
+
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), clientSigParams);
             RemoteDocument document = ObjStorageService.getDocumentForToken(tp, false);
 
@@ -320,6 +347,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(token, BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (TokenParser.TokenExpiredException e) {
             logAndThrowEx(token, BAD_REQUEST, INVALID_TOKEN, "token has expired");
+        } catch (NotAllowedToSignException e) {
+            logAndThrowEx(token, BAD_REQUEST, NOT_ALLOWED_TO_SIGN, "not allowed to sign");
         } catch (InvalidKeyConfigException | RuntimeException e) {
             logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }

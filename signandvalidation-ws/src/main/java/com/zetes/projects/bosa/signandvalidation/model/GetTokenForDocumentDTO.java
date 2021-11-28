@@ -5,6 +5,8 @@
  */
 package com.zetes.projects.bosa.signandvalidation.model;
 
+import java.util.List;
+
 /**
  *
  * @author wouter
@@ -22,10 +24,11 @@ public class GetTokenForDocumentDTO {
     private String psfP;  // Include eID photo as icon in the PDF signature field
     private String lang;
     private boolean noDownload;
+    private List<AllowedToSign> allowedToSign;
 
     public GetTokenForDocumentDTO() {
     }
-    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload) {
+    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload, List<AllowedToSign> allowedToSign) {
         this.name = name;
         this.pwd = pwd;
         this.in = in;
@@ -38,6 +41,7 @@ public class GetTokenForDocumentDTO {
         this.psfP = psfP;
         this.lang = lang;
         this.noDownload = noDownload;
+        this.allowedToSign = allowedToSign;
     }
     public String getName() {
         return name;
@@ -111,6 +115,12 @@ public class GetTokenForDocumentDTO {
     public void setNoDownload(boolean noDownload) {
         this.noDownload = noDownload;
     }
+    public List<AllowedToSign> getAllowedToSign() {
+        return allowedToSign;
+    }
+    public void setAllowedToSign(List<AllowedToSign> allowedToSign) {
+        this.allowedToSign = allowedToSign;
+    }
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"name\":\"").append(name)
@@ -130,7 +140,23 @@ public class GetTokenForDocumentDTO {
             sb.append("\", \"psfP\":\"").append(psfP);
         if (null != lang)
             sb.append("\", \"lang\":\"").append(lang);
-        sb.append("\"}");
+        if (null != allowedToSign){
+            sb.append("\", \"allowedToSign\":[");
+            boolean firstItem = true;
+            for (AllowedToSign allowedToSignItem : allowedToSign) {
+                if (firstItem){
+                    firstItem = false;
+                }
+                else{
+                    sb.append(",");
+                }
+                sb.append("{\"nn\":\"").append(allowedToSignItem.getNN()).append("\"}");
+            }
+            sb.append("]}");
+        }
+        else{
+            sb.append("\"}");
+        }
         return sb.toString();
     }
 }
