@@ -166,7 +166,7 @@ public class ObjectStorageService {
             return false;
         }
     }
-    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload, List<AllowedToSign> allowedToSign)
+    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload, List<AllowedToSign> allowedToSign, String policyId, String policyDescription, String policyDigestAlgorithm, boolean requestDocumentReadConfirm)
             throws TokenCreationFailureException, InvalidKeyConfigException {
         try {
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
@@ -188,6 +188,18 @@ public class ObjectStorageService {
                 builder.claim("psfP", psfP);
             if(lang != null)
                 builder.claim("lang", lang);
+            if(requestDocumentReadConfirm)
+                builder.claim("rdrc", requestDocumentReadConfirm);
+            if(policyId != null)
+                builder.claim("polId", policyId);
+            if(policyDescription != null)
+                builder.claim("polDesc", policyDescription);
+            if(policyDigestAlgorithm != null)
+            {
+                builder.claim("polDigAlg", policyDigestAlgorithm);
+                // Check if the policyDigestAlgorithm value is part of the enum (if not lead to an IllegalArgumentException)
+                eu.europa.esig.dss.enumerations.DigestAlgorithm.valueOf(policyDigestAlgorithm);
+            }
             if(allowedToSign != null && allowedToSign.size()>0){
                 List<String> rnrList = new LinkedList<String>();
                 for (AllowedToSign allowedToSignItem : allowedToSign) {
@@ -202,6 +214,9 @@ public class ObjectStorageService {
             jweObject.encrypt(new DirectEncrypter(getKeyForId(getKid())));
             return jweObject.serialize();
         } catch (JOSEException ex) {
+            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+            throw new TokenCreationFailureException();
+        } catch (IllegalArgumentException ex) {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
             throw new TokenCreationFailureException();
         }
@@ -261,9 +276,7 @@ public class ObjectStorageService {
         if(token.getXslt() != null) {
             xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + token.getRaw();
         }
-        boolean readPhoto = token.getPsfP();
-        boolean noDownload = token.getNoDownload();
-        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl, readPhoto, noDownload);
+        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl, token.getPsfP(), token.getNoDownload(), token.getRequestDocumentReadConfirm());
     }
     public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getTypeForToken(parseToken(token, 5));

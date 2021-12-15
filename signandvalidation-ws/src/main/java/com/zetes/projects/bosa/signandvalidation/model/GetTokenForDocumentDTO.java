@@ -25,10 +25,17 @@ public class GetTokenForDocumentDTO {
     private String lang;
     private boolean noDownload;
     private List<AllowedToSign> allowedToSign;
+    private String policyId;
+    private String policyDescription;
+    private String policyDigestAlgorithm;
+    private boolean requestDocumentReadConfirm;
 
     public GetTokenForDocumentDTO() {
     }
-    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload, List<AllowedToSign> allowedToSign) {
+    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload,
+        List<AllowedToSign> allowedToSign,
+        String policyId, String policyDescription, String policyDigestAlgorithm,
+        Boolean requestDocumentReadConfirm) {
         this.name = name;
         this.pwd = pwd;
         this.in = in;
@@ -42,6 +49,10 @@ public class GetTokenForDocumentDTO {
         this.lang = lang;
         this.noDownload = noDownload;
         this.allowedToSign = allowedToSign;
+        this.policyId = policyId;
+        this.policyDescription = policyDescription;
+        this.policyDigestAlgorithm = policyDigestAlgorithm;
+        this.requestDocumentReadConfirm = requestDocumentReadConfirm;
     }
     public String getName() {
         return name;
@@ -121,10 +132,23 @@ public class GetTokenForDocumentDTO {
     public void setAllowedToSign(List<AllowedToSign> allowedToSign) {
         this.allowedToSign = allowedToSign;
     }
+    public String getPolicyId() {
+        return policyId;
+    }
+    public String getPolicyDescription() {
+        return policyDescription;
+    }
+    public String getPolicyDigestAlgorithm() {
+        return policyDigestAlgorithm;
+    }
+    public boolean getRequestDocumentReadConfirm() {
+        return requestDocumentReadConfirm;
+    }
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"name\":\"").append(name)
             .append("\"noDownload\":").append(noDownload)
+            .append("\"requestDocumentReadConfirm\":").append(requestDocumentReadConfirm)
             .append("\"in\":\"").append(in)
             .append("\", \"out\":\"").append(out)
             .append("\", \"prof\":\"").append(prof);
@@ -140,6 +164,12 @@ public class GetTokenForDocumentDTO {
             sb.append("\", \"psfP\":\"").append(psfP);
         if (null != lang)
             sb.append("\", \"lang\":\"").append(lang);
+        if (null != policyId)
+            sb.append("\", \"policyId\":\"").append(policyId);
+        if (null != policyDescription)
+            sb.append("\", \"policyDescription\":\"").append(policyDescription);
+        if (null != policyDigestAlgorithm)
+            sb.append("\", \"policyDigestAlgorithm\":\"").append(policyDigestAlgorithm);
         if (null != allowedToSign){
             sb.append("\", \"allowedToSign\":[");
             boolean firstItem = true;

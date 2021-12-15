@@ -38,6 +38,10 @@ public class TokenParser {
     private boolean noDownload;
     private String raw;
     private List<String> allowedToSign;
+    private String policyId; // EPES. Optional policy fields
+    private String policyDescription; // EPES. Optional policy fields
+    private eu.europa.esig.dss.enumerations.DigestAlgorithm policyDigestAlgorithm; // EPES. Optional policy fields
+    private boolean requestDocumentReadConfirm;
         
     private static JWTClaimsSet ParseToken(String token, ObjectStorageService os) throws ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
         JWEObject jweObject = JWEObject.parse(token);
@@ -91,9 +95,34 @@ public class TokenParser {
         else
             iad = claims.getIssueTime();
         noDownload = claims.getClaim("nd").equals(true);
+        
+        if(claims.getClaims().containsKey("rdrc"))
+            requestDocumentReadConfirm = claims.getClaim("rdrc").equals(true);
+        else
+            requestDocumentReadConfirm = false;
+
         if(claims.getClaims().containsKey("allowedToSign"))
             allowedToSign = claims.getStringListClaim("allowedToSign");
+
+        // EPES. Optional policy fields
+        if(claims.getClaims().containsKey("polId"))
+            policyId = claims.getClaim("polId").toString();
+        if(claims.getClaims().containsKey("polDesc"))
+            policyDescription = claims.getClaim("polDesc").toString();
+        if(claims.getClaims().containsKey("polDigAlg"))
+            policyDigestAlgorithm = eu.europa.esig.dss.enumerations.DigestAlgorithm.valueOf(claims.getClaim("polDigAlg").toString());
     }
+
+    public String getPolicyId() {
+        return policyId;
+    }
+    public String getPolicyDescription() {
+        return policyDescription;
+    }
+    public eu.europa.esig.dss.enumerations.DigestAlgorithm getPolicyDigestAlgorithm() {
+        return policyDigestAlgorithm;
+    }
+
     public String getCid() {
         return cid;
     }
@@ -133,7 +162,9 @@ public class TokenParser {
     public boolean getNoDownload() {
         return noDownload;
     }
-
+    public boolean getRequestDocumentReadConfirm() {
+        return requestDocumentReadConfirm;
+    }
     public boolean isAllowedToSignCheckNeeded(){
         return (allowedToSign != null && allowedToSign.size() > 0);
     }

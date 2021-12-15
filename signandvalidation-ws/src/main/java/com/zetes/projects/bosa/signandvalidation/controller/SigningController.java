@@ -1,7 +1,7 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
-
+import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
 import com.nimbusds.jose.JOSEException;
 import com.zetes.projects.bosa.signandvalidation.TokenParser;
 import com.zetes.projects.bosa.signandvalidation.TokenParser.TokenExpiredException;
@@ -98,7 +98,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
 
             checkDataToSign(parameters, null);
 
@@ -112,6 +112,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -137,7 +139,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
             
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(
-                tokenParser.getProf(), clientSigParams);
+                tokenParser.getProf(), clientSigParams, new PolicyParameters(tokenParser));
             RemoteDocument document = ObjStorageService.getDocumentForToken(tokenParser, false);
 
             checkDataToSign(parameters, token);
@@ -167,6 +169,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(token, BAD_REQUEST, NOT_ALLOWED_TO_SIGN, "not allowed to sign");
         } catch (RuntimeException e) {
             logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -179,7 +183,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
             String token = ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(),
                 tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP(), tokenData.getLang(),
-                tokenData.getNoDownload(), tokenData.getAllowedToSign());
+                tokenData.getNoDownload(), tokenData.getAllowedToSign(), tokenData.getPolicyId(), tokenData.getPolicyDescription(), tokenData.getPolicyDigestAlgorithm(), tokenData.getRequestDocumentReadConfirm());
             logger.log(Level.INFO, "Returning from getTokenForDocument()" + token2str(token) + "\nparams: " + tokenData.toString());
             return token;
         } catch (TokenCreationFailureException e) {
@@ -265,7 +269,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
 
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -276,6 +280,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -283,7 +289,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters(), null);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
@@ -294,6 +300,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -318,7 +326,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 }
             }
 
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), clientSigParams);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), clientSigParams, new PolicyParameters(tp));
             RemoteDocument document = ObjStorageService.getDocumentForToken(tp, false);
 
             if (parameters.getSignatureLevel().toString().startsWith("PAdES"))
@@ -351,6 +359,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(token, BAD_REQUEST, NOT_ALLOWED_TO_SIGN, "not allowed to sign");
         } catch (InvalidKeyConfigException | RuntimeException e) {
             logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -358,7 +368,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters(), null);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
@@ -369,6 +379,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
