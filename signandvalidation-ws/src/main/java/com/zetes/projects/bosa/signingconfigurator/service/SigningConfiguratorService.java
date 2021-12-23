@@ -1,6 +1,7 @@
 package com.zetes.projects.bosa.signingconfigurator.service;
 
 import com.google.common.io.ByteStreams;
+import com.zetes.projects.bosa.signandvalidation.config.ProxyConfiguration;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
@@ -15,6 +16,7 @@ import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
 import eu.europa.esig.dss.enumerations.ObjectIdentifierQualifier;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
+import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -63,9 +65,10 @@ public class SigningConfiguratorService {
         // check to add policy (EPES)
         if (policyParameters != null && policyParameters.IsPolicyValid()) {
             // calculate policy file digest
-            URL url = new URL(policyParameters.getPolicyId());
-            URLConnection connection = url.openConnection();
-            byte[] bytes = ByteStreams.toByteArray(connection.getInputStream());
+            CommonsDataLoader dataLoader = new CommonsDataLoader();
+            dataLoader.setProxyConfig(new ProxyConfiguration().proxyConfig());
+            byte[] bytes = dataLoader.get(policyParameters.getPolicyId());
+            
             DSSDocument policyContent = new InMemoryDocument(bytes);
             byte[] digestedBytes = DSSUtils.digest(policyParameters.getPolicyDigestAlgorithm(), policyContent);
             // Fill policy entries
