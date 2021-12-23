@@ -1,7 +1,6 @@
 package com.zetes.projects.bosa.signingconfigurator.service;
 
-import com.google.common.io.ByteStreams;
-import com.zetes.projects.bosa.signandvalidation.config.ProxyConfiguration;
+
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
@@ -11,12 +10,11 @@ import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileTimestampParameters;
 
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
 import eu.europa.esig.dss.enumerations.ObjectIdentifierQualifier;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
-import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
+import eu.europa.esig.dss.service.http.commons.FileCacheDataLoader;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -27,15 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Scanner;
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Date;
 
 @Service
@@ -49,6 +39,9 @@ public class SigningConfiguratorService {
 
     @Autowired
     OnlineTSPSource tspSource;
+
+    @Autowired
+    FileCacheDataLoader fileCacheDataLoader;
 
     public RemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams, PolicyParameters policyParameters) throws ProfileNotFoundException, NullParameterException, IOException {
         if (clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
@@ -65,9 +58,8 @@ public class SigningConfiguratorService {
         // check to add policy (EPES)
         if (policyParameters != null && policyParameters.IsPolicyValid()) {
             // calculate policy file digest
-            CommonsDataLoader dataLoader = new CommonsDataLoader();
-            dataLoader.setProxyConfig(new ProxyConfiguration().proxyConfig());
-            byte[] bytes = dataLoader.get(policyParameters.getPolicyId());
+            DSSDocument doc = fileCacheDataLoader.getDocument(policyParameters.getPolicyId());
+            byte[] bytes = doc.openStream().readAllBytes();
             
             DSSDocument policyContent = new InMemoryDocument(bytes);
             byte[] digestedBytes = DSSUtils.digest(policyParameters.getPolicyDigestAlgorithm(), policyContent);
