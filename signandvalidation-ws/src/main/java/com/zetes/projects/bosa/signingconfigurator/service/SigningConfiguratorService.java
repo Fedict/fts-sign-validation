@@ -25,7 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 
 @Service
@@ -59,7 +61,18 @@ public class SigningConfiguratorService {
         if (policyParameters != null && policyParameters.IsPolicyValid()) {
             // calculate policy file digest
             DSSDocument doc = fileCacheDataLoader.getDocument(policyParameters.getPolicyId());
-            byte[] bytes = doc.openStream().readAllBytes();
+            // Java 9
+            // byte[] bytes = doc.openStream().readAllBytes();
+            // Java 8
+            InputStream is = doc.openStream();
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int nRead;
+            byte[] data = new byte[4096];
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            buffer.flush();
+            byte[] bytes = buffer.toByteArray();
             
             DSSDocument policyContent = new InMemoryDocument(bytes);
             byte[] digestedBytes = DSSUtils.digest(policyParameters.getPolicyDigestAlgorithm(), policyContent);
