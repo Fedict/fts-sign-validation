@@ -5,6 +5,7 @@ import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundExce
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileTimestampParameters;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.TimestampContainerForm;
+import eu.europa.esig.dss.service.http.commons.FileCacheDataLoader;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
@@ -21,6 +24,7 @@ import static javax.xml.crypto.dsig.CanonicalizationMethod.EXCLUSIVE;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Import(FileCacheDataLoader.class)
 @ActiveProfiles("localh2")
 public class TimestampConfiguratorServiceTest {
 
@@ -45,6 +49,7 @@ public class TimestampConfiguratorServiceTest {
     @Test
     public void throwsProfileNotFoundException() {
         ProfileNotFoundException exception = assertThrows(
+
                 ProfileNotFoundException.class,
                 () -> service.getTimestampParams("NOTFOUND")
         );
@@ -121,5 +126,4 @@ public class TimestampConfiguratorServiceTest {
 
         dao.save(profileParams);
     }
-
 }

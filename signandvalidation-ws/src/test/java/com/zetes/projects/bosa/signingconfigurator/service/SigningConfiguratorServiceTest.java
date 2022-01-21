@@ -5,6 +5,7 @@ import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundExce
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import eu.europa.esig.dss.enumerations.*;
+import eu.europa.esig.dss.service.http.commons.FileCacheDataLoader;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.xml.crypto.dsig.CanonicalizationMethod;
@@ -26,6 +28,7 @@ import static javax.xml.crypto.dsig.CanonicalizationMethod.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Import(FileCacheDataLoader.class)
 @ActiveProfiles("localh2")
 public class SigningConfiguratorServiceTest {
 
