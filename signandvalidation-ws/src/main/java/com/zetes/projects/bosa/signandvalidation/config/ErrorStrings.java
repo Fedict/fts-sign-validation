@@ -45,7 +45,10 @@ public interface ErrorStrings {
 
 	/** Invalid token in request */
 	public static String INVALID_TOKEN = "INVALID_TOKEN";
-        
+
+	/** Invalid signature level for document */
+	public static String INVALID_SIGNATURE_LEVEL = "INVALID_SIGNATURE_LEVEL";
+
 	/** Invalid document type in request */
 	public static String INVALID_TYPE = "INVALID_TYPE";
 
