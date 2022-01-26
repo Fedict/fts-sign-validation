@@ -1,7 +1,9 @@
 package com.zetes.projects.bosa.signandvalidation.config;
 
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import org.slf4j.Logger;
@@ -31,8 +33,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
-        JaxbAnnotationIntrospector jai = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
-        objectMapper.setAnnotationIntrospector(jai);
+
+        // JAXB is needed for DSS marshalling, we need to use Jackson annotations also
+        // so we use a dual AnnotationIntrospector
+        JaxbAnnotationIntrospector primary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
+        JacksonAnnotationIntrospector secondary = new JacksonAnnotationIntrospector();
+        objectMapper.setAnnotationIntrospector(AnnotationIntrospector.pair(primary, secondary));
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         return objectMapper;
     }

@@ -231,22 +231,6 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
         assert(result.get("message").toString().contains(INVALID_SIG_DATE));
-
-        // 10 minutes too late
-
-        cal = Calendar.getInstance();
-        cal.add(Calendar.MINUTE, 10);
-        clientSignatureParameters.setSigningDate(cal.getTime());
-
-        fileToSign = new FileDocument(new File("src/test/resources/sample.xml"));
-        toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
-
-        // get data to sign
-        dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters);
-        result = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, Map.class);
-
-        assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assert(result.get("message").toString().contains(INVALID_SIG_DATE));
     }
 
     @Test

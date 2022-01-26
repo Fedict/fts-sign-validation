@@ -98,13 +98,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
+            dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
 
             checkDataToSign(parameters, null);
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), dataToSignDto.getClientSignatureParameters().getSigningDate());
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (PdfVisibleSignatureException e) {
@@ -125,6 +126,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         logger.log(Level.INFO, "Entering getDataToSignForToken()" + token2str(token));
         try {
             ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
+            clientSigParams.setSigningDate(new Date());
             TokenParser tokenParser = ObjStorageService.parseToken(token, 60 * 5);
 
             // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
@@ -148,7 +150,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(document, parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), clientSigParams.getSigningDate());
 
             logger.log(Level.INFO, "Returning from getDataToSignForToken()" + token2str(token));
 
@@ -269,11 +271,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
         try {
+            dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
 
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), dataToSignDto.getClientSignatureParameters().getSigningDate());
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
@@ -488,19 +491,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     private void checkDataToSign(RemoteSignatureParameters parameters, String token) {
-        
-        // Check signing date
+
         Date now = new Date();
+        /* Singing date comes from the services (instead of browser) now so no check is needed .
+        // Check signing date
         Calendar oldest = Calendar.getInstance();
         oldest.setTime(now);
-        oldest.add(Calendar.MINUTE, -5);
-        Calendar newest = Calendar.getInstance();
-        newest.setTime(now);
-        newest.add(Calendar.MINUTE, 5);
+        oldest.add(Calendar.MINUTE, -2);
         Date d = parameters.getBLevelParams().getSigningDate();
-        if((d.compareTo(newest.getTime()) > 0) || (d.compareTo(oldest.getTime()) < 0)) {
+        if(d.compareTo(oldest.getTime()) <= 0) {
             logAndThrowEx(BAD_REQUEST, INVALID_SIG_DATE, logDateTimeFormat.format(d));
         }
+         */
 
         // Check if the signing cert is present and not expired
         try {
