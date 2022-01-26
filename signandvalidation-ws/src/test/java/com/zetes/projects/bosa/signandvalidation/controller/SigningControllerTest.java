@@ -93,6 +93,7 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
 
         // sign document
+        clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_B", clientSignatureParameters, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
@@ -129,6 +130,7 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
 
         // sign document
+        clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "CADES_B", clientSignatureParameters, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
@@ -160,6 +162,7 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
 
         // sign document
+        clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "PADES_B", clientSignatureParameters, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
@@ -205,22 +208,18 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
         assert(result.get("message").toString().endsWith(SIGN_CERT_EXPIRED + "||exp. date = 2021.03.06 12:28:05"));
     }
 
+/*
     @Test
+
     public void testSigningTime() throws Exception {
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
-                new FileInputStream("src/test/resources/expired.p12"),
+                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
         List<DSSPrivateKeyEntry> keys = token.getKeys();
         DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
 
         ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
-
-        // 10 minutes too soon
-
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MINUTE, -10);
-        clientSignatureParameters.setSigningDate(cal.getTime());
 
         FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.xml"));
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
@@ -232,6 +231,7 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
         assert(result.get("message").toString().contains(INVALID_SIG_DATE));
     }
+ */
 
     @Test
     public void testNoChain() throws Exception {
@@ -264,7 +264,6 @@ public class SigningControllerTest extends SignAndValidationTestBase implements 
         ClientSignatureParameters clientSignatureParameters = new ClientSignatureParameters();
         clientSignatureParameters.setSigningCertificate(new RemoteCertificate(dssPrivateKeyEntry.getCertificate().getEncoded()));
         clientSignatureParameters.setCertificateChain(chain);
-        clientSignatureParameters.setSigningDate(new Date());
         return clientSignatureParameters;
     }
 
