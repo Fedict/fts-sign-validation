@@ -11,7 +11,10 @@ import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
+import com.zetes.projects.bosa.signandvalidation.model.GetTokenForDocumentDTO;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService;
+import lombok.Getter;
+
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -23,7 +26,9 @@ import javax.crypto.SecretKey;
  *
  * @author wouter
  */
+@Getter
 public class TokenParser {
+    GetTokenForDocumentDTO token;
     private String cid;
     private String in;
     private String out;
@@ -34,15 +39,16 @@ public class TokenParser {
     private String psp;   // PDF signature parameters file name
     private String psfN;  // PDF signature field name
     private String psfC;  // PDF signature field coordinates
-    private boolean psfP = false;  // Include eID photo as icon in the PDF signature field
-    private boolean noDownload;
+    private Boolean psfP = false;  // Include eID photo as icon in the PDF signature field
+    private Boolean noDownload;
+    private Integer signTimeout;
     private String raw;
     private List<String> allowedToSign;
     private String policyId; // EPES. Optional policy fields
     private String policyDescription; // EPES. Optional policy fields
     private eu.europa.esig.dss.enumerations.DigestAlgorithm policyDigestAlgorithm; // EPES. Optional policy fields
-    private boolean requestDocumentReadConfirm;
-        
+    private Boolean requestDocumentReadConfirm;
+
     private static JWTClaimsSet ParseToken(String token, ObjectStorageService os) throws ParseException, JOSEException, ObjectStorageService.InvalidKeyConfigException {
         JWEObject jweObject = JWEObject.parse(token);
         JWEHeader header = jweObject.getHeader();
@@ -94,13 +100,14 @@ public class TokenParser {
             iad = validity;
         else
             iad = claims.getIssueTime();
-        noDownload = claims.getClaim("nd").equals(true);
-        
-        if(claims.getClaims().containsKey("rdrc"))
-            requestDocumentReadConfirm = claims.getClaim("rdrc").equals(true);
-        else
-            requestDocumentReadConfirm = false;
 
+        noDownload = claims.getClaim("nd") == null ? false : claims.getClaim("nd").equals(true);
+        requestDocumentReadConfirm = claims.getClaim("rdrc") == null ? false : claims.getClaim("rdrc").equals(true);
+
+        if(claims.getClaims().containsKey("st"))
+            signTimeout = claims.getIntegerClaim("st");
+
+        claims.getClaims().get("st");
         if(claims.getClaims().containsKey("allowedToSign"))
             allowedToSign = claims.getStringListClaim("allowedToSign");
 
@@ -113,58 +120,6 @@ public class TokenParser {
             policyDigestAlgorithm = eu.europa.esig.dss.enumerations.DigestAlgorithm.valueOf(claims.getClaim("polDigAlg").toString());
     }
 
-    public String getPolicyId() {
-        return policyId;
-    }
-    public String getPolicyDescription() {
-        return policyDescription;
-    }
-    public eu.europa.esig.dss.enumerations.DigestAlgorithm getPolicyDigestAlgorithm() {
-        return policyDigestAlgorithm;
-    }
-
-    public String getCid() {
-        return cid;
-    }
-    public String getIn() {
-        return in;
-    }
-    public String getOut() {
-        return out;
-    }
-    public String getProf() {
-        return prof;
-    }
-    public Date getIad() {
-        return iad;
-    }
-    public String getXslt() {
-        return xslt;
-    }
-    public String getPsp() {
-        return psp;
-    }
-    public String getLang() {
-        return lang;
-    }
-    public String getPsfN() {
-        return psfN;
-    }
-    public String getPsfC() {
-        return psfC;
-    }
-    public boolean getPsfP() {
-        return psfP;
-    }
-    public String getRaw() {
-        return raw;
-    }
-    public boolean getNoDownload() {
-        return noDownload;
-    }
-    public boolean getRequestDocumentReadConfirm() {
-        return requestDocumentReadConfirm;
-    }
     public boolean isAllowedToSignCheckNeeded(){
         return (allowedToSign != null && allowedToSign.size() > 0);
     }

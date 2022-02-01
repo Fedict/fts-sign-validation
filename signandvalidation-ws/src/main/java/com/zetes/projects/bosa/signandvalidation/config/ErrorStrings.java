@@ -57,4 +57,7 @@ public interface ErrorStrings {
 
 	/** PDF signature field problem: not specified when needed or invalid value */
 	public static String ERR_PDF_SIG_FIELD = "ERR_PDF_SIG_FIELD";
+
+	/** The delay between the getDataToSignForToken and the SignDocumentFroToken calls was larger than the timeout time defined in the "Token" (Pin code entry took too long)  */
+	public static String SIGN_PERIOD_EXPIRED = "SIGN_PERIOD_EXPIRED";
 }

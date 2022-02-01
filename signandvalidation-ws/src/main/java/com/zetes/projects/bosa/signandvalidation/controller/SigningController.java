@@ -1,10 +1,9 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
+import com.zetes.projects.bosa.signandvalidation.exceptions.SignaturePeriodExpiredException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
-import com.nimbusds.jose.JOSEException;
 import com.zetes.projects.bosa.signandvalidation.TokenParser;
-import com.zetes.projects.bosa.signandvalidation.TokenParser.TokenExpiredException;
 import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService;
 import com.zetes.projects.bosa.signandvalidation.service.PdfVisibleSignatureService;
@@ -30,7 +29,6 @@ import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureSe
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
-import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -49,8 +47,6 @@ import java.io.StringWriter;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
-import java.text.ParseException;
-import java.util.Calendar;
 import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -183,9 +179,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(!(ObjStorageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
-            String token = ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(),
-                tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP(), tokenData.getLang(),
-                tokenData.getNoDownload(), tokenData.getAllowedToSign(), tokenData.getPolicyId(), tokenData.getPolicyDescription(), tokenData.getPolicyDigestAlgorithm(), tokenData.getRequestDocumentReadConfirm());
+            String token = ObjStorageService.getTokenForDocument(tokenData);
             logger.log(Level.INFO, "Returning from getTokenForDocument()" + token2str(token) + "\nparams: " + tokenData.toString());
             return token;
         } catch (TokenCreationFailureException e) {
@@ -318,6 +312,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             TokenParser tp = ObjStorageService.parseToken(token, 60 * 5);
 
+            long signTimeout = tp.getSignTimeout() != null ? tp.getSignTimeout() * 1000 : 120000;
+            if (new Date().getTime() >= (clientSigParams.getSigningDate().getTime() + signTimeout)) {
+                throw new SignaturePeriodExpiredException();
+            }
+
             // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
             if (tp.isAllowedToSignCheckNeeded())
             {
@@ -364,6 +363,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (SignaturePeriodExpiredException e) {
+            logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, String.valueOf(e));
         }
         return null; // We won't get here
     }
