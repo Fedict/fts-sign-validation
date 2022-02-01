@@ -129,7 +129,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (tokenParser.isAllowedToSignCheckNeeded())
             {
                 CertInfo certInfo = new CertInfo(clientSigParams.getSigningCertificate());
-                String nn = certInfo.getRRN();
+                String nn = certInfo.getSerialNumber();
                 if (!tokenParser.DoAllowedToSignListContains(nn))
                 {
                     throw new NotAllowedToSignException("NN not allowed to sign");    
@@ -321,7 +321,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (tp.isAllowedToSignCheckNeeded())
             {
                 CertInfo certInfo = new CertInfo(clientSigParams.getSigningCertificate());
-                String nn = certInfo.getRRN();
+                String nn = certInfo.getSerialNumber();
                 if (!tp.DoAllowedToSignListContains(nn))
                 {
                     throw new NotAllowedToSignException("NN not allowed to sign");    

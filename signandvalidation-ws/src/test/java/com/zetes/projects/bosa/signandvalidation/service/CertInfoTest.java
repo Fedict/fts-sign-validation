@@ -2,26 +2,18 @@ package com.zetes.projects.bosa.signandvalidation.service;
 
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
-
 import java.util.*;
 
-@SpringBootTest
-@ActiveProfiles("localh2")
 public class CertInfoTest {
     @Test
     public void testGetters() throws Exception {
         CertInfo ci = new CertInfo(getTomTestCertificate());
         assertEquals("Tom", ci.getGivenName());
         assertEquals("Test", ci.getSurname());
-        assertEquals("73040102749", ci.getRRN());
+        assertEquals("73040102749", ci.getSerialNumber());
     }
 
     private static RemoteCertificate tomTestCert = null;

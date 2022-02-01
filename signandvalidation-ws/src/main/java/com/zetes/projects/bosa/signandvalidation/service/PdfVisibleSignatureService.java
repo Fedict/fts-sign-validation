@@ -6,18 +6,13 @@ import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterExcept
 
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
-import eu.europa.esig.dss.ws.dto.RemoteColor;
 import eu.europa.esig.dss.enumerations.SignerTextHorizontalAlignment;
 import eu.europa.esig.dss.enumerations.SignerTextVerticalAlignment;
 import eu.europa.esig.dss.enumerations.SignerTextPosition;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteBLevelParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageTextParameters;
 import eu.europa.esig.dss.pades.signature.PAdESService;
-import eu.europa.esig.dss.model.InMemoryDocument;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
@@ -28,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -324,12 +318,10 @@ public class PdfVisibleSignatureService {
 
         CertInfo certInfo = new CertInfo(signingCert);
 
-        if (text.contains("%sn%"))
-            text = text.replace("%sn%", certInfo.getSurname());
-        if (text.contains("%gn%"))
-            text = text.replace("%gn%", certInfo.getGivenName());
-        if (text.contains("%rrn%"))
-            text = text.replace("%rrn%", certInfo.getRRN());
+        text = text.replace("%sn%", certInfo.getSurname()).
+                replace("%gn%", certInfo.getGivenName())
+                .replace("%rrn%", certInfo.getSerialNumber())
+                .replace("%nn%", certInfo.getSerialNumber());
 
         if (null == lang)
             lang = "en";
