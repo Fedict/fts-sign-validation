@@ -1,10 +1,9 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
+import com.zetes.projects.bosa.signandvalidation.exceptions.SignaturePeriodExpiredException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
-
-import com.nimbusds.jose.JOSEException;
+import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
 import com.zetes.projects.bosa.signandvalidation.TokenParser;
-import com.zetes.projects.bosa.signandvalidation.TokenParser.TokenExpiredException;
 import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService;
 import com.zetes.projects.bosa.signandvalidation.service.PdfVisibleSignatureService;
@@ -12,10 +11,12 @@ import com.zetes.projects.bosa.signandvalidation.service.PdfVisibleSignatureServ
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.InvalidKeyConfigException;
 import com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService.TokenCreationFailureException;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
+import com.zetes.projects.bosa.signingconfigurator.exception.NotAllowedToSignException;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
+import com.zetes.projects.bosa.signandvalidation.service.CertInfo;
 import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.spi.DSSUtils;
@@ -28,7 +29,6 @@ import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureSe
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
-import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -47,8 +47,6 @@ import java.io.StringWriter;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
-import java.text.ParseException;
-import java.util.Calendar;
 import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -96,13 +94,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/getDataToSign", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
+            dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
 
             checkDataToSign(parameters, null);
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), dataToSignDto.getClientSignatureParameters().getSigningDate());
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (PdfVisibleSignatureException e) {
@@ -110,6 +109,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -121,10 +122,22 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         logger.log(Level.INFO, "Entering getDataToSignForToken()" + token2str(token));
         try {
             ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
+            clientSigParams.setSigningDate(new Date());
             TokenParser tokenParser = ObjStorageService.parseToken(token, 60 * 5);
 
+            // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
+            if (tokenParser.isAllowedToSignCheckNeeded())
+            {
+                CertInfo certInfo = new CertInfo(clientSigParams.getSigningCertificate());
+                String nn = certInfo.getSerialNumber();
+                if (!tokenParser.DoAllowedToSignListContains(nn))
+                {
+                    throw new NotAllowedToSignException("NN not allowed to sign");    
+                }
+            }
+            
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(
-                tokenParser.getProf(), clientSigParams);
+                tokenParser.getProf(), clientSigParams, new PolicyParameters(tokenParser));
             RemoteDocument document = ObjStorageService.getDocumentForToken(tokenParser, false);
 
             checkDataToSign(parameters, token);
@@ -133,7 +146,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ToBeSignedDTO dataToSign = signatureService.getDataToSign(document, parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), clientSigParams.getSigningDate());
 
             logger.log(Level.INFO, "Returning from getDataToSignForToken()" + token2str(token));
 
@@ -150,8 +163,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (TokenParser.TokenExpiredException e) {
             logAndThrowEx(token, BAD_REQUEST, INVALID_TOKEN, "token has expired");
+        } catch (NotAllowedToSignException e) {
+            logAndThrowEx(token, BAD_REQUEST, NOT_ALLOWED_TO_SIGN, "not allowed to sign");
         } catch (RuntimeException e) {
             logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -162,9 +179,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(!(ObjStorageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
-            String token = ObjStorageService.getTokenForDocument(tokenData.getName(), tokenData.getIn(), tokenData.getOut(),
-                tokenData.getProf(), tokenData.getXslt(), tokenData.getPsp(), tokenData.getPsfN(), tokenData.getPsfC(), tokenData.getPsfP(), tokenData.getLang(),
-                tokenData.getNoDownload());
+            String token = ObjStorageService.getTokenForDocument(tokenData);
             logger.log(Level.INFO, "Returning from getTokenForDocument()" + token2str(token) + "\nparams: " + tokenData.toString());
             return token;
         } catch (TokenCreationFailureException e) {
@@ -250,16 +265,19 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters());
+            dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
 
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()));
+            return new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), dataToSignDto.getClientSignatureParameters().getSigningDate());
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -268,7 +286,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters(), null);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
@@ -279,6 +297,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -291,7 +311,24 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         try {
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             TokenParser tp = ObjStorageService.parseToken(token, 60 * 5);
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), clientSigParams);
+
+            long signTimeout = tp.getSignTimeout() != null ? tp.getSignTimeout() * 1000 : 120000;
+            if (new Date().getTime() >= (clientSigParams.getSigningDate().getTime() + signTimeout)) {
+                throw new SignaturePeriodExpiredException();
+            }
+
+            // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
+            if (tp.isAllowedToSignCheckNeeded())
+            {
+                CertInfo certInfo = new CertInfo(clientSigParams.getSigningCertificate());
+                String nn = certInfo.getSerialNumber();
+                if (!tp.DoAllowedToSignListContains(nn))
+                {
+                    throw new NotAllowedToSignException("NN not allowed to sign");    
+                }
+            }
+
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(ObjStorageService.getProfileForToken(tp), clientSigParams, new PolicyParameters(tp));
             RemoteDocument document = ObjStorageService.getDocumentForToken(tp, false);
 
             if (parameters.getSignatureLevel().toString().startsWith("PAdES"))
@@ -320,8 +357,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(token, BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (TokenParser.TokenExpiredException e) {
             logAndThrowEx(token, BAD_REQUEST, INVALID_TOKEN, "token has expired");
+        } catch (NotAllowedToSignException e) {
+            logAndThrowEx(token, BAD_REQUEST, NOT_ALLOWED_TO_SIGN, "not allowed to sign");
         } catch (InvalidKeyConfigException | RuntimeException e) {
             logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (SignaturePeriodExpiredException e) {
+            logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, String.valueOf(e));
         }
         return null; // We won't get here
     }
@@ -329,7 +372,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
         try {
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters(), null);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
@@ -340,6 +383,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -447,19 +492,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     private void checkDataToSign(RemoteSignatureParameters parameters, String token) {
-        
-        // Check signing date
+
         Date now = new Date();
+        /* Singing date comes from the services (instead of browser) now so no check is needed .
+        // Check signing date
         Calendar oldest = Calendar.getInstance();
         oldest.setTime(now);
-        oldest.add(Calendar.MINUTE, -5);
-        Calendar newest = Calendar.getInstance();
-        newest.setTime(now);
-        newest.add(Calendar.MINUTE, 5);
+        oldest.add(Calendar.MINUTE, -2);
         Date d = parameters.getBLevelParams().getSigningDate();
-        if((d.compareTo(newest.getTime()) > 0) || (d.compareTo(oldest.getTime()) < 0)) {
+        if(d.compareTo(oldest.getTime()) <= 0) {
             logAndThrowEx(BAD_REQUEST, INVALID_SIG_DATE, logDateTimeFormat.format(d));
         }
+         */
 
         // Check if the signing cert is present and not expired
         try {

@@ -16,7 +16,9 @@ import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import com.zetes.projects.bosa.signandvalidation.TokenParser;
+import com.zetes.projects.bosa.signandvalidation.model.AllowedToSign;
 import com.zetes.projects.bosa.signandvalidation.model.DocumentMetadataDTO;
+import com.zetes.projects.bosa.signandvalidation.model.GetTokenForDocumentDTO;
 import com.zetes.projects.bosa.signandvalidation.model.StoredKey;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import io.minio.BucketExistsArgs;
@@ -38,6 +40,8 @@ import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -163,28 +167,36 @@ public class ObjectStorageService {
             return false;
         }
     }
-    public String getTokenForDocument(String bucket, String file, String outFile, String profile, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload)
-            throws TokenCreationFailureException, InvalidKeyConfigException {
+
+    public String getTokenForDocument(GetTokenForDocumentDTO tokenData) throws TokenCreationFailureException, InvalidKeyConfigException {
         try {
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
-                    .claim("cid", bucket)
-                    .claim("in", file)
-                    .claim("out", outFile)
-                    .claim("prof", profile)
-                    .claim("nd", noDownload)
+                    .claim("cid", tokenData.getName())
+                    .claim("in", tokenData.getIn())
+                    .claim("out", tokenData.getOut())
+                    .claim("prof", tokenData.getProf())
+                    .claim("nd", tokenData.getNoDownload())
                     .issueTime(new Date());
-            if(xslt != null)
-                builder.claim("xslt", xslt);
-            if(psp != null)
-                builder.claim("psp", psp);
-            if(psfN != null)
-                builder.claim("psfN", psfN);
-            if(psfC != null)
-                builder.claim("psfC", psfC);
-            if(psfP != null)
-                builder.claim("psfP", psfP);
-            if(lang != null)
-                builder.claim("lang", lang);
+
+            if (tokenData.getXslt() != null) builder.claim("xslt", tokenData.getXslt());
+            if (tokenData.getPsp() != null) builder.claim("psp", tokenData.getPsp());
+            if (tokenData.getPsfN() != null) builder.claim("psfN", tokenData.getPsfN());
+            if (tokenData.getPsfC() != null) builder.claim("psfC", tokenData.getPsfC());
+            if (tokenData.getPsfP() != null) builder.claim("psfP", tokenData.getPsfP());
+            if (tokenData.getLang() != null) builder.claim("lang", tokenData.getLang());
+            if (tokenData.getSignTimeout() != null) builder.claim("st", tokenData.getSignTimeout());
+            if (tokenData.getRequestDocumentReadConfirm() != null) builder.claim("rdrc", tokenData.getRequestDocumentReadConfirm());
+            if (tokenData.getPolicyId() != null) builder.claim("polId", tokenData.getPolicyId());
+            if (tokenData.getPolicyDescription() != null) builder.claim("polDesc", tokenData.getPolicyDescription());
+            if (tokenData.getPolicyDigestAlgorithm() != null) builder.claim("polDigAlg", tokenData.getPolicyDigestAlgorithm());
+            if (tokenData.getAllowedToSign() != null) {
+                List<String> nnList = new LinkedList<String>();
+                for (AllowedToSign allowedToSignItem : tokenData.getAllowedToSign()) {
+                    nnList.add(allowedToSignItem.getNN());
+                }
+                builder.claim("allowedToSign", nnList);
+            }
+
             PlainJWT jwt = new PlainJWT(builder.build());
             JWEObject jweObject = new JWEObject(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256)
                     .keyID(getKid())
@@ -192,6 +204,9 @@ public class ObjectStorageService {
             jweObject.encrypt(new DirectEncrypter(getKeyForId(getKid())));
             return jweObject.serialize();
         } catch (JOSEException ex) {
+            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+            throw new TokenCreationFailureException();
+        } catch (IllegalArgumentException ex) {
             Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
             throw new TokenCreationFailureException();
         }
@@ -251,9 +266,7 @@ public class ObjectStorageService {
         if(token.getXslt() != null) {
             xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + token.getRaw();
         }
-        boolean readPhoto = token.getPsfP();
-        boolean noDownload = token.getNoDownload();
-        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl, readPhoto, noDownload);
+        return new DocumentMetadataDTO(filename, mimeMap.getContentType(filename), xsltUrl, token.getPsfP(), token.getNoDownload(), token.getRequestDocumentReadConfirm());
     }
     public DocumentMetadataDTO getTypeForToken(String token) throws InvalidTokenException, InvalidKeyConfigException, TokenParser.TokenExpiredException {
         return getTypeForToken(parseToken(token, 5));

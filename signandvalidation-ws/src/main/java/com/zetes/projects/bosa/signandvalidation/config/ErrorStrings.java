@@ -45,13 +45,22 @@ public interface ErrorStrings {
 
 	/** Invalid token in request */
 	public static String INVALID_TOKEN = "INVALID_TOKEN";
-        
+
+	/** Invalid signature level for document */
+	public static String INVALID_SIGNATURE_LEVEL = "INVALID_SIGNATURE_LEVEL";
+
 	/** Invalid document type in request */
 	public static String INVALID_TYPE = "INVALID_TYPE";
 
 	/** Coudln't parse request */
 	public static String PARSE_ERROR = "PARSE_ERROR";
 
+	/** NN of the certificat is not in the allowed to sign list */
+	public static String NOT_ALLOWED_TO_SIGN = "NOT_ALLOWED_TO_SIGN";
+
 	/** PDF signature field problem: not specified when needed or invalid value */
 	public static String ERR_PDF_SIG_FIELD = "ERR_PDF_SIG_FIELD";
+
+	/** The delay between the getDataToSignForToken and the SignDocumentFroToken calls was larger than the timeout time defined in the "Token" (Pin code entry took too long)  */
+	public static String SIGN_PERIOD_EXPIRED = "SIGN_PERIOD_EXPIRED";
 }

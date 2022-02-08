@@ -1,13 +1,20 @@
 package com.zetes.projects.bosa.signingconfigurator.service;
 
+
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
+import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileTimestampParameters;
+
 import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
+import eu.europa.esig.dss.enumerations.ObjectIdentifierQualifier;
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.InMemoryDocument;
+import eu.europa.esig.dss.service.http.commons.FileCacheDataLoader;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -18,6 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 
 @Service
@@ -32,7 +42,10 @@ public class SigningConfiguratorService {
     @Autowired
     OnlineTSPSource tspSource;
 
-    public RemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException {
+    @Autowired
+    FileCacheDataLoader fileCacheDataLoader;
+
+    public RemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams, PolicyParameters policyParameters) throws ProfileNotFoundException, NullParameterException, IOException {
         if (clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
@@ -44,6 +57,36 @@ public class SigningConfiguratorService {
             profileParams = findProfileParamsById(profileId);
         }
 
+        // check to add policy (EPES)
+        if (policyParameters != null && policyParameters.IsPolicyValid()) {
+            // calculate policy file digest
+            DSSDocument doc = fileCacheDataLoader.getDocument(policyParameters.getPolicyId());
+            // Java 9
+            // byte[] bytes = doc.openStream().readAllBytes();
+            // Java 8
+            InputStream is = doc.openStream();
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int nRead;
+            byte[] data = new byte[4096];
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            buffer.flush();
+            byte[] bytes = buffer.toByteArray();
+            
+            DSSDocument policyContent = new InMemoryDocument(bytes);
+            byte[] digestedBytes = DSSUtils.digest(policyParameters.getPolicyDigestAlgorithm(), policyContent);
+            // Fill policy entries
+            profileParams.setPolicyId(policyParameters.getPolicyId());
+            profileParams.setPolicySpuri(policyParameters.getPolicyId());
+            if(policyParameters.getPolicyDescription()!=null)
+            {
+                profileParams.setPolicyDescription(policyParameters.getPolicyDescription());
+            }
+            profileParams.setPolicyQualifier(ObjectIdentifierQualifier.OID_AS_URI);
+            profileParams.setPolicyDigestAlgorithm(policyParameters.getPolicyDigestAlgorithm());
+            profileParams.setPolicyDigestValue(digestedBytes);
+        }
         tspSource.setTspServer(profileParams.getTspServer());
         return fillRemoteSignatureParams(clientParams, profileParams);
     }

@@ -1,17 +1,16 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
-import com.zetes.projects.bosa.signandvalidation.model.CertificateIndicationsDTO;
-import com.zetes.projects.bosa.signandvalidation.model.CertificateToValidateDTO;
-import com.zetes.projects.bosa.signandvalidation.model.IndicationsListDTO;
-import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
+import com.zetes.projects.bosa.signandvalidation.exceptions.IllegalSignatureFormatException;
+import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
-import eu.europa.esig.dss.simplecertificatereport.jaxb.XmlChainItem;
+
+import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
+import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
-import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -45,16 +44,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) {
-        if (toValidate.getSignedDocument() == null)
-            logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
-
-        try {
-            WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
-            return reportsService.getSignatureIndicationsDto(reportsDto);
-	} catch (RuntimeException e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        }
-        return null; // We won't get here
+        return reportsService.getSignatureIndicationsDto(validateSignatureFull(toValidate));
     }
 
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -63,11 +53,28 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
 
         try {
-            return remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+            WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+            if (toValidate.getLevel() != null && reportsDto.getDiagnosticData() != null) {
+                checkSignatures(toValidate.getLevel(), reportsDto);
+            }
+            return reportsDto;
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (IllegalSignatureFormatException e) {
+            logAndThrowEx(BAD_REQUEST, INVALID_SIGNATURE_LEVEL, e);
         }
         return null; // We won't get here
+    }
+
+    private void checkSignatures(SignatureLevel level, WSReportsDTO reportsDto) throws IllegalSignatureFormatException {
+        List<XmlSignature> signatures = reportsDto.getDiagnosticData().getSignatures();
+        if (signatures != null)  {
+            for (XmlSignature signature : signatures) {
+                if (!level.equals(signature.getSignatureFormat())) {
+                    throw new IllegalSignatureFormatException("Was : " + signature.getSignatureFormat() + ", expected :" + level);
+                }
+            }
+        }
     }
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)

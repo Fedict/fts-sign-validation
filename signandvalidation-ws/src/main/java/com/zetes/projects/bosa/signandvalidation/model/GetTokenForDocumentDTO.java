@@ -5,10 +5,20 @@
  */
 package com.zetes.projects.bosa.signandvalidation.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
+
 /**
  *
  * @author wouter
  */
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor
 public class GetTokenForDocumentDTO {
     private String name;
     private String pwd;
@@ -21,116 +31,22 @@ public class GetTokenForDocumentDTO {
     private String psfC;  // PDF signature field coordinates
     private String psfP;  // Include eID photo as icon in the PDF signature field
     private String lang;
-    private boolean noDownload;
+    private Integer signTimeout;        // if Null -> default Timeout (120s) , otherwise # seconds between the getDataToSignForToken and the time when sign will be rejected
+    private Boolean noDownload;
+    private List<AllowedToSign> allowedToSign;
+    private String policyId;
+    private String policyDescription;
+    private String policyDigestAlgorithm;
+    private Boolean requestDocumentReadConfirm;
 
-    public GetTokenForDocumentDTO() {
-    }
-    public GetTokenForDocumentDTO(String name, String pwd, String in, String out, String prof, String xslt, String psp, String psfN, String psfC, String psfP, String lang, boolean noDownload) {
-        this.name = name;
-        this.pwd = pwd;
-        this.in = in;
-        this.out = out;
-        this.prof = prof;
-        this.xslt = xslt;
-        this.psp = psp;
-        this.psfN = psfN;
-        this.psfC = psfC;
-        this.psfP = psfP;
-        this.lang = lang;
-        this.noDownload = noDownload;
-    }
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public String getPwd() {
-        return pwd;
-    }
-    public void setPwd(String pwd) {
-        this.pwd = pwd;
-    }
-    public String getIn() {
-        return in;
-    }
-    public void setIn(String in) {
-        this.in = in;
-    }
-    public String getOut() {
-        return out;
-    }
-    public void setOut(String out) {
-        this.out = out;
-    }
-    public String getProf() {
-        return prof;
-    }
-    public void setProf(String prof) {
-        this.prof = prof;
-    }
-    public String getXslt() {
-        return xslt;
-    }
-    public void setXslt(String xslt) {
-        this.xslt = xslt;
-    }
-    public String getPsp() {
-        return psp;
-    }
-    public void setPsp(String psp) {
-        this.psp = psp;
-    }
-    public String getPsfN() {
-        return psfN;
-    }
-    public void setPsfN(String psfN) {
-        this.psfN = psfN;
-    }
-    public String getPsfC() {
-        return psfC;
-    }
-    public void setPsfC(String psfC) {
-        this.psfC = psfC;
-    }
-    public String getPsfP() {
-        return psfP;
-    }
-    public void setPsfP(String psfP) {
-        this.psfP = psfP;
-    }
-    public String getLang() {
-        return lang;
-    }
-    public void setLang(String lang) {
-        this.lang = lang;
-    }
-    public boolean getNoDownload() {
-        return noDownload;
-    }
-    public void setNoDownload(boolean noDownload) {
-        this.noDownload = noDownload;
-    }
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"name\":\"").append(name)
-            .append("\"noDownload\":").append(noDownload)
-            .append("\"in\":\"").append(in)
-            .append("\", \"out\":\"").append(out)
-            .append("\", \"prof\":\"").append(prof);
-        if (null != xslt)
-            sb.append("\", \"xslt\":\"").append(xslt);
-        if (null != psp)
-            sb.append("\", \"psp\":\"").append(psp);
-        if (null != psfN)
-            sb.append("\", \"psfN\":\"").append(psfN);
-        if (null != psfC)
-            sb.append("\", \"psfC\":\"").append(psfC);
-        if (null != psfP)
-            sb.append("\", \"psfP\":\"").append(psfP);
-        if (null != lang)
-            sb.append("\", \"lang\":\"").append(lang);
-        sb.append("\"}");
-        return sb.toString();
+        String theString = null;
+        try {
+            theString = new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            theString = e.toString();
+        }
+        return theString;
     }
 }
