@@ -11,6 +11,7 @@ import eu.europa.esig.dss.model.MimeType;
 import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
+import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -20,8 +21,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,9 +37,6 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
 
     @MockBean
     private StorageService storageService;
-
-    @Autowired
-    private ObjectStorageService realObjStorageService;
 
     private String THE_BUCKET = "bucket";
 
@@ -51,10 +51,6 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
                                "</SignedDoc>";
 
     private String START_FILE = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><SignedDoc><DataFile FileName=\"aFile.xml\" id=\"1\">QSBUZXN0</DataFile><DataFile FileName=\"bFile.xml\" id=\"deux\">QSBUZXN0</DataFile><DataFile FileName=\"cFile.pdf\" id=\"drie\">QSBUZXN0</DataFile><DataFile FileName=\"dFile.pdf\" id=\"FOUR\">QSBUZXN0</DataFile></SignedDoc>";
-
-
-
-
 
     @AllArgsConstructor
     private enum FileDef {
@@ -74,20 +70,34 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
         XmlSignInput getXmlSignInput() { return new XmlSignInput(name, id, xslt, noDownl, rdConf); }
     }
 
+    private static int countCalls;
+
     @Test
-    public void testSignCreate() throws Exception {
-        Mockito.reset(storageService);
+    public void testSignCreateToken() throws Exception {
         Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
         Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(XSLT_FILE_NAME))).thenReturn(new ByteArrayInputStream(XSLT_FILE.getBytes()));
+
         doAnswer(invocation -> {
-            assertEquals(START_FILE, new String((byte [])invocation.getArgument(2)));
+            // When storing the secret key, prepare the next mock "get" call
+            Mockito.when(storageService.getFileAsBytes(isNull(), eq(invocation.getArgument(1)), eq(false))).thenReturn(invocation.getArgument(2));
+            return null;
+        }).when(storageService).storeFile(isNull(), any(), any());
+
+        countCalls = 0;
+        doAnswer(invocation -> {
+            if (countCalls++ == 0) {
+                // Check that the output XML file matches all expected transformations
+                assertEquals(START_FILE, new String((byte[]) invocation.getArgument(2)));
+            }
+            // Pass the written file to the next read
+            Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(OUT_FILE_NAME), eq(true))).thenReturn(invocation.getArgument(2));
             return null;
         }).when(storageService).storeFile(eq(THE_BUCKET),eq(OUT_FILE_NAME), any());
 
         List<XmlSignInput> inFiles = new ArrayList<XmlSignInput>();
         for(FileDef fd : FileDef.values()) {
             inFiles.add(fd.getXmlSignInput());
-            Mockito.when(storageService.getFileAsString(eq(THE_BUCKET),eq(fd.name))).thenReturn(fd.data);
+            Mockito.when(storageService.getFileAsB64String(eq(THE_BUCKET),eq(fd.name))).thenReturn(fd.data);
         }
 
         CreateSignFlowDTO csf = new CreateSignFlowDTO(THE_BUCKET, "pwd", "XADES_LTA", inFiles, OUT_FILE_NAME);
@@ -95,9 +105,29 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
 
         String token = this.restTemplate.postForObject(LOCALHOST + port + XMLSigningController.ENDPOINT + XMLSigningController.FLOW_REST_RESOURCE, csf, String.class);
         System.out.println(token);
+
+        Pkcs12SignatureToken sigToken = new Pkcs12SignatureToken(
+                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                new KeyStore.PasswordProtection("123456".toCharArray())
+        );
+        ClientSignatureParameters csp = getClientSignatureParameters(sigToken.getKeys().get(0));
+        GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, "Not used !", csp);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + XMLSigningController.ENDPOINT + XMLSigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dto, DataToSignDTO.class);
+
+        // sign
+        SignatureValue signatureValue = sigToken.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), sigToken.getKeys().get(0));
+
+        csp.setSigningDate(dataToSign.getSigningDate());
+        SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, csp, signatureValue.getValue());
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + XMLSigningController.ENDPOINT + XMLSigningController.SIGN_DOCUMENT_FOR_TOKEN, sdto, RemoteDocument.class);
+
+        assertNotNull(signedDocument);
+
+        System.out.println(new String(signedDocument.getBytes()));
     }
 
-        @Test
+
+    @Test
     public void testSignXML() throws Exception {
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
                 new FileInputStream("src/test/resources/citizen_nonrep.p12"),

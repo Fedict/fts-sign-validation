@@ -42,38 +42,3 @@ public class CreateSignFlowDTO {
         this.outFileName = outFileName;
     }
 }
-
-
-/*
-        “out”: “Result file with new signature”,
-
-                "name": "abucket",
-                "pwd": "string",
-                "prof": "XADES_LTA",
-                "signTimeout": 0,
-                "allowedToSign": [
-                {
-                "nn": "35434534534345"
-                }]
-                "policyDescription": "Policiy….",
-                "policyDigestAlgorithm": "SHA256",
-                "policyId": " http://.............................",
-                "xslt": " BoSa 2 just.xslt"
-
-                "inputs" : [
-                {
-                "in": "[Bucket Path]a.XML",
-                "noDownload": true,
-                "requestDocumentReadConfirm": true,
-                "xslt": "PimpMe.xslt",
-                “id”: “D0”
-                },
-                {
-                "in": "[Bucket Path]a.PDF",
-                "noDownload": true,
-                "requestDocumentReadConfirm": true,
-                “Id”: “D1”
-                }
-                ]
-                }
-                */
