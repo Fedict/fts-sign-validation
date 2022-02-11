@@ -144,9 +144,7 @@ public class StorageService {
             if (stream != null) {
                 try {
                     stream.close();
-                } catch (IOException e) {
-                    e.printStackTrace(); // TODO _--------------------------------------------------------------------------------
-                }
+                } catch (IOException e) { }
             }
         }
     }
@@ -155,7 +153,7 @@ public class StorageService {
         try {
             if (bucket == null) bucket = secretBucket;
             StatObjectResponse so = getClient().statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
-            return new FileStoreInfo(so.contentType(), so.etag());
+            return new FileStoreInfo(so.contentType(), so.etag(), so.size());
 
         } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
             Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, e);

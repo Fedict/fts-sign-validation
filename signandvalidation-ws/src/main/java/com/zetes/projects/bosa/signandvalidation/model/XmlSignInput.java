@@ -8,10 +8,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class XmlSignInput {
+    // Name of the file to Sing (XML/PDF/Other)
     private String fileName;
-    private String targetXmlEltId;
-
+    // If file is of type XML an XSLT can be provided to display the XML
     private String displayXslt;
-    private Boolean noDownload;
-    private Boolean requestDocumentReadConfirm;
+    // The XML element where the file will be stored
+    private String xmlEltId;
+    // Request the user to check a "I have read the file" box before signing
+    private Boolean readConfirm;
 }

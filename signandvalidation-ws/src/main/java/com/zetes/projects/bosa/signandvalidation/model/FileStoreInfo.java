@@ -15,9 +15,11 @@ import lombok.Data;
 public class FileStoreInfo {
     private final String contentType;
     private final String hash;
+    private final long size;
 
-    public FileStoreInfo(String contentType, String hash) {
+    public FileStoreInfo(String contentType, String hash, long size) {
         this.contentType = contentType;
+        this.size = size;
         this.hash = hash;
     }
 }
