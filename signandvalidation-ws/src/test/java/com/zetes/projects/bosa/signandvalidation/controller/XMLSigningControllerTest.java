@@ -181,7 +181,8 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
         System.out.println(sb.toString());
         RemoteDocument fileToSign = new RemoteDocument(sb.toString().getBytes(), "aFile.xml");
 
-        PolicyParameters policy = new PolicyParameters("http://signinfo.eda.just.fgov.be/SignaturePolicy/pdf/Notary/BE_Justice_Signature_Policy_Notary_eID_Hum_v0.10_202109_Fr.pdf", "policyDesc", DigestAlgorithm.SHA256);
+        PolicyParameters policy = null;
+//      policy = new PolicyParameters("http://signinfo.eda.just.fgov.be/SignaturePolicy/pdf/Notary/BE_Justice_Signature_Policy_Notary_eID_Hum_v0.10_202109_Fr.pdf", "policyDesc", DigestAlgorithm.SHA256);
 
         // get data to sign
         GetDataToSignXMLElementsDTO prepareSignDto = new GetDataToSignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets);
