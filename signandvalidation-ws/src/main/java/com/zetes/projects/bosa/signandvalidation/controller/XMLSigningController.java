@@ -1,6 +1,8 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
@@ -54,6 +56,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -77,6 +80,9 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
     public static final String GET_DATA_TO_SIGN = "/getDataToSign";
     public static final String SIGN_DOCUMENT = "/signDocument";
 
+    public static final int TOKEN_VALIDITY_SECS = 5 * 60 * 60;
+    private static final long SIGN_DURATION_SECS = 2 * 60;
+
     private static final String SYMETRIC_KEY_ALGO = "AES";
 
     @Autowired
@@ -92,6 +98,9 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
     public String ping() {
         return "pong";
     }
+
+    // Secret key cache
+    private static Cache<String, SecretKey> keyCache = CacheBuilder.newBuilder().expireAfterWrite(TOKEN_VALIDITY_SECS, TimeUnit.SECONDS).build();
 
     @PostMapping(value = FLOW_REST_RESOURCE, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String createSignFlow(@RequestBody CreateSignFlowDTO csf) {
@@ -279,7 +288,7 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
                 }
             }
 
-            long signTimeout = csf.getSignTimeout() != null ? csf.getSignTimeout() * 1000 : 120000;
+            long signTimeout = csf.getSignTimeout() != null ? csf.getSignTimeout() * 1000 : SIGN_DURATION_SECS * 1000;
             if (new Date().getTime() >= (clientSigParams.getSigningDate().getTime() + signTimeout)) {
                 logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "");
             }
@@ -325,6 +334,7 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
             String keyId = Base64.getUrlEncoder().encodeToString(kidBytes);
             // Store key in secret bucket
             storageService.storeFile(null, keyId, newKey.getEncoded());
+            keyCache.put(keyId, newKey);
 
             // Pack all into a JWE & Encrypt
             JWEObject jweObject = new JWEObject(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256)
@@ -342,11 +352,16 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
     private CreateSignFlowDTO extractToken(String token) {
         try {
             JWEObject jweObject = JWEObject.parse(token);
-            byte rawKey[] = storageService.getFileAsBytes(null, jweObject.getHeader().getKeyID(), false);
-            jweObject.decrypt(new DirectDecrypter(new SecretKeySpec(rawKey, SYMETRIC_KEY_ALGO)));
+            String keyId = jweObject.getHeader().getKeyID();
+            SecretKey key = keyCache.getIfPresent(keyId);
+            if (key == null) {
+                byte rawKey[] = storageService.getFileAsBytes(null, keyId, false);
+                key = new SecretKeySpec(rawKey, SYMETRIC_KEY_ALGO);
+            }
+            jweObject.decrypt(new DirectDecrypter(key));
             GZIPInputStream zis = new GZIPInputStream(new ByteArrayInputStream(jweObject.getPayload().toBytes()));
             SignFlowToken sft = new ObjectMapper().readValue(zis, SignFlowToken.class);
-            if (!sft.isValid(5 * 60 )) {
+            if (!sft.isValid(TOKEN_VALIDITY_SECS)) {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
             }
             return sft.getCsf();
