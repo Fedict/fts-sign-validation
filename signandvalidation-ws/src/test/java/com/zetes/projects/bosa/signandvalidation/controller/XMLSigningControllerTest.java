@@ -23,6 +23,7 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.zetes.projects.bosa.signandvalidation.model.DisplayType.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
@@ -52,10 +53,10 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
 
     @AllArgsConstructor
     private enum FileDef {
-        F1("aFile.xml", "1", MimeType.XML, "QSBUZXN0", "pinp.xslt", "XSLT1", false),
-        F2("bFile.xml", "deux", MimeType.XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true),
-        F3("test.pdf", "drie", MimeType.PDF, "QSBUZXN0", null, null, true),
-        F4("dFile.pdf", "FOUR", MimeType.PDF, "QSBUZXN0", null, null, true);
+        F1("aFile.xml", "1", MimeType.XML, "QSBUZXN0", "pinp.xslt", "XSLT1", false, Content),
+        F2("bFile.xml", "deux", MimeType.XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true, NO),
+        F3("test.pdf", "drie", MimeType.PDF, "QSBUZXN0", null, null, true, FileName),
+        F4("dFile.pdf", "FOUR", MimeType.PDF, "QSBUZXN0", null, null, true, Content);
 
         private String name;
         private String id;
@@ -64,8 +65,9 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
         private String xslt;
         private String xsltData;
         private Boolean rdConf;
+        private DisplayType dt;
 
-        XmlSignInput getXmlSignInput() { return new XmlSignInput(name, xslt, id, rdConf); }
+        XmlSignInput getXmlSignInput() { return new XmlSignInput(name, xslt, id, rdConf, dt); }
         public static FileDef find(String name) { for (FileDef fd : values()) if (name.equals(fd.name) || name.equals(fd.xslt)) return fd; return null; }
     }
 

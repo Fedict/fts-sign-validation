@@ -104,6 +104,7 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = FLOW_REST_RESOURCE, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String createSignFlow(@RequestBody CreateSignFlowDTO csf) {
+
         //TODO Validate all inputs ???
         // Check:
         // - if files are on the bucket

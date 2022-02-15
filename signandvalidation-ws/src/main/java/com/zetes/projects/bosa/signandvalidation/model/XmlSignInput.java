@@ -16,4 +16,6 @@ public class XmlSignInput {
     private String xmlEltId;
     // Request the user to check a "I have read the file" box before signing
     private Boolean readConfirm;
+    // If true, display document
+    private DisplayType display;
 }
