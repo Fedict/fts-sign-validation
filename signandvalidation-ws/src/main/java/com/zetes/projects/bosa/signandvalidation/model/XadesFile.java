@@ -19,5 +19,8 @@ public class XadesFile {
     @XmlAttribute
     private String name;
 
+    @XmlAttribute
+    private Long size;
+
     private String content;
 }

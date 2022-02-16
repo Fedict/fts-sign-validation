@@ -107,10 +107,9 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
 
         //TODO Validate all inputs ???
         // Check:
-        // - if files are on the bucket
-        // - XML -> XSLT coherence
+        // - at least one input. !!!
         // - signTimeout boundaries ?
-        // - nnAllowedToSign format adherence
+        // - nnAllowedToSign format adherence + max
         // - signProfile existence
         // - some policy checks..........
         // - Uniqueness of elementIds
@@ -139,6 +138,7 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
                 XadesFile file = new XadesFile();
                 file.setName(input.getFileName());
                 file.setId(input.getXmlEltId());
+                file.setSize(storageService.getFileInfo(csf.getBucket(), input.getFileName()).getSize());
                 root.getFiles().add(file);
             }
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -148,8 +148,8 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
             Document doc = dbf.newDocumentBuilder().newDocument();
             context.createMarshaller().marshal(root, doc);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(xmlDocToString(doc));
+            if (LOG.isInfoEnabled()) {
+                LOG.info(xmlDocToString(doc));
             }
 
             TransformerFactory tf = TransformerFactory.newInstance();
@@ -162,8 +162,8 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
                 tf.newTransformer(new StreamSource(xsltStream)).transform(new DOMSource(doc), xsltDom);
                 doc = (Document)xsltDom.getNode();
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(xmlDocToString(doc));
+                if (LOG.isInfoEnabled()) {
+                    LOG.info(xmlDocToString(doc));
                 }
             }
 
@@ -177,8 +177,8 @@ public class XMLSigningController extends ControllerBase implements ErrorStrings
                 nodes.item(0).setTextContent(storageService.getFileAsB64String(csf.getBucket(), input.getFileName()));
             }
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(xmlDocToString(doc));
+            if (LOG.isInfoEnabled()) {
+                LOG.info(xmlDocToString(doc));
             }
 
             // Save target XML to bucket

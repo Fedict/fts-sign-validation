@@ -36,20 +36,26 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
     @MockBean
     private StorageService storageService;
 
-    private String THE_BUCKET = "bucket";
+    private static final String THE_BUCKET = "bucket";
 
-    private String OUT_FILE_NAME = "out.xml";
+    private static final String OUT_FILE_NAME = "out.xml";
 
 
-    private String MAIN_XSLT_FILE_NAME = "XSLT.xslt";
-    private String ROOT_XSLT_ELT = "SignedDoc";
-    private String FILE_XSLT_ELT = "DataFile";
-    private String MAIN_XSLT_FILE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                               "<" + ROOT_XSLT_ELT + " xsl:version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
-                                   "<xsl:for-each select=\"root/file\">" +
-                                        "<" + FILE_XSLT_ELT + " id=\"{@id}\" FileName=\"{@name}\"></"+ FILE_XSLT_ELT + ">" +
-                                   "</xsl:for-each>" +
-                               "</" + ROOT_XSLT_ELT + ">";
+    private static final String MAIN_XSLT_FILE_NAME = "XSLT.xslt";
+    private static final String ROOT_XSLT_ELT = "SignedDoc";
+    private static final String FILE_XSLT_ELT = "DataFile";
+    private static final String XSLT_COMMENT = " Created By BosaSign 1.0 ";
+    private static final String MAIN_XSLT_FILE = "<?xml version=\"1.0\"?>" +
+                                        "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
+                                        "<xsl:template match=\"/\">" +
+                                        "<xsl:comment>" + XSLT_COMMENT + "</xsl:comment>" +
+                                        "	<" + ROOT_XSLT_ELT + ">" +
+                                        "		<xsl:for-each select=\"root/file\">" +
+                                        "			<" + FILE_XSLT_ELT + " id=\"{@id}\" FileName=\"{@name}\"></"+ FILE_XSLT_ELT + ">" +
+                                        "		</xsl:for-each>" +
+                                        "	</" + ROOT_XSLT_ELT + ">" +
+                                        "</xsl:template>" +
+                                        "</xsl:stylesheet>";
 
     @AllArgsConstructor
     private enum FileDef {
@@ -96,7 +102,7 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
         }).when(storageService).storeFile(eq(THE_BUCKET),eq(OUT_FILE_NAME), any());
 
         // Prepare expected Unsigned XML output, mock loading of each file
-        StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><" + ROOT_XSLT_ELT + ">");
+        StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!--" + XSLT_COMMENT + "--><" + ROOT_XSLT_ELT + ">");
         List<XmlSignInput> inFiles = new ArrayList<XmlSignInput>();
         for(FileDef fd : FileDef.values()) {
             inFiles.add(fd.getXmlSignInput());
@@ -201,23 +207,5 @@ public class XMLSigningControllerTest extends SigningControllerBaseTest {
 
         System.out.println(signedDocument.getName());
         System.out.println(new String(signedDocument.getBytes()));
-
-        /*
-
-        prepareSignDto = new PrepareSignXMLElementsDTO("XADES_LTA", signedDocument, clientSignatureParameters, policy, targets);
-        dataToSign = this.restTemplate.postForObject(LOCALHOST + port + XMLSigningController.ENDPOINT + XMLSigningController.GET_DATA_TO_SIGN, prepareSignDto, DataToSignDTO.class);
-
-        // sign
-        signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
-
-        // sign document
-        signDto = new SignXMLElementsDTO("XADES_LTA", signedDocument, clientSignatureParameters, policy, targets, signatureValue.getValue());
-        signedDocument = this.restTemplate.postForObject(LOCALHOST + port + XMLSigningController.ENDPOINT + XMLSigningController.SIGN_DOCUMENT, signDto, RemoteDocument.class);
-        assertNotNull(signedDocument);
-
-        System.out.println(signedDocument.getName());
-        System.out.println(new String(signedDocument.getBytes()));
-         */
-
     }
 }

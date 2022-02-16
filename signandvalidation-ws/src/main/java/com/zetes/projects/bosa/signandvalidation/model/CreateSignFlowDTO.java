@@ -34,6 +34,7 @@ public class CreateSignFlowDTO {
     private String outXslt;
     private String outFileName;
 
+    // Mandatory parameters
     public CreateSignFlowDTO(String bucket, String password, String signProfile, List<XmlSignInput> inputs, String outFileName) {
         this.inputs = inputs;
         this.bucket = bucket;
