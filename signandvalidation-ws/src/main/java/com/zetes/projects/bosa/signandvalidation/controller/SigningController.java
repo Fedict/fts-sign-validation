@@ -208,7 +208,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
             logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
         }
-        TokenObject token = new TokenObject(gtfd);
+
+        TokenObject token = new TokenObject();
+        token.setXadesMultifile(true);
+        token.setBucket(gtfd.getBucket());
+        token.setSignTimeout(gtfd.getSignTimeout());
+        token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
+        token.setSignProfile(gtfd.getSignProfile());
+        token.setPolicy(gtfd.getPolicy());
+        token.setInputs(gtfd.getInputs());
+        token.setOutXslt(gtfd.getOutXslt());
+        token.setOutFileName(gtfd.getOutFileName());
+        token.setOutDownload(gtfd.isOutDownload());
 
         createSignedFile(token);
 
@@ -396,7 +407,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             List<DSSReference> references = null;
             SignInput firstInput = token.getInputs().get(0);
             if (token.isXadesMultifile()) {
-                ArrayList<String> idsToSign = new ArrayList<String>(token.getInputs().size());
+                List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(SignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(signingDate, idsToSign, parameters.getReferenceDigestAlgorithm());
                 fileName = token.getOutFileName();
@@ -457,7 +468,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             List<DSSReference> references = null;
             SignInput firstInput = token.getInputs().get(0);
             if (token.isXadesMultifile()) {
-                ArrayList<String> idsToSign = new ArrayList<String>(token.getInputs().size());
+                List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(SignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(clientSigParams.getSigningDate(), idsToSign, parameters.getReferenceDigestAlgorithm());
                 fileName = token.getOutFileName();
@@ -631,7 +642,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     private List<String> getIdsToSign(List<SignElement> elementsToSign) {
-        ArrayList<String> list = new ArrayList<String>(elementsToSign.size());
+        List<String> list = new ArrayList<String>(elementsToSign.size());
         for(SignElement elementToSign : elementsToSign) list.add(elementToSign.getId());
         return list;
     }

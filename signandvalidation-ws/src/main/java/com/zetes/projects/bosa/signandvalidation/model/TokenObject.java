@@ -35,20 +35,6 @@ public class TokenObject {
     private String outFileName;
     private boolean outDownload;
 
-
-    public TokenObject(GetTokenForDocumentsDTO gtfd) {
-        this.xadesMultifile = true;
-        this.bucket = gtfd.getBucket();
-        this.signTimeout = gtfd.getSignTimeout();
-        this.nnAllowedToSign = gtfd.getNnAllowedToSign();
-        this.signProfile = gtfd.getSignProfile();
-        this.policy = gtfd.getPolicy();
-        this.inputs = gtfd.getInputs();
-        this.outXslt = gtfd.getOutXslt();
-        this.outFileName = gtfd.getOutFileName();
-        this.outDownload = gtfd.isOutDownload();
-    }
-
     // Mandatory parameters
     public TokenObject(boolean xadesMultifile, String bucket, String signProfile, List<SignInput> inputs, String outFileName) {
         this.xadesMultifile = xadesMultifile;
