@@ -122,7 +122,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         unSignedXmlFile = sb.toString();
 
         // Start testing
-        CreateSignFlowDTO csf = new CreateSignFlowDTO(true, THE_BUCKET, "pwd", "XADES_LTA", inFiles, OUT_FILE_NAME);
+        CreateSignFlowDTO csf = new CreateSignFlowDTO(true, THE_BUCKET, "pwd", "XADES_B", inFiles, OUT_FILE_NAME);
         csf.setOutXslt(MAIN_XSLT_FILE_NAME);
         csf.setOutDownload(true);
 
