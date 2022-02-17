@@ -1,15 +1,19 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.zetes.projects.bosa.signandvalidation.model.*;
+import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
+import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signandvalidation.service.StorageService;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
+import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.model.*;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -39,6 +43,12 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
     @MockBean
     private StorageService storageService;
+
+    @MockBean
+    private ReportsService reportsService;
+
+    @MockBean
+    private BosaRemoteDocumentValidationService validationService;
 
     private static final String THE_BUCKET = "bucket";
 
@@ -86,6 +96,12 @@ public class SigningControllerTest extends SigningControllerBaseTest {
     public void testSignCreateToken() throws Exception {
         Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
         Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(MAIN_XSLT_FILE_NAME))).thenReturn(new ByteArrayInputStream(MAIN_XSLT_FILE.getBytes()));
+
+        WSReportsDTO reportsDto = new WSReportsDTO();
+        Mockito.when(validationService.validateDocument(any(),any(), any(), any())).thenReturn(reportsDto);
+        SignatureIndicationsDTO indications = new SignatureIndicationsDTO();
+        indications.setIndication(Indication.TOTAL_PASSED);
+        Mockito.when(reportsService.getSignatureIndicationsDto(eq(reportsDto))).thenReturn(indications);
 
         doAnswer(invocation -> {
             // When storing the secret key, prepare the next mock "get" call
