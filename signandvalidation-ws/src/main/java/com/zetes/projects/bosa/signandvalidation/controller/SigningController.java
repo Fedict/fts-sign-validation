@@ -1,5 +1,6 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.nimbusds.jose.*;
@@ -578,7 +579,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
             token.setCreateTime(new Date().getTime());
-            new ObjectMapper().writeValue(new GZIPOutputStream(bos), token);
+            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValue(new GZIPOutputStream(bos), token);
 
             // Create new symetric Key
             KeyGenerator keygen = KeyGenerator.getInstance(SYMMETRIC_KEY_ALGO);
