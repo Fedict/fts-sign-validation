@@ -140,8 +140,8 @@ public class PdfVisibleSignatureService {
 
         // If present, get the profile JSON from the minio, parse it and overwrite the defaults for all values present
         if (null != input && null != input.getPspFileName()) {
-            byte[] json = storageService.getFileAsBytes(bucket, input.getPspFileName(), false);
             try {
+                byte[] json = storageService.getFileAsBytes(bucket, input.getPspFileName(), false);
                 PdfSignatureProfile psp = (new ObjectMapper()).readValue(new String(json), PdfSignatureProfile.class);
 
                 if (null != psp.bgColor)       bgColor = psp.bgColor;

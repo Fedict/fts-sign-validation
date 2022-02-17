@@ -83,7 +83,7 @@ public class StorageService {
         return Base64.getEncoder().encodeToString(getFileAsBytes(bucket, name, true));
     }
 
-    public byte[] getFileAsBytes(String bucket, String name, boolean getSize) {
+    public byte[] getFileAsBytes(String bucket, String name, boolean getSize) throws InvalidKeyConfigException {
         int read;
         byte outBytes[] = null;
         InputStream inStream = null;
@@ -109,8 +109,7 @@ public class StorageService {
                 | NoSuchAlgorithmException | ServerException
                 | XmlParserException ex) {
             Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (Exception e) {
-            e.printStackTrace();
+            throw new InvalidKeyConfigException();
         } finally {
             if (inStream != null) {
                 try {

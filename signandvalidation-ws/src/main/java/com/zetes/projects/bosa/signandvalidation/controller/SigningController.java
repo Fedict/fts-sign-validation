@@ -427,6 +427,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        } catch (StorageService.InvalidKeyConfigException e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
@@ -610,7 +612,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
             }
             return csf;
-        } catch(ParseException | IOException | JOSEException e) {
+        } catch(ParseException | IOException | JOSEException | StorageService.InvalidKeyConfigException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         }
         return  null;

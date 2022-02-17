@@ -191,6 +191,12 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
     @Test
     public void testSigningAndExtensionXades() throws Exception {
+        WSReportsDTO reportsDto = new WSReportsDTO();
+        Mockito.when(validationService.validateDocument(any(),any(), any(), any())).thenReturn(reportsDto);
+        SignatureIndicationsDTO indications = new SignatureIndicationsDTO();
+        indications.setIndication(Indication.TOTAL_PASSED);
+        Mockito.when(reportsService.getSignatureIndicationsDto(eq(reportsDto))).thenReturn(indications);
+
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
                 new FileInputStream("src/test/resources/citizen_nonrep.p12"),
                 new KeyStore.PasswordProtection("123456".toCharArray())
@@ -228,6 +234,12 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
     @Test
     public void testSigningCades() throws Exception {
+        WSReportsDTO reportsDto = new WSReportsDTO();
+        Mockito.when(validationService.validateDocument(any(),any(), any(), any())).thenReturn(reportsDto);
+        SignatureIndicationsDTO indications = new SignatureIndicationsDTO();
+        indications.setIndication(Indication.TOTAL_PASSED);
+        Mockito.when(reportsService.getSignatureIndicationsDto(eq(reportsDto))).thenReturn(indications);
+
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
                 new FileInputStream("src/test/resources/citizen_nonrep.p12"),
                 new KeyStore.PasswordProtection("123456".toCharArray())
@@ -260,6 +272,12 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
     @Test
     public void testSigningPades() throws Exception {
+        WSReportsDTO reportsDto = new WSReportsDTO();
+        Mockito.when(validationService.validateDocument(any(),any(), any(), any())).thenReturn(reportsDto);
+        SignatureIndicationsDTO indications = new SignatureIndicationsDTO();
+        indications.setIndication(Indication.TOTAL_PASSED);
+        Mockito.when(reportsService.getSignatureIndicationsDto(eq(reportsDto))).thenReturn(indications);
+
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
                 new FileInputStream("src/test/resources/citizen_nonrep.p12"),
                 new KeyStore.PasswordProtection("123456".toCharArray())
