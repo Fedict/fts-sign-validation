@@ -1,7 +1,7 @@
 package com.zetes.projects.bosa.signandvalidation.service;
 
-import com.zetes.projects.bosa.signandvalidation.TokenParser;
 import com.zetes.projects.bosa.signandvalidation.model.PdfSignatureProfile;
+import com.zetes.projects.bosa.signandvalidation.model.SignInput;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -55,7 +55,7 @@ public class PdfVisibleSignatureService {
     private PAdESService padesService;
 
     @Autowired
-    private ObjectStorageService ObjStorageService;
+    private StorageService storageService;
 
     private File fontsDir;
     private HashMap<String, byte[]> fontFiles = new HashMap<String, byte[]>(20);
@@ -65,10 +65,11 @@ public class PdfVisibleSignatureService {
 
     private Logger logger = Logger.getLogger(PdfVisibleSignatureService.class.getName());
 
-    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, TokenParser tokenParser, byte[] photo)
-            throws NullParameterException, ObjectStorageService.InvalidTokenException {
-        String sigFieldId = tokenParser.getPsfN();
-        String sigFieldCoords = tokenParser.getPsfC();
+    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, SignInput input, String bucket, byte[] photo)
+            throws NullParameterException {
+
+        String sigFieldId = input.getPsfN();
+        String sigFieldCoords = input.getPsfC();
         if (null == sigFieldId && null == sigFieldCoords)
             return;
 
@@ -109,14 +110,14 @@ public class PdfVisibleSignatureService {
             }
         }
 
-        fillParams(remoteSigParams, tokenParser, photo, xPdfField, yPdfField);
+        fillParams(remoteSigParams, input, bucket, photo, xPdfField, yPdfField);
     }
 
-    private void fillParams(RemoteSignatureParameters remoteSigParams, TokenParser tokenParser, byte[] photo, int xPdfField, int yPdfField)
-            throws NullParameterException, ObjectStorageService.InvalidTokenException {
-        String sigFieldId = tokenParser.getPsfN();
-        String sigFieldCoords = tokenParser.getPsfC();
-        String lang = tokenParser.getLang();
+    private void fillParams(RemoteSignatureParameters remoteSigParams, SignInput input, String bucket, byte[] photo, int xPdfField, int yPdfField)
+            throws NullParameterException {
+        String sigFieldId = input.getPsfN();
+        String sigFieldCoords = input.getPsfC();
+        String lang = input.getSignLanguage();
 
         if (null == sigFieldId && null == sigFieldCoords)
             return;
@@ -138,8 +139,8 @@ public class PdfVisibleSignatureService {
         String psfC = null;
 
         // If present, get the profile JSON from the minio, parse it and overwrite the defaults for all values present
-        if (null != tokenParser && null != tokenParser.getPsp()) {
-            byte[] json = ObjStorageService.getFileForToken(tokenParser.getPsp(), tokenParser.getCid());
+        if (null != input && null != input.getPspFileName()) {
+            byte[] json = storageService.getFileAsBytes(bucket, input.getPspFileName(), false);
             try {
                 PdfSignatureProfile psp = (new ObjectMapper()).readValue(new String(json), PdfSignatureProfile.class);
 

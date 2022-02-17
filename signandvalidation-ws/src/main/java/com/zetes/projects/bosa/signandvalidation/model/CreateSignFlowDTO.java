@@ -6,7 +6,6 @@
 package com.zetes.projects.bosa.signandvalidation.model;
 
 import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +20,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class CreateSignFlowDTO {
+    private boolean xadesMultifile;
     private String bucket;
     private String password;
     private Integer signTimeout;
@@ -29,13 +29,15 @@ public class CreateSignFlowDTO {
     private String signProfile;
     private PolicyParameters policy;
 
-    private List<XmlSignInput> inputs;
+    private List<SignInput> inputs;
 
     private String outXslt;
     private String outFileName;
+    private boolean outDownload;
 
     // Mandatory parameters
-    public CreateSignFlowDTO(String bucket, String password, String signProfile, List<XmlSignInput> inputs, String outFileName) {
+    public CreateSignFlowDTO(boolean xadesMultifile, String bucket, String password, String signProfile, List<SignInput> inputs, String outFileName) {
+        this.xadesMultifile = xadesMultifile;
         this.inputs = inputs;
         this.bucket = bucket;
         this.password = password;

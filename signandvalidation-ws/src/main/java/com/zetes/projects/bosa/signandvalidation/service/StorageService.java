@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author wouter
+ * @author cmo
  */
 @Service
 public class StorageService {
@@ -63,7 +63,7 @@ public class StorageService {
                 | InvalidResponseException | IOException
                 | NoSuchAlgorithmException | ServerException
                 | XmlParserException ex) {
-            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
     }
@@ -108,7 +108,7 @@ public class StorageService {
                 | InvalidResponseException | IOException
                 | NoSuchAlgorithmException | ServerException
                 | XmlParserException ex) {
-            Logger.getLogger(ObjectStorageService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -153,12 +153,23 @@ public class StorageService {
         try {
             if (bucket == null) bucket = secretBucket;
             StatObjectResponse so = getClient().statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
-            return new FileStoreInfo(so.contentType(), so.etag(), so.size());
+            return new FileStoreInfo(getMIMETypeFromFilename(name), so.etag(), so.size());
 
         } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
             Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, e);
             throw new InvalidKeyConfigException();
         }
+    }
+
+    private String getMIMETypeFromFilename(String fileName) {
+        int pos = fileName.lastIndexOf('.');
+        if (pos != -1) {
+            String ext = fileName.substring(pos + 1).toLowerCase();
+            if ("pdf".equals(ext)) return "application/pdf";
+            if ("xml".equals(ext)) return "application/xml";
+            if ("xslt".equals(ext)) return "aplication/xslt+xml";
+        }
+        return "text/plain";
     }
 
     public void storeFile(String bucket, String name, byte content[]) throws InvalidKeyConfigException {

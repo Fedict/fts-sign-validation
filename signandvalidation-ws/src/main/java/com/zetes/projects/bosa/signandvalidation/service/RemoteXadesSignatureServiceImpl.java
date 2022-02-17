@@ -40,6 +40,9 @@ public class RemoteXadesSignatureServiceImpl extends RemoteDocumentSignatureServ
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public ToBeSignedDTO getDataToSignWithReferences(RemoteDocument remoteDocument, RemoteSignatureParameters remoteParameters, List<DSSReference> refs) {
+        if (refs == null) {
+            return getDataToSign(remoteDocument, remoteParameters);
+        }
         Objects.requireNonNull(remoteDocument, "remoteDocument must be defined!");
         Objects.requireNonNull(remoteParameters, "remoteParameters must be defined!");
         Objects.requireNonNull(remoteParameters.getSignatureLevel(), "signatureLevel must be defined!");
@@ -58,6 +61,10 @@ public class RemoteXadesSignatureServiceImpl extends RemoteDocumentSignatureServ
     }
 
     public RemoteDocument signDocumentWithReferences(RemoteDocument remoteDocument, RemoteSignatureParameters remoteParameters, SignatureValueDTO signatureValueDTO, List<DSSReference> refs) {
+        if (refs == null) {
+            return signDocument(remoteDocument, remoteParameters, signatureValueDTO);
+        }
+
         Objects.requireNonNull(remoteDocument, "remoteDocument must be defined!");
         Objects.requireNonNull(remoteParameters, "remoteParameters must be defined!");
         Objects.requireNonNull(remoteParameters.getSignatureLevel(), "signatureLevel must be defined!");

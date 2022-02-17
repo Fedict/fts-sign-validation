@@ -270,7 +270,7 @@ public class DSSBeanConfig {
     }
 
     @Bean
-    public RemoteDocumentSignatureService remoteSignatureService() throws Exception {
+    public RemoteXadesSignatureServiceImpl remoteSignatureService() throws Exception {
         RemoteXadesSignatureServiceImpl service = new RemoteXadesSignatureServiceImpl();
         service.setAsicWithCAdESService(asicWithCadesService());
         service.setAsicWithXAdESService(asicWithXadesService());

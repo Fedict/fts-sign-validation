@@ -14,7 +14,7 @@ class ControllerBase {
     protected static DateTimeFormatter logDateTimeFormatter = 
         DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").withZone(ZoneId.systemDefault());
 
-    protected Logger logger = Logger.getLogger(SigningController.class.getName());
+    protected Logger logger = Logger.getLogger(this.getClass().getName());
 
     protected void logAndThrowEx(HttpStatus httpStatus, String errConst, Exception e) {
         logAndThrowEx(null, httpStatus, errConst, null, e);
