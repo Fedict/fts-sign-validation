@@ -138,12 +138,12 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         unSignedXmlFile = sb.toString();
 
         // Start testing
-        CreateSignFlowDTO csf = new CreateSignFlowDTO(true, THE_BUCKET, "pwd", "XADES_B", inFiles, OUT_FILE_NAME);
-        csf.setOutXslt(MAIN_XSLT_FILE_NAME);
-        csf.setOutDownload(true);
+        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", "XADES_B", inFiles, OUT_FILE_NAME);
+        gtfd.setOutXslt(MAIN_XSLT_FILE_NAME);
+        gtfd.setOutDownload(true);
 
         // Create XML to sign
-        String token = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_TOKEN_FOR_XADES_MUTLI_DOC, csf, String.class);
+        String token = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_TOKEN_FOR_XADES_MUTLI_DOC, gtfd, String.class);
         System.out.println(token);
 
         // First call from UI to get a view of the various files to display

@@ -19,9 +19,7 @@ import java.util.List;
 @Setter
 @Getter
 @NoArgsConstructor
-public class CreateSignFlowDTO {
-    private long createTime;
-    private boolean xadesMultifile;
+public class GetTokenForDocumentsDTO {
     private String bucket;
     private String password;
     private Integer signTimeout;
@@ -37,8 +35,7 @@ public class CreateSignFlowDTO {
     private boolean outDownload;
 
     // Mandatory parameters
-    public CreateSignFlowDTO(boolean xadesMultifile, String bucket, String password, String signProfile, List<SignInput> inputs, String outFileName) {
-        this.xadesMultifile = xadesMultifile;
+    public GetTokenForDocumentsDTO(String bucket, String password, String signProfile, List<SignInput> inputs, String outFileName) {
         this.inputs = inputs;
         this.bucket = bucket;
         this.password = password;

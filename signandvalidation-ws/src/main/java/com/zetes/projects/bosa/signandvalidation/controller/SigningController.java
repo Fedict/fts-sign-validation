@@ -170,21 +170,21 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setReadConfirm(tokenData.getRequestDocumentReadConfirm() == null ? false : tokenData.getRequestDocumentReadConfirm());
             input.setDisplay(DisplayType.Content);
             input.setPspFileName(tokenData.getPsp());
-            input.setPsfP(Boolean.valueOf(tokenData.getPsfP()));
+            input.setPsfP(tokenData.getPsfP() == null ? false : Boolean.getBoolean(tokenData.getPsfP()));
             input.setPsfC(tokenData.getPsfC());
             input.setPsfN(tokenData.getPsfN());
             inputs.add(input);
-            CreateSignFlowDTO csf = new CreateSignFlowDTO(false, tokenData.getName(), null, tokenData.getProf(), inputs, tokenData.getOut());
-            csf.setOutDownload(tokenData.getNoDownload() == null || !tokenData.getNoDownload());
-            csf.setSignTimeout(tokenData.getSignTimeout());
+            TokenObject token = new TokenObject(false, tokenData.getName(), tokenData.getProf(), inputs, tokenData.getOut());
+            token.setOutDownload(tokenData.getNoDownload() == null || !tokenData.getNoDownload());
+            token.setSignTimeout(tokenData.getSignTimeout());
             if (tokenData.getAllowedToSign() != null) {
                 List<String> nnAllowedToSign = new ArrayList<>();
                 for(AllowedToSign allowedToSign : tokenData.getAllowedToSign()) {
                     nnAllowedToSign.add(allowedToSign.getNN());
                 }
-                csf.setNnAllowedToSign(nnAllowedToSign);
+                token.setNnAllowedToSign(nnAllowedToSign);
             }
-            return createToken(csf);
+            return createToken(token);
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -192,7 +192,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     @PostMapping(value = GET_TOKEN_FOR_XADES_MUTLI_DOC, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public String getTokenForDocuments(@RequestBody CreateSignFlowDTO csf) {
+    public String getTokenForDocuments(@RequestBody GetTokenForDocumentsDTO gtfd) {
         //TODO Validate all inputs ???
         // Check:
         // - at least one input. !!!
@@ -205,29 +205,28 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         // All new "legacy fields"
 
         // Validate input
-        if(!(storageService.isValidAuth(csf.getBucket(), csf.getPassword()))) {
+        if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
             logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
         }
-        // Clear unneeded fields
-        csf.setPassword(null);
+        TokenObject token = new TokenObject(gtfd);
 
-        createSignedFile(csf);
+        createSignedFile(token);
 
         // Create Token
-        return createToken(csf);
+        return createToken(token);
     }
 
-    private void createSignedFile(CreateSignFlowDTO csf) {
+    private void createSignedFile(TokenObject token) {
         try {
             LOG.info("Creating xml file");
 
             // Create BOSA XML Template
             XadesFileRoot root = new XadesFileRoot();
-            for(SignInput input : csf.getInputs()) {
+            for(SignInput input : token.getInputs()) {
                 XadesFile file = new XadesFile();
                 file.setName(input.getFileName());
                 file.setId(input.getXmlEltId());
-                file.setSize(storageService.getFileInfo(csf.getBucket(), input.getFileName()).getSize());
+                file.setSize(storageService.getFileInfo(token.getBucket(), input.getFileName()).getSize());
                 root.getFiles().add(file);
             }
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -243,11 +242,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             TransformerFactory tf = TransformerFactory.newInstance();
             // If requested create target file
-            String xslt = csf.getOutXslt();
+            String xslt = token.getOutXslt();
             if (xslt != null) {
                 // XSLT present -> transform to proprietary format
                 DOMResult xsltDom = new DOMResult();
-                InputStream xsltStream = storageService.getFileAsStream(csf.getBucket(), xslt);
+                InputStream xsltStream = storageService.getFileAsStream(token.getBucket(), xslt);
                 tf.newTransformer(new StreamSource(xsltStream)).transform(new DOMSource(doc), xsltDom);
                 doc = (Document)xsltDom.getNode();
 
@@ -258,12 +257,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Put file content in the target document
             XPath xPath = XPathFactory.newInstance().newXPath();
-            for(SignInput input : csf.getInputs()) {
+            for(SignInput input : token.getInputs()) {
                 NodeList nodes = (NodeList)xPath.evaluate("//*[@id = '"+ input.getXmlEltId() + "']", doc, XPathConstants.NODESET);
                 if (nodes.getLength() != 1) {
                     logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Can't find element id : " + input.getXmlEltId());
                 }
-                nodes.item(0).setTextContent(storageService.getFileAsB64String(csf.getBucket(), input.getFileName()));
+                nodes.item(0).setTextContent(storageService.getFileAsB64String(token.getBucket(), input.getFileName()));
             }
 
             if (LOG.isInfoEnabled()) {
@@ -273,7 +272,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             // Save target XML to bucket
             ByteArrayOutputStream outStream = new ByteArrayOutputStream(32768);
             tf.newTransformer().transform(new DOMSource(doc), new StreamResult(outStream));
-            storageService.storeFile(csf.getBucket(), csf.getOutFileName(), outStream.toByteArray());
+            storageService.storeFile(token.getBucket(), token.getOutFileName(), outStream.toByteArray());
 
             LOG.info("Done creating xml file");
 
@@ -283,70 +282,73 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     @GetMapping(value = GET_METADATA_FOR_TOKEN)
-    public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String token) {
+    public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String tokenString) {
             logger.info("Entering getMetadataForToken()");
             try {
-                CreateSignFlowDTO csf = extractToken(token);
-                SignInput firstInput = csf.getInputs().get(0);
-                FileStoreInfo fi = storageService.getFileInfo(csf.getBucket(), firstInput.getFileName());
+                TokenObject token = extractToken(tokenString);
+                SignInput firstInput = token.getInputs().get(0);
+                FileStoreInfo fi = storageService.getFileInfo(token.getBucket(), firstInput.getFileName());
 
                 String xsltUrl = null;
                 if(firstInput.getDisplayXslt() != null) {
-                    xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + token;
+                    xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + tokenString;
                 }
-                return new DocumentMetadataDTO(firstInput.getFileName(), fi.getContentType(), xsltUrl, firstInput.isPsfP(), !csf.isOutDownload(), firstInput.isReadConfirm());
+                return new DocumentMetadataDTO(firstInput.getFileName(), fi.getContentType(), xsltUrl, firstInput.isPsfP(), !token.isOutDownload(), firstInput.isReadConfirm());
 
             } catch (StorageService.InvalidKeyConfigException | RuntimeException e){
-                    logAndThrowEx(token, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+                    logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
             }
             return null; // We won't get here
     }
 
     @GetMapping(value = GET_METADATA_FOR_TOKEN_NEW)
-    public FileInfoForTokenDTO getMetadataForTokenNew(@RequestParam("token") String token) {
+    public FileInfoForTokenDTO getMetadataForTokenNew(@RequestParam("token") String tokenString) {
         logger.info("Entering getMetadataForToken()");
-        CreateSignFlowDTO csf = extractToken(token);
+        TokenObject token = extractToken(tokenString);
 
         FileInfoForTokenDTO fift = new FileInfoForTokenDTO();
-        fift.setNnAllowedToSign(csf.getNnAllowedToSign());
-        fift.setInputs(csf.getInputs());
+        fift.setNnAllowedToSign(token.getNnAllowedToSign());
+        fift.setInputs(token.getInputs());
         logger.info("Returning from getMetadataForToken()");
         return fift;
     }
 
     @GetMapping(value = GET_DOCUMENT_FOR_TOKEN)
-    public void getDocumentForToken(@RequestParam String token, @RequestParam(required = false) String type, HttpServletResponse response) {
+    public void getDocumentForToken(@RequestParam String tokenString, @RequestParam(required = false) String type, HttpServletResponse response) {
         logger.info("Entering getDocumentForToken()");
 
-        CreateSignFlowDTO csf = extractToken(token);
-        if (csf.isXadesMultifile()) {
+        TokenObject token = extractToken(tokenString);
+        if (token.isXadesMultifile()) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_TOKEN, "Please call " + GET_FILE_FOR_TOKEN);
         }
 
-        SignInput firstInput = csf.getInputs().get(0);
+        SignInput firstInput = token.getInputs().get(0);
         String fileName = firstInput.getFileName();
         if (type != null) {
             if (!"xslt".equals(type)) {
-                logAndThrowEx(token, BAD_REQUEST, INVALID_TYPE, null, null);
+                logAndThrowEx(tokenString, BAD_REQUEST, INVALID_TYPE, null, null);
             }
             fileName = firstInput.getDisplayXslt();
         }
 
-       returnFile(csf.getBucket(), fileName, response);
+       returnFile(token.getBucket(), fileName, response);
     }
 
     @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{fileName}")
-    public void getFileForToken(@PathVariable String token, @PathVariable String fileName, HttpServletResponse response) {
-        CreateSignFlowDTO csf = extractToken(token);
-        if (!csf.isXadesMultifile()) {
+    public void getFileForToken(@PathVariable(name="token") String tokenString, @PathVariable String fileName, HttpServletResponse response) {
+        TokenObject token = extractToken(tokenString);
+        if (!token.isXadesMultifile()) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_TOKEN, "Please call " + GET_DOCUMENT_FOR_TOKEN);
         }
 
         // Only allow downloads based on the token and the files listed in the token
-        if (!isInputFile(csf, fileName)) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_TOKEN, "File " + fileName + " not found in token");
+        for(SignInput input : token.getInputs()) {
+            if (fileName.equals(input.getFileName()) || fileName.equals(input.getDisplayXslt()) || fileName.equals(input.getPspFileName())) {
+                returnFile(token.getBucket(), fileName, response);
+                return;
+            }
         }
-        returnFile(csf.getBucket(), fileName, response);
+        logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_TOKEN, "File " + fileName + " not found in token");
     }
 
     private void returnFile(String bucket, String fileName, HttpServletResponse response) {
@@ -379,35 +381,35 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
         logger.info("Entering getDataToSignForToken()");
         try {
-            CreateSignFlowDTO csf = extractToken(dataToSignForTokenDto.getToken());
+            TokenObject token = extractToken(dataToSignForTokenDto.getToken());
             ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
 
             // Signer allowed to sign ?
-            checkNNAllowedToSign(csf.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
+            checkNNAllowedToSign(token.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
 
             Date signingDate = new Date();
             clientSigParams.setSigningDate(signingDate);
 
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(csf.getSignProfile(), clientSigParams, csf.getPolicy());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(token.getSignProfile(), clientSigParams, token.getPolicy());
 
             String fileName;
             List<DSSReference> references = null;
-            SignInput firstInput = csf.getInputs().get(0);
-            if (csf.isXadesMultifile()) {
-                ArrayList<String> idsToSign = new ArrayList<String>(csf.getInputs().size());
-                for(SignInput input : csf.getInputs()) idsToSign.add(input.getXmlEltId());
+            SignInput firstInput = token.getInputs().get(0);
+            if (token.isXadesMultifile()) {
+                ArrayList<String> idsToSign = new ArrayList<String>(token.getInputs().size());
+                for(SignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(signingDate, idsToSign, parameters.getReferenceDigestAlgorithm());
-                fileName = csf.getOutFileName();
+                fileName = token.getOutFileName();
             } else {
                 fileName = firstInput.getFileName();
             }
-            byte[] bytesToSign = storageService.getFileAsBytes(csf.getBucket(), fileName, true);
-            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, csf.getOutFileName());
+            byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), fileName, true);
+            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, token.getOutFileName());
 
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
 
-            if (!csf.isXadesMultifile() && parameters.getSignatureLevel().toString().startsWith("PAdES")) {
-                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, firstInput, csf.getBucket(), clientSigParams.getPhoto());
+            if (!token.isXadesMultifile() && parameters.getSignatureLevel().toString().startsWith("PAdES")) {
+                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, firstInput, token.getBucket(), clientSigParams.getPhoto());
             }
 
             ToBeSignedDTO dataToSign = altSignatureService.getDataToSignWithReferences(fileToSign, parameters, references);
@@ -437,45 +439,45 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
         try {
             LOG.info("signDocumentForToken");
-            CreateSignFlowDTO csf = extractToken(signDto.getToken());
+            TokenObject token = extractToken(signDto.getToken());
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
 
             // Signing within allowed time ?
-            long signTimeout = csf.getSignTimeout() != null ? csf.getSignTimeout() * 1000 : SIGN_DURATION_SECS * 1000;
+            long signTimeout = token.getSignTimeout() != null ? token.getSignTimeout() * 1000 : SIGN_DURATION_SECS * 1000;
             if (new Date().getTime() >= (clientSigParams.getSigningDate().getTime() + signTimeout)) {
                 logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "");
             }
 
             // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
-            checkNNAllowedToSign(csf.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
+            checkNNAllowedToSign(token.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
 
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(csf.getSignProfile(), clientSigParams, csf.getPolicy());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(token.getSignProfile(), clientSigParams, token.getPolicy());
 
             String fileName;
             List<DSSReference> references = null;
-            SignInput firstInput = csf.getInputs().get(0);
-            if (csf.isXadesMultifile()) {
-                ArrayList<String> idsToSign = new ArrayList<String>(csf.getInputs().size());
-                for(SignInput input : csf.getInputs()) idsToSign.add(input.getXmlEltId());
+            SignInput firstInput = token.getInputs().get(0);
+            if (token.isXadesMultifile()) {
+                ArrayList<String> idsToSign = new ArrayList<String>(token.getInputs().size());
+                for(SignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(clientSigParams.getSigningDate(), idsToSign, parameters.getReferenceDigestAlgorithm());
-                fileName = csf.getOutFileName();
+                fileName = token.getOutFileName();
             } else {
                 fileName = firstInput.getFileName();
             }
 
-            byte[] bytesToSign = storageService.getFileAsBytes(csf.getBucket(), fileName, true);
-            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, csf.getOutFileName());
+            byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), fileName, true);
+            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, token.getOutFileName());
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocumentWithReferences(fileToSign, parameters, signatureValueDto, references);
             logger.info("signDocumentForToken(): validating the signed doc");
-            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, csf);
+            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token);
 
             // Save signed file
-            signedDoc.setName(csf.getOutFileName());
-            storageService.storeFile(csf.getBucket(), signedDoc.getName(), signedDoc.getBytes());
+            signedDoc.setName(token.getOutFileName());
+            storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
             LOG.info("done signDocumentForToken");
 
-            if (csf.isOutDownload()) {
+            if (token.isOutDownload()) {
                 return new ResponseEntity<>(signedDoc, HttpStatus.OK);
             }
 
@@ -490,10 +492,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return validateResult(signedDoc, detachedContents, parameters, null);
     }
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, CreateSignFlowDTO csf) {
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token) {
         WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null, parameters);
 
-        if (null != csf) {
+        if (null != token) {
             try {
                 // Instead of saving the entire report, create our own report containing the simple/detailed reports and the signing cert
                 byte[] sigingCert = parameters.getSigningCertificate().getEncodedCertificate();
@@ -505,7 +507,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
                 mapper.writeValue(out, reportDto);
 
-                storageService.storeFile(csf.getBucket(), csf.getOutFileName() + ".validationreport.json", out.toString().getBytes());
+                storageService.storeFile(token.getBucket(), token.getOutFileName() + ".validationreport.json", out.toString().getBytes());
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to serialize or save the validation report", e);
             }
@@ -525,7 +527,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    private void checkDataToSign(RemoteSignatureParameters parameters, String token) {
+    private void checkDataToSign(RemoteSignatureParameters parameters, String tokenString) {
 
         Date now = new Date();
         // Check if the signing cert is present and not expired
@@ -539,9 +541,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             X509Certificate signingCrt = (X509Certificate) CertificateFactory.getInstance("X509")
                     .generateCertificate(new ByteArrayInputStream(signingCertBytes));
 
-            // Log the cert ID, so it can be linked to the token
-            if (null != token)
-                logger.log(Level.INFO, "Signing certificate ID for " + token + " : " + new CertificateToken(signingCrt).getDSSIdAsString());
+            // Log the cert ID, so it can be linked to the tokenString
+            if (null != tokenString)
+                logger.log(Level.INFO, "Signing certificate ID for " + tokenString + " : " + new CertificateToken(signingCrt).getDSSIdAsString());
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
             if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
@@ -559,13 +561,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
 
     // Create a "token" based of n the CreateSignFlowDTO. This will be the driver for the whole process
-    private String createToken(CreateSignFlowDTO csf)  {
+    private String createToken(TokenObject token)  {
         try {
             // JSONify & GZIP object
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-            csf.setCreateTime(new Date().getTime());
-            new ObjectMapper().writeValue(new GZIPOutputStream(bos), csf);
+            token.setCreateTime(new Date().getTime());
+            new ObjectMapper().writeValue(new GZIPOutputStream(bos), token);
 
             // Create new symetric Key
             KeyGenerator keygen = KeyGenerator.getInstance(SYMMETRIC_KEY_ALGO);
@@ -585,9 +587,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     .keyID(keyId)
                     .build(), new Payload(bos.toByteArray()));
             jweObject.encrypt(new DirectEncrypter(newKey));
-            String token = jweObject.serialize();
-            logger.info(token);
-            return token;
+            String tokenString = jweObject.serialize();
+            logger.info(tokenString);
+            return tokenString;
         } catch (IOException | NoSuchAlgorithmException | JOSEException | StorageService.InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -595,9 +597,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     // Extract and decrypt a "token"
-    private CreateSignFlowDTO extractToken(String token) {
+    private TokenObject extractToken(String tokenString) {
         try {
-            JWEObject jweObject = JWEObject.parse(token);
+            JWEObject jweObject = JWEObject.parse(tokenString);
             String keyId = jweObject.getHeader().getKeyID();
             SecretKey key = keyCache.getIfPresent(keyId);
             if (key == null) {
@@ -606,12 +608,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
             jweObject.decrypt(new DirectDecrypter(key));
             GZIPInputStream zis = new GZIPInputStream(new ByteArrayInputStream(jweObject.getPayload().toBytes()));
-            CreateSignFlowDTO csf = new ObjectMapper().readValue(zis, CreateSignFlowDTO.class);
+            TokenObject token = new ObjectMapper().readValue(zis, TokenObject.class);
 
-            if (new Date().getTime() > (csf.getCreateTime() + TOKEN_VALIDITY_SECS * 60000)) {
+            if (new Date().getTime() > (token.getCreateTime() + TOKEN_VALIDITY_SECS * 60000)) {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
             }
-            return csf;
+            return token;
         } catch(ParseException | IOException | JOSEException | StorageService.InvalidKeyConfigException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         }
@@ -632,13 +634,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         ArrayList<String> list = new ArrayList<String>(elementsToSign.size());
         for(SignElement elementToSign : elementsToSign) list.add(elementToSign.getId());
         return list;
-    }
-
-    private boolean isInputFile(CreateSignFlowDTO csf, String fileName) {
-        for(SignInput input : csf.getInputs()) {
-            if (fileName.equals(input.getFileName()) || fileName.equals(input.getDisplayXslt()) || fileName.equals(input.getPspFileName())) return true;
-        }
-        return false;
     }
 
     private List<DSSReference> buildReferences(Date signingTime, List<String> xmlIds, DigestAlgorithm refDigestAlgo) {
