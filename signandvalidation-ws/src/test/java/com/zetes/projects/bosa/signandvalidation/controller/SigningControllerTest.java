@@ -62,14 +62,14 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
     @AllArgsConstructor
     private enum FileDef {
-        F1("aFile.xml", "1", MimeType.XML, "QSBUZXN0", "pinp.xslt", "XSLT1", false, Content),
-        F2("bFile.xml", "deux", MimeType.XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true, NO),
-        F3("test.pdf", "drie", MimeType.PDF, "QSBUZXN0", null, null, true, FileName),
-        F4("dFile.pdf", "FOUR", MimeType.PDF, "QSBUZXN0", null, null, true, Content);
+        F1("aFile.xml", "1", "application/xml", "QSBUZXN0", "pinp.xslt", "XSLT1", false, Content),
+        F2("bFile.xml", "deux", "application/xml", "QSBUZXN0", "pimp1.xslt", "XSLT2", true, NO),
+        F3("test.pdf", "drie", "application/pdf", "QSBUZXN0", null, null, true, FileName),
+        F4("dFile.pdf", "FOUR", "application/pdf", "QSBUZXN0", null, null, true, Content);
 
         private String name;
         private String id;
-        private MimeType type;
+        private String type;
         private String data;
         private String xslt;
         private String xsltData;
@@ -110,7 +110,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         for(FileDef fd : FileDef.values()) {
             inFiles.add(fd.getXmlSignInput());
             Mockito.when(storageService.getFileAsB64String(eq(THE_BUCKET),eq(fd.name))).thenReturn(fd.data);
-            Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(fd.name))).thenReturn(new FileStoreInfo(fd.type.getMimeTypeString(), "HASH", fd.data.length()));
+            Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(fd.name))).thenReturn(new FileStoreInfo(fd.type, "HASH", fd.data.length()));
             Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(fd.name))).thenReturn(new ByteArrayInputStream(fd.data.getBytes()));
             if (fd.xslt != null) {
                 Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new FileStoreInfo(APPLICATION_XML_VALUE, "HASH", fd.xsltData.length()));
@@ -139,7 +139,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
             FileDef fd = FileDef.find(input.getFileName());
             assertEquals(new String(file.getBody()), fd.data);
-            assertEquals(file.getHeaders().getContentType().toString(), fd.type.getMimeTypeString());
+            assertEquals(file.getHeaders().getContentType().toString(), fd.type);
 
             if (input.getDisplayXslt() != null) {
                 file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + input.getDisplayXslt(), byte[].class);
@@ -172,7 +172,6 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         System.out.println(new String(signedDocument.getBytes()));
     }
-
 
     @Test
     public void testSigningAndExtensionXades() throws Exception {

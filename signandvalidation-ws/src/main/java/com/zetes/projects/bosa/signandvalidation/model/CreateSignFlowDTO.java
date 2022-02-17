@@ -20,6 +20,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class CreateSignFlowDTO {
+    private long createTime;
     private boolean xadesMultifile;
     private String bucket;
     private String password;

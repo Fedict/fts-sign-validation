@@ -562,7 +562,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             // JSONify & GZIP object
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-            new ObjectMapper().writeValue(new GZIPOutputStream(bos), new SignFlowToken(csf));
+            csf.setCreateTime(new Date().getTime());
+            new ObjectMapper().writeValue(new GZIPOutputStream(bos), csf);
 
             // Create new symetric Key
             KeyGenerator keygen = KeyGenerator.getInstance(SYMMETRIC_KEY_ALGO);
@@ -582,7 +583,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     .keyID(keyId)
                     .build(), new Payload(bos.toByteArray()));
             jweObject.encrypt(new DirectEncrypter(newKey));
-            return jweObject.serialize();
+            String token = jweObject.serialize();
+            logger.info(token);
+            return token;
         } catch (IOException | NoSuchAlgorithmException | JOSEException | StorageService.InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -601,11 +604,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
             jweObject.decrypt(new DirectDecrypter(key));
             GZIPInputStream zis = new GZIPInputStream(new ByteArrayInputStream(jweObject.getPayload().toBytes()));
-            SignFlowToken sft = new ObjectMapper().readValue(zis, SignFlowToken.class);
-            if (!sft.isValid(TOKEN_VALIDITY_SECS)) {
+            CreateSignFlowDTO csf = new ObjectMapper().readValue(zis, CreateSignFlowDTO.class);
+
+            if (new Date().getTime() > (csf.getCreateTime() + TOKEN_VALIDITY_SECS * 60000)) {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
             }
-            return sft.getCsf();
+            return csf;
         } catch(ParseException | IOException | JOSEException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         }
@@ -671,7 +675,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
      * NON-TOKEN Signing services
      *
      ****************************************************************************************/
-
 
     @PostMapping(value = GET_DATA_TO_SIGN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
@@ -740,7 +743,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
         return null; // We won't get here
     }
-
 
     @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
