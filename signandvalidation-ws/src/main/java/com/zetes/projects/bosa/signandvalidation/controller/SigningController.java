@@ -112,7 +112,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final long SIGN_DURATION_SECS                = 2 * 60;
     private static final int MAX_NN_ALLOWED_TO_SIGN             = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
-    private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-]{1,30}");
+    private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
 
     private static final List<String> allowedLanguages          =  Arrays.asList(new String[] {"fr", "ge", "nl", "en" });
 
@@ -735,7 +735,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         int count = 0;
         for(String xmlId : xmlIds) {
             DSSReference reference = new DSSReference();
-            reference.setId(timeRef + "-" + Integer.toString(count++));
+            reference.setId("id_" + timeRef + "_" + Integer.toString(count++));
             reference.setDigestMethodAlgorithm(refDigestAlgo == null ? DigestAlgorithm.SHA256 : refDigestAlgo);
             reference.setUri("#"+ xmlId);
             List<DSSTransform> transforms = new ArrayList<>();
