@@ -326,7 +326,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     @GetMapping(value = GET_DOCUMENT_FOR_TOKEN)
-    public void getDocumentForToken(@RequestParam String tokenString, @RequestParam(required = false) String type, HttpServletResponse response) {
+    public void getDocumentForToken(@RequestParam("token") String tokenString, @RequestParam(required = false) String type, HttpServletResponse response) {
         logger.info("Entering getDocumentForToken()");
 
         TokenObject token = extractToken(tokenString);
@@ -347,7 +347,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{fileName}")
-    public void getFileForToken(@PathVariable(name="token") String tokenString, @PathVariable String fileName, HttpServletResponse response) {
+    public void getFileForToken(@PathVariable("token") String tokenString, @PathVariable String fileName, HttpServletResponse response) {
         TokenObject token = extractToken(tokenString);
         if (!token.isXadesMultifile()) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_TOKEN, "Please call " + GET_DOCUMENT_FOR_TOKEN);
