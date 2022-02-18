@@ -55,6 +55,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setIn(inFile.getName());
         getTokenDTO.setSignTimeout(0);
+        getTokenDTO.setOut("out");
         String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
 
         // get data to sign
@@ -98,6 +99,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         getTokenDTO.setIn(inFile.getName());
         getTokenDTO.setSignTimeout(1000);
         getTokenDTO.setNoDownload(false);
+        getTokenDTO.setOut("out");
         String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
 
         // get data to sign

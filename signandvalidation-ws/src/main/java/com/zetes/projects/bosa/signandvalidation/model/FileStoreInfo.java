@@ -6,6 +6,7 @@
 package com.zetes.projects.bosa.signandvalidation.model;
 
 import lombok.Data;
+import org.springframework.http.MediaType;
 
 /**
  *
@@ -13,11 +14,11 @@ import lombok.Data;
  */
 @Data
 public class FileStoreInfo {
-    private final String contentType;
+    private final MediaType contentType;
     private final String hash;
     private final long size;
 
-    public FileStoreInfo(String contentType, String hash, long size) {
+    public FileStoreInfo(MediaType contentType, String hash, long size) {
         this.contentType = contentType;
         this.size = size;
         this.hash = hash;

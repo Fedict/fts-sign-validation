@@ -6,6 +6,7 @@
 package com.zetes.projects.bosa.signandvalidation.service;
 
 import com.zetes.projects.bosa.signandvalidation.model.FileStoreInfo;
+import com.zetes.projects.bosa.signandvalidation.utils.MediaTypeUtil;
 import io.minio.*;
 import io.minio.errors.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -152,23 +153,12 @@ public class StorageService {
         try {
             if (bucket == null) bucket = secretBucket;
             StatObjectResponse so = getClient().statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
-            return new FileStoreInfo(getMIMETypeFromFilename(name), so.etag(), so.size());
+            return new FileStoreInfo(MediaTypeUtil.getMediaTypeFromFilename(name), so.etag(), so.size());
 
         } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
             Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, e);
             throw new InvalidKeyConfigException();
         }
-    }
-
-    private String getMIMETypeFromFilename(String fileName) {
-        int pos = fileName.lastIndexOf('.');
-        if (pos != -1) {
-            String ext = fileName.substring(pos + 1).toLowerCase();
-            if ("pdf".equals(ext)) return "application/pdf";
-            if ("xml".equals(ext)) return "application/xml";
-            if ("xslt".equals(ext)) return "aplication/xslt+xml";
-        }
-        return "text/plain";
     }
 
     public void storeFile(String bucket, String name, byte content[]) throws InvalidKeyConfigException {

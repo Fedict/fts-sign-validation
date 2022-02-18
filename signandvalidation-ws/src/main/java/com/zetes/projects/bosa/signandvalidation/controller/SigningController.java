@@ -7,6 +7,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.zetes.projects.bosa.signandvalidation.service.*;
+import com.zetes.projects.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.PdfVisibleSignatureService.PdfVisibleSignatureException;
@@ -33,6 +34,7 @@ import org.apache.xml.security.transforms.Transforms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -52,6 +54,7 @@ import eu.europa.esig.dss.enumerations.Indication;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.crypto.KeyGenerator;
@@ -107,6 +110,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     public static final int TOKEN_VALIDITY_SECS                 = 5 * 60 * 60;
     private static final long SIGN_DURATION_SECS                = 2 * 60;
+    private static final int MAX_NN_ALLOWED_TO_SIGN             = 8;
+    private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
+    private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-]{1,30}");
+
+    private static final List<String> allowedLanguages          =  Arrays.asList(new String[] {"fr", "ge", "nl", "en" });
 
     // standard operations
     public static final String GET_DATA_TO_SIGN                 = "/getDataToSign";
@@ -185,6 +193,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 }
                 token.setNnAllowedToSign(nnAllowedToSign);
             }
+
+            checkToken(token);
+
             return createToken(token);
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -194,17 +205,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = GET_TOKEN_FOR_XADES_MUTLI_DOC, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocuments(@RequestBody GetTokenForDocumentsDTO gtfd) {
-        //TODO Validate all inputs ???
-        // Check:
-        // - at least one input. !!!
-        // - signTimeout boundaries ?
-        // - nnAllowedToSign format adherence + max
-        // - signProfile existence
-        // - some policy checks..........
-        // - Uniqueness of elementIds
-        // - Filename collisions (inputs, out vs out, outxslt vs rest)
-        // All new "legacy fields"
-
         // Validate input
         if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
             logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
@@ -222,10 +222,91 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setOutFileName(gtfd.getOutFileName());
         token.setOutDownload(gtfd.isOutDownload());
 
+        checkToken(token);
+
         createSignedFile(token);
 
         // Create Token
         return createToken(token);
+    }
+
+    private void checkToken(TokenObject token) {
+        //TODO Validate more inputs ?
+        // - signProfile existence
+        // - some policy checks..........
+        if (token.getSignTimeout() != null && token.getSignTimeout() > TOKEN_VALIDITY_SECS) {
+            logAndThrowEx(FORBIDDEN, SIGN_PERIOD_EXPIRED, "signTimeout (" + token.getSignTimeout() + ") can't be larger than TOKEN_VALIDITY_SECS (" + TOKEN_VALIDITY_SECS + ")" , null);
+        }
+        List<String> nnsAllowedToSign = token.getNnAllowedToSign();
+        if (nnsAllowedToSign != null) {
+            if (nnsAllowedToSign.size() > MAX_NN_ALLOWED_TO_SIGN) {
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "nnAllowedToSign (" + nnsAllowedToSign.size() + ") can't be larger than MAX_NN_ALLOWED_TO_SIGN (" + MAX_NN_ALLOWED_TO_SIGN + ")" , null);
+            }
+            List<String> nnList = new ArrayList<String>();
+            for(String nnAllowedToSign : nnsAllowedToSign) {
+                checkValue("nnAllowedToSign", nnAllowedToSign, false, nnPattern, nnList);
+            }
+        }
+
+        List<SignInput> inputs = token.getInputs();
+        if (inputs.size() == 0) {
+            logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'inputs' field is empty" , null);
+        }
+        List<String> filenamesList = new ArrayList<String>();
+        List<String> eltIdList = new ArrayList<String>();
+        for(SignInput input : inputs) {
+            MediaType inputFileType = MediaTypeUtil.getMediaTypeFromFilename(input.getFileName());
+            if (token.isXadesMultifile()) {
+                checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
+                if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFileName() != null) {
+                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null", null);
+                }
+            } else {
+                if (input.getXmlEltId() != null) {
+                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'XmlEltId' must be null", null);
+                }
+                if (APPLICATION_PDF.equals(inputFileType)) {
+                    String signLanguage = input.getSignLanguage();
+                    if (signLanguage != null && !allowedLanguages.contains(signLanguage)) {
+                        logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'SignLanguage' (" + signLanguage + ") must be one of " + String.join(", ", allowedLanguages), null);
+                    }
+                    // TODO Validate  PSFxxx, psp, ... fields
+                }
+            }
+            if (!APPLICATION_XML.equals(inputFileType) && input.getDisplayXslt() != null) {
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "DisplayXslt must be null", null);
+            }
+            checkValue("fileName", input.getFileName(), false, null, filenamesList);
+        }
+
+        if (token.getOutXslt() != null) {
+            if (token.isXadesMultifile()) {
+                checkValue("OutXslt", token.getOutXslt(), true, null, filenamesList);
+            } else {
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'OutXslt' must be null", null);
+            }
+        }
+        checkValue("outFileName", token.getOutFileName(), false, null, filenamesList);
+    }
+
+    private void checkValue(String name, String value, boolean nullable, Pattern patternToMatch, List<String> uniqueList) {
+        if (value != null) {
+            if (uniqueList != null) {
+                if (uniqueList.contains(value)) {
+                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'" + name + "' (" + value + ") is not unique", null);
+                }
+                uniqueList.add(value);
+            }
+            if (patternToMatch != null) {
+                if (!patternToMatch.matcher(value).matches()) {
+                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'" + name + "' (" + value + ") does not math Regex (" + patternToMatch.pattern() + ")" , null);
+                }
+            }
+        } else {
+            if (!nullable) {
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'" + name + "' is NULL", null);
+            }
+        }
     }
 
     private void createSignedFile(TokenObject token) {
@@ -305,7 +386,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 if(firstInput.getDisplayXslt() != null) {
                     xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + tokenString;
                 }
-                return new DocumentMetadataDTO(firstInput.getFileName(), fi.getContentType(), xsltUrl, firstInput.isPsfP(), !token.isOutDownload(), firstInput.isReadConfirm());
+                return new DocumentMetadataDTO(firstInput.getFileName(), fi.getContentType().toString(), xsltUrl, firstInput.isPsfP(), !token.isOutDownload(), firstInput.isReadConfirm());
 
             } catch (StorageService.InvalidKeyConfigException | RuntimeException e){
                     logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -369,11 +450,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         try {
             FileStoreInfo fi = storageService.getFileInfo(bucket, fileName);
 
-            response.setContentType(fi.getContentType());
+            response.setContentType(fi.getContentType().toString());
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Cache-Control", "no-cache");
             response.setHeader("Content-Transfer-Encoding", "binary");
-            response.setHeader("Content-Disposition", fi.getContentType().equals(APPLICATION_PDF_VALUE) ? "inline" : "attachment" + "; filename=\"" + fileName + "\"");
+            response.setHeader("Content-Disposition", fi.getContentType().equals(APPLICATION_PDF) ? "inline" : "attachment" + "; filename=\"" + fileName + "\"");
             file = storageService.getFileAsStream(bucket, fileName);
             Utils.copy(file, response.getOutputStream());
             file.close();

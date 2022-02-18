@@ -4,6 +4,7 @@ import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signandvalidation.service.StorageService;
+import com.zetes.projects.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -18,6 +19,7 @@ import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.io.ByteArrayInputStream;
@@ -37,7 +39,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PDF;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 
 public class SigningControllerTest extends SigningControllerBaseTest {
 
@@ -72,14 +75,14 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
     @AllArgsConstructor
     private enum FileDef {
-        F1("aFile.xml", "1", "application/xml", "QSBUZXN0", "pinp.xslt", "XSLT1", false, Content),
-        F2("bFile.xml", "deux", "application/xml", "QSBUZXN0", "pimp1.xslt", "XSLT2", true, NO),
-        F3("test.pdf", "drie", "application/pdf", "QSBUZXN0", null, null, true, FileName),
-        F4("dFile.pdf", "FOUR", "application/pdf", "QSBUZXN0", null, null, true, Content);
+        F1("aFile.xml", "1", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1", false, Content),
+        F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true, NO),
+        F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null, true, FileName),
+        F4("dFile.pdf", "FOUR", APPLICATION_PDF, "QSBUZXN0", null, null, true, Content);
 
         private String name;
         private String id;
-        private String type;
+        private MediaType type;
         private String data;
         private String xslt;
         private String xsltData;
@@ -129,7 +132,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
             Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(fd.name))).thenReturn(new FileStoreInfo(fd.type, "HASH", fd.data.length()));
             Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(fd.name))).thenReturn(new ByteArrayInputStream(fd.data.getBytes()));
             if (fd.xslt != null) {
-                Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new FileStoreInfo(APPLICATION_XML_VALUE, "HASH", fd.xsltData.length()));
+                Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new FileStoreInfo(APPLICATION_XML, "HASH", fd.xsltData.length()));
                 Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new ByteArrayInputStream(fd.xsltData.getBytes()));
             }
             sb.append("<" + FILE_XSLT_ELT + " FileName=\"" + fd.name + "\" id=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">");
@@ -155,14 +158,14 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
             FileDef fd = FileDef.find(input.getFileName());
             assertEquals(new String(file.getBody()), fd.data);
-            assertEquals(file.getHeaders().getContentType().toString(), fd.type);
+            assertEquals(file.getHeaders().getContentType(), fd.type);
 
             if (input.getDisplayXslt() != null) {
                 file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + input.getDisplayXslt(), byte[].class);
 
                 fd = FileDef.find(input.getFileName());
                 assertEquals(new String(file.getBody()), fd.xsltData);
-                assertEquals(file.getHeaders().getContentType().toString(), APPLICATION_XML_VALUE);
+                assertEquals(file.getHeaders().getContentType(), APPLICATION_XML);
             }
         }
 
@@ -380,7 +383,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         StringBuilder sb = new StringBuilder("<root>");
         List<SignElement> targets = new ArrayList<>();
         for(FileDef fDef : FileDef.values()) {
-            targets.add(new SignElement(fDef.id, fDef.type));
+            targets.add(new SignElement(fDef.id, fDef.type.toString()));
             sb.append("<file id=\"").append(fDef.id).append("\" name=\"").append(fDef.name).append("\">").append(fDef.data).append("</file>");
         }
         sb.append("</root>");
