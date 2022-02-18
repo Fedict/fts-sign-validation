@@ -100,7 +100,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String PING                             = "/ping";
     // Token operations
     public static final String GET_TOKEN_FOR_DOCUMENT           = "/getTokenForDocument";
-    public static final String GET_TOKEN_FOR_XADES_MUTLI_DOC    = "/getTokenForXadesDocs";
+    public static final String GET_TOKEN_FOR_DOCUMENTS          = "/getTokenForDocuments";
     public static final String GET_DATA_TO_SIGN_FOR_TOKEN       = "/getDataToSignForToken";
     public static final String GET_METADATA_FOR_TOKEN           = "/getMetadataForToken";
     public static final String GET_METADATA_FOR_TOKEN_NEW       = "/getMetadataForTokenNew";
@@ -110,7 +110,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     public static final int TOKEN_VALIDITY_SECS                 = 5 * 60 * 60;
     private static final long SIGN_DURATION_SECS                = 2 * 60;
-    private static final int MAX_NN_ALLOWED_TO_SIGN             = 8;
+    private static final int MAX_NN_ALLOWED_TO_SIGN             = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-]{1,30}");
 
@@ -203,7 +203,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    @PostMapping(value = GET_TOKEN_FOR_XADES_MUTLI_DOC, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = GET_TOKEN_FOR_DOCUMENTS, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocuments(@RequestBody GetTokenForDocumentsDTO gtfd) {
         // Validate input
         if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {

@@ -4,7 +4,6 @@ import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
 import com.zetes.projects.bosa.signandvalidation.service.StorageService;
-import com.zetes.projects.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -146,7 +145,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         gtfd.setOutDownload(true);
 
         // Create XML to sign
-        String token = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_TOKEN_FOR_XADES_MUTLI_DOC, gtfd, String.class);
+        String token = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_TOKEN_FOR_DOCUMENTS, gtfd, String.class);
         System.out.println(token);
 
         // First call from UI to get a view of the various files to display
