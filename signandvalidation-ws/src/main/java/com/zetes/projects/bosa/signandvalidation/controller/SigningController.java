@@ -176,16 +176,16 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             List<SignInput> inputs = new ArrayList<SignInput>();
             SignInput input = new SignInput();
             input.setFileName(tokenData.getIn());
-            input.setReadConfirm(tokenData.getRequestDocumentReadConfirm() == null ? false : tokenData.getRequestDocumentReadConfirm());
+            input.setReadConfirm(tokenData.isRequestDocumentReadConfirm());
             input.setDisplay(DisplayType.Content);
             input.setSignLanguage(tokenData.getLang());
             input.setPspFileName(tokenData.getPsp());
-            input.setPsfP(tokenData.getPsfP() == null ? false : Boolean.getBoolean(tokenData.getPsfP()));
+            input.setPsfP(tokenData.getPsfP() == null ? false : "true".compareTo(tokenData.getPsfP()) == 0);
             input.setPsfC(tokenData.getPsfC());
             input.setPsfN(tokenData.getPsfN());
             inputs.add(input);
             TokenObject token = new TokenObject(false, tokenData.getName(), tokenData.getProf(), inputs, tokenData.getOut());
-            token.setOutDownload(tokenData.getNoDownload() == null || !tokenData.getNoDownload());
+            token.setOutDownload(tokenData.isNoDownload());
             token.setSignTimeout(tokenData.getSignTimeout());
             if (tokenData.getAllowedToSign() != null) {
                 List<String> nnAllowedToSign = new ArrayList<>();
@@ -554,24 +554,30 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             String fileName;
             List<DSSReference> references = null;
+            SignInput firstInput = token.getInputs().get(0);
             if (token.isXadesMultifile()) {
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(SignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(clientSigParams.getSigningDate(), idsToSign, parameters.getReferenceDigestAlgorithm());
                 fileName = token.getOutFileName();
             } else {
-                fileName = token.getInputs().get(0).getFileName();
+                fileName = firstInput.getFileName();
             }
 
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), fileName, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, token.getOutFileName());
+            if (parameters.getSignatureLevel().toString().startsWith("PAdES")) {
+                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, firstInput, token.getBucket(), clientSigParams.getPhoto());
+            }
+
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocumentWithReferences(fileToSign, parameters, signatureValueDto, references);
+            signedDoc.setName(token.getOutFileName());
+
             logger.info("signDocumentForToken(): validating the signed doc");
             signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token);
 
             // Save signed file
-            signedDoc.setName(token.getOutFileName());
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
             LOG.info("done signDocumentForToken");
 

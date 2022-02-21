@@ -32,12 +32,12 @@ public class GetTokenForDocumentDTO {
     private String psfP;  // Include eID photo as icon in the PDF signature field
     private String lang;
     private Integer signTimeout;        // if Null -> default Timeout (120s) , otherwise # seconds between the getDataToSignForToken and the time when sign will be rejected
-    private Boolean noDownload;
+    private boolean noDownload;
     private List<AllowedToSign> allowedToSign;
     private String policyId;
     private String policyDescription;
     private String policyDigestAlgorithm;
-    private Boolean requestDocumentReadConfirm;
+    private boolean requestDocumentReadConfirm;
 
     public String toString() {
         String theString = null;
