@@ -185,7 +185,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setPsfN(tokenData.getPsfN());
             inputs.add(input);
             TokenObject token = new TokenObject(false, tokenData.getName(), tokenData.getProf(), inputs, tokenData.getOut());
-            token.setOutDownload(tokenData.isNoDownload());
+            token.setOutDownload(!tokenData.isNoDownload());
             token.setSignTimeout(tokenData.getSignTimeout());
             if (tokenData.getAllowedToSign() != null) {
                 List<String> nnAllowedToSign = new ArrayList<>();
