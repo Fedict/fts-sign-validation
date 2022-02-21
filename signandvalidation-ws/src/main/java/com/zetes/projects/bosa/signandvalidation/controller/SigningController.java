@@ -178,6 +178,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setFileName(tokenData.getIn());
             input.setReadConfirm(tokenData.getRequestDocumentReadConfirm() == null ? false : tokenData.getRequestDocumentReadConfirm());
             input.setDisplay(DisplayType.Content);
+            input.setSignLanguage(tokenData.getLang());
             input.setPspFileName(tokenData.getPsp());
             input.setPsfP(tokenData.getPsfP() == null ? false : Boolean.getBoolean(tokenData.getPsfP()));
             input.setPsfC(tokenData.getPsfC());
@@ -234,6 +235,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         //TODO Validate more inputs ?
         // - signProfile existence
         // - some policy checks..........
+
+        if (token.getSignProfile() == null) {
+            logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile is null." , null);
+        }
+
         if (token.getSignTimeout() != null && token.getSignTimeout() > TOKEN_VALIDITY_SECS) {
             logAndThrowEx(FORBIDDEN, SIGN_PERIOD_EXPIRED, "signTimeout (" + token.getSignTimeout() + ") can't be larger than TOKEN_VALIDITY_SECS (" + TOKEN_VALIDITY_SECS + ")" , null);
         }
@@ -548,14 +554,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             String fileName;
             List<DSSReference> references = null;
-            SignInput firstInput = token.getInputs().get(0);
             if (token.isXadesMultifile()) {
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(SignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(clientSigParams.getSigningDate(), idsToSign, parameters.getReferenceDigestAlgorithm());
                 fileName = token.getOutFileName();
             } else {
-                fileName = firstInput.getFileName();
+                fileName = token.getInputs().get(0).getFileName();
             }
 
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), fileName, true);
