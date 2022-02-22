@@ -17,11 +17,4 @@ public class SignInput {
 
     // If "filename" file is of type : XML
     private String displayXslt; // An XSLT filename in the bucket can be provided to display the XML
-
-    // If "filename" file is of type : PDF
-    private String pspFileName;  // A graphical description of the signature to create the acroform signature
-    private String signLanguage;  //  The language of the signature to create
-    private String psfN;  // PDF signature field name
-    private String psfC;  // PDF signature field coordinates
-    private boolean psfP;  // Include eID photo as icon in the PDF signature field
 }

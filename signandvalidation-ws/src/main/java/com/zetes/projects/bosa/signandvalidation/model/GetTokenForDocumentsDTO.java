@@ -26,7 +26,7 @@ public class GetTokenForDocumentsDTO {
     private List<String> nnAllowedToSign;
 
     private String signProfile;
-    private PolicyParameters policy;
+    private PolicyDTO policy;
 
     private List<SignInput> inputs;
 

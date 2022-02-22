@@ -1,7 +1,7 @@
 package com.zetes.projects.bosa.signandvalidation.service;
 
 import com.zetes.projects.bosa.signandvalidation.model.PdfSignatureProfile;
-import com.zetes.projects.bosa.signandvalidation.model.SignInput;
+import com.zetes.projects.bosa.signandvalidation.model.TokenSignInput;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -65,7 +65,7 @@ public class PdfVisibleSignatureService {
 
     private Logger logger = Logger.getLogger(PdfVisibleSignatureService.class.getName());
 
-    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, SignInput input, String bucket, byte[] photo)
+    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, TokenSignInput input, String bucket, byte[] photo)
             throws NullParameterException {
 
         String sigFieldId = input.getPsfN();
@@ -113,7 +113,7 @@ public class PdfVisibleSignatureService {
         fillParams(remoteSigParams, input, bucket, photo, xPdfField, yPdfField);
     }
 
-    private void fillParams(RemoteSignatureParameters remoteSigParams, SignInput input, String bucket, byte[] photo, int xPdfField, int yPdfField)
+    private void fillParams(RemoteSignatureParameters remoteSigParams, TokenSignInput input, String bucket, byte[] photo, int xPdfField, int yPdfField)
             throws NullParameterException {
         String sigFieldId = input.getPsfN();
         String sigFieldCoords = input.getPsfC();

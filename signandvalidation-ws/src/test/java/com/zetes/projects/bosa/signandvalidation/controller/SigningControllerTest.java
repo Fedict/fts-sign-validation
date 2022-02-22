@@ -88,7 +88,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         private Boolean rdConf;
         private DisplayType dt;
 
-        SignInput getXmlSignInput() { return new SignInput(name, id, rdConf, dt, xslt, null, null, null, null, false); }
+        SignInput getXmlSignInput() { return new SignInput(name, id, rdConf, dt, xslt); }
         public static FileDef find(String name) { for (FileDef fd : values()) if (name.equals(fd.name) || name.equals(fd.xslt)) return fd; return null; }
     }
 
@@ -151,7 +151,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         // First call from UI to get a view of the various files to display
         FileInfoForTokenDTO fift = this.restTemplate.getForObject(LOCALHOST + port + ENDPOINT + GET_METADATA_FOR_TOKEN_NEW + "?token=" + token, FileInfoForTokenDTO.class);
 
-        for(SignInput input : fift.getInputs()) {
+        for(TokenSignInput input : fift.getInputs()) {
             // Per file call to display content & XSLT
             ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + input.getFileName(), byte[].class);
 

@@ -11,5 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 public class FileInfoForTokenDTO {
     private List<String> nnAllowedToSign;
-    private List<SignInput> inputs;
+    private List<TokenSignInput> inputs;
 }

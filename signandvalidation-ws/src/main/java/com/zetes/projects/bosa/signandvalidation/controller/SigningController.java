@@ -13,6 +13,7 @@ import com.zetes.projects.bosa.signandvalidation.model.*;
 import com.zetes.projects.bosa.signandvalidation.service.PdfVisibleSignatureService.PdfVisibleSignatureException;
 import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
+import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
 import com.zetes.projects.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -173,8 +174,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
 
-            List<SignInput> inputs = new ArrayList<SignInput>();
-            SignInput input = new SignInput();
+            List<TokenSignInput> inputs = new ArrayList<>();
+            TokenSignInput input = new TokenSignInput();
             input.setFileName(tokenData.getIn());
             input.setReadConfirm(tokenData.isRequestDocumentReadConfirm());
             input.setDisplay(DisplayType.Content);
@@ -185,6 +186,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setPsfN(tokenData.getPsfN());
             inputs.add(input);
             TokenObject token = new TokenObject(false, tokenData.getName(), tokenData.getProf(), inputs, tokenData.getOut());
+            if (tokenData.getPolicyId() != null) {
+                token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), DigestAlgorithm.valueOf(tokenData.getPolicyDigestAlgorithm())));
+            }
             token.setOutDownload(!tokenData.isNoDownload());
             token.setSignTimeout(tokenData.getSignTimeout());
             if (tokenData.getAllowedToSign() != null) {
@@ -217,8 +221,21 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setSignTimeout(gtfd.getSignTimeout());
         token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
         token.setSignProfile(gtfd.getSignProfile());
-        token.setPolicy(gtfd.getPolicy());
-        token.setInputs(gtfd.getInputs());
+        PolicyDTO policy = gtfd.getPolicy();
+        if (policy != null) {
+            token.setPolicy(new PolicyParameters(policy.getId(), policy.getDescription(), policy.getDigestAlgorithm()));
+        }
+        List<TokenSignInput> tokenInputs = new ArrayList<>();
+        for(SignInput input : gtfd.getInputs()) {
+            TokenSignInput ti = new TokenSignInput();
+            ti.setFileName(input.getFileName());
+            ti.setXmlEltId(input.getXmlEltId());
+            ti.setReadConfirm(input.isReadConfirm());
+            ti.setDisplay(input.getDisplay());
+            ti.setDisplayXslt(input.getDisplayXslt());
+            tokenInputs.add(ti);
+        }
+        token.setInputs(tokenInputs);
         token.setOutXslt(gtfd.getOutXslt());
         token.setOutFileName(gtfd.getOutFileName());
         token.setOutDownload(gtfd.isOutDownload());
@@ -254,13 +271,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
         }
 
-        List<SignInput> inputs = token.getInputs();
+        List<TokenSignInput> inputs = token.getInputs();
         if (inputs.size() == 0) {
             logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'inputs' field is empty" , null);
         }
         List<String> filenamesList = new ArrayList<String>();
         List<String> eltIdList = new ArrayList<String>();
-        for(SignInput input : inputs) {
+        for(TokenSignInput input : inputs) {
             MediaType inputFileType = MediaTypeUtil.getMediaTypeFromFilename(input.getFileName());
             if (token.isXadesMultifile()) {
                 checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
@@ -321,7 +338,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Create BOSA XML Template
             XadesFileRoot root = new XadesFileRoot();
-            for(SignInput input : token.getInputs()) {
+            for(TokenSignInput input : token.getInputs()) {
                 XadesFile file = new XadesFile();
                 file.setName(input.getFileName());
                 file.setId(input.getXmlEltId());
@@ -356,7 +373,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Put file content in the target document
             XPath xPath = XPathFactory.newInstance().newXPath();
-            for(SignInput input : token.getInputs()) {
+            for(TokenSignInput input : token.getInputs()) {
                 NodeList nodes = (NodeList)xPath.evaluate("//*[@id = '"+ input.getXmlEltId() + "']", doc, XPathConstants.NODESET);
                 if (nodes.getLength() != 1) {
                     logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Can't find element id : " + input.getXmlEltId());
@@ -385,7 +402,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("Entering getMetadataForToken()");
             try {
                 TokenObject token = extractToken(tokenString);
-                SignInput firstInput = token.getInputs().get(0);
+                TokenSignInput firstInput = token.getInputs().get(0);
                 FileStoreInfo fi = storageService.getFileInfo(token.getBucket(), firstInput.getFileName());
 
                 String xsltUrl = null;
@@ -421,7 +438,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_TOKEN, "Please call " + GET_FILE_FOR_TOKEN);
         }
 
-        SignInput firstInput = token.getInputs().get(0);
+        TokenSignInput firstInput = token.getInputs().get(0);
         String fileName = firstInput.getFileName();
         if (type != null) {
             if (!"xslt".equals(type)) {
@@ -441,7 +458,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         // Only allow downloads based on the token and the files listed in the token
-        for(SignInput input : token.getInputs()) {
+        for(TokenSignInput input : token.getInputs()) {
             if (fileName.equals(input.getFileName()) || fileName.equals(input.getDisplayXslt()) || fileName.equals(input.getPspFileName())) {
                 returnFile(token.getBucket(), fileName, response);
                 return;
@@ -493,10 +510,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             String fileName;
             List<DSSReference> references = null;
-            SignInput firstInput = token.getInputs().get(0);
+            TokenSignInput firstInput = token.getInputs().get(0);
             if (token.isXadesMultifile()) {
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
-                for(SignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
+                for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(signingDate, idsToSign, parameters.getReferenceDigestAlgorithm());
                 fileName = token.getOutFileName();
             } else {
@@ -554,10 +571,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             String fileName;
             List<DSSReference> references = null;
-            SignInput firstInput = token.getInputs().get(0);
+            TokenSignInput firstInput = token.getInputs().get(0);
             if (token.isXadesMultifile()) {
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
-                for(SignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
+                for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(clientSigParams.getSigningDate(), idsToSign, parameters.getReferenceDigestAlgorithm());
                 fileName = token.getOutFileName();
             } else {

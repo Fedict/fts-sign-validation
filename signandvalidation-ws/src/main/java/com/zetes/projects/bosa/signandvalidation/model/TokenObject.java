@@ -29,14 +29,14 @@ public class TokenObject {
     private String signProfile;
     private PolicyParameters policy;
 
-    private List<SignInput> inputs;
+    private List<TokenSignInput> inputs;
 
     private String outXslt;
     private String outFileName;
     private boolean outDownload;
 
     // Mandatory parameters
-    public TokenObject(boolean xadesMultifile, String bucket, String signProfile, List<SignInput> inputs, String outFileName) {
+    public TokenObject(boolean xadesMultifile, String bucket, String signProfile, List<TokenSignInput> inputs, String outFileName) {
         this.xadesMultifile = xadesMultifile;
         this.inputs = inputs;
         this.bucket = bucket;
