@@ -104,7 +104,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_TOKEN_FOR_DOCUMENTS          = "/getTokenForDocuments";
     public static final String GET_DATA_TO_SIGN_FOR_TOKEN       = "/getDataToSignForToken";
     public static final String GET_METADATA_FOR_TOKEN           = "/getMetadataForToken";
-    public static final String GET_METADATA_FOR_TOKEN_NEW       = "/getMetadataForTokenNew";
     public static final String GET_DOCUMENT_FOR_TOKEN           = "/getDocumentForToken";
     public static final String GET_FILE_FOR_TOKEN               = "/getFileForToken";
     public static final String SIGN_DOCUMENT_FOR_TOKEN          = "/signDocumentForToken";
@@ -402,31 +401,28 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("Entering getMetadataForToken()");
             try {
                 TokenObject token = extractToken(tokenString);
-                TokenSignInput firstInput = token.getInputs().get(0);
-                FileStoreInfo fi = storageService.getFileInfo(token.getBucket(), firstInput.getFileName());
+                List<SignInputMetadata> signedInputsMetadata = new ArrayList<>();
+                for(TokenSignInput input : token.getInputs()) {
+                    SignInputMetadata inputMetadata = new SignInputMetadata();
+                    inputMetadata.setFileName(input.getFileName());
+                    inputMetadata.setMimeType(MediaTypeUtil.getMediaTypeFromFilename(input.getFileName()).toString());
+                    inputMetadata.setDisplay(input.getDisplay());
+                    inputMetadata.setDisplayXslt(input.getDisplayXslt());
+                    inputMetadata.setReadConfirm(input.isReadConfirm());
+                    signedInputsMetadata.add(inputMetadata);
+                }
+                SignInputMetadata fi = signedInputsMetadata.get(0);
 
                 String xsltUrl = null;
-                if(firstInput.getDisplayXslt() != null) {
+                if(fi.getDisplayXslt() != null) {
                     xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + tokenString;
                 }
-                return new DocumentMetadataDTO(firstInput.getFileName(), fi.getContentType().toString(), xsltUrl, firstInput.isPsfP(), !token.isOutDownload(), firstInput.isReadConfirm());
+                return new DocumentMetadataDTO(fi.getFileName(), fi.getMimeType(), xsltUrl, token.getInputs().get(0).isPsfP(), !token.isOutDownload(), fi.isReadConfirm(), signedInputsMetadata);
 
-            } catch (StorageService.InvalidKeyConfigException | RuntimeException e){
+            } catch (RuntimeException e){
                     logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
             }
             return null; // We won't get here
-    }
-
-    @GetMapping(value = GET_METADATA_FOR_TOKEN_NEW)
-    public FileInfoForTokenDTO getMetadataForTokenNew(@RequestParam("token") String tokenString) {
-        logger.info("Entering getMetadataForToken()");
-        TokenObject token = extractToken(tokenString);
-
-        FileInfoForTokenDTO fift = new FileInfoForTokenDTO();
-        fift.setNnAllowedToSign(token.getNnAllowedToSign());
-        fift.setInputs(token.getInputs());
-        logger.info("Returning from getMetadataForToken()");
-        return fift;
     }
 
     @GetMapping(value = GET_DOCUMENT_FOR_TOKEN)

@@ -149,9 +149,9 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         System.out.println(token);
 
         // First call from UI to get a view of the various files to display
-        FileInfoForTokenDTO fift = this.restTemplate.getForObject(LOCALHOST + port + ENDPOINT + GET_METADATA_FOR_TOKEN_NEW + "?token=" + token, FileInfoForTokenDTO.class);
+        DocumentMetadataDTO fift = this.restTemplate.getForObject(LOCALHOST + port + ENDPOINT + GET_METADATA_FOR_TOKEN + "?token=" + token, DocumentMetadataDTO.class);
 
-        for(TokenSignInput input : fift.getInputs()) {
+        for(SignInputMetadata input : fift.getInputs()) {
             // Per file call to display content & XSLT
             ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + input.getFileName(), byte[].class);
 
