@@ -249,11 +249,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     private void checkToken(TokenObject token) {
-        //TODO Validate more inputs ?
-        // - signProfile existence
-        // - more policy checks ?
 
         if (token.getSignProfile() == null) {
+            //TODO Validate signProfile further
             logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile is null." , null);
         }
 
@@ -265,6 +263,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (policy.getPolicyDigestAlgorithm() == null) {
                 policy.setPolicyDigestAlgorithm(DigestAlgorithm.SHA256);
             }
+            // TODO more policy checks ?
         }
 
         if (token.getSignTimeout() != null && token.getSignTimeout() > TOKEN_VALIDITY_SECS) {
@@ -366,7 +365,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 LOG.info(xmlDocToString(doc));
             }
 
-            TransformerFactory tf = TransformerFactory.newInstance();
+            TransformerFactory tf = new net.sf.saxon.BasicTransformerFactory();
             // If requested create target file
             String xslt = token.getOutXslt();
             if (xslt != null) {
