@@ -183,6 +183,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setPsfP(tokenData.getPsfP() == null ? false : "true".compareTo(tokenData.getPsfP()) == 0);
             input.setPsfC(tokenData.getPsfC());
             input.setPsfN(tokenData.getPsfN());
+            input.setDisplayXslt(tokenData.getXslt());
             inputs.add(input);
             TokenObject token = new TokenObject(false, tokenData.getName(), tokenData.getProf(), inputs, tokenData.getOut());
             if (tokenData.getPolicyId() != null) {
