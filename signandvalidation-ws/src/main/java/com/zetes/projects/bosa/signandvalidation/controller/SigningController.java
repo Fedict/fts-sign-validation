@@ -459,10 +459,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{fileName}")
     public void getFileForToken(@PathVariable("token") String tokenString, @PathVariable String fileName, HttpServletResponse response) {
         TokenObject token = extractToken(tokenString);
-        if (!token.isXadesMultifile()) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_TOKEN, "Please call " + GET_DOCUMENT_FOR_TOKEN);
-        }
 
+        // For security reasons, Spring boot does not allow even URL-encoded "/" in urls so the contract is to replace all "/" by "~"
+        fileName = fileName.replaceAll("~", "/");
         // Only allow downloads based on the token and the files listed in the token
         for(TokenSignInput input : token.getInputs()) {
             if (fileName.equals(input.getFileName()) || fileName.equals(input.getDisplayXslt()) || fileName.equals(input.getPspFileName())) {

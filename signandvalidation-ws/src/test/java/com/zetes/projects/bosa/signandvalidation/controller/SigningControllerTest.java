@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URLEncoder;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,15 +67,16 @@ public class SigningControllerTest extends SigningControllerBaseTest {
             "<xsl:comment>" + XSLT_COMMENT + "</xsl:comment>" +
             "	<" + ROOT_XSLT_ELT + ">" +
             "		<xsl:for-each select=\"root/file\">" +
-            "			<" + FILE_XSLT_ELT + " id=\"{@id}\" FileName=\"{@name}\"></"+ FILE_XSLT_ELT + ">" +
+            "			<" + FILE_XSLT_ELT + " id=\"{@id}\" FileName=\"{tokenize(@name, '/')[last()]}\" MimeType=\"{tokenize(@name, '\\.')[last()]}\"></"+ FILE_XSLT_ELT + ">" +
             "		</xsl:for-each>" +
             "	</" + ROOT_XSLT_ELT + ">" +
             "</xsl:template>" +
             "</xsl:stylesheet>";
 
+
     @AllArgsConstructor
     private enum FileDef {
-        F1("aFile.xml", "1", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1", false, Content),
+        F1("root/aFile.xml", "1", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1", false, Content),
         F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true, No),
         F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null, true, FileName),
         F4("dFile.pdf", "FOUR", APPLICATION_PDF, "QSBUZXN0", null, null, true, Content);
@@ -123,7 +125,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         }).when(storageService).storeFile(eq(THE_BUCKET),eq(OUT_FILE_NAME), any());
 
         // Prepare expected Unsigned XML output, mock loading of each file
-        StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!--" + XSLT_COMMENT + "--><" + ROOT_XSLT_ELT + ">");
+        StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><!--" + XSLT_COMMENT + "--><" + ROOT_XSLT_ELT + ">");
         List<SignInput> inFiles = new ArrayList<SignInput>();
         for(FileDef fd : FileDef.values()) {
             inFiles.add(fd.getXmlSignInput());
@@ -134,7 +136,8 @@ public class SigningControllerTest extends SigningControllerBaseTest {
                 Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new FileStoreInfo(APPLICATION_XML, "HASH", fd.xsltData.length()));
                 Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new ByteArrayInputStream(fd.xsltData.getBytes()));
             }
-            sb.append("<" + FILE_XSLT_ELT + " FileName=\"" + fd.name + "\" id=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">");
+
+            sb.append("<" + FILE_XSLT_ELT + " FileName=\"" + lastOccurenceOf(fd.name, '/') + "\" MimeType=\"" + lastOccurenceOf(fd.name, '.') + "\" id=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">");
         }
         sb.append("</" + ROOT_XSLT_ELT + ">");
         unSignedXmlFile = sb.toString();
@@ -153,7 +156,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         for(SignInputMetadata input : fift.getInputs()) {
             // Per file call to display content & XSLT
-            ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + input.getFileName(), byte[].class);
+            ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + input.getFileName().replaceAll("/", "~"), byte[].class);
 
             FileDef fd = FileDef.find(input.getFileName());
             assertEquals(new String(file.getBody()), fd.data);
@@ -189,6 +192,11 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         assertNotNull(signedDocument);
 
         System.out.println(new String(signedDocument.getBytes()));
+    }
+
+    private static String lastOccurenceOf(String name, char c) {
+        int pos = name.lastIndexOf(c);
+        return pos == -1 ? name : name.substring(pos + 1);
     }
 
     @Test
