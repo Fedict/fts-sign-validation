@@ -250,10 +250,20 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private void checkToken(TokenObject token) {
         //TODO Validate more inputs ?
         // - signProfile existence
-        // - some policy checks..........
+        // - more policy checks ?
 
         if (token.getSignProfile() == null) {
             logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile is null." , null);
+        }
+
+        PolicyParameters policy = token.getPolicy();
+        if (policy != null) {
+            if (policy.getPolicyId() == null) {
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "policyId is null." , null);
+            }
+            if (policy.getPolicyDigestAlgorithm() == null) {
+                policy.setPolicyDigestAlgorithm(DigestAlgorithm.SHA256);
+            }
         }
 
         if (token.getSignTimeout() != null && token.getSignTimeout() > TOKEN_VALIDITY_SECS) {
