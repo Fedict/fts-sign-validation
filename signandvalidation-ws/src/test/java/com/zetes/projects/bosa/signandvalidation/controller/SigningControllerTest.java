@@ -75,7 +75,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
     @AllArgsConstructor
     private enum FileDef {
         F1("aFile.xml", "1", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1", false, Content),
-        F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true, NO),
+        F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true, No),
         F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null, true, FileName),
         F4("dFile.pdf", "FOUR", APPLICATION_PDF, "QSBUZXN0", null, null, true, Content);
 
