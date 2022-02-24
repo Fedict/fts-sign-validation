@@ -74,10 +74,6 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -87,7 +83,8 @@ import static org.springframework.http.MediaType.*;
 
 import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 @RestController
 @RequestMapping(value = SigningController.ENDPOINT)
@@ -380,15 +377,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 }
             }
 
-            // Put file content in the target document
-            XPath xPath = XPathFactory.newInstance().newXPath();
-            for(TokenSignInput input : token.getInputs()) {
-                NodeList nodes = (NodeList)xPath.evaluate("//*[@id = '"+ input.getXmlEltId() + "']", doc, XPathConstants.NODESET);
-                if (nodes.getLength() != 1) {
-                    logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Can't find element id : " + input.getXmlEltId());
-                }
-                nodes.item(0).setTextContent(storageService.getFileAsB64String(token.getBucket(), input.getFileName()));
-            }
+            putFilesContent(doc.getFirstChild(), token);
 
             if (LOG.isInfoEnabled()) {
                 LOG.info(xmlDocToString(doc));
@@ -401,8 +390,28 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             LOG.info("Done creating xml file");
 
-        } catch (JAXBException | TransformerException | XPathExpressionException | ParserConfigurationException | StorageService.InvalidKeyConfigException e) {
+        } catch (JAXBException | TransformerException | ParserConfigurationException | StorageService.InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+        }
+    }
+
+    private void putFilesContent(Node node, TokenObject token) throws StorageService.InvalidKeyConfigException {
+        while(node != null) {
+            putFilesContent(node.getFirstChild(), token);
+            NamedNodeMap attrs = node.getAttributes();
+            if (attrs != null) {
+                int count = attrs.getLength();
+                while(count != 0) {
+                    Node attr = attrs.item(--count);
+                    for(TokenSignInput input : token.getInputs()) {
+                        if ("id".compareToIgnoreCase(attr.getNodeName()) == 0 && attr.getNodeValue().compareTo(input.getXmlEltId()) == 0) {
+                            node.setTextContent(storageService.getFileAsB64String(token.getBucket(), input.getFileName()));
+                            break;
+                        }
+                    }
+                }
+            }
+            node = node.getNextSibling();
         }
     }
 
@@ -456,20 +465,28 @@ public class SigningController extends ControllerBase implements ErrorStrings {
        returnFile(token.getBucket(), fileName, response);
     }
 
-    @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{fileName}")
-    public void getFileForToken(@PathVariable("token") String tokenString, @PathVariable String fileName, HttpServletResponse response) {
+    @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{type}/{inputIndex}")
+    public void getFileForToken(@PathVariable("token") String tokenString, @PathVariable String type, @PathVariable Integer inputIndex, HttpServletResponse response) {
         TokenObject token = extractToken(tokenString);
 
-        // For security reasons, Spring boot does not allow even URL-encoded "/" in urls so the contract is to replace all "/" by "~"
-        fileName = fileName.replaceAll("~", "/");
-        // Only allow downloads based on the token and the files listed in the token
-        for(TokenSignInput input : token.getInputs()) {
-            if (fileName.equals(input.getFileName()) || fileName.equals(input.getDisplayXslt()) || fileName.equals(input.getPspFileName())) {
-                returnFile(token.getBucket(), fileName, response);
-                return;
+        String fileName = null;
+        if (inputIndex != null) {
+            TokenSignInput input = token.getInputs().get(inputIndex);
+            switch(type) {
+                case "doc":
+                    fileName = input.getFileName();
+                    break;
+                case "psp":
+                    fileName = input.getPspFileName();
+                    break;
+                case "xslt":
+                    fileName = input.getDisplayXslt();
+                    break;
             }
+        } else {
+            fileName = token.getOutXslt();
         }
-        logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_TOKEN, "File " + fileName + " not found in token");
+        returnFile(token.getBucket(), fileName, response);
     }
 
     private void returnFile(String bucket, String fileName, HttpServletResponse response) {

@@ -67,7 +67,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
             "<xsl:comment>" + XSLT_COMMENT + "</xsl:comment>" +
             "	<" + ROOT_XSLT_ELT + ">" +
             "		<xsl:for-each select=\"root/file\">" +
-            "			<" + FILE_XSLT_ELT + " id=\"{@id}\" FileName=\"{tokenize(@name, '/')[last()]}\" MimeType=\"{tokenize(@name, '\\.')[last()]}\"></"+ FILE_XSLT_ELT + ">" +
+            "			<" + FILE_XSLT_ELT + " iD=\"{@id}\" FileName=\"{tokenize(@name, '/')[last()]}\" MimeType=\"{tokenize(@name, '\\.')[last()]}\"></"+ FILE_XSLT_ELT + ">" +
             "		</xsl:for-each>" +
             "	</" + ROOT_XSLT_ELT + ">" +
             "</xsl:template>" +
@@ -137,7 +137,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
                 Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new ByteArrayInputStream(fd.xsltData.getBytes()));
             }
 
-            sb.append("<" + FILE_XSLT_ELT + " FileName=\"" + lastOccurenceOf(fd.name, '/') + "\" MimeType=\"" + lastOccurenceOf(fd.name, '.') + "\" id=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">");
+            sb.append("<" + FILE_XSLT_ELT + " FileName=\"" + lastOccurenceOf(fd.name, '/') + "\" MimeType=\"" + lastOccurenceOf(fd.name, '.') + "\" iD=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">");
         }
         sb.append("</" + ROOT_XSLT_ELT + ">");
         unSignedXmlFile = sb.toString();
@@ -154,21 +154,23 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         // First call from UI to get a view of the various files to display
         DocumentMetadataDTO fift = this.restTemplate.getForObject(LOCALHOST + port + ENDPOINT + GET_METADATA_FOR_TOKEN + "?token=" + token, DocumentMetadataDTO.class);
 
+        int inputIndex = 0;
         for(SignInputMetadata input : fift.getInputs()) {
             // Per file call to display content & XSLT
-            ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + input.getFileName().replaceAll("/", "~"), byte[].class);
+            ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/doc/" + inputIndex, byte[].class);
 
             FileDef fd = FileDef.find(input.getFileName());
             assertEquals(new String(file.getBody()), fd.data);
             assertEquals(file.getHeaders().getContentType(), fd.type);
 
             if (input.getDisplayXslt() != null) {
-                file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + input.getDisplayXslt(), byte[].class);
+                file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/xslt/" + inputIndex, byte[].class);
 
                 fd = FileDef.find(input.getFileName());
                 assertEquals(new String(file.getBody()), fd.xsltData);
                 assertEquals(file.getHeaders().getContentType(), APPLICATION_XML);
             }
+            inputIndex++;
         }
 
         Pkcs12SignatureToken sigToken = new Pkcs12SignatureToken(
