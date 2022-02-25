@@ -125,6 +125,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String SIGN_DOCUMENT_XADES_MULTI_DOC    = "/signDocumentXades";
 
     private static final String KEYS_FOLDER                     = "keys/";
+    private static final String KEYS_FILENAME_EXTENTION         = ".json";
     private static final String SYMMETRIC_KEY_ALGO              = "AES";
 
     private static final SimpleDateFormat logDateTimeFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
@@ -711,7 +712,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
             token.setCreateTime(new Date().getTime());
-            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValue(new GZIPOutputStream(bos), token);
+            ObjectMapper om = new ObjectMapper();
+            om.setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValue(new GZIPOutputStream(bos), token);
 
             // Create new symetric Key
             KeyGenerator keygen = KeyGenerator.getInstance(SYMMETRIC_KEY_ALGO);
@@ -723,7 +725,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             new SecureRandom().nextBytes(kidBytes);
             String keyId = Base64.getUrlEncoder().encodeToString(kidBytes);
             // Store key in secret bucket
-            storageService.storeFile(null, KEYS_FOLDER + keyId, newKey.getEncoded());
+            byte jsonKey[] = om.writeValueAsBytes(newKey.getEncoded());
+            storageService.storeFile(null, KEYS_FOLDER + keyId + KEYS_FILENAME_EXTENTION, jsonKey);
             keyCache.put(keyId, newKey);
 
             // Pack all into a JWE & Encrypt
@@ -743,16 +746,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     // Extract and decrypt a "token"
     private TokenObject extractToken(String tokenString) {
         try {
+            ObjectMapper om = new ObjectMapper();
             JWEObject jweObject = JWEObject.parse(tokenString);
             String keyId = jweObject.getHeader().getKeyID();
             SecretKey key = keyCache.getIfPresent(keyId);
             if (key == null) {
-                byte rawKey[] = storageService.getFileAsBytes(null, KEYS_FOLDER + keyId, false);
-                key = new SecretKeySpec(rawKey, SYMMETRIC_KEY_ALGO);
+                byte rawKey[] = storageService.getFileAsBytes(null, KEYS_FOLDER + keyId + KEYS_FILENAME_EXTENTION, false);
+                key = new SecretKeySpec(om.readValue(rawKey, byte[].class), SYMMETRIC_KEY_ALGO);
             }
             jweObject.decrypt(new DirectDecrypter(key));
             GZIPInputStream zis = new GZIPInputStream(new ByteArrayInputStream(jweObject.getPayload().toBytes()));
-            TokenObject token = new ObjectMapper().readValue(zis, TokenObject.class);
+            TokenObject token = om.readValue(zis, TokenObject.class);
 
             if (new Date().getTime() > (token.getCreateTime() + TOKEN_VALIDITY_SECS * 60000)) {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
