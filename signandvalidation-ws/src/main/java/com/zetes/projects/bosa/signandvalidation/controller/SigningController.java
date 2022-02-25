@@ -124,6 +124,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_DATA_TO_SIGN_XADES_MULTI_DOC = "/getDataToSignXades";
     public static final String SIGN_DOCUMENT_XADES_MULTI_DOC    = "/signDocumentXades";
 
+    private static final String KEYS_FOLDER                     = "keys/";
     private static final String SYMMETRIC_KEY_ALGO              = "AES";
 
     private static final SimpleDateFormat logDateTimeFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
@@ -722,7 +723,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             new SecureRandom().nextBytes(kidBytes);
             String keyId = Base64.getUrlEncoder().encodeToString(kidBytes);
             // Store key in secret bucket
-            storageService.storeFile(null, keyId, newKey.getEncoded());
+            storageService.storeFile(null, KEYS_FOLDER + keyId, newKey.getEncoded());
             keyCache.put(keyId, newKey);
 
             // Pack all into a JWE & Encrypt
@@ -746,7 +747,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             String keyId = jweObject.getHeader().getKeyID();
             SecretKey key = keyCache.getIfPresent(keyId);
             if (key == null) {
-                byte rawKey[] = storageService.getFileAsBytes(null, keyId, false);
+                byte rawKey[] = storageService.getFileAsBytes(null, KEYS_FOLDER + keyId, false);
                 key = new SecretKeySpec(rawKey, SYMMETRIC_KEY_ALGO);
             }
             jweObject.decrypt(new DirectDecrypter(key));
