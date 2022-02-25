@@ -28,6 +28,7 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import eu.europa.esig.dss.model.x509.CertificateToken;
+import eu.europa.esig.dss.xades.DSSXMLUtils;
 import eu.europa.esig.dss.xades.reference.CanonicalizationTransform;
 import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xades.reference.DSSTransform;
@@ -398,13 +399,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private void putFilesContent(Node node, TokenObject token) throws StorageService.InvalidKeyConfigException {
         while(node != null) {
             putFilesContent(node.getFirstChild(), token);
-            NamedNodeMap attrs = node.getAttributes();
-            if (attrs != null) {
-                int count = attrs.getLength();
-                while(count != 0) {
-                    Node attr = attrs.item(--count);
-                    for(TokenSignInput input : token.getInputs()) {
-                        if ("id".compareToIgnoreCase(attr.getNodeName()) == 0 && attr.getNodeValue().compareTo(input.getXmlEltId()) == 0) {
+            if (node.getAttributes() != null) {
+                // Use DSS libraries to identify ID XML attributes
+                String id = DSSXMLUtils.getIDIdentifier(node);
+                if (id != null) {
+                    for (TokenSignInput input : token.getInputs()) {
+                        if (id.compareTo(input.getXmlEltId()) == 0) {
                             node.setTextContent(storageService.getFileAsB64String(token.getBucket(), input.getFileName()));
                             break;
                         }
