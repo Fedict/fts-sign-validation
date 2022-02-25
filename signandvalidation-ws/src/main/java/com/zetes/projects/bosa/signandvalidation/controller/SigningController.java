@@ -112,7 +112,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
 
-    private static final List<String> allowedLanguages          =  Arrays.asList(new String[] {"fr", "ge", "nl", "en" });
+    private static final List<String> allowedLanguages          =  Arrays.asList(new String[] {"fr", "de", "nl", "en" });
 
     // standard operations
     public static final String GET_DATA_TO_SIGN                 = "/getDataToSign";
