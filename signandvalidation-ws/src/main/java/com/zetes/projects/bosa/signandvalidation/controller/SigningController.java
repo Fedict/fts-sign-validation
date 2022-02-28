@@ -50,6 +50,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
 
+import static com.zetes.projects.bosa.signandvalidation.model.DisplayType.Content;
+import static com.zetes.projects.bosa.signandvalidation.model.DisplayType.No;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
 
@@ -290,6 +292,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             MediaType inputFileType = MediaTypeUtil.getMediaTypeFromFilename(input.getFileName());
             if (token.isXadesMultifile()) {
                 checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
+                if (input.isReadConfirm() && !Content.equals(input.getDisplay())) {
+                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "Display attribute : " + input.getDisplay() + " but also readConfirm. This is impossible", null);
+                }
                 if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFileName() != null) {
                     logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null", null);
                 }
@@ -468,25 +473,27 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{type}/{inputIndex}")
-    public void getFileForToken(@PathVariable("token") String tokenString, @PathVariable String type, @PathVariable Integer inputIndex, HttpServletResponse response) {
+    public void getFileForToken(@PathVariable("token") String tokenString, @PathVariable GetFileType type, @PathVariable Integer inputIndex, HttpServletResponse response) {
         TokenObject token = extractToken(tokenString);
 
         String fileName = null;
         if (inputIndex != null) {
             TokenSignInput input = token.getInputs().get(inputIndex);
             switch(type) {
-                case "doc":
+                case DOC:
                     fileName = input.getFileName();
                     break;
-                case "psp":
+                case PSP:
                     fileName = input.getPspFileName();
                     break;
-                case "xslt":
+                case XSLT:
                     fileName = input.getDisplayXslt();
                     break;
             }
         } else {
-            fileName = token.getOutXslt();
+            if (type.equals(GetFileType.XSLT)) {
+                fileName = token.getOutXslt();
+            }
         }
         returnFile(token.getBucket(), fileName, response);
     }

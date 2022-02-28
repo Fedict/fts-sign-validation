@@ -77,8 +77,8 @@ public class SigningControllerTest extends SigningControllerBaseTest {
     @AllArgsConstructor
     private enum FileDef {
         F1("root/aFile.xml", "1", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1", false, Content),
-        F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true, No),
-        F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null, true, FileName),
+        F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true, Content),
+        F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null, false, No),
         F4("dFile.pdf", "FOUR", APPLICATION_PDF, "QSBUZXN0", null, null, true, Content);
 
         private String name;
@@ -157,14 +157,14 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         int inputIndex = 0;
         for(SignInputMetadata input : fift.getInputs()) {
             // Per file call to display content & XSLT
-            ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/doc/" + inputIndex, byte[].class);
+            ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + GetFileType.DOC + "/" + inputIndex, byte[].class);
 
             FileDef fd = FileDef.find(input.getFileName());
             assertEquals(new String(file.getBody()), fd.data);
             assertEquals(file.getHeaders().getContentType(), fd.type);
 
             if (input.getDisplayXslt() != null) {
-                file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/xslt/" + inputIndex, byte[].class);
+                file = this.restTemplate.getForEntity(LOCALHOST + port + ENDPOINT + GET_FILE_FOR_TOKEN + "/" + token + "/" + GetFileType.XSLT + "/" + inputIndex, byte[].class);
 
                 fd = FileDef.find(input.getFileName());
                 assertEquals(new String(file.getBody()), fd.xsltData);
