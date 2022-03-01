@@ -74,10 +74,10 @@ public class StorageService {
             if (bucket == null) bucket = secretBucket;
             return getClient().getObject(GetObjectArgs.builder().bucket(bucket).object(name).build());
 
-        } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
-            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, e);
-            throw new InvalidKeyConfigException();
+        } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException e) {
+            logAndThrow("getting", name, e);
         }
+        return null;
     }
 
     public String getFileAsB64String(String bucket, String name) throws InvalidKeyConfigException {
@@ -108,9 +108,8 @@ public class StorageService {
                 | InternalException | InvalidKeyException
                 | InvalidResponseException | IOException
                 | NoSuchAlgorithmException | ServerException
-                | XmlParserException ex) {
-            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, ex);
-            throw new InvalidKeyConfigException();
+                | XmlParserException e) {
+            logAndThrow("getting", name, e);
         } finally {
             if (inStream != null) {
                 try {
@@ -138,8 +137,7 @@ public class StorageService {
             stream.close();
             return sb.toString();
         } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
-            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, e);
-            throw new InvalidKeyConfigException();
+            logAndThrow("getting", name, e);
         } finally {
             if (stream != null) {
                 try {
@@ -147,6 +145,7 @@ public class StorageService {
                 } catch (IOException e) { }
             }
         }
+        return null;
     }
 
     public FileStoreInfo getFileInfo(String bucket, String name) throws InvalidKeyConfigException {
@@ -156,9 +155,9 @@ public class StorageService {
             return new FileStoreInfo(MediaTypeUtil.getMediaTypeFromFilename(name), so.etag(), so.size());
 
         } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
-            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, e);
-            throw new InvalidKeyConfigException();
+            logAndThrow("getting info for", name, e);
         }
+        return null;
     }
 
     public void storeFile(String bucket, String name, byte content[]) throws InvalidKeyConfigException {
@@ -171,14 +170,20 @@ public class StorageService {
                     .build()
             );
         } catch (MinioException | IOException | NoSuchAlgorithmException |  InvalidKeyException e) {
-            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, e);
-            throw new InvalidKeyConfigException();
+            logAndThrow("saving", name, e);
         }
+    }
+
+    private void logAndThrow(String oper, String fileName, Exception e) throws InvalidKeyConfigException {
+        Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, e);
+
+        throw new InvalidKeyConfigException("Error while " + oper + " file '" + fileName + "' : '" + e.getMessage() + "'", e);
     }
 
     public static class InvalidKeyConfigException extends Exception {
-
-        public InvalidKeyConfigException() {
+        public InvalidKeyConfigException(String message, Throwable e) {
+            super(message, e);
         }
     }
+
 }
