@@ -49,6 +49,7 @@ public class ReportsService implements ErrorStrings {
 
         for (XmlToken xmlToken : reportsDto.getSimpleReport().getSignatureOrTimestamp()) {
             if (!xmlToken.getIndication().equals(TOTAL_PASSED)) {
+/*
                 // If a cert (most probably the signing cert but it seems impossible to get this
                 // info from the reports) has been revoked then we'll return a special error
                 for (String err : xmlToken.getErrors()) {
@@ -57,8 +58,9 @@ public class ReportsService implements ErrorStrings {
                     // Note: perhaps it's be better to check the Conclusion of the SIGNATURE
                     // BasicBuildingBlock that has SubIndication "REVOKED_NO_POE"
                     if (err.contains("certificate") && err.contains("revoked"))
-			return new SignatureIndicationsDTO(xmlToken.getIndication(), CERT_REVOKED);
+            			return new SignatureIndicationsDTO(xmlToken.getIndication(), CERT_REVOKED);
                 }
+ */
 
                 return new SignatureIndicationsDTO(xmlToken.getIndication(), xmlToken.getSubIndication());
             }

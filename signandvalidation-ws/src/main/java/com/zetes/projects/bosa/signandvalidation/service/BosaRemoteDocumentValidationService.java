@@ -13,14 +13,12 @@ import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
 import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
 import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlValidationProcessBasicSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
-import eu.europa.esig.dss.detailedreport.jaxb.XmlName;
 
 /**
  * This validation service calls the DSS validation service and then applies some extra checks.
@@ -83,7 +81,7 @@ public class BosaRemoteDocumentValidationService {
 		if (!Indication.TOTAL_FAILED.equals(token.getIndication())) {
 			token.setIndication(Indication.TOTAL_FAILED);
 			token.setSubIndication(subIndication);
-			token.getErrors().add(errMesg);
+//			token.getErrors().add(errMesg);
 			int validSigsCount = simpleReport.getValidSignaturesCount();
 			if (validSigsCount > 0)
 				simpleReport.setValidSignaturesCount(validSigsCount - 1);
@@ -99,10 +97,12 @@ public class BosaRemoteDocumentValidationService {
 		XmlConclusion conclusion = validation.getConclusion();
 		conclusion.setIndication(Indication.TOTAL_FAILED);
 		conclusion.setSubIndication(subIndication);
+/*
 		XmlName err = new XmlName();
 		err.setNameId("err");
 		err.setValue(errMesg);
 		conclusion.getErrors().add(err);
+ */
 	}
 
 	// Return true if the signingTime is no more then 10 seconds in the past
