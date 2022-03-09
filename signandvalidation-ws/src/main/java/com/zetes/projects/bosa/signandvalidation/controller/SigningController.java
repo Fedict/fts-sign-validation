@@ -51,7 +51,6 @@ import java.util.logging.Level;
 import java.text.SimpleDateFormat;
 
 import static com.zetes.projects.bosa.signandvalidation.model.DisplayType.Content;
-import static com.zetes.projects.bosa.signandvalidation.model.DisplayType.No;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
 
@@ -67,6 +66,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -88,6 +88,8 @@ import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 @RestController
 @RequestMapping(value = SigningController.ENDPOINT)
@@ -583,7 +585,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
+    public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) throws SAXException {
         try {
             LOG.info("signDocumentForToken");
             TokenObject token = extractToken(signDto.getToken());
@@ -625,6 +627,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("signDocumentForToken(): validating the signed doc");
             signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token);
 
+            if (token.isXadesMultifile()) {
+                addRootCertToX509Data(signedDoc, clientSigParams.getCertificateChain());
+            }
+
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
             LOG.info("done signDocumentForToken");
@@ -633,11 +639,43 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 return new ResponseEntity<>(signedDoc, HttpStatus.OK);
             }
 
-        } catch (IOException | NullParameterException | StorageService.InvalidKeyConfigException e) {
+        } catch (IOException | NullParameterException | StorageService.InvalidKeyConfigException | JAXBException | ParserConfigurationException | TransformerException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
 
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+    }
+
+    // This is totally useless but we have to provide th ROOT CA cert to stay compatible with some clients...
+    private void addRootCertToX509Data(RemoteDocument rdoc, List<RemoteCertificate> certificateChain) throws JAXBException, ParserConfigurationException, TransformerException, IOException, SAXException {
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document doc = db.parse(new ByteArrayInputStream(rdoc.getBytes()));
+
+        if (LOG.isInfoEnabled()) {
+            LOG.info(xmlDocToString(doc));
+        }
+
+        NodeList elements = doc.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "X509Data");
+        if (elements == null || elements.getLength() != 1) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_DOC, "Can't find X509Data to add Root CERT");
+        }
+
+        Node parent = elements.item(0).getParentNode();
+        if (parent == null || "KeyInfo".compareTo(parent.getLocalName()) != 0) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_DOC, "X509Data not enclosed KeyInfo");
+        }
+
+        Node rootCert = doc.createElementNS("http://www.w3.org/2000/09/xmldsig#", "X509Certificate");
+        rootCert.setTextContent(Base64.getEncoder().encodeToString(certificateChain.get(certificateChain.size() - 1).getEncodedCertificate()));
+        elements.item(0).appendChild(rootCert);
+
+        TransformerFactory tf = TransformerFactory.newInstance();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        tf.newTransformer().transform(new DOMSource(doc), new StreamResult(bos));
+        rdoc.setBytes(bos.toByteArray());
     }
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters) {
@@ -797,7 +835,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         int count = 0;
         for(String xmlId : xmlIds) {
             DSSReference reference = new DSSReference();
-            reference.setId("id_" + timeRef + "_" + Integer.toString(count++));
+            reference.setId(String.format("id_%s_%d", timeRef, count++));
             reference.setDigestMethodAlgorithm(refDigestAlgo == null ? DigestAlgorithm.SHA256 : refDigestAlgo);
             reference.setUri("#"+ xmlId);
             List<DSSTransform> transforms = new ArrayList<>();
