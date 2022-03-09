@@ -33,7 +33,6 @@ import eu.europa.esig.dss.xades.reference.CanonicalizationTransform;
 import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xades.reference.DSSTransform;
 import org.apache.xml.security.transforms.Transforms;
-import org.bouncycastle.util.encoders.Base64Encoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +51,6 @@ import java.util.logging.Level;
 import java.text.SimpleDateFormat;
 
 import static com.zetes.projects.bosa.signandvalidation.model.DisplayType.Content;
-import static com.zetes.projects.bosa.signandvalidation.model.DisplayType.No;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
 
@@ -837,7 +835,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         int count = 0;
         for(String xmlId : xmlIds) {
             DSSReference reference = new DSSReference();
-            reference.setId("id_" + timeRef + "_" + Integer.toString(count++));
+            reference.setId(String.format("id_%s_%d", timeRef, count++));
             reference.setDigestMethodAlgorithm(refDigestAlgo == null ? DigestAlgorithm.SHA256 : refDigestAlgo);
             reference.setUri("#"+ xmlId);
             List<DSSTransform> transforms = new ArrayList<>();
