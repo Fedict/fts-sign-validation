@@ -1,5 +1,6 @@
 package com.zetes.projects.bosa.signandvalidation.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 import java.io.Serializable;
@@ -7,6 +8,8 @@ import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
+import eu.europa.esig.dss.simplereport.jaxb.XmlDetails;
+import eu.europa.esig.dss.simplereport.jaxb.XmlMessage;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
@@ -81,7 +84,12 @@ public class BosaRemoteDocumentValidationService {
 		if (!Indication.TOTAL_FAILED.equals(token.getIndication())) {
 			token.setIndication(Indication.TOTAL_FAILED);
 			token.setSubIndication(subIndication);
-//			token.getErrors().add(errMesg);
+			XmlDetails vd = token.getAdESValidationDetails();
+			if (vd == null) token.setAdESValidationDetails(vd = new XmlDetails());
+			XmlMessage error = new XmlMessage();
+			error.setKey("CUSTOM_ERROR");
+			error.setValue(errMesg);
+			vd.getError().add(error);
 			int validSigsCount = simpleReport.getValidSignaturesCount();
 			if (validSigsCount > 0)
 				simpleReport.setValidSignaturesCount(validSigsCount - 1);

@@ -5,6 +5,7 @@ import com.zetes.projects.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.enumerations.KeyUsageBit;
 import eu.europa.esig.dss.simplecertificatereport.jaxb.XmlChainItem;
+import eu.europa.esig.dss.simplereport.jaxb.XmlMessage;
 import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
@@ -49,24 +50,27 @@ public class ReportsService implements ErrorStrings {
 
         for (XmlToken xmlToken : reportsDto.getSimpleReport().getSignatureOrTimestamp()) {
             if (!xmlToken.getIndication().equals(TOTAL_PASSED)) {
-/*
                 // If a cert (most probably the signing cert but it seems impossible to get this
                 // info from the reports) has been revoked then we'll return a special error
-                for (String err : xmlToken.getErrors()) {
-                    // The error says "The certificate is revoked!" but to make it
-                    // a bit more robust let's just check for 'certificate' and 'revoked'
-                    // Note: perhaps it's be better to check the Conclusion of the SIGNATURE
-                    // BasicBuildingBlock that has SubIndication "REVOKED_NO_POE"
-                    if (err.contains("certificate") && err.contains("revoked"))
-            			return new SignatureIndicationsDTO(xmlToken.getIndication(), CERT_REVOKED);
-                }
- */
+                boolean hasRevocation = findRevocation(xmlToken.getAdESValidationDetails().getError()) ||
+                        findRevocation(xmlToken.getQualificationDetails().getError());
 
-                return new SignatureIndicationsDTO(xmlToken.getIndication(), xmlToken.getSubIndication());
+                return new SignatureIndicationsDTO(xmlToken.getIndication(),
+                        hasRevocation ? CERT_REVOKED : xmlToken.getSubIndication().toString());
             }
         }
 
         return new SignatureIndicationsDTO(TOTAL_PASSED);
     }
 
+    private static boolean findRevocation(List<XmlMessage> errors) {
+        for (XmlMessage err : errors) {
+            // The error says "The certificate is revoked!" but to make it
+            // a bit more robust let's just check for 'certificate' and 'revoked'
+            // Note: perhaps it's be better to check the Conclusion of the SIGNATURE
+            // BasicBuildingBlock that has SubIndication "REVOKED_NO_POE"
+            if (err.getValue().contains("certificate") && err.getValue().contains("revoked")) return true;
+        }
+        return false;
+    }
 }
