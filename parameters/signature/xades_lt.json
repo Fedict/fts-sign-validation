@@ -1,6 +1,7 @@
 {
   "profileId": "XADES_LT",
   "digestAlgorithm": "SHA256",
+  "referenceDigestAlgorithm": "SHA256",
   "signatureLevel": "XAdES_BASELINE_LT",
   "signaturePackaging": "ENVELOPED",
   "tspServer": "http://tss.eidpki.belgium.be/"
