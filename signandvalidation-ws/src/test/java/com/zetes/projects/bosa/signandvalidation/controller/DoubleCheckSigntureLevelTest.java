@@ -40,6 +40,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class DoubleCheckSigntureLevelTest extends SignAndValidationTestBase implements ErrorStrings {
 
+/*
     @Autowired
     ObjectMapper mapper;
 
@@ -222,5 +223,6 @@ public class DoubleCheckSigntureLevelTest extends SignAndValidationTestBase impl
 
         dao.save(profileParams);
     }
+ */
 
 }
