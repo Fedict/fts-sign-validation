@@ -1,17 +1,19 @@
 package com.zetes.projects.bosa.signingconfigurator.model;
 
-import com.zetes.projects.bosa.signandvalidation.TokenParser;
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PolicyParameters {
     private String policyId; // EPES. Optional policy fields
     private String policyDescription; // EPES. Optional policy fields
-    private eu.europa.esig.dss.enumerations.DigestAlgorithm policyDigestAlgorithm; // EPES. Optional policy fields
-
-    public PolicyParameters(TokenParser t) {
-        this.policyId = t.getPolicyId();
-        this.policyDescription = t.getPolicyDescription();
-        this.policyDigestAlgorithm = t.getPolicyDigestAlgorithm();
-    }
+    private DigestAlgorithm policyDigestAlgorithm; // EPES. Optional policy fields
 
     public String getPolicyId() {
         return policyId;

@@ -55,6 +55,8 @@ public class SigningControllerBaseTest extends SignAndValidationTestBase impleme
                 SignaturePackaging.DETACHED, null, SHA256, null);
         saveProfileSignatureParameters(profileSigParamDao, "PADES_B", null, SignatureLevel.PAdES_BASELINE_B,
                 SignaturePackaging.ENVELOPED, null, SHA256, null);
+        saveProfileSignatureParameters(profileSigParamDao, "XADES_LTA", null, SignatureLevel.XAdES_BASELINE_LTA,
+                SignaturePackaging.ENVELOPED, SHA256, SHA256, null);
 
         ProfileTimestampParametersDao timestampParamDao = applicationContext.getBean(ProfileTimestampParametersDao.class);
         timestampParamDao.deleteAll();

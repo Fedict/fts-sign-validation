@@ -81,8 +81,6 @@ public class DoubleCheckSigntureLevelTest extends SignAndValidationTestBase impl
         saveProfileTimestampParameters(timestampParamDao, "PROFILE_1", SHA256, ENVELOPED, PDF);
     }
 
-/*
-    // TODO Fix unit tests (failing because of crypto issue
     @Test
     public void testXadesSigningLevel() throws Exception {
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
@@ -134,7 +132,6 @@ public class DoubleCheckSigntureLevelTest extends SignAndValidationTestBase impl
 
         checkSignature(toSignDocument, "PADES_T", SignatureLevel.PAdES_BASELINE_B, token, true);
     }
- */
 
     private void checkSignature(RemoteDocument toSignDocument, String profileId, SignatureLevel level, Pkcs12SignatureToken token) {
         checkSignature(toSignDocument, profileId, level, token, false);
