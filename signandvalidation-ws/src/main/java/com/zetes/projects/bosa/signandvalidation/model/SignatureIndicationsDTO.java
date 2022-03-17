@@ -7,7 +7,7 @@ public class SignatureIndicationsDTO {
 
     private Indication indication;
 
-    private String subIndication;
+    private String subIndicationLabel;
 
     public SignatureIndicationsDTO() {
     }
@@ -18,12 +18,12 @@ public class SignatureIndicationsDTO {
 
     public SignatureIndicationsDTO(Indication indication, SubIndication subIndication) {
         this.indication = indication;
-        this.subIndication = subIndication.toString();
+        this.subIndicationLabel = subIndication == null ? "" : subIndication.toString();
     }
 
     public SignatureIndicationsDTO(Indication indication, String subIndication) {
         this.indication = indication;
-        this.subIndication = subIndication;
+        this.subIndicationLabel = subIndication;
     }
 
     public Indication getIndication() {
@@ -34,11 +34,11 @@ public class SignatureIndicationsDTO {
         this.indication = indication;
     }
 
-    public String getSubIndication() {
-        return subIndication;
+    public String getSubIndicationLabel() {
+        return subIndicationLabel;
     }
 
-    public void setSubIndication(String subIndication) {
-        this.subIndication = subIndication;
+    public void setSubIndicationLabel(String subIndicationLabel) {
+        this.subIndicationLabel = subIndicationLabel;
     }
 }

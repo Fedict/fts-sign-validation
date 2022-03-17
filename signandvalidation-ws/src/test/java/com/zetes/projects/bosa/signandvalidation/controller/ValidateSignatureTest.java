@@ -41,7 +41,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_PASSED, result.getIndication());
-        assertNull(result.getSubIndication());
+        assertNull(result.getSubIndicationLabel());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_PASSED, result.getIndication());
-        assertNull(result.getSubIndication());
+        assertNull(result.getSubIndicationLabel());
     }
 
     @Test
@@ -73,7 +73,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_PASSED, result.getIndication());
-        assertNull(result.getSubIndication());
+        assertNull(result.getSubIndicationLabel());
     }
 
     @Test
@@ -89,7 +89,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_PASSED, result.getIndication());
-        assertNull(result.getSubIndication());
+        assertNull(result.getSubIndicationLabel());
     }
 
 
@@ -136,7 +136,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_PASSED, result.getIndication());
-        assertNull(result.getSubIndication());
+        assertNull(result.getSubIndicationLabel());
     }
 
     @Test
@@ -152,7 +152,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(INDETERMINATE, result.getIndication());
-        assertEquals(SIGNED_DATA_NOT_FOUND.toString(), result.getSubIndication());
+        assertEquals(SIGNED_DATA_NOT_FOUND.toString(), result.getSubIndicationLabel());
     }
 
     @Test
@@ -169,7 +169,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_FAILED, result.getIndication());
-        assertEquals(HASH_FAILURE.toString(), result.getSubIndication());
+        assertEquals(HASH_FAILURE.toString(), result.getSubIndicationLabel());
     }
 
     @Test
@@ -187,7 +187,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_FAILED, result.getIndication());
-        assertEquals(HASH_FAILURE.toString(), result.getSubIndication());
+        assertEquals(HASH_FAILURE.toString(), result.getSubIndicationLabel());
     }
 
     @Test
@@ -205,7 +205,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_FAILED, result.getIndication());
-        assertEquals(HASH_FAILURE.toString(), result.getSubIndication());
+        assertEquals(HASH_FAILURE.toString(), result.getSubIndicationLabel());
     }
 
     @Test
@@ -257,7 +257,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_FAILED, result.getIndication());
-        assertEquals(CRYPTO_CONSTRAINTS_FAILURE.toString(), result.getSubIndication());
+        assertEquals(CRYPTO_CONSTRAINTS_FAILURE.toString(), result.getSubIndicationLabel());
     }
 
 }
