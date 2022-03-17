@@ -626,10 +626,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("signDocumentForToken(): validating the signed doc");
             signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token);
 
-            if (token.isXadesMultifile()) {
-                addRootCertToX509Data(signedDoc, clientSigParams.getCertificateChain());
-            }
-
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
             LOG.info("done signDocumentForToken");
@@ -638,43 +634,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 return new ResponseEntity<>(signedDoc, HttpStatus.OK);
             }
 
-        } catch (IOException | NullParameterException | StorageService.InvalidKeyConfigException | JAXBException | ParserConfigurationException | TransformerException e) {
+        } catch (IOException | NullParameterException | StorageService.InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
 
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
-    }
-
-    // This is totally useless but we have to provide th ROOT CA cert to stay compatible with some clients...
-    private void addRootCertToX509Data(RemoteDocument rdoc, List<RemoteCertificate> certificateChain) throws JAXBException, ParserConfigurationException, TransformerException, IOException, SAXException {
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse(new ByteArrayInputStream(rdoc.getBytes()));
-
-        if (LOG.isInfoEnabled()) {
-            LOG.info(xmlDocToString(doc));
-        }
-
-        NodeList elements = doc.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "X509Data");
-        if (elements == null || elements.getLength() != 1) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_DOC, "Can't find X509Data to add Root CERT");
-        }
-
-        Node parent = elements.item(0).getParentNode();
-        if (parent == null || "KeyInfo".compareTo(parent.getLocalName()) != 0) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INVALID_DOC, "X509Data not enclosed KeyInfo");
-        }
-
-        Node rootCert = doc.createElementNS("http://www.w3.org/2000/09/xmldsig#", "X509Certificate");
-        rootCert.setTextContent(Base64.getEncoder().encodeToString(certificateChain.get(certificateChain.size() - 1).getEncodedCertificate()));
-        elements.item(0).appendChild(rootCert);
-
-        TransformerFactory tf = TransformerFactory.newInstance();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        tf.newTransformer().transform(new DOMSource(doc), new StreamResult(bos));
-        rdoc.setBytes(bos.toByteArray());
     }
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters) {
