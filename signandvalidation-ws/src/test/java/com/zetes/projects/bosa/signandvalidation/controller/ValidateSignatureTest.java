@@ -60,7 +60,6 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertNull(result.getSubIndication());
     }
 
-    /*
     @Test
     public void signatureLT() {
         // given
@@ -108,7 +107,6 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertNotNull(result);
         assertTrue(((String)result.get("message")).contains(INVALID_SIGNATURE_LEVEL));
     }
-*/
 
     @Test
     public void signatureBexpectsLTA() {
@@ -125,7 +123,6 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertTrue(((String)result.get("message")).contains(INVALID_SIGNATURE_LEVEL));
     }
 
-/*
     @Test
     public void signaturePadesLTA() {
         // given
@@ -141,7 +138,6 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertEquals(TOTAL_PASSED, result.getIndication());
         assertNull(result.getSubIndication());
     }
- */
 
     @Test
     public void signatureWithUnsigedFile() throws Exception {
