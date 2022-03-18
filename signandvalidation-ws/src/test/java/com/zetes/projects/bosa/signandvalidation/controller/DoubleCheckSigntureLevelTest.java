@@ -4,44 +4,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
 import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
 import com.zetes.projects.bosa.signandvalidation.model.*;
-import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileTimestampParameters;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.model.Digest;
 import eu.europa.esig.dss.model.FileDocument;
-import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.model.x509.CertificateToken;
-import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.utils.Utils;
-import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.util.*;
 
-import static com.zetes.projects.bosa.signandvalidation.controller.SigningController.*;
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
@@ -169,7 +157,7 @@ public class DoubleCheckSigntureLevelTest extends SignAndValidationTestBase impl
 
             assertNotNull(result);
             assertEquals(TOTAL_PASSED, result.getIndication());
-            assertNull(result.getSubIndication());
+            assertNull(result.getSubIndicationLabel());
         }
     }
 

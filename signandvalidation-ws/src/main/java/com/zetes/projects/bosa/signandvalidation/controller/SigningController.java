@@ -66,7 +66,6 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -87,7 +86,6 @@ import static org.springframework.http.MediaType.*;
 import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 @RestController
@@ -671,8 +669,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         if (indication == TOTAL_PASSED || parameters.isSignWithExpiredCertificate()) {
             return signedDoc;
         } else {
-            String subIndication = indications.getSubIndication();
-            if (subIndication.equals(CERT_REVOKED))
+            String subIndication = indications.getSubIndicationLabel();
+            if (CERT_REVOKED.compareTo(subIndication) == 0)
                 logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
             else
                 logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
