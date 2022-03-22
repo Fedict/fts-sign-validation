@@ -14,7 +14,8 @@ class ControllerBase {
     protected static DateTimeFormatter logDateTimeFormatter = 
         DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").withZone(ZoneId.systemDefault());
 
-    protected Logger logger = Logger.getLogger(this.getClass().getName());
+    // TODO : check if SigningController.class is the right logger name to use for all controllers
+    protected Logger logger = Logger.getLogger(SigningController.class.getName());
 
     protected void logAndThrowEx(HttpStatus httpStatus, String errConst, Exception e) {
         logAndThrowEx(null, httpStatus, errConst, null, e);
@@ -74,8 +75,7 @@ class ControllerBase {
         throw new ResponseStatusException(httpStatus, mesg);
     }
 
-    // The applicative logging system uses the last 8 chars of the token to be able to track signature processes
-    // in the form of an "evidence book" of the signatures
+    // The applicative logging system is used to track signature processes through the last 8 chars of the token
     public static String getTokenFootprint(String token) {
         if (null == token)
             return " token=<null>"; // shouldn't happen
