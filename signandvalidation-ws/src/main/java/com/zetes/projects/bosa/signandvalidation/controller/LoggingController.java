@@ -27,7 +27,7 @@ public class LoggingController extends ControllerBase {
 
         StringBuilder sb = new StringBuilder();
         sb.append(ref).append("||").append(feError.getErr())
-            .append(ControllerBase.token2str(feError.getToken()))
+            .append(ControllerBase.getTokenFootprint(feError.getToken()))
             .append("\nresult: ").append(feError.getResult())
             .append("\nreport: ").append(feError.getReport());
 
@@ -41,7 +41,7 @@ public class LoggingController extends ControllerBase {
         
         StringBuilder sb = new StringBuilder();
         sb.append(ref).append("||")
-                .append(ControllerBase.token2str(feLog.getToken()))
+                .append(ControllerBase.getTokenFootprint(feLog.getToken()))
                 .append("\nmessage: ").append(feLog.getMessage());
         
         logger.log(feLog.getLevelEnum(), sb.toString());

@@ -51,7 +51,7 @@ class ControllerBase {
         // To be logged
         String logMesg = mesg;
         if (null != token)
-            logMesg += token2str(token);
+            logMesg += getTokenFootprint(token);
         if (null == e) {
             // No exception to be logged -> add the start of the stack trace to the log
             StringBuilder sb = new StringBuilder();
@@ -74,7 +74,9 @@ class ControllerBase {
         throw new ResponseStatusException(httpStatus, mesg);
     }
 
-    public static String token2str(String token) {
+    // The applicative logging system uses the last 8 chars of the token to be able to track signature processes
+    // in the form of an "evidence book" of the signatures
+    public static String getTokenFootprint(String token) {
         if (null == token)
             return " token=<null>"; // shouldn't happen
         int len = token.length();
