@@ -1,6 +1,7 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.nimbusds.jose.*;
@@ -33,8 +34,6 @@ import eu.europa.esig.dss.xades.reference.CanonicalizationTransform;
 import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xades.reference.DSSTransform;
 import org.apache.xml.security.transforms.Transforms;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -91,8 +90,6 @@ import org.xml.sax.SAXException;
 @RestController
 @RequestMapping(value = SigningController.ENDPOINT)
 public class SigningController extends ControllerBase implements ErrorStrings {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SigningController.class);
 
     // Service URL
     public static final String ENDPOINT                         = "/signing";
@@ -173,6 +170,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(!(storageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
+            // Password not needed anymore
+            tokenData.setPwd(null);
 
             List<TokenSignInput> inputs = new ArrayList<>();
             TokenSignInput input = new TokenSignInput();
@@ -202,7 +201,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             checkToken(token);
 
-            return createToken(token);
+            String tokenString = createToken(token);
+            logger.info("Returning from getTokenForDocument()" + getTokenFootprint(tokenString) + " params: " + objectToString(tokenData));
+            return tokenString;
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -215,6 +216,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
             logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
         }
+        // Password not needed anymore
+        gtfd.setPassword(null);
 
         TokenObject token = new TokenObject();
         token.setXadesMultifile(true);
@@ -246,7 +249,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         createSignedFile(token);
 
         // Create Token
-        return createToken(token);
+        String tokenString = createToken(token);
+        logger.info("Returning from getTokenForDocuments()" + getTokenFootprint(tokenString) + " params: " + objectToString(gtfd));
+        return tokenString;
+    }
+
+    private static String objectToString(Object input) {
+        try {
+            return new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValueAsString(input);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return e.toString();
+        }
     }
 
     private void checkToken(TokenObject token) {
@@ -347,7 +361,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     private void createSignedFile(TokenObject token) {
         try {
-            LOG.info("Creating xml file");
+            logger.info("Creating Xades xml file : " + token.getOutFileName());
 
             // Create BOSA XML Template
             XadesFileRoot root = new XadesFileRoot();
@@ -365,9 +379,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             Document doc = dbf.newDocumentBuilder().newDocument();
             context.createMarshaller().marshal(root, doc);
 
-            if (LOG.isInfoEnabled()) {
-                LOG.info(xmlDocToString(doc));
-            }
+            //logger.info(xmlDocToString(doc));
 
             TransformerFactory tf = new net.sf.saxon.BasicTransformerFactory();
             // If requested create target file
@@ -379,23 +391,19 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 tf.newTransformer(new StreamSource(xsltStream)).transform(new DOMSource(doc), xsltDom);
                 doc = (Document)xsltDom.getNode();
 
-                if (LOG.isInfoEnabled()) {
-                    LOG.info(xmlDocToString(doc));
-                }
+            // logger.info(xmlDocToString(doc));
             }
 
             putFilesContent(doc.getFirstChild(), token);
 
-            if (LOG.isInfoEnabled()) {
-                LOG.info(xmlDocToString(doc));
-            }
+            //logger.info(xmlDocToString(doc));
 
             // Save target XML to bucket
             ByteArrayOutputStream outStream = new ByteArrayOutputStream(32768);
             tf.newTransformer().transform(new DOMSource(doc), new StreamResult(outStream));
             storageService.storeFile(token.getBucket(), token.getOutFileName(), outStream.toByteArray());
 
-            LOG.info("Done creating xml file");
+            logger.info("Done creating xml file : " + token.getOutFileName());
 
         } catch (JAXBException | TransformerException | ParserConfigurationException | StorageService.InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -423,7 +431,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @GetMapping(value = GET_METADATA_FOR_TOKEN)
     public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String tokenString) {
-            logger.info("Entering getMetadataForToken()");
+        String tokenFootprint = getTokenFootprint(tokenString);
+        logger.info("Entering getMetadataForToken()" + tokenFootprint);
             try {
                 TokenObject token = extractToken(tokenString);
                 List<SignInputMetadata> signedInputsMetadata = new ArrayList<>();
@@ -442,6 +451,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 if(fi.getDisplayXslt() != null) {
                     xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + tokenString;
                 }
+
+                logger.info("Returning from getMetadataForToken()" + tokenFootprint);
                 return new DocumentMetadataDTO(fi.getFileName(), fi.getMimeType(), xsltUrl, token.getInputs().get(0).isPsfP(), !token.isOutDownload(), fi.isReadConfirm(), signedInputsMetadata);
 
             } catch (RuntimeException e){
@@ -452,7 +463,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @GetMapping(value = GET_DOCUMENT_FOR_TOKEN)
     public void getDocumentForToken(@RequestParam("token") String tokenString, @RequestParam(required = false) String type, HttpServletResponse response) {
-        logger.info("Entering getDocumentForToken()");
+        String tokenFootprint = getTokenFootprint(tokenString);
+        logger.info("Entering getDocumentForToken()" + tokenFootprint);
 
         TokenObject token = extractToken(tokenString);
         if (token.isXadesMultifile()) {
@@ -468,7 +480,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             fileName = firstInput.getDisplayXslt();
         }
 
-       returnFile(token.getBucket(), fileName, response);
+        returnFile(tokenString, token.getBucket(), fileName, response);
+
+        logger.info("Returning from getDocumentForToken(type=" + type +")" + tokenFootprint);
     }
 
     @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{type}/{inputIndex}")
@@ -494,11 +508,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 fileName = token.getOutXslt();
             }
         }
-        returnFile(token.getBucket(), fileName, response);
+        returnFile(tokenString, token.getBucket(), fileName, response);
     }
 
-    private void returnFile(String bucket, String fileName, HttpServletResponse response) {
-        logger.info("Entering returnFile()");
+    private void returnFile(String tokenString, String bucket, String fileName, HttpServletResponse response) {
         InputStream file = null;
         try {
             FileStoreInfo fi = storageService.getFileInfo(bucket, fileName);
@@ -511,9 +524,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             file = storageService.getFileAsStream(bucket, fileName);
             Utils.copy(file, response.getOutputStream());
             file.close();
-            logger.info("Leaving returnFile()");
         } catch (IOException | StorageService.InvalidKeyConfigException e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+            logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
             if (file != null) {
                 try {
@@ -525,7 +537,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = GET_DATA_TO_SIGN_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
-        logger.info("Entering getDataToSignForToken()");
+        String tokenString = dataToSignForTokenDto.getToken();
+        String tokenFootprint = getTokenFootprint(tokenString);
+        logger.info("Entering getDataToSignForToken()" + tokenFootprint);
         try {
             TokenObject token = extractToken(dataToSignForTokenDto.getToken());
             ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
@@ -562,7 +576,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), clientSigParams.getSigningDate());
 
-            logger.info("Returning from getDataToSignForToken()");
+            logger.info("Returning from getDataToSignForToken()" + tokenFootprint);
 
             return ret;
         } catch(NullParameterException e) {
@@ -584,7 +598,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) throws SAXException {
         try {
-            LOG.info("signDocumentForToken");
+            String tokenFootprint = getTokenFootprint(signDto.getToken());
+            logger.info("Entering signDocumentForToken()" + tokenFootprint);
+
             TokenObject token = extractToken(signDto.getToken());
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
 
@@ -621,12 +637,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteDocument signedDoc = altSignatureService.signDocumentWithReferences(fileToSign, parameters, signatureValueDto, references);
             signedDoc.setName(token.getOutFileName());
 
-            logger.info("signDocumentForToken(): validating the signed doc");
+            logger.info("signDocumentForToken(): validating the signed doc" + tokenFootprint);
             signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token);
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
-            LOG.info("done signDocumentForToken");
+            logger.info("Returning from signDocumentForToken()" + tokenFootprint);
 
             if (token.isOutDownload()) {
                 return new ResponseEntity<>(signedDoc, HttpStatus.OK);
@@ -694,7 +710,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Log the cert ID, so it can be linked to the tokenString
             if (null != tokenString)
-                logger.log(Level.INFO, "Signing certificate ID for " + tokenString + " : " + new CertificateToken(signingCrt).getDSSIdAsString());
+                logger.info("Signing certificate ID for " + tokenString + " : " + new CertificateToken(signingCrt).getDSSIdAsString());
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
             if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
@@ -740,9 +756,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     .keyID(keyId)
                     .build(), new Payload(bos.toByteArray()));
             jweObject.encrypt(new DirectEncrypter(newKey));
-            String tokenString = jweObject.serialize();
-            logger.info(tokenString);
-            return tokenString;
+            return jweObject.serialize();
         } catch (IOException | NoSuchAlgorithmException | JOSEException | StorageService.InvalidKeyConfigException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }

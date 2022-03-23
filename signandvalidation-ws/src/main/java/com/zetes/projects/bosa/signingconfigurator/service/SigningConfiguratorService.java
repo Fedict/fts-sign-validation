@@ -58,7 +58,7 @@ public class SigningConfiguratorService {
         }
 
         // check to add policy (EPES)
-        if (policyParameters != null && policyParameters.IsPolicyValid()) {
+        if (policyParameters != null && policyParameters.isPolicyValid()) {
             // calculate policy file digest
             DSSDocument doc = fileCacheDataLoader.getDocument(policyParameters.getPolicyId());
             // Java 9
