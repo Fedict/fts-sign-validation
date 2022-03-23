@@ -5,8 +5,6 @@
  */
 package com.zetes.projects.bosa.signandvalidation.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,15 +36,4 @@ public class GetTokenForDocumentDTO {
     private String policyDescription;
     private String policyDigestAlgorithm;
     private boolean requestDocumentReadConfirm;
-
-    public String toString() {
-        String theString = null;
-        try {
-            theString = new ObjectMapper().writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            theString = e.toString();
-        }
-        return theString;
-    }
 }

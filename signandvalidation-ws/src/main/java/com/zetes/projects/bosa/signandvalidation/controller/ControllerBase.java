@@ -14,7 +14,8 @@ class ControllerBase {
     protected static DateTimeFormatter logDateTimeFormatter = 
         DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").withZone(ZoneId.systemDefault());
 
-    protected Logger logger = Logger.getLogger(this.getClass().getName());
+    // TODO : check if SigningController.class is the right logger name to use for all controllers
+    protected Logger logger = Logger.getLogger(SigningController.class.getName());
 
     protected void logAndThrowEx(HttpStatus httpStatus, String errConst, Exception e) {
         logAndThrowEx(null, httpStatus, errConst, null, e);
@@ -51,7 +52,7 @@ class ControllerBase {
         // To be logged
         String logMesg = mesg;
         if (null != token)
-            logMesg += token2str(token);
+            logMesg += getTokenFootprint(token);
         if (null == e) {
             // No exception to be logged -> add the start of the stack trace to the log
             StringBuilder sb = new StringBuilder();
@@ -74,7 +75,8 @@ class ControllerBase {
         throw new ResponseStatusException(httpStatus, mesg);
     }
 
-    public static String token2str(String token) {
+    // The applicative logging system is used to track signature processes through the last 8 chars of the token
+    public static String getTokenFootprint(String token) {
         if (null == token)
             return " token=<null>"; // shouldn't happen
         int len = token.length();

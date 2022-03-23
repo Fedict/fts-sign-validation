@@ -1,10 +1,8 @@
 package com.zetes.projects.bosa.signingconfigurator.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
@@ -15,17 +13,8 @@ public class PolicyParameters {
     private String policyDescription; // EPES. Optional policy fields
     private DigestAlgorithm policyDigestAlgorithm; // EPES. Optional policy fields
 
-    public String getPolicyId() {
-        return policyId;
-    }
-    public String getPolicyDescription() {
-        return policyDescription;
-    }
-    public eu.europa.esig.dss.enumerations.DigestAlgorithm getPolicyDigestAlgorithm() {
-        return policyDigestAlgorithm;
-    }
-
-    public boolean IsPolicyValid()
+    @JsonIgnore
+    public boolean isPolicyValid()
     {
         return policyId != null && policyDigestAlgorithm != null;
     }
