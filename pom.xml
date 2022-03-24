@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.zetes.projects.bosa</groupId>
+    <groupId>com.bosa</groupId>
     <artifactId>bosa-signandvalidation</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
