@@ -132,7 +132,7 @@ public class StorageService {
             while(true) {
                 int read = stream.read(buffer);
                 if (read < 0) break;
-                sb.append(buffer.toString());
+                sb.append(new String(buffer));
             }
             stream.close();
             return sb.toString();
@@ -142,7 +142,7 @@ public class StorageService {
             if (stream != null) {
                 try {
                     stream.close();
-                } catch (IOException e) { }
+                } catch (IOException ignored) { }
             }
         }
         return null;

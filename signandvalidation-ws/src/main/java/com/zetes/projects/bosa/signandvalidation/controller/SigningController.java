@@ -85,7 +85,6 @@ import static org.springframework.http.MediaType.*;
 import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 @RestController
 @RequestMapping(value = SigningController.ENDPOINT)
@@ -110,7 +109,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
 
-    private static final List<String> allowedLanguages          =  Arrays.asList(new String[] {"fr", "de", "nl", "en" });
+    private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en");
 
     // standard operations
     public static final String GET_DATA_TO_SIGN                 = "/getDataToSign";
@@ -530,7 +529,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (file != null) {
                 try {
                     file.close();
-                } catch (IOException e) { }
+                } catch (IOException ignored) { }
             }
         }
     }

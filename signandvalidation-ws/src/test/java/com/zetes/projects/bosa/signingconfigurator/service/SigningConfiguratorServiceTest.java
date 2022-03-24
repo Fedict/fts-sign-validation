@@ -1,7 +1,6 @@
 package com.zetes.projects.bosa.signingconfigurator.service;
 
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
-import com.zetes.projects.bosa.signingconfigurator.exception.NullParameterException;
 import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
@@ -21,7 +20,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.xml.crypto.dsig.CanonicalizationMethod;
-import java.io.IOException;
 import java.util.*;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.*;

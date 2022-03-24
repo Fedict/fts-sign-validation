@@ -9,7 +9,7 @@ import java.security.cert.CertificateFactory;
 import javax.security.auth.x500.X500Principal;
 
 public class CertInfo {
-    private String subjectName;
+    private final String subjectName;
 
     public CertInfo(RemoteCertificate signingCert) {
         try {

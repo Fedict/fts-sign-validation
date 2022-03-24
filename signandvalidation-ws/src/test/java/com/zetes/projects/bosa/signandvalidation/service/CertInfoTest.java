@@ -27,7 +27,7 @@ public class CertInfoTest {
         try {
             new CertInfo(new RemoteCertificate(new byte[1]));
             fail("Exception exptected");
-        } catch(RuntimeException e) {
+        } catch(RuntimeException ignored) {
         }
     }
 

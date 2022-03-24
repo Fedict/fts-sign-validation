@@ -56,7 +56,7 @@ public class PdfVisibleSignatureServiceTest {
         assertEquals("Unterzeichnet von Tom Test (73040102749=73040102749)\nam 10 Jun 2021", text);
         try {
             PdfVisibleSignatureService.makeText(texts, "xx", signingDate, signingCert);
-            assertTrue(false); // we shouldn't get here
+            fail(); // we shouldn't get here
         } catch (NullParameterException e) {
             System.out.println(e.getMessage());
         }

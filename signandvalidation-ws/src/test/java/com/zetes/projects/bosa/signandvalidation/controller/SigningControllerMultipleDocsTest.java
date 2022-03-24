@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,7 +73,7 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
         FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.xml"));
         List<RemoteDocument> toSignDocuments = new ArrayList<>();
         toSignDocuments.add(new RemoteDocument(DSSUtils.toByteArray(fileToSign), fileToSign.getName()));
-        toSignDocuments.add(new RemoteDocument("Hello world!".getBytes("UTF-8"), "test.bin"));
+        toSignDocuments.add(new RemoteDocument("Hello world!".getBytes(), "test.bin"));
 
         // get data to sign
         GetDataToSignMultipleDTO dataToSignDTO = new GetDataToSignMultipleDTO(toSignDocuments, "XADES_B", clientSignatureParameters);

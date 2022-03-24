@@ -88,7 +88,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         public static FileDef find(String name) { for (FileDef fd : values()) if (name.equals(fd.name) || name.equals(fd.xslt)) return fd; return null; }
     }
 
-    private static String unSignedXmlFile = null;
+    private static String unSignedXmlFile;
 
     @Test
     public void testSignCreateToken() throws Exception {
@@ -119,7 +119,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         }).when(storageService).storeFile(eq(THE_BUCKET),eq(OUT_FILE_NAME), any());
 
         // Prepare expected Unsigned XML output, mock loading of each file
-        StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><!--" + XSLT_COMMENT + "--><" + ROOT_XSLT_ELT + ">");
+        unSignedXmlFile = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!--" + XSLT_COMMENT + "--><" + ROOT_XSLT_ELT + ">";
         List<SignInput> inFiles = new ArrayList<SignInput>();
         for(FileDef fd : FileDef.values()) {
             inFiles.add(fd.getXmlSignInput());
@@ -131,10 +131,9 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
                 Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new ByteArrayInputStream(fd.xsltData.getBytes()));
             }
 
-            sb.append("<" + FILE_XSLT_ELT + " FileName=\"" + lastOccurenceOf(fd.name, '/') + "\" MimeType=\"" + lastOccurenceOf(fd.name, '.') + "\" iD=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">");
+            unSignedXmlFile += "<" + FILE_XSLT_ELT + " FileName=\"" + lastOccurenceOf(fd.name, '/') + "\" MimeType=\"" + lastOccurenceOf(fd.name, '.') + "\" iD=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">";
         }
-        sb.append("</" + ROOT_XSLT_ELT + ">");
-        unSignedXmlFile = sb.toString();
+        unSignedXmlFile += "</" + ROOT_XSLT_ELT + ">";
 
         // Start testing
         GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", "XADES_B", inFiles, OUT_FILE_NAME);
@@ -212,7 +211,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
             sb.append("<file id=\"").append(fDef.id).append("\" name=\"").append(fDef.name).append("\">").append(fDef.data).append("</file>");
         }
         sb.append("</root>");
-        System.out.println(sb.toString());
+        System.out.println(sb);
         RemoteDocument fileToSign = new RemoteDocument(sb.toString().getBytes(), "aFile.xml");
 
         PolicyParameters policy = null;

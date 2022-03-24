@@ -192,7 +192,7 @@ public class PdfImageBuilder {
 					fontStyle |= Font.ITALIC;
 			}
 		}
-		return new Object[] {fontName, new Integer(fontStyle)};
+		return new Object[] {fontName, Integer.valueOf(fontStyle)};
 	}
 
 	/* Convert a color string (e.g. "#0077ff") into a Java Color object */
