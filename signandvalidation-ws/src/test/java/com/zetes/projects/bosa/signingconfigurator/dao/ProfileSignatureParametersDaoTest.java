@@ -5,7 +5,6 @@
  */
 package com.zetes.projects.bosa.signingconfigurator.dao;
 
-import com.zetes.projects.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
@@ -43,7 +42,7 @@ public class ProfileSignatureParametersDaoTest {
      * Test of findById method, of class ProfileSignatureParametersDao.
      */
     @Test
-    public void testFindById() throws Exception {
+    public void testFindById() {
         System.out.println("findById");
         String id = "test";
         ProfileSignatureParametersDao instance = new ProfileSignatureParametersDao();
@@ -58,7 +57,7 @@ public class ProfileSignatureParametersDaoTest {
      * Test of findDefault method, of class ProfileSignatureParametersDao.
      */
     @Test
-    public void testFindDefault() throws Exception {
+    public void testFindDefault() {
         System.out.println("findDefault");
         ProfileSignatureParametersDao instance = new ProfileSignatureParametersDao();
         ProfileSignatureParameters expResult = new ProfileSignatureParameters();

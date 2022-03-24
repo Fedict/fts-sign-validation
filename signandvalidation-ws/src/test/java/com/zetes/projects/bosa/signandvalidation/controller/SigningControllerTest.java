@@ -1,46 +1,25 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
 import com.zetes.projects.bosa.signandvalidation.model.*;
-import com.zetes.projects.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
-import com.zetes.projects.bosa.signandvalidation.service.ReportsService;
-import com.zetes.projects.bosa.signandvalidation.service.StorageService;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
-import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.model.*;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
-import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.URLEncoder;
 import java.security.KeyStore;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static com.zetes.projects.bosa.signandvalidation.controller.SigningController.*;
-import static com.zetes.projects.bosa.signandvalidation.model.DisplayType.*;
-import static com.zetes.projects.bosa.signandvalidation.model.DisplayType.Content;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.MediaType.APPLICATION_PDF;
-import static org.springframework.http.MediaType.APPLICATION_XML;
 
 public class SigningControllerTest extends SigningControllerBaseTest {
 
@@ -146,7 +125,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
     }
 
     @Test
-    public void testTimestampPdf() throws Exception {
+    public void testTimestampPdf() {
         FileDocument fileToTimestamp = new FileDocument(new File("src/test/resources/sample.pdf"));
         RemoteDocument remoteDocument = RemoteDocumentConverter.toRemoteDocument(fileToTimestamp);
 

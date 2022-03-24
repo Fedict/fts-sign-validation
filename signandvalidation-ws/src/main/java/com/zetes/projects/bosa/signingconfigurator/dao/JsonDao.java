@@ -13,18 +13,17 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  *
  * @author wouter
  */
 public abstract class JsonDao {
-    private String JSON_PATH;
+    private final String JSON_PATH;
     
-    private Boolean SKIP_DEV;
+    private final Boolean SKIP_DEV;
     
-    private class JsonFileFilter implements FilenameFilter {
+    private static class JsonFileFilter implements FilenameFilter {
         @Override
         public boolean accept (File dir, String name) {
             return name.toLowerCase().endsWith(".json");
@@ -53,7 +52,7 @@ public abstract class JsonDao {
             throw new IOException("Profiles directory does not exist");
         }
         File[] profileFiles = folder.listFiles(new JsonFileFilter());
-        if (profileFiles.length == 0) {
+        if (profileFiles == null || profileFiles.length == 0) {
             logger.log(Level.SEVERE, "Profiles dir is emtpy", folder.getAbsolutePath());
             throw new IOException("No profiles found");
         }

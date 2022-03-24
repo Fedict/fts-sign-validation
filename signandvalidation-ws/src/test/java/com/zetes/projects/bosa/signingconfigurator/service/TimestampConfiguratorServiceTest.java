@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -68,7 +67,7 @@ public class TimestampConfiguratorServiceTest {
     }
 
     @Test
-    public void retrievesProfileParametersCorrectly() throws Exception {
+    public void retrievesProfileParametersCorrectly() {
         // given
         saveProfileTimestampParameters("PROFILE_1", null, SHA256, ENVELOPED, PDF, "tspServer");
 
@@ -82,7 +81,7 @@ public class TimestampConfiguratorServiceTest {
     }
 
     @Test
-    public void retrievesDefaultParametersCorrectly() throws Exception {
+    public void retrievesDefaultParametersCorrectly() {
         // given
         saveProfileTimestampParameters("PROFILE_1", true, SHA256, ENVELOPED, PDF, "tspServer");
 
@@ -96,7 +95,7 @@ public class TimestampConfiguratorServiceTest {
     }
 
     @Test
-    public void overridesNullParametersCorrectly() throws Exception {
+    public void overridesNullParametersCorrectly() {
         // given
         saveProfileTimestampParameters("PROFILE_1", null, null, null, null, "tspServer");
 

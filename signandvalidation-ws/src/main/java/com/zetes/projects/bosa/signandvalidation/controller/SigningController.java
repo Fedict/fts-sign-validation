@@ -130,7 +130,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final SimpleDateFormat reportDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     // Secret key cache
-    private static Cache<String, SecretKey> keyCache = CacheBuilder.newBuilder().expireAfterWrite(TOKEN_VALIDITY_SECS, TimeUnit.SECONDS).build();
+    private static final Cache<String, SecretKey> keyCache = CacheBuilder.newBuilder().expireAfterWrite(TOKEN_VALIDITY_SECS, TimeUnit.SECONDS).build();
 
     @Autowired
     private SigningConfiguratorService signingConfigService;
@@ -180,7 +180,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setDisplay(DisplayType.Content);
             input.setSignLanguage(tokenData.getLang());
             input.setPspFileName(tokenData.getPsp());
-            input.setPsfP(tokenData.getPsfP() == null ? false : "true".compareTo(tokenData.getPsfP()) == 0);
+            input.setPsfP(Boolean.parseBoolean(tokenData.getPsfP()));
             input.setPsfC(tokenData.getPsfC());
             input.setPsfN(tokenData.getPsfN());
             input.setDisplayXslt(tokenData.getXslt());
@@ -596,7 +596,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) throws SAXException {
+    public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
         try {
             String tokenFootprint = getTokenFootprint(signDto.getToken());
             logger.info("Entering signDocumentForToken()" + tokenFootprint);
@@ -747,7 +747,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             new SecureRandom().nextBytes(kidBytes);
             String keyId = Base64.getUrlEncoder().encodeToString(kidBytes);
             // Store key in secret bucket
-            byte jsonKey[] = om.writeValueAsBytes(newKey.getEncoded());
+            byte[] jsonKey = om.writeValueAsBytes(newKey.getEncoded());
             storageService.storeFile(null, KEYS_FOLDER + keyId + KEYS_FILENAME_EXTENTION, jsonKey);
             keyCache.put(keyId, newKey);
 
@@ -771,7 +771,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             String keyId = jweObject.getHeader().getKeyID();
             SecretKey key = keyCache.getIfPresent(keyId);
             if (key == null) {
-                byte rawKey[] = storageService.getFileAsBytes(null, KEYS_FOLDER + keyId + KEYS_FILENAME_EXTENTION, false);
+                byte[] rawKey = storageService.getFileAsBytes(null, KEYS_FOLDER + keyId + KEYS_FILENAME_EXTENTION, false);
                 key = new SecretKeySpec(om.readValue(rawKey, byte[].class), SYMMETRIC_KEY_ALGO);
             }
             jweObject.decrypt(new DirectDecrypter(key));

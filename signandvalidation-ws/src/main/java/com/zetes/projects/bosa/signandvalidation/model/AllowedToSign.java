@@ -1,9 +1,9 @@
 package com.zetes.projects.bosa.signandvalidation.model;
 
 /**
- * Define a citizen through it's national number that is allowed to sign.
+ * Define a citizen through its national number that is allowed to sign.
  * <p>
- * The field must have the same syntaxe as the "SERIALNUMBER" defined inside the citizen certificate 
+ * The field must have the same syntax as the "SERIALNUMBER" defined inside the citizen certificate
  *
  * @author Christophe
  */
@@ -12,6 +12,7 @@ public class AllowedToSign {
 
     public AllowedToSign() {
     }
+
     public AllowedToSign(String nn) {
         this.nn = nn;
     }
@@ -25,7 +26,7 @@ public class AllowedToSign {
     }
     /**
     * Set the national register number.
-    * It must have the same syntaxe as the "SERIALNUMBER" defined inside the citizen certificate
+    * It must have the same syntax as the "SERIALNUMBER" defined inside the citizen certificate
     *
     * @param  nn  the national register number
     */

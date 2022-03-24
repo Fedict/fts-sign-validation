@@ -57,13 +57,12 @@ public class PdfVisibleSignatureService {
     @Autowired
     private StorageService storageService;
 
-    private File fontsDir;
-    private HashMap<String, byte[]> fontFiles = new HashMap<String, byte[]>(20);
+    private final HashMap<String, byte[]> fontFiles = new HashMap<String, byte[]>(20);
     
     public PdfVisibleSignatureService() {
     }
 
-    private Logger logger = Logger.getLogger(PdfVisibleSignatureService.class.getName());
+    private final Logger logger = Logger.getLogger(PdfVisibleSignatureService.class.getName());
 
     public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, TokenSignInput input, String bucket, byte[] photo)
             throws NullParameterException {
@@ -282,7 +281,7 @@ public class PdfVisibleSignatureService {
                 logger.log(Level.WARNING, "System property not set: " + FONTS_PATH_PROPERTY);
                 return null;
             }
-            fontsDir = new File(fontsPath);
+            File fontsDir = new File(fontsPath);
             if (!fontsDir.exists()) {
                 logger.log(Level.WARNING, "Fonts dir does not exist: " + fontsDir.getAbsolutePath());
                 return null;

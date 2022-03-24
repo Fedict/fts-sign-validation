@@ -140,7 +140,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     }
 
     @Test
-    public void signatureWithUnsigedFile() throws Exception {
+    public void signatureWithUnsigedFile() {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
@@ -156,7 +156,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     }
 
     @Test
-    public void signatureWithNoPolicyAndOriginalFile() throws Exception {
+    public void signatureWithNoPolicyAndOriginalFile() {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         RemoteDocument originalFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
@@ -173,7 +173,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     }
 
     @Test
-    public void signatureWithNoPolicyAndDigestOriginalFile() throws Exception {
+    public void signatureWithNoPolicyAndDigestOriginalFile() {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         FileDocument fileDocument = new FileDocument("src/test/resources/sample.xml");
@@ -191,7 +191,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     }
 
     @Test
-    public void signatureWithPolicyAndOriginalFile() throws Exception {
+    public void signatureWithPolicyAndOriginalFile() {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         RemoteDocument originalFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));

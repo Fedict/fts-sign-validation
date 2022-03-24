@@ -17,7 +17,7 @@ public class LoggingControllerTest extends SignAndValidationTestBase {
     public static final String LOGGINGERROR_ENDPOINT = "/logging/error";
 
     @Test
-    public void testLogging() throws Exception {
+    public void testLogging() {
         FrontEndErrorReqDTO errReq = new FrontEndErrorReqDTO("FE_NATIVE_ERR", "blah blah", "12345678", "hregO7hw");
 
         FrontEndErrorRespDTO resp = this.restTemplate.postForObject(LOCALHOST + port + LOGGINGERROR_ENDPOINT, errReq, FrontEndErrorRespDTO.class);

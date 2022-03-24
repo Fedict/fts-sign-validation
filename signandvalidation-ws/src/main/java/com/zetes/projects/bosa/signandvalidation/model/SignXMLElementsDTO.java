@@ -19,5 +19,5 @@ public class SignXMLElementsDTO {
     private PolicyParameters policy;
     private List<SignElement> elementsToSign;
 
-    private byte signatureValue[];
+    private byte[] signatureValue;
 }

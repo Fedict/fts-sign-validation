@@ -1,6 +1,5 @@
 package com.zetes.projects.bosa.signandvalidation.config;
 
-import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +11,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
-import org.springframework.security.web.header.writers.frameoptions.WhiteListedAllowFromStrategy;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter.XFrameOptionsMode;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;

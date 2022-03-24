@@ -10,7 +10,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
 import javax.imageio.ImageIO;
 
 /**
@@ -128,7 +127,7 @@ public class PdfImageBuilder {
 			if (POS_LEFT == textPos || POS_RIGHT == textPos)
 				fullWidth += maxLineLen + padding + imgWidth; // image and text next to each other
 			else
-				fullWidth += (imgWidth > maxLineLen) ? imgWidth : maxLineLen; // = max(imgWidth, maxLineLine)
+				fullWidth += Math.max(imgWidth, maxLineLen);
 		}
 		int fullHeight = 2 * padding; // padding top and bottom
 		if (null == image)
@@ -137,7 +136,7 @@ public class PdfImageBuilder {
 			if (POS_TOP == textPos || POS_BOTTOM == textPos)
 				fullHeight += fullTextHeight + padding + imgHeight; // image and text below each other
 			else
-				fullHeight += (imgHeight > fullTextHeight) ? imgHeight : fullTextHeight; // = max(imgHeight, fullTextHeight)
+				fullHeight += Math.max(imgHeight, fullTextHeight);
 		}
 
 		// Add extra with or extra height so that we get the same ratio as the width/height ratio of the PDF visible signature field

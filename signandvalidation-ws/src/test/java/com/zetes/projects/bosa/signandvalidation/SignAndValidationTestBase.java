@@ -54,7 +54,7 @@ public class SignAndValidationTestBase {
         }
 
         @Override
-        public XmlTimestampedObject deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        public XmlTimestampedObject deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             ObjectMapper mapper = (ObjectMapper) jp.getCodec();
             ObjectNode root = mapper.readTree(jp);
             JsonNode categoryNode = root.get("Category");

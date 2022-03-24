@@ -75,14 +75,14 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null, false, No),
         F4("dFile.pdf", "FOUR", APPLICATION_PDF, "QSBUZXN0", null, null, true, Content);
 
-        private String name;
-        private String id;
-        private MediaType type;
-        private String data;
-        private String xslt;
-        private String xsltData;
-        private Boolean rdConf;
-        private DisplayType dt;
+        private final String name;
+        private final String id;
+        private final MediaType type;
+        private final String data;
+        private final String xslt;
+        private final String xsltData;
+        private final Boolean rdConf;
+        private final DisplayType dt;
 
         SignInput getXmlSignInput() { return new SignInput(name, id, rdConf, dt, xslt); }
         public static FileDef find(String name) { for (FileDef fd : values()) if (name.equals(fd.name) || name.equals(fd.xslt)) return fd; return null; }

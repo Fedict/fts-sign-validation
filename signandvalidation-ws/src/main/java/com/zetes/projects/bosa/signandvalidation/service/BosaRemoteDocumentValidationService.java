@@ -13,7 +13,6 @@ import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
 import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
 import eu.europa.esig.dss.simplereport.jaxb.XmlToken;

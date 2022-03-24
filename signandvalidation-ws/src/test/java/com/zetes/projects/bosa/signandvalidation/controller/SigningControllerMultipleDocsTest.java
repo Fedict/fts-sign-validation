@@ -27,7 +27,6 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
@@ -99,7 +98,7 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
     }
 
     @Test
-    public void timestampMultipleDocumentsTest() throws Exception {
+    public void timestampMultipleDocumentsTest() {
         List<DSSDocument> documentsToSign = new ArrayList<DSSDocument>(Arrays.asList(
                 new FileDocument(new File("src/test/resources/sample.xml")), new FileDocument(new File("src/test/resources/sample.pdf"))));
         List<RemoteDocument> remoteDocuments = RemoteDocumentConverter.toRemoteDocuments(documentsToSign);

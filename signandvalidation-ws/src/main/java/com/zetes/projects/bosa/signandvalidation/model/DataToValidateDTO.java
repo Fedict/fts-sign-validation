@@ -1,6 +1,5 @@
 package com.zetes.projects.bosa.signandvalidation.model;
 
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import lombok.Data;

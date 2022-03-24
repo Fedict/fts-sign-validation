@@ -5,9 +5,9 @@ import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 
 public class ReportDTO {
 
-    private XmlSimpleReport simpleReport;
-    private XmlDetailedReport detailedReport;
-    private byte[] signingCertificate;
+    private final XmlSimpleReport simpleReport;
+    private final XmlDetailedReport detailedReport;
+    private final byte[] signingCertificate;
 
     public ReportDTO(XmlSimpleReport simpleReport, XmlDetailedReport detailedReport, byte[] signingCertificate) {
         this.simpleReport = simpleReport;

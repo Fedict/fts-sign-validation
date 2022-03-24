@@ -86,7 +86,7 @@ public class StorageService {
 
     public byte[] getFileAsBytes(String bucket, String name, boolean getSize) throws InvalidKeyConfigException {
         int read;
-        byte outBytes[] = null;
+        byte[] outBytes = null;
         InputStream inStream = null;
         try {
             if (bucket == null) bucket = secretBucket;
@@ -98,7 +98,7 @@ public class StorageService {
 
             inStream = getClient().getObject(GetObjectArgs.builder().bucket(bucket).object(name).build());
             ByteArrayOutputStream out = new ByteArrayOutputStream(size);
-            byte buffer[] = new byte[8192];
+            byte[] buffer = new byte[8192];
             while ((read = inStream.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
             }
@@ -128,11 +128,11 @@ public class StorageService {
             if (bucket == null) bucket = secretBucket;
             stream = getClient().getObject(GetObjectArgs.builder().bucket(bucket).object(name).build());
             StringBuilder sb = new StringBuilder(32768);
-            byte buffer[] = new byte[2048];
+            byte[] buffer = new byte[2048];
             while(true) {
                 int read = stream.read(buffer);
                 if (read < 0) break;
-                sb.append(buffer);
+                sb.append(buffer.toString());
             }
             stream.close();
             return sb.toString();
@@ -160,7 +160,7 @@ public class StorageService {
         return null;
     }
 
-    public void storeFile(String bucket, String name, byte content[]) throws InvalidKeyConfigException {
+    public void storeFile(String bucket, String name, byte[] content) throws InvalidKeyConfigException {
         try {
             if (bucket == null) bucket = secretBucket;
             getClient().putObject(PutObjectArgs.builder()

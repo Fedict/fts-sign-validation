@@ -1,45 +1,25 @@
 package com.zetes.projects.bosa.signandvalidation.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zetes.projects.bosa.signandvalidation.SignAndValidationTestBase;
 import com.zetes.projects.bosa.signandvalidation.config.ErrorStrings;
-import com.zetes.projects.bosa.signandvalidation.model.DataToSignDTO;
-import com.zetes.projects.bosa.signandvalidation.model.GetDataToSignForTokenDTO;
-import com.zetes.projects.bosa.signandvalidation.model.GetTokenForDocumentDTO;
-import com.zetes.projects.bosa.signandvalidation.model.SignDocumentForTokenDTO;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.zetes.projects.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.zetes.projects.bosa.signingconfigurator.model.ProfileTimestampParameters;
 import eu.europa.esig.dss.enumerations.*;
-import eu.europa.esig.dss.model.Digest;
-import eu.europa.esig.dss.model.FileDocument;
-import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
-import eu.europa.esig.dss.token.Pkcs12SignatureToken;
-import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
-import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
 import static javax.xml.crypto.dsig.Transform.ENVELOPED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class SigningControllerBaseTest extends SignAndValidationTestBase implements ErrorStrings {
 

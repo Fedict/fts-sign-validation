@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class CorsTest extends SignAndValidationTestBase {
 
     @Test
-    public void signingPingShouldReturnPong() throws Exception {
+    public void signingPingShouldReturnPong() {
         // when
         String result = this.restTemplate.getForObject(LOCALHOST + port + "/signing/ping", String.class);
 

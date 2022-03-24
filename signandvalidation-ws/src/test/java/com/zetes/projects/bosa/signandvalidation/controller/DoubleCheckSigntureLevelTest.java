@@ -35,8 +35,6 @@ import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
 import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 
 public class DoubleCheckSigntureLevelTest extends SignAndValidationTestBase implements ErrorStrings {
 

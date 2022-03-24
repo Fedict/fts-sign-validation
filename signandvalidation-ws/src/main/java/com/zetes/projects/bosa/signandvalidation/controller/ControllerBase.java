@@ -11,11 +11,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 /** Base class for the real Controller classes in this dir; provides logging and exception handling */
 class ControllerBase {
-    protected static DateTimeFormatter logDateTimeFormatter = 
+    protected static final DateTimeFormatter logDateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS").withZone(ZoneId.systemDefault());
 
     // TODO : check if SigningController.class is the right logger name to use for all controllers
-    protected Logger logger = Logger.getLogger(SigningController.class.getName());
+    protected final Logger logger = Logger.getLogger(SigningController.class.getName());
 
     protected void logAndThrowEx(HttpStatus httpStatus, String errConst, Exception e) {
         logAndThrowEx(null, httpStatus, errConst, null, e);

@@ -1,6 +1,5 @@
 package com.zetes.projects.bosa.signandvalidation.model;
 
-import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

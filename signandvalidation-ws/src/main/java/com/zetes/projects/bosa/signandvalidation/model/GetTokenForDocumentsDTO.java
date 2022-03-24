@@ -5,7 +5,6 @@
  */
 package com.zetes.projects.bosa.signandvalidation.model;
 
-import com.zetes.projects.bosa.signingconfigurator.model.PolicyParameters;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

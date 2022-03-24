@@ -34,7 +34,7 @@ public class PdfVisibleSignatureServiceTest {
         texts.put("de", "Unterzeichnet von %gn% %sn% (%nn%=%rrn%)\nam %d(d MMM YYYY)%");
 
         Date signingDate = new Date();
-        signingDate.setTime(1623318619435l);
+        signingDate.setTime(1623318619435L);
 
         RemoteCertificate signingCert = CertInfoTest.getTomTestCertificate();
 

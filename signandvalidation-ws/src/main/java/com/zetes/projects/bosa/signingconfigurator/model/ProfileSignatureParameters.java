@@ -94,7 +94,7 @@ public class ProfileSignatureParameters extends JsonObject {
 
     @Override
     public Boolean getIsDefault() {
-        return (isDefault == null) ? false : isDefault;
+        return isDefault != null && isDefault;
     }
 
     public void setIsDefault(Boolean isDefault) {
@@ -332,7 +332,7 @@ public class ProfileSignatureParameters extends JsonObject {
     
     @Override
     public Boolean getDevOnlyProfile() {
-        return (devOnlyProfile == null) ? false : devOnlyProfile;
+        return devOnlyProfile != null && devOnlyProfile;
     }
     
     public void setDevOnlyProfile(Boolean devOnlyProfile) {

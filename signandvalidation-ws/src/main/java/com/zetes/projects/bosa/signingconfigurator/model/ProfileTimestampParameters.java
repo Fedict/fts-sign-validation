@@ -96,6 +96,6 @@ public class ProfileTimestampParameters extends JsonObject {
 
     @Override
     public Boolean getDevOnlyProfile() {
-        return (devOnlyProfile == null) ? false : devOnlyProfile;
+        return devOnlyProfile != null && devOnlyProfile;
     }
 }

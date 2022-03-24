@@ -39,7 +39,7 @@ public class MockOnlineTSPSource extends OnlineTSPSource {
 
     private final Logger LOG = LoggerFactory.getLogger(MockOnlineTSPSource.class);
 
-    private static SecureRandom random = new SecureRandom();
+    private final static SecureRandom random = new SecureRandom();
 
     private KeyStoreSignatureTokenConnection token;
 

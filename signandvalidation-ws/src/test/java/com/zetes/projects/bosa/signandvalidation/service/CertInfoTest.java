@@ -9,7 +9,7 @@ import java.util.*;
 
 public class CertInfoTest {
     @Test
-    public void testGetters() throws Exception {
+    public void testGetters() {
         CertInfo ci = new CertInfo(getTomTestCertificate());
         assertEquals("Tom", ci.getGivenName());
         assertEquals("Test", ci.getSurname());
@@ -17,13 +17,13 @@ public class CertInfoTest {
     }
 
     @Test
-    public void testGettersNOK() throws Exception {
+    public void testGettersNOK() {
         CertInfo ci = new CertInfo(getOtherTestCertificate());
         assertEquals("?", ci.getGivenName());
     }
 
     @Test()
-    public void testInvalidCert() throws Exception {
+    public void testInvalidCert() {
         try {
             new CertInfo(new RemoteCertificate(new byte[1]));
             fail("Exception exptected");
