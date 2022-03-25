@@ -1,20 +1,20 @@
 Java command line tool to create PDF visible signature fields
 Convenient for testing how they will look like in a PDF without having to make a signed PDF every time
 
-Code: signandvalidation-ws/src/main/java/com/zetes/projects/bosa/signandvalidation/service/PdfImageBuilder.java
+Code: signandvalidation-ws/src/main/java/com/bosa/signandvalidation/service/PdfImageBuilder.java
 
 Build:
   mvn package -Dmaven.test.skip=true
   Or instead of building all sources:
      mkdir signandvalidation-ws/target
      mkdir signandvalidation-ws/target/classes
-     javac -d signandvalidation-ws/target/classes signandvalidation-ws/src/main/java/com/zetes/projects/bosa/signandvalidation/service/PdfImageBuilder.java
+     javac -d signandvalidation-ws/target/classes signandvalidation-ws/src/main/java/com/bosa/signandvalidation/service/PdfImageBuilder.java
 
 Show command line params:
-  java -cp signandvalidation-ws/target/classes/ com.zetes.projects.bosa.signandvalidation.service.PdfImageBuilder
+  java -cp signandvalidation-ws/target/classes/ PdfImageBuilder
 
 Run:
-  java -cp signandvalidation-ws/target/classes/ com.zetes.projects.bosa.signandvalidation.service.PdfImageBuilder ...
+  java -cp signandvalidation-ws/target/classes/ PdfImageBuilder ...
 
   
 Note: the fonts are taken from the OS (Linux in case of the FTS server)

@@ -8,8 +8,8 @@ bucket (i.e., not any of the customer buckets) on the S3 service
 (minio).
 
 The keys are handled through the
-`com.zetes.projects.bosa.signandvalidation.service.ObjectStorageService`
-and the `com.zetes.projects.bosa.signandvalidation.model.StoredKey`
+`com.bosa.signandvalidation.service.ObjectStorageService`
+and the `StoredKey`
 classes. The former provides two functions: `getKid()`, which returns
 the KeyID (`kid`) for the currently-active key (generating one if none
 has been generated before, or if the currently-active key is too old and
