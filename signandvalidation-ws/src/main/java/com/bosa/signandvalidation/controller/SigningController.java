@@ -9,10 +9,8 @@ import com.google.common.cache.CacheBuilder;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
-import com.bosa.signandvalidation.service.*;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 import com.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.bosa.signingconfigurator.model.PolicyParameters;
@@ -296,7 +294,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         List<TokenSignInput> inputs = token.getInputs();
-        if (inputs.size() == 0) {
+        if (inputs == null || inputs.size() == 0) {
             logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'inputs' field is empty" , null);
         }
         List<String> filenamesList = new ArrayList<String>();
@@ -309,11 +307,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "Display attribute : " + input.getDisplay() + " but also readConfirm. This is impossible", null);
                 }
                 if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFileName() != null) {
-                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null", null);
+                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades", null);
                 }
             } else {
                 if (input.getXmlEltId() != null) {
-                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'XmlEltId' must be null", null);
+                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'XmlEltId' must be null for 'non Xades Multifile'", null);
                 }
                 if (APPLICATION_PDF.equals(inputFileType)) {
                     String signLanguage = input.getSignLanguage();
@@ -324,7 +322,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 }
             }
             if (!APPLICATION_XML.equals(inputFileType) && input.getDisplayXslt() != null) {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "DisplayXslt must be null", null);
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "DisplayXslt must be null for non-xml files", null);
             }
             checkValue("fileName", input.getFileName(), false, null, filenamesList);
         }
@@ -333,7 +331,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (token.isXadesMultifile()) {
                 checkValue("OutXslt", token.getOutXslt(), true, null, filenamesList);
             } else {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'OutXslt' must be null", null);
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'OutXslt' must be null for 'non Xades Multifile'", null);
             }
         }
         checkValue("outFileName", token.getOutFileName(), false, null, filenamesList);
@@ -349,7 +347,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
             if (patternToMatch != null) {
                 if (!patternToMatch.matcher(value).matches()) {
-                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'" + name + "' (" + value + ") does not math Regex (" + patternToMatch.pattern() + ")" , null);
+                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'" + name + "' (" + value + ") does not match Regex (" + patternToMatch.pattern() + ")" , null);
                 }
             }
         } else {
@@ -413,6 +411,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private void putFilesContent(Node node, TokenObject token) throws StorageService.InvalidKeyConfigException {
         while(node != null) {
             putFilesContent(node.getFirstChild(), token);
+            // Since "Node.getAttributes()" implementation does not respect @NotNull contract... we must check that the attributes are not null to avoid NPE from getIDIdentifier
             if (node.getAttributes() != null) {
                 // Use DSS libraries to identify ID XML attributes
                 String id = DSSXMLUtils.getIDIdentifier(node);

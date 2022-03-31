@@ -4,7 +4,6 @@ import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.StorageService;
 import com.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.enumerations.Indication;
