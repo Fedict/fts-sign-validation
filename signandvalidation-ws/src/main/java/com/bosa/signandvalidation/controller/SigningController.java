@@ -261,7 +261,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    private void checkToken(TokenObject token) {
+    void checkToken(TokenObject token) {
 
         if (token.getSignProfile() == null) {
             //TODO Validate signProfile further
@@ -304,7 +304,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (token.isXadesMultifile()) {
                 checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
                 if (input.isReadConfirm() && !Content.equals(input.getDisplay())) {
-                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "Display attribute : " + input.getDisplay() + " but also readConfirm. This is impossible", null);
+                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "Display attribute : '" + input.getDisplay() + "' and readConfirm=true. This is impossible", null);
                 }
                 if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFileName() != null) {
                     logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades", null);
