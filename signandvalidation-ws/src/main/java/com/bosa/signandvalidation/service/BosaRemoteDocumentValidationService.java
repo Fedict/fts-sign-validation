@@ -104,12 +104,11 @@ public class BosaRemoteDocumentValidationService {
 		XmlConclusion conclusion = validation.getConclusion();
 		conclusion.setIndication(Indication.TOTAL_FAILED);
 		conclusion.setSubIndication(subIndication);
-/*
-		XmlName err = new XmlName();
-		err.setNameId("err");
+
+		eu.europa.esig.dss.detailedreport.jaxb.XmlMessage err = new eu.europa.esig.dss.detailedreport.jaxb.XmlMessage();
+		err.setKey("err");
 		err.setValue(errMesg);
 		conclusion.getErrors().add(err);
- */
 	}
 
 	// Return true if the signingTime is no more then 10 seconds in the past
