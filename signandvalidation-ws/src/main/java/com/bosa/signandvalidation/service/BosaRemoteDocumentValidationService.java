@@ -83,12 +83,16 @@ public class BosaRemoteDocumentValidationService {
 		if (!Indication.TOTAL_FAILED.equals(token.getIndication())) {
 			token.setIndication(Indication.TOTAL_FAILED);
 			token.setSubIndication(subIndication);
-			XmlDetails vd = token.getAdESValidationDetails();
-			if (vd == null) token.setAdESValidationDetails(vd = new XmlDetails());
+			// DSS 5.8 had an "errors" field.
+			// DSS 5.9 has AdESValidationDetails and QualificationDetails
+			//			each have 3 lists of key/value pairs "error", "warning" and "info"
+			// We're using the "error" list to add the error.
+			XmlDetails adesValidationDetails = token.getAdESValidationDetails();
+			if (adesValidationDetails == null) token.setAdESValidationDetails(adesValidationDetails = new XmlDetails());
 			XmlMessage error = new XmlMessage();
-			error.setKey("CUSTOM_ERROR");
+			error.setKey("err");
 			error.setValue(errMesg);
-			vd.getError().add(error);
+			adesValidationDetails.getError().add(error);
 			int validSigsCount = simpleReport.getValidSignaturesCount();
 			if (validSigsCount > 0)
 				simpleReport.setValidSignaturesCount(validSigsCount - 1);
