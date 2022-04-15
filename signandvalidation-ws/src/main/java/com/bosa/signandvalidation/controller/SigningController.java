@@ -679,18 +679,19 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
         }
 
-        SignatureIndicationsDTO indications = reportsService.getSignatureIndicationsDto(reportsDto);
+        SignatureIndicationsDTO indications = token == null ?
+                reportsService.getSignatureIndicationsDto(reportsDto) :
+                reportsService.getLatestSignatureIndicationsDto(reportsDto, new Date(token.getCreateTime()));
+
         Indication indication = indications.getIndication();
-        if (indication == TOTAL_PASSED || parameters.isSignWithExpiredCertificate()) {
-            return signedDoc;
-        } else {
+        if (indication != TOTAL_PASSED && !parameters.isSignWithExpiredCertificate()) {
             String subIndication = indications.getSubIndicationLabel();
-            if (CERT_REVOKED.compareTo(subIndication) == 0)
+            if (CERT_REVOKED.compareTo(subIndication) == 0) {
                 logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
-            else
-                logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
+            }
+            logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
         }
-        return null; // We won't get here
+        return signedDoc;
     }
 
     private void checkDataToSign(RemoteSignatureParameters parameters, String tokenString) {
