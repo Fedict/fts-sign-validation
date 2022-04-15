@@ -45,6 +45,9 @@ public class BosaRemoteDocumentValidationService {
 		WSReportsDTO report = remoteDocumentValidationService.validateDocument(
 			new DataToValidateDTO(signedDocument, originalDocuments, policy));
 
+		// When some back end servers (don't know which ones...) are down seems DSS can produce a signature that does not reflect the
+		// requested "parameters.getSignatureLevel()". For example even though an LTA was requested the result is not LTA.
+		// The code below is there to double-check this, it also makes sure SHA1 & MD5 are never used
 		XmlDiagnosticData diagsData = report.getDiagnosticData();
 		List<eu.europa.esig.dss.diagnostic.jaxb.XmlSignature> signatures = diagsData.getSignatures();
 		int sigCount = signatures.size();
