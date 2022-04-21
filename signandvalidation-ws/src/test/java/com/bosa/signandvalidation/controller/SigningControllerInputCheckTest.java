@@ -141,11 +141,14 @@ public class SigningControllerInputCheckTest {
         input2.setFileName("file1.pdf");
         input2.setXmlEltId("ID1");
         inputs.add(input2);
+        testToken(token, EMPTY_PARAM + "'fileName' (file1.pdf) is not unique");
+
+        input2.setFileName(null);
+        testToken(token, EMPTY_PARAM + "'fileName' is NULL");
+
+        input2.setFileName("file2.xml");
         testToken(token, EMPTY_PARAM + "'XmlEltId' (ID1) is not unique");
         input2.setXmlEltId("ID2");
-
-        testToken(token, EMPTY_PARAM + "'fileName' (file1.pdf) is not unique");
-        input2.setFileName("file2.xml");
         input2.setDisplayXslt("xslt");
 
         // finish with general params

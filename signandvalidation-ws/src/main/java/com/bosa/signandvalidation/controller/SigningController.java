@@ -300,6 +300,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         List<String> filenamesList = new ArrayList<String>();
         List<String> eltIdList = new ArrayList<String>();
         for(TokenSignInput input : inputs) {
+            checkValue("fileName", input.getFileName(), false, null, filenamesList);
+
             MediaType inputFileType = MediaTypeUtil.getMediaTypeFromFilename(input.getFileName());
             if (token.isXadesMultifile()) {
                 checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
@@ -324,7 +326,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (!APPLICATION_XML.equals(inputFileType) && input.getDisplayXslt() != null) {
                 logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "DisplayXslt must be null for non-xml files", null);
             }
-            checkValue("fileName", input.getFileName(), false, null, filenamesList);
         }
 
         if (token.getOutXslt() != null) {
