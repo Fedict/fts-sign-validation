@@ -26,12 +26,12 @@ import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
  * This validation service calls the DSS validation service and then applies some extra checks.
  */
 public class BosaRemoteDocumentValidationService {
-	private RemoteDocumentValidationService remoteDocumentValidationService;
+	private ShadowRemoteDocumentValidationService remoteDocumentValidationService;
 
 	public BosaRemoteDocumentValidationService() {
 	}
 
-	public void setRemoteDocumentValidationService(RemoteDocumentValidationService remoteDocumentValidationService) {
+	public void setRemoteDocumentValidationService(ShadowRemoteDocumentValidationService remoteDocumentValidationService) {
 		this.remoteDocumentValidationService = remoteDocumentValidationService;
 	}
 

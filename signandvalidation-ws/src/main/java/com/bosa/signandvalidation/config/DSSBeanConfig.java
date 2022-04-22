@@ -3,6 +3,7 @@ package com.bosa.signandvalidation.config;
 import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.service.RemoteXadesSignatureServiceImpl;
 
+import com.bosa.signandvalidation.service.ShadowRemoteDocumentValidationService;
 import eu.europa.esig.dss.asic.cades.signature.ASiCWithCAdESService;
 import eu.europa.esig.dss.asic.xades.signature.ASiCWithXAdESService;
 import eu.europa.esig.dss.cades.signature.CAdESService;
@@ -30,7 +31,6 @@ import eu.europa.esig.dss.validation.CertificateVerifier;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureServiceImpl;
-import eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService;
 import eu.europa.esig.dss.xades.signature.XAdESService;
 import eu.europa.esig.dss.alert.LogOnStatusAlert;
 import org.slf4j.Logger;
@@ -290,9 +290,10 @@ public class DSSBeanConfig {
     }
 
     @Bean
-    public RemoteDocumentValidationService remoteValidationService() throws Exception {
-        RemoteDocumentValidationService service = new RemoteDocumentValidationService();
+    public ShadowRemoteDocumentValidationService remoteValidationService() throws Exception {
+        ShadowRemoteDocumentValidationService service = new ShadowRemoteDocumentValidationService();
         service.setVerifier(certificateVerifier());
+        service.setDataLoader(fileCacheDataLoader());
         return service;
     }
 
