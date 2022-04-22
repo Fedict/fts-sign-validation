@@ -2,7 +2,6 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.exceptions.IllegalSignatureFormatException;
 import com.bosa.signandvalidation.model.*;
-import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.config.ErrorStrings;

@@ -5,7 +5,6 @@ import com.bosa.signandvalidation.model.GetDataToSignForTokenDTO;
 import com.bosa.signandvalidation.model.GetTokenForDocumentDTO;
 import com.bosa.signandvalidation.model.SignDocumentForTokenDTO;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.StorageService;
 import eu.europa.esig.dss.model.Digest;
 import eu.europa.esig.dss.model.SignatureValue;

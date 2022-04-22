@@ -19,7 +19,6 @@ import java.util.Map;
 import static com.bosa.signandvalidation.controller.SigningController.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class SigningControllerTest extends SigningControllerBaseTest {

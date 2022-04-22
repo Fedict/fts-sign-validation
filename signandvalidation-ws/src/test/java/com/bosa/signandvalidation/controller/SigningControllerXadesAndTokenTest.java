@@ -4,7 +4,6 @@ import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.StorageService;
 import com.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -97,7 +96,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         Mockito.when(validationService.validateDocument(any(),any(), any(), any())).thenReturn(reportsDto);
         SignatureIndicationsDTO indications = new SignatureIndicationsDTO();
         indications.setIndication(Indication.TOTAL_PASSED);
-        Mockito.when(reportsService.getSignatureIndicationsDto(eq(reportsDto))).thenReturn(indications);
+        Mockito.when(reportsService.getLatestSignatureIndicationsDto(eq(reportsDto), any())).thenReturn(indications);
 
         doAnswer(invocation -> {
             // When storing the secret key, prepare the next mock "get" call

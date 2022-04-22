@@ -8,7 +8,6 @@ import com.bosa.signingconfigurator.model.ProfileTimestampParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.bosa.signandvalidation.SignAndValidationTestBase;
 import com.bosa.signandvalidation.config.ErrorStrings;
-import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.model.Digest;

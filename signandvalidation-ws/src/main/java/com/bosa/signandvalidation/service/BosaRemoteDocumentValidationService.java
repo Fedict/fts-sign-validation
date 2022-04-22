@@ -1,6 +1,5 @@
 package com.bosa.signandvalidation.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 import java.io.Serializable;
@@ -27,12 +26,12 @@ import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
  * This validation service calls the DSS validation service and then applies some extra checks.
  */
 public class BosaRemoteDocumentValidationService {
-	private RemoteDocumentValidationService remoteDocumentValidationService;
+	private ShadowRemoteDocumentValidationService remoteDocumentValidationService;
 
 	public BosaRemoteDocumentValidationService() {
 	}
 
-	public void setRemoteDocumentValidationService(RemoteDocumentValidationService remoteDocumentValidationService) {
+	public void setRemoteDocumentValidationService(ShadowRemoteDocumentValidationService remoteDocumentValidationService) {
 		this.remoteDocumentValidationService = remoteDocumentValidationService;
 	}
 
@@ -46,6 +45,9 @@ public class BosaRemoteDocumentValidationService {
 		WSReportsDTO report = remoteDocumentValidationService.validateDocument(
 			new DataToValidateDTO(signedDocument, originalDocuments, policy));
 
+		// When some back end servers (don't know which ones...) are down seems DSS can produce a signature that does not reflect the
+		// requested "parameters.getSignatureLevel()". For example even though an LTA was requested the result is not LTA.
+		// The code below is there to double-check this, it also makes sure SHA1 & MD5 are never used
 		XmlDiagnosticData diagsData = report.getDiagnosticData();
 		List<eu.europa.esig.dss.diagnostic.jaxb.XmlSignature> signatures = diagsData.getSignatures();
 		int sigCount = signatures.size();
@@ -84,12 +86,16 @@ public class BosaRemoteDocumentValidationService {
 		if (!Indication.TOTAL_FAILED.equals(token.getIndication())) {
 			token.setIndication(Indication.TOTAL_FAILED);
 			token.setSubIndication(subIndication);
-			XmlDetails vd = token.getAdESValidationDetails();
-			if (vd == null) token.setAdESValidationDetails(vd = new XmlDetails());
+			// DSS 5.8 had an "errors" field.
+			// DSS 5.9 has AdESValidationDetails and QualificationDetails
+			//			each have 3 lists of key/value pairs "error", "warning" and "info"
+			// We're using the "error" list to add the error.
+			XmlDetails adesValidationDetails = token.getAdESValidationDetails();
+			if (adesValidationDetails == null) token.setAdESValidationDetails(adesValidationDetails = new XmlDetails());
 			XmlMessage error = new XmlMessage();
-			error.setKey("CUSTOM_ERROR");
+			error.setKey("err");
 			error.setValue(errMesg);
-			vd.getError().add(error);
+			adesValidationDetails.getError().add(error);
 			int validSigsCount = simpleReport.getValidSignaturesCount();
 			if (validSigsCount > 0)
 				simpleReport.setValidSignaturesCount(validSigsCount - 1);
@@ -105,12 +111,11 @@ public class BosaRemoteDocumentValidationService {
 		XmlConclusion conclusion = validation.getConclusion();
 		conclusion.setIndication(Indication.TOTAL_FAILED);
 		conclusion.setSubIndication(subIndication);
-/*
-		XmlName err = new XmlName();
-		err.setNameId("err");
+
+		eu.europa.esig.dss.detailedreport.jaxb.XmlMessage err = new eu.europa.esig.dss.detailedreport.jaxb.XmlMessage();
+		err.setKey("err");
 		err.setValue(errMesg);
 		conclusion.getErrors().add(err);
- */
 	}
 
 	// Return true if the signingTime is no more then 10 seconds in the past
