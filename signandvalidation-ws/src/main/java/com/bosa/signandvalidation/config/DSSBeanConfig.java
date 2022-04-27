@@ -19,6 +19,7 @@ import eu.europa.esig.dss.service.ocsp.JdbcCacheOCSPSource;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
 import eu.europa.esig.dss.spi.client.http.DSSFileLoader;
 import eu.europa.esig.dss.spi.client.http.IgnoreDataLoader;
+import eu.europa.esig.dss.spi.client.jdbc.JdbcCacheConnector;
 import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
@@ -161,7 +162,7 @@ public class DSSBeanConfig {
     @Bean
     public JdbcCacheCRLSource cachedCRLSource() {
         JdbcCacheCRLSource jdbcCacheCRLSource = new JdbcCacheCRLSource();
-        jdbcCacheCRLSource.setDataSource(dataSource);
+        jdbcCacheCRLSource.setJdbcCacheConnector(new JdbcCacheConnector(dataSource));
         jdbcCacheCRLSource.setProxySource(onlineCRLSource());
         jdbcCacheCRLSource.setDefaultNextUpdateDelay((long) (60 * 3)); // 3 minutes
         return jdbcCacheCRLSource;
@@ -177,7 +178,7 @@ public class DSSBeanConfig {
     @Bean
     public JdbcCacheOCSPSource cachedOCSPSource() {
         JdbcCacheOCSPSource jdbcCacheOCSPSource = new JdbcCacheOCSPSource();
-        jdbcCacheOCSPSource.setDataSource(dataSource);
+        jdbcCacheOCSPSource.setJdbcCacheConnector(new JdbcCacheConnector(dataSource));
         jdbcCacheOCSPSource.setProxySource(onlineOcspSource());
         jdbcCacheOCSPSource.setDefaultNextUpdateDelay((long) (1000 * 60 * 3)); // 3 minutes
         return jdbcCacheOCSPSource;
