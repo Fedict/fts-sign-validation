@@ -23,6 +23,7 @@ import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
+import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.tsl.function.OfficialJournalSchemeInformationURI;
 import eu.europa.esig.dss.tsl.job.TLValidationJob;
@@ -220,7 +221,7 @@ public class DSSBeanConfig {
         CommonCertificateVerifier certificateVerifier = new CommonCertificateVerifier();
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
-        certificateVerifier.setDataLoader(dataLoader());
+        certificateVerifier.setAIASource(new DefaultAIASource(dataLoader()));
         if (testKsenabled)
             certificateVerifier.setTrustedCertSources(trustedListSource(), extraTrustStoreSource(), testTrustStoreSource());
         else
