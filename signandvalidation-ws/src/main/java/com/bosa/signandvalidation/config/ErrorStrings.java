@@ -63,4 +63,10 @@ public interface ErrorStrings {
 
 	/** The delay between the getDataToSignForToken and the SignDocumentFroToken calls was larger than the timeout time defined in the "Token" (Pin code entry took too long)  */
 	String SIGN_PERIOD_EXPIRED = "SIGN_PERIOD_EXPIRED";
+
+	/** Error while accessing the storage (S3 / MINIO) service  */
+	String STORAGE_ERROR = "STORAGE_ERROR";
+
+	/** Error while accessing a timestamping service  */
+	String TIMESTAMP_ERROR = "TIMESTAMP_ERROR";
 }

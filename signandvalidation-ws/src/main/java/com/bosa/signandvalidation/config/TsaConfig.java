@@ -1,6 +1,7 @@
 package com.bosa.signandvalidation.config;
 
 import com.bosa.signandvalidation.mocktsp.MockOnlineTSPSource;
+import com.bosa.signandvalidation.dataloaders.BosaTimestampDataLoader;
 import eu.europa.esig.dss.service.http.commons.TimestampDataLoader;
 import eu.europa.esig.dss.service.http.proxy.ProxyConfig;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
@@ -43,11 +44,10 @@ public class TsaConfig {
 
         } else {
             OnlineTSPSource onlineTSPSource = new OnlineTSPSource();
-            TimestampDataLoader dataLoader = new TimestampDataLoader();
+            TimestampDataLoader dataLoader = new BosaTimestampDataLoader();
             dataLoader.setProxyConfig(proxyConfig);
             onlineTSPSource.setDataLoader(dataLoader);
             return onlineTSPSource;
         }
     }
-
 }

@@ -10,17 +10,23 @@ import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import io.minio.*;
 import io.minio.errors.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.bosa.signandvalidation.config.ErrorStrings.STORAGE_ERROR;
+import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static org.springframework.http.HttpStatus.*;
 
 /**
  *
@@ -69,23 +75,22 @@ public class StorageService {
         }
     }
 
-    public InputStream getFileAsStream(String bucket, String name) throws InvalidKeyConfigException {
+    public InputStream getFileAsStream(String bucket, String name) {
         try {
             if (bucket == null) bucket = secretBucket;
             return getClient().getObject(GetObjectArgs.builder().bucket(bucket).object(name).build());
 
-        } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             logAndThrow("getting", name, e);
         }
         return null;
     }
 
-    public String getFileAsB64String(String bucket, String name) throws InvalidKeyConfigException {
+    public String getFileAsB64String(String bucket, String name) {
         return Base64.getEncoder().encodeToString(getFileAsBytes(bucket, name, true));
     }
 
-    public byte[] getFileAsBytes(String bucket, String name, boolean getSize) throws InvalidKeyConfigException {
-        int read;
+    public byte[] getFileAsBytes(String bucket, String name, boolean getSize) {
         byte[] outBytes = null;
         InputStream inStream = null;
         try {
@@ -99,30 +104,25 @@ public class StorageService {
             inStream = getClient().getObject(GetObjectArgs.builder().bucket(bucket).object(name).build());
             ByteArrayOutputStream out = new ByteArrayOutputStream(size);
             byte[] buffer = new byte[8192];
+            int read;
             while ((read = inStream.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
             }
             inStream.close();
             outBytes = out.toByteArray();
-        } catch (ErrorResponseException | InsufficientDataException
-                | InternalException | InvalidKeyException
-                | InvalidResponseException | IOException
-                | NoSuchAlgorithmException | ServerException
-                | XmlParserException e) {
+        } catch (Exception e) {
             logAndThrow("getting", name, e);
         } finally {
             if (inStream != null) {
                 try {
                     inStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                } catch (IOException ignored) { }
             }
         }
         return outBytes;
     }
 
-    public String getFileAsString(String bucket, String name) throws InvalidKeyConfigException {
+    public String getFileAsString(String bucket, String name) {
         InputStream stream = null;
         try {
             if (bucket == null) bucket = secretBucket;
@@ -136,7 +136,7 @@ public class StorageService {
             }
             stream.close();
             return sb.toString();
-        } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
+        } catch (Exception e) {
             logAndThrow("getting", name, e);
         } finally {
             if (stream != null) {
@@ -148,19 +148,19 @@ public class StorageService {
         return null;
     }
 
-    public FileStoreInfo getFileInfo(String bucket, String name) throws InvalidKeyConfigException {
+    public FileStoreInfo getFileInfo(String bucket, String name) {
         try {
             if (bucket == null) bucket = secretBucket;
             StatObjectResponse so = getClient().statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
             return new FileStoreInfo(MediaTypeUtil.getMediaTypeFromFilename(name), so.etag(), so.size());
 
-        } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
+        } catch (Exception e) {
             logAndThrow("getting info for", name, e);
         }
         return null;
     }
 
-    public void storeFile(String bucket, String name, byte[] content) throws InvalidKeyConfigException {
+    public void storeFile(String bucket, String name, byte[] content) {
         try {
             if (bucket == null) bucket = secretBucket;
             getClient().putObject(PutObjectArgs.builder()
@@ -169,21 +169,17 @@ public class StorageService {
                     .stream(new ByteArrayInputStream(content), content.length, -1)
                     .build()
             );
-        } catch (MinioException | IOException | NoSuchAlgorithmException |  InvalidKeyException e) {
+        } catch (Exception e) {
             logAndThrow("saving", name, e);
         }
     }
 
-    private void logAndThrow(String oper, String fileName, Exception e) throws InvalidKeyConfigException {
-        Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, e);
+    private void logAndThrow(String oper, String fileName, Exception e) {
+        String msg = "Error while " + oper + " file '" + fileName;
 
-        throw new InvalidKeyConfigException("Error while " + oper + " file '" + fileName + "' : '" + e.getMessage() + "'", e);
+        HttpStatus s = INTERNAL_SERVER_ERROR;
+        if (e instanceof SocketTimeoutException) s = GATEWAY_TIMEOUT;
+        else if (e instanceof IOException) s = BAD_GATEWAY;
+        logAndThrowEx(s, STORAGE_ERROR, msg, e);
     }
-
-    public static class InvalidKeyConfigException extends Exception {
-        public InvalidKeyConfigException(String message, Throwable e) {
-            super(message, e);
-        }
-    }
-
 }
