@@ -16,7 +16,6 @@ Show command line params:
 Run:
   java -cp signandvalidation-ws/target/classes/ PdfImageBuilder ...
 
-  
 Note: the fonts are taken from the OS (Linux in case of the FTS server)
 Most fonts differ from OS to OS but Serial and Courier fonts are likely present on all platforms.
 Also present on the FTS server is the 'freescpt' font.
