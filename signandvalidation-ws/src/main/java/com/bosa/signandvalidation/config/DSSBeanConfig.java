@@ -1,8 +1,8 @@
 package com.bosa.signandvalidation.config;
 
-import com.bosa.signandvalidation.dataloaders.BosaCommonsDataLoader;
-import com.bosa.signandvalidation.dataloaders.BosaDataLoaders;
-import com.bosa.signandvalidation.dataloaders.BosaOCSPDataLoader;
+import com.bosa.signandvalidation.dataloaders.InterceptCommonsDataLoader;
+import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
+import com.bosa.signandvalidation.dataloaders.InterceptOCSPDataLoader;
 import com.bosa.signandvalidation.service.*;
 
 import eu.europa.esig.dss.asic.cades.signature.ASiCWithCAdESService;
@@ -137,7 +137,7 @@ public class DSSBeanConfig {
 
     @Bean
     public OCSPDataLoader ocspDataLoader() {
-        OCSPDataLoader ocspDataLoader = new BosaOCSPDataLoader();
+        OCSPDataLoader ocspDataLoader = new InterceptOCSPDataLoader();
         ocspDataLoader.setProxyConfig(proxyConfig);
         return ocspDataLoader;
     }
@@ -145,7 +145,7 @@ public class DSSBeanConfig {
     @Bean
     public FileCacheDataLoader fileCacheDataLoader() {
         FileCacheDataLoader fileCacheDataLoader = new FileCacheDataLoader();
-        CommonsDataLoader dataLoader = new BosaCommonsDataLoader(BosaDataLoaders.Types.Policy);
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.Policy);
         dataLoader.setProxyConfig(proxyConfig);
         fileCacheDataLoader.setDataLoader(dataLoader);
         // Per default uses "java.io.tmpdir" property
@@ -156,7 +156,7 @@ public class DSSBeanConfig {
     @Bean
     public OnlineCRLSource onlineCRLSource() {
         OnlineCRLSource onlineCRLSource = new OnlineCRLSource();
-        CommonsDataLoader dataLoader = new BosaCommonsDataLoader(BosaDataLoaders.Types.CRL);
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CRL);
         dataLoader.setProxyConfig(proxyConfig);
         onlineCRLSource.setDataLoader(dataLoader);
         return onlineCRLSource;
@@ -225,7 +225,7 @@ public class DSSBeanConfig {
         CommonCertificateVerifier certificateVerifier = new CommonCertificateVerifier();
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
-        CommonsDataLoader dataLoader = new BosaCommonsDataLoader(BosaDataLoaders.Types.CertificateVerification);
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CertificateVerification);
         dataLoader.setProxyConfig(proxyConfig);
         certificateVerifier.setDataLoader(dataLoader);
         if (testKsenabled)
@@ -341,7 +341,7 @@ public class DSSBeanConfig {
     public DSSFileLoader onlineLoader() {
         FileCacheDataLoader offlineFileLoader = new FileCacheDataLoader();
         offlineFileLoader.setCacheExpirationTime(0);
-        CommonsDataLoader dataLoader = new BosaCommonsDataLoader(BosaDataLoaders.Types.OnlineLoading);
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.OnlineLoading);
         dataLoader.setProxyConfig(proxyConfig);
         offlineFileLoader.setDataLoader(dataLoader);
         offlineFileLoader.setFileCacheDirectory(tlCacheDirectory());

@@ -1,22 +1,15 @@
-
 package com.bosa.signandvalidation.dataloaders;
 
-import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
+import eu.europa.esig.dss.service.http.commons.TimestampDataLoader;
 
-public class BosaCommonsDataLoader extends CommonsDataLoader {
-
-    private BosaDataLoaders.Types type;
-
-    public BosaCommonsDataLoader(BosaDataLoaders.Types type) {
-        this.type = type;
-    }
+public class InterceptTimestampDataLoader extends TimestampDataLoader {
 
     @Override
     public byte[] get(String url) {
         try {
             return super.get(url);
         } catch(Exception e) {
-            BosaDataLoaders.setException(e, type);
+            DataLoadersExceptionLogger.addException(e, DataLoadersExceptionLogger.Types.TimeStamp);
             throw e;
         }
     }
@@ -26,7 +19,7 @@ public class BosaCommonsDataLoader extends CommonsDataLoader {
         try {
             return super.get(url, refresh);
         } catch(Exception e) {
-            BosaDataLoaders.setException(e, type);
+            DataLoadersExceptionLogger.addException(e, DataLoadersExceptionLogger.Types.TimeStamp);
             throw e;
         }
     }
@@ -34,9 +27,9 @@ public class BosaCommonsDataLoader extends CommonsDataLoader {
     @Override
     public byte[] post(String url, byte[] content) {
         try {
-            return super.post(url + "x", content);
+            return super.post(url, content);
         } catch(Exception e) {
-            BosaDataLoaders.setException(e, type);
+            DataLoadersExceptionLogger.addException(e, DataLoadersExceptionLogger.Types.TimeStamp);
             throw e;
         }
     }

@@ -2,7 +2,7 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.*;
-import com.bosa.signandvalidation.dataloaders.BosaDataLoaders;
+import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -587,6 +587,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (PdfVisibleSignatureService.PdfVisibleSignatureException e) {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch (Exception e) {
+            DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -646,7 +647,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
 
         } catch (Exception e) {
-            BosaDataLoaders.logAndThrow(e);
+            DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
 
@@ -688,6 +689,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (CERT_REVOKED.compareTo(subIndication) == 0) {
                 logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
             }
+            DataLoadersExceptionLogger.logAndThrow();
             logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
         }
         return signedDoc;

@@ -1,15 +1,22 @@
+
 package com.bosa.signandvalidation.dataloaders;
 
-import eu.europa.esig.dss.service.http.commons.OCSPDataLoader;
+import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
 
-public class BosaOCSPDataLoader extends OCSPDataLoader {
+public class InterceptCommonsDataLoader extends CommonsDataLoader {
+
+    private DataLoadersExceptionLogger.Types type;
+
+    public InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types type) {
+        this.type = type;
+    }
 
     @Override
     public byte[] get(String url) {
         try {
             return super.get(url);
         } catch(Exception e) {
-            BosaDataLoaders.setException(e, BosaDataLoaders.Types.OCSP);
+            DataLoadersExceptionLogger.addException(e, type);
             throw e;
         }
     }
@@ -19,7 +26,7 @@ public class BosaOCSPDataLoader extends OCSPDataLoader {
         try {
             return super.get(url, refresh);
         } catch(Exception e) {
-            BosaDataLoaders.setException(e, BosaDataLoaders.Types.OCSP);
+            DataLoadersExceptionLogger.addException(e, type);
             throw e;
         }
     }
@@ -27,9 +34,9 @@ public class BosaOCSPDataLoader extends OCSPDataLoader {
     @Override
     public byte[] post(String url, byte[] content) {
         try {
-            return super.post(url.replaceFirst("ocsp.eidpki.belgium.be", "toto"), content);
+            return super.post(url, content);
         } catch(Exception e) {
-            BosaDataLoaders.setException(e, BosaDataLoaders.Types.OCSP);
+            DataLoadersExceptionLogger.addException(e, type);
             throw e;
         }
     }
