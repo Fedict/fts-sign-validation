@@ -15,6 +15,7 @@ import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -43,8 +44,12 @@ public class ValidationController extends ControllerBase implements ErrorStrings
     }
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) {
-        return reportsService.getSignatureIndicationsDto(validateSignatureFull(toValidate));
+    public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
+        WSReportsDTO report = validateSignatureFull(toValidate);
+        SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsDto(report);
+        signDto.setDiagnosticData(report.getDiagnosticData());
+        signDto.setReport(report.getDetailedReport());
+        return signDto;
     }
 
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
