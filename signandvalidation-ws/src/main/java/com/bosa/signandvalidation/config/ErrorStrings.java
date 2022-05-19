@@ -67,6 +67,6 @@ public interface ErrorStrings {
 	/** Error while accessing the storage (S3 / MINIO) service  */
 	String STORAGE_ERROR = "STORAGE_ERROR";
 
-	/** Error while accessing a timestamping service  */
-	String TIMESTAMP_ERROR = "TIMESTAMP_ERROR";
+	/** Generated errors  */
+	String ERROR_SUFFIX = "_ERROR";
 }

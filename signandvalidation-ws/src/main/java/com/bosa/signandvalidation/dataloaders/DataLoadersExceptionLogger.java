@@ -8,18 +8,19 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.bosa.signandvalidation.config.ErrorStrings.ERROR_SUFFIX;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 
 public class DataLoadersExceptionLogger {
 
     public enum Types {
-        TimeStamp,
+        TIMESTAMP,
         OCSP,
-        Policy,
+        POLICY,
         CRL,
-        OnlineLoading,
-        CertificateVerification;
+        ONLINE_LOADING,
+        CERT_VERIFICATION;
 
         public static String getMerged(Set<Types> types) {
             StringBuilder sb = new StringBuilder(60);
@@ -64,7 +65,7 @@ public class DataLoadersExceptionLogger {
                 currentException = currentException.getCause();
             }
 
-            if (!exceptionTypes.isEmpty()) logAndThrowEx(BAD_GATEWAY, Types.getMerged(exceptionTypes), e);
+            if (!exceptionTypes.isEmpty()) logAndThrowEx(BAD_GATEWAY, Types.getMerged(exceptionTypes) + ERROR_SUFFIX, e);
         }
     }
 
@@ -77,7 +78,7 @@ public class DataLoadersExceptionLogger {
             for (ExceptionAndType threadException : threadExceptions) {
                 exceptionTypes.add(threadException.getType());
             }
-            if (!exceptionTypes.isEmpty()) logAndThrowEx(BAD_GATEWAY, Types.getMerged(exceptionTypes), threadExceptions.get(0).getException());
+            if (!exceptionTypes.isEmpty()) logAndThrowEx(BAD_GATEWAY, Types.getMerged(exceptionTypes) + ERROR_SUFFIX, threadExceptions.get(0).getException());
         }
     }
 

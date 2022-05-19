@@ -145,7 +145,7 @@ public class DSSBeanConfig {
     @Bean
     public FileCacheDataLoader fileCacheDataLoader() {
         FileCacheDataLoader fileCacheDataLoader = new FileCacheDataLoader();
-        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.Policy);
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.POLICY);
         dataLoader.setProxyConfig(proxyConfig);
         fileCacheDataLoader.setDataLoader(dataLoader);
         // Per default uses "java.io.tmpdir" property
@@ -225,7 +225,7 @@ public class DSSBeanConfig {
         CommonCertificateVerifier certificateVerifier = new CommonCertificateVerifier();
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
-        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CertificateVerification);
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CERT_VERIFICATION);
         dataLoader.setProxyConfig(proxyConfig);
         certificateVerifier.setDataLoader(dataLoader);
         if (testKsenabled)
@@ -341,7 +341,7 @@ public class DSSBeanConfig {
     public DSSFileLoader onlineLoader() {
         FileCacheDataLoader offlineFileLoader = new FileCacheDataLoader();
         offlineFileLoader.setCacheExpirationTime(0);
-        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.OnlineLoading);
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.ONLINE_LOADING);
         dataLoader.setProxyConfig(proxyConfig);
         offlineFileLoader.setDataLoader(dataLoader);
         offlineFileLoader.setFileCacheDirectory(tlCacheDirectory());
