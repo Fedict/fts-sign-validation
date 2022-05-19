@@ -9,7 +9,7 @@ public class InterceptTimestampDataLoader extends TimestampDataLoader {
         try {
             return super.get(url);
         } catch(Exception e) {
-            DataLoadersExceptionLogger.addException(e, DataLoadersExceptionLogger.Types.TimeStamp);
+            DataLoadersExceptionLogger.logExceptionForThread(e, DataLoadersExceptionLogger.Types.TimeStamp);
             throw e;
         }
     }
@@ -19,7 +19,7 @@ public class InterceptTimestampDataLoader extends TimestampDataLoader {
         try {
             return super.get(url, refresh);
         } catch(Exception e) {
-            DataLoadersExceptionLogger.addException(e, DataLoadersExceptionLogger.Types.TimeStamp);
+            DataLoadersExceptionLogger.logExceptionForThread(e, DataLoadersExceptionLogger.Types.TimeStamp);
             throw e;
         }
     }
@@ -29,7 +29,7 @@ public class InterceptTimestampDataLoader extends TimestampDataLoader {
         try {
             return super.post(url, content);
         } catch(Exception e) {
-            DataLoadersExceptionLogger.addException(e, DataLoadersExceptionLogger.Types.TimeStamp);
+            DataLoadersExceptionLogger.logExceptionForThread(e, DataLoadersExceptionLogger.Types.TimeStamp);
             throw e;
         }
     }

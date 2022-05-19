@@ -16,7 +16,7 @@ public class InterceptCommonsDataLoader extends CommonsDataLoader {
         try {
             return super.get(url);
         } catch(Exception e) {
-            DataLoadersExceptionLogger.addException(e, type);
+            DataLoadersExceptionLogger.logExceptionForThread(e, type);
             throw e;
         }
     }
@@ -26,7 +26,7 @@ public class InterceptCommonsDataLoader extends CommonsDataLoader {
         try {
             return super.get(url, refresh);
         } catch(Exception e) {
-            DataLoadersExceptionLogger.addException(e, type);
+            DataLoadersExceptionLogger.logExceptionForThread(e, type);
             throw e;
         }
     }
@@ -36,7 +36,7 @@ public class InterceptCommonsDataLoader extends CommonsDataLoader {
         try {
             return super.post(url, content);
         } catch(Exception e) {
-            DataLoadersExceptionLogger.addException(e, type);
+            DataLoadersExceptionLogger.logExceptionForThread(e, type);
             throw e;
         }
     }

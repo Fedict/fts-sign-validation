@@ -9,7 +9,7 @@ public class InterceptOCSPDataLoader extends OCSPDataLoader {
         try {
             return super.get(url);
         } catch(Exception e) {
-            DataLoadersExceptionLogger.addException(e, DataLoadersExceptionLogger.Types.OCSP);
+            DataLoadersExceptionLogger.logExceptionForThread(e, DataLoadersExceptionLogger.Types.OCSP);
             throw e;
         }
     }
@@ -19,7 +19,7 @@ public class InterceptOCSPDataLoader extends OCSPDataLoader {
         try {
             return super.get(url, refresh);
         } catch(Exception e) {
-            DataLoadersExceptionLogger.addException(e, DataLoadersExceptionLogger.Types.OCSP);
+            DataLoadersExceptionLogger.logExceptionForThread(e, DataLoadersExceptionLogger.Types.OCSP);
             throw e;
         }
     }
@@ -27,9 +27,9 @@ public class InterceptOCSPDataLoader extends OCSPDataLoader {
     @Override
     public byte[] post(String url, byte[] content) {
         try {
-            return super.post(url.replaceFirst("http://", "http://ww"), content);
+            return super.post(url, content);
         } catch(Exception e) {
-            DataLoadersExceptionLogger.addException(e, DataLoadersExceptionLogger.Types.OCSP);
+            DataLoadersExceptionLogger.logExceptionForThread(e, DataLoadersExceptionLogger.Types.OCSP);
             throw e;
         }
     }
