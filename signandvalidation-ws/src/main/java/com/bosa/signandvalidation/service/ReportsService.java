@@ -96,7 +96,7 @@ public class ReportsService implements ErrorStrings {
                     findRevocation(xmlToken.getQualificationDetails());
 
             return new SignatureIndicationsDTO(xmlToken.getIndication(),
-                    hasRevocation ? CERT_REVOKED : xmlToken.getSubIndication().toString());
+                    hasRevocation ? CERT_REVOKED : xmlToken.getSubIndication() == null ? "" : xmlToken.getSubIndication().toString());
         }
         return null;
     }
