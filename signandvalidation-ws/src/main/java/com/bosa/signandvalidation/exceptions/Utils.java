@@ -1,6 +1,7 @@
 package com.bosa.signandvalidation.exceptions;
 
 import com.bosa.signandvalidation.controller.SigningController;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -78,11 +79,13 @@ public class Utils {
 
     // The applicative logging system is used to track signature processes through the last 8 chars of the token
     public static String getTokenFootprint(String token) {
-        if (null == token)
-            return " token=<null>"; // shouldn't happen
-        int len = token.length();
-        if (len < 8)
-            return " token=" + token; // shouldn't happen
-        return " token=..." + token.substring(len - 8, len);
+        String footprint = token;
+        if (null != token) {
+            int len = token.length();
+            if (len >= 8) footprint = "..." + token.substring(len - 8, len);
+        } else footprint = "<null>";
+
+        MDC.MDCCloseable mdc = MDC.putCloseable("token", footprint);
+        return " token=" + footprint;
     }
 }
