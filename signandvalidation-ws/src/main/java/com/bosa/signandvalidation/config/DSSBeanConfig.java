@@ -1,7 +1,9 @@
 package com.bosa.signandvalidation.config;
 
-import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
-import com.bosa.signandvalidation.service.RemoteXadesSignatureServiceImpl;
+import com.bosa.signandvalidation.dataloaders.InterceptCommonsDataLoader;
+import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
+import com.bosa.signandvalidation.dataloaders.InterceptOCSPDataLoader;
+import com.bosa.signandvalidation.service.*;
 
 import com.bosa.signandvalidation.service.ShadowRemoteDocumentValidationService;
 import eu.europa.esig.dss.asic.cades.signature.ASiCWithCAdESService;
@@ -24,6 +26,7 @@ import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
+import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.tsl.function.OfficialJournalSchemeInformationURI;
@@ -222,7 +225,9 @@ public class DSSBeanConfig {
         CommonCertificateVerifier certificateVerifier = new CommonCertificateVerifier();
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
-        certificateVerifier.setAIASource(new DefaultAIASource(dataLoader()));
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CERT_VERIFICATION);
+        dataLoader.setProxyConfig(proxyConfig);
+        certificateVerifier.setAIASource(new DefaultAIASource(dataLoader));
         if (testKsenabled)
             certificateVerifier.setTrustedCertSources(trustedListSource(), extraTrustStoreSource(), testTrustStoreSource());
         else

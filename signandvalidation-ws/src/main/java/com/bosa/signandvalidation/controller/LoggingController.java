@@ -9,6 +9,9 @@ import com.bosa.signandvalidation.model.FrontEndLogReqDTO;
 import com.bosa.signandvalidation.model.FrontEndLogRespDTO;
 
 import org.springframework.web.bind.annotation.*;
+
+import static com.bosa.signandvalidation.exceptions.Utils.getTokenFootprint;
+import static com.bosa.signandvalidation.exceptions.Utils.logDateTimeFormatter;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 

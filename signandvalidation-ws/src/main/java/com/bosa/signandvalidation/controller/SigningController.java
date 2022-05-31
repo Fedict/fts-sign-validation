@@ -2,6 +2,8 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.*;
+import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
+import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
@@ -9,7 +11,6 @@ import com.google.common.cache.CacheBuilder;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
-import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 import com.bosa.signingconfigurator.exception.ProfileNotFoundException;
@@ -40,7 +41,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.*;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.util.*;
@@ -48,6 +48,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
 
+import static com.bosa.signandvalidation.exceptions.Utils.getTokenFootprint;
+import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static com.bosa.signandvalidation.model.DisplayType.Content;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -76,9 +78,8 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.springframework.http.HttpStatus;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
 
 import org.springframework.http.ResponseEntity;
@@ -202,7 +203,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             String tokenString = createToken(token);
             logger.info("Returning from getTokenForDocument()" + getTokenFootprint(tokenString) + " params: " + objectToString(tokenData));
             return tokenString;
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -404,12 +405,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             logger.info("Done creating xml file : " + token.getOutFileName());
 
-        } catch (JAXBException | TransformerException | ParserConfigurationException | StorageService.InvalidKeyConfigException e) {
+        } catch (JAXBException | TransformerException | ParserConfigurationException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
     }
 
-    private void putFilesContent(Node node, TokenObject token) throws StorageService.InvalidKeyConfigException {
+    private void putFilesContent(Node node, TokenObject token) {
         while(node != null) {
             putFilesContent(node.getFirstChild(), token);
             // Since "Node.getAttributes()" implementation does not respect @NotNull contract... we must check that the attributes are not null to avoid NPE from getIDIdentifier
@@ -524,7 +525,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             file = storageService.getFileAsStream(bucket, fileName);
             Utils.copy(file, response.getOutputStream());
             file.close();
-        } catch (IOException | StorageService.InvalidKeyConfigException e) {
+        } catch (IOException e) {
             logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
             if (file != null) {
@@ -585,11 +586,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (PdfVisibleSignatureService.PdfVisibleSignatureException e) {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
-        } catch (RuntimeException e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } catch (IOException e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } catch (StorageService.InvalidKeyConfigException e) {
+        } catch (Exception e) {
+            DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -648,7 +646,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 return new ResponseEntity<>(signedDoc, HttpStatus.OK);
             }
 
-        } catch (IOException | NullParameterException | StorageService.InvalidKeyConfigException e) {
+        } catch (Exception e) {
+            DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
 
@@ -690,6 +689,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (CERT_REVOKED.compareTo(subIndication) == 0) {
                 logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
             }
+            DataLoadersExceptionLogger.logAndThrow();
             logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
         }
         return signedDoc;
@@ -758,9 +758,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     .build(), new Payload(bos.toByteArray()));
             jweObject.encrypt(new DirectEncrypter(newKey));
             return jweObject.serialize();
-        } catch (IOException | NoSuchAlgorithmException | JOSEException | StorageService.InvalidKeyConfigException e) {
+        } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
+
         return null;
     }
 
@@ -783,7 +784,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
             }
             return token;
-        } catch(ParseException | IOException | JOSEException | StorageService.InvalidKeyConfigException e) {
+        } catch(ParseException | IOException | JOSEException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         }
         return  null;
