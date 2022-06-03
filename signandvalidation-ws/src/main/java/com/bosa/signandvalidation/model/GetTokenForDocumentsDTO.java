@@ -22,6 +22,8 @@ public class GetTokenForDocumentsDTO {
     private String bucket;
     private String password;
     private Integer signTimeout;
+    private boolean requestDocumentReadConfirm; // Request the user to check a "I have read the file" box before signing
+    private boolean previewDocuments; // If true, display documents in the sign screen, otherwise provide list of downloadable links
     private List<String> nnAllowedToSign;
 
     private String signProfile;
@@ -29,16 +31,16 @@ public class GetTokenForDocumentsDTO {
 
     private List<SignInput> inputs;
 
-    private String outXslt;
-    private String outFileName;
+    private String outXsltPath;
+    private String outFilePath;
     private boolean outDownload;
 
     // Mandatory parameters
-    public GetTokenForDocumentsDTO(String bucket, String password, String signProfile, List<SignInput> inputs, String outFileName) {
+    public GetTokenForDocumentsDTO(String bucket, String password, String signProfile, List<SignInput> inputs, String outFilePath) {
         this.inputs = inputs;
         this.bucket = bucket;
         this.password = password;
         this.signProfile = signProfile;
-        this.outFileName = outFileName;
+        this.outFilePath = outFilePath;
     }
 }

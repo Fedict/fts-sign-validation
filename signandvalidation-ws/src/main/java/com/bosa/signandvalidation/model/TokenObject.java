@@ -25,22 +25,25 @@ public class TokenObject {
     private String bucket;
     private Integer signTimeout;
     private List<String> nnAllowedToSign;
+    private boolean requestDocumentReadConfirm; // Request the user to check a "I have read the file" box before signing
+    private boolean previewDocuments; // If true, display documents in the sign screen, otherwise provide list of downloadable links
 
     private String signProfile;
     private PolicyParameters policy;
 
+    private String path; // Path of all the files in the bucket to Sign
     private List<TokenSignInput> inputs;
 
-    private String outXslt;
-    private String outFileName;
+    private String outXsltPath;
+    private String outFilePath;
     private boolean outDownload;
 
     // Mandatory parameters
-    public TokenObject(boolean xadesMultifile, String bucket, String signProfile, List<TokenSignInput> inputs, String outFileName) {
+    public TokenObject(boolean xadesMultifile, String bucket, String signProfile, List<TokenSignInput> inputs, String outFilePath) {
         this.xadesMultifile = xadesMultifile;
         this.inputs = inputs;
         this.bucket = bucket;
         this.signProfile = signProfile;
-        this.outFileName = outFileName;
+        this.outFilePath = outFilePath;
     }
 }
