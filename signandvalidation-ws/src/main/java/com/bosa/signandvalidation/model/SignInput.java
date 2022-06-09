@@ -10,11 +10,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignInput {
-    private String fileName; // Name of the file in the bucket to Sign (XML/PDF/Other)
-    private String xmlEltId; // FOR XADES Multifile ! The XML element where the file will be stored
-    private boolean readConfirm; // Request the user to check a "I have read the file" box before signing
-    private DisplayType display; // If true, display document
+    private String filePath; // Path of the file in the bucket to Sign (XML/PDF/Other)
 
-    // If "filename" file is of type : XML
-    private String displayXslt; // An XSLT filename in the bucket can be provided to display the XML
+    // Only for XADES Multifile
+    private String xmlEltId; // The XML element where the file will be stored
+
+    // Only when "fileName" file is of type XML
+    private String displayXsltPath; // An optional XSLT filename in the bucket can be provided to display the XML
 }

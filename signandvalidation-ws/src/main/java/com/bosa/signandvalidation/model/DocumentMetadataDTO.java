@@ -25,14 +25,16 @@ public class DocumentMetadataDTO {
     private boolean readPhoto;
     private boolean disallowSignedDownloads;
     private boolean requestDocumentReadConfirm;
+    private boolean previewDocuments; // If true, display documents in the sign screen, otherwise provide list of downloadable links
 
     private List<SignInputMetadata> inputs;
     
-    public DocumentMetadataDTO(String filename, String mimetype, String xsltUrl, boolean readPhoto, boolean disallowSignedDownloads, boolean requestDocumentReadConfirm, List<SignInputMetadata> inputs) {
+    public DocumentMetadataDTO(String filename, String mimetype, String xsltUrl, boolean readPhoto, boolean disallowSignedDownloads, boolean requestDocumentReadConfirm, boolean previewDocuments, List<SignInputMetadata> inputs) {
         this.filename = filename;
         this.mimetype = mimetype;
         this.xsltUrl = xsltUrl;
         this.readPhoto = readPhoto;
+        this.previewDocuments = previewDocuments;
         this.disallowSignedDownloads = disallowSignedDownloads;
         this.requestDocumentReadConfirm = requestDocumentReadConfirm;
         this.inputs = inputs;
