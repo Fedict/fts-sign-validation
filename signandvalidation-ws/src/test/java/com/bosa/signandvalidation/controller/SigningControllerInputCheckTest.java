@@ -1,34 +1,14 @@
 package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
-import com.bosa.signandvalidation.service.ReportsService;
-import com.bosa.signandvalidation.service.StorageService;
-import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.model.PolicyParameters;
-import eu.europa.esig.dss.model.Digest;
-import eu.europa.esig.dss.model.FileDocument;
-import eu.europa.esig.dss.model.InMemoryDocument;
-import eu.europa.esig.dss.model.SignatureValue;
-import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
-import eu.europa.esig.dss.token.Pkcs12SignatureToken;
-import eu.europa.esig.dss.utils.Utils;
-import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
-import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.security.KeyStore;
 import java.util.*;
 
-import static com.bosa.signandvalidation.controller.SigningController.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class SigningControllerInputCheckTest {
 
@@ -87,7 +67,7 @@ public class SigningControllerInputCheckTest {
 
         // Check files input, first with "single file, non Xades"
         TokenSignInput input = new TokenSignInput();
-        input.setFileName("file1.pdf");
+        input.setFilePath("file1.pdf");
         input.setXmlEltId("#234234");
         inputs.add(input);
         testToken(token, EMPTY_PARAM + "'XmlEltId' must be null for 'non Xades Multifile'");
@@ -97,11 +77,11 @@ public class SigningControllerInputCheckTest {
         testToken(token, EMPTY_PARAM + "'SignLanguage' (ch) must be one of fr, de, nl, en");
         input.setSignLanguage("fr");
 
-        input.setDisplayXslt("xslt");
+        input.setDisplayXsltPath("xslt");
         testToken(token, EMPTY_PARAM + "DisplayXslt must be null for non-xml files");
-        input.setDisplayXslt(null);
+        input.setDisplayXsltPath(null);
 
-        token.setOutXslt("file2.xml");
+        token.setOutXsltPath("file2.xml");
         testToken(token, EMPTY_PARAM + "'OutXslt' must be null for 'non Xades Multifile'");
 
         // ... then check "Xades multifile", first with one file
@@ -127,35 +107,30 @@ public class SigningControllerInputCheckTest {
         testToken(token, EMPTY_PARAM + "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades");
         input.setPsfC(null);
 
-        input.setPspFileName("pspFN");
+        input.setPspFilePath("pspFN");
         testToken(token, EMPTY_PARAM + "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades");
-        input.setPspFileName(null);
-
-        input.setDisplay(DisplayType.No);
-        input.setReadConfirm(true);
-        testToken(token, EMPTY_PARAM + "Display attribute : 'No' and readConfirm=true. This is impossible");
-        input.setDisplay(DisplayType.Content);
+        input.setPspFilePath(null);
 
         // ... then with two files
         TokenSignInput input2 = new TokenSignInput();
-        input2.setFileName("file1.pdf");
+        input2.setFilePath("file1.pdf");
         input2.setXmlEltId("ID1");
         inputs.add(input2);
         testToken(token, EMPTY_PARAM + "'fileName' (file1.pdf) is not unique");
 
-        input2.setFileName(null);
+        input2.setFilePath(null);
         testToken(token, EMPTY_PARAM + "'fileName' is NULL");
 
-        input2.setFileName("file2.xml");
+        input2.setFilePath("file2.xml");
         testToken(token, EMPTY_PARAM + "'XmlEltId' (ID1) is not unique");
         input2.setXmlEltId("ID2");
-        input2.setDisplayXslt("xslt");
+        input2.setDisplayXsltPath("xslt");
 
         // finish with general params
         testToken(token, EMPTY_PARAM + "'OutXslt' (file2.xml) is not unique");
-        token.setOutXslt("OutXSLT.xml");
+        token.setOutXsltPath("OutXSLT.xml");
 
-        token.setOutFileName("file2.xml");
+        token.setOutFilePath("file2.xml");
         testToken(token, EMPTY_PARAM + "'outFileName' (file2.xml) is not unique");
     }
 

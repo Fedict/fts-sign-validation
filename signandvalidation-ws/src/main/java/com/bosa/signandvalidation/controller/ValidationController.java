@@ -5,6 +5,8 @@ import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.config.ErrorStrings;
+
+import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;

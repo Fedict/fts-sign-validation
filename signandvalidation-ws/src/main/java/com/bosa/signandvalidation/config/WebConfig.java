@@ -8,17 +8,23 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebConfig.class);
+
+    @Autowired
+    private ExceptionTraceCleaner customRequestInterceptor;
+
 
     @Value("${cors.allowedorigins}")
     private String allowedOrigins;
@@ -43,4 +49,9 @@ public class WebConfig implements WebMvcConfigurer {
         return objectMapper;
     }
 
+    // Intercept every incoming request to clear the "exception log" maintained to identify error sources properly
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+         registry.addInterceptor(customRequestInterceptor);
+    }
 }
