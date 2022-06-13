@@ -13,7 +13,7 @@ public class SignatureIndicationsDTO {
 
     private XmlDiagnosticData diagnosticData;
 
-    private XmlDetailedReport report;
+    private String report;
 
     public SignatureIndicationsDTO() {
     }
@@ -48,9 +48,9 @@ public class SignatureIndicationsDTO {
         this.subIndicationLabel = subIndicationLabel;
     }
 
-    public void setReport(XmlDetailedReport report) { this.report = report; }
+    public void setReport(String report) { this.report = report; }
 
-    public XmlDetailedReport getReport() { return this.report; }
+    public String getReport() { return this.report; }
 
     public void setDiagnosticData(XmlDiagnosticData diagnosticData) { this.diagnosticData = diagnosticData; }
 

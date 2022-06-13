@@ -4,6 +4,7 @@ import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.*;
 import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
+import com.bosa.signandvalidation.utils.XmlUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
@@ -67,8 +68,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
@@ -374,7 +373,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             Document doc = dbf.newDocumentBuilder().newDocument();
             context.createMarshaller().marshal(root, doc);
 
-            //logger.info(xmlDocToString(doc));
+            //logger.info(XmlUtil.xmlDocToString(doc));
 
             TransformerFactory tf = new net.sf.saxon.BasicTransformerFactory();
             // If requested create target file
@@ -386,12 +385,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 tf.newTransformer(new StreamSource(xsltStream)).transform(new DOMSource(doc), xsltDom);
                 doc = (Document)xsltDom.getNode();
 
-            // logger.info(xmlDocToString(doc));
+                //logger.info(XmlUtil.xmlDocToString(doc));
             }
 
             putFilesContent(doc.getFirstChild(), token);
 
-            //logger.info(xmlDocToString(doc));
+            //logger.info(XmlUtil.xmlDocToString(doc));
 
             // Save target XML to bucket
             ByteArrayOutputStream outStream = new ByteArrayOutputStream(32768);
@@ -799,19 +798,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             references.add(reference);
         }
         return references;
-    }
-
-    private String xmlDocToString(Document doc) throws TransformerException {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer = tf.newTransformer();
-        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-        StringWriter writer = new StringWriter();
-        transformer.transform(new DOMSource(doc), new StreamResult(writer));
-        return writer.getBuffer().toString();
     }
 
     /*****************************************************************************************
