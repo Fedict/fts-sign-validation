@@ -771,7 +771,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             CertInfo certInfo = new CertInfo(signingCertificate);
             String nn = certInfo.getSerialNumber();
             if (!nnAllowedToSign.contains(nn)) {
-                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "NN not allowed to sign");
+                logAndThrowEx(INTERNAL_SERVER_ERROR, NOT_ALLOWED_TO_SIGN, "NN not allowed to sign");
             }
         }
     }
