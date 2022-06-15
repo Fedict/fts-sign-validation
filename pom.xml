@@ -21,7 +21,7 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <dss.version>5.9</dss.version>
+        <dss.version>5.10.1</dss.version>
         <jackson-jaxrs-json-provider.version>2.9.9</jackson-jaxrs-json-provider.version>
         <hikaricp.version>3.3.1</hikaricp.version>
         <hsqldb.version>2.5.0</hsqldb.version>
