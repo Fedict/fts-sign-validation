@@ -1,0 +1,41 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="json" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" >
+        <includeContext>false</includeContext>
+        <includeCallerData>false</includeCallerData>
+        <fieldNames>
+            <timestamp>timestamp</timestamp>
+            <message>message</message>
+            <thread>thread</thread>
+            <logger>logger</logger>
+            <version>[ignore]</version>
+            <levelValue>[ignore]</levelValue>
+            <caller>[ignore]</caller>
+            <stackTrace>[ignore]</stackTrace>
+            <mdc></mdc>
+        </fieldNames>
+        </encoder>
+
+    </appender>
+
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="STDOUT" />
+        </root>
+    </springProfile>
+
+    <springProfile name="!local">
+        <root level="INFO">
+            <appender-ref ref="json" />
+        </root>
+    </springProfile>
+
+</configuration>

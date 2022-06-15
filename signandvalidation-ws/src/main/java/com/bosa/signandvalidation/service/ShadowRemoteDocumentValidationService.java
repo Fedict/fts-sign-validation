@@ -1,5 +1,19 @@
 package com.bosa.signandvalidation.service;
 
+/******************************* WARNING ****************************
+
+ This class is a shadow of the DSS 5.9 "RemoteDocumentValidationService"
+ It is needed because there is an issue when validating Xades signatures
+ with "Policies". The code was using a non-proxied "dataLoader" object
+ which is blocked by firewalls.
+ Since there was no way to inject the fileCacheDataLoader into the object
+ chain I (chmo) duplicated the DSS class and modified it to allow the
+ injection of the fileCacheDataLoader at object creation and set the
+ dataloader on the signaturePolicyProvider
+
+*********************************************************************/
+
+
 /**
  * DSS - Digital Signature Services
  * Copyright (C) 2015 European Commission, provided under the CEF programme
@@ -52,6 +66,7 @@ public class ShadowRemoteDocumentValidationService {
     /** The certificate verifier to use */
     private CertificateVerifier verifier;
 
+    /**************** fileCacheDataLoader will land here */
     private DataLoader dataLoader;
 
     /**
@@ -63,6 +78,7 @@ public class ShadowRemoteDocumentValidationService {
         this.verifier = verifier;
     }
 
+    /**************** fileCacheDataLoader setter */
     public void setDataLoader(DataLoader dataLoader) {
         this.dataLoader = dataLoader;
     }
@@ -137,9 +153,11 @@ public class ShadowRemoteDocumentValidationService {
             signedDocValidator.setTokenExtractionStrategy(dataToValidate.getTokenExtractionStrategy());
         }
 
+        /**************** Inject fileCacheDataLoader in SignaturePolicyProvider */
         SignaturePolicyProvider signaturePolicyProvider = new SignaturePolicyProvider();
         signaturePolicyProvider.setDataLoader(dataLoader);
         signedDocValidator.setSignaturePolicyProvider(signaturePolicyProvider);
+
         return signedDocValidator;
     }
 

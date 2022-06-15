@@ -1,9 +1,10 @@
 package com.bosa.signandvalidation.config;
 
-import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
-import com.bosa.signandvalidation.service.RemoteXadesSignatureServiceImpl;
+import com.bosa.signandvalidation.dataloaders.InterceptCommonsDataLoader;
+import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
+import com.bosa.signandvalidation.dataloaders.InterceptOCSPDataLoader;
+import com.bosa.signandvalidation.service.*;
 
-import com.bosa.signandvalidation.service.ShadowRemoteDocumentValidationService;
 import eu.europa.esig.dss.asic.cades.signature.ASiCWithCAdESService;
 import eu.europa.esig.dss.asic.xades.signature.ASiCWithXAdESService;
 import eu.europa.esig.dss.cades.signature.CAdESService;
@@ -136,7 +137,7 @@ public class DSSBeanConfig {
 
     @Bean
     public OCSPDataLoader ocspDataLoader() {
-        OCSPDataLoader ocspDataLoader = new OCSPDataLoader();
+        OCSPDataLoader ocspDataLoader = new InterceptOCSPDataLoader();
         ocspDataLoader.setProxyConfig(proxyConfig);
         return ocspDataLoader;
     }
@@ -144,7 +145,9 @@ public class DSSBeanConfig {
     @Bean
     public FileCacheDataLoader fileCacheDataLoader() {
         FileCacheDataLoader fileCacheDataLoader = new FileCacheDataLoader();
-        fileCacheDataLoader.setDataLoader(dataLoader());
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.POLICY);
+        dataLoader.setProxyConfig(proxyConfig);
+        fileCacheDataLoader.setDataLoader(dataLoader);
         // Per default uses "java.io.tmpdir" property
         // fileCacheDataLoader.setFileCacheDirectory(new File("/tmp"));
         return fileCacheDataLoader;
@@ -153,7 +156,9 @@ public class DSSBeanConfig {
     @Bean
     public OnlineCRLSource onlineCRLSource() {
         OnlineCRLSource onlineCRLSource = new OnlineCRLSource();
-        onlineCRLSource.setDataLoader(dataLoader());
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CRL);
+        dataLoader.setProxyConfig(proxyConfig);
+        onlineCRLSource.setDataLoader(dataLoader);
         return onlineCRLSource;
     }
 
@@ -220,7 +225,9 @@ public class DSSBeanConfig {
         CommonCertificateVerifier certificateVerifier = new CommonCertificateVerifier();
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
-        certificateVerifier.setDataLoader(dataLoader());
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CERT_VERIFICATION);
+        dataLoader.setProxyConfig(proxyConfig);
+        certificateVerifier.setDataLoader(dataLoader);
         if (testKsenabled)
             certificateVerifier.setTrustedCertSources(trustedListSource(), extraTrustStoreSource(), testTrustStoreSource());
         else
@@ -334,7 +341,9 @@ public class DSSBeanConfig {
     public DSSFileLoader onlineLoader() {
         FileCacheDataLoader offlineFileLoader = new FileCacheDataLoader();
         offlineFileLoader.setCacheExpirationTime(0);
-        offlineFileLoader.setDataLoader(dataLoader());
+        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.ONLINE_LOADING);
+        dataLoader.setProxyConfig(proxyConfig);
+        offlineFileLoader.setDataLoader(dataLoader);
         offlineFileLoader.setFileCacheDirectory(tlCacheDirectory());
         return offlineFileLoader;
     }

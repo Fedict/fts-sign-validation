@@ -67,10 +67,10 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
     @AllArgsConstructor
     private enum FileDef {
-        F1("root/aFile.xml", "1", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1", false, DisplayType.Content),
-        F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2", true, DisplayType.Content),
-        F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null, false, DisplayType.No),
-        F4("dFile.pdf", "FOUR", APPLICATION_PDF, "QSBUZXN0", null, null, true, DisplayType.Content);
+        F1("root/aFile.xml", "1", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1"),
+        F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2"),
+        F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null),
+        F4("dFile.pdf", "FOUR", APPLICATION_PDF, "QSBUZXN0", null, null);
 
         private final String name;
         private final String id;
@@ -78,11 +78,18 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         private final String data;
         private final String xslt;
         private final String xsltData;
-        private final Boolean rdConf;
-        private final DisplayType dt;
 
-        SignInput getXmlSignInput() { return new SignInput(name, id, rdConf, dt, xslt); }
-        public static FileDef find(String name) { for (FileDef fd : values()) if (name.equals(fd.name) || name.equals(fd.xslt)) return fd; return null; }
+        SignInput getXmlSignInput() { return new SignInput(name, id, xslt); }
+        public static FileDef find(String name) {
+            for (FileDef fd : values()) {
+                String fdName = fd.name;
+                int pos = fdName.lastIndexOf('/');
+                fdName = pos == -1 ? fdName : fdName.substring(pos + 1);
+                if (name.compareTo(fdName) == 0 || name.compareTo(fdName) == 0)
+                    return fd;
+            }
+            return null;
+        }
     }
 
     private static String unSignedXmlFile;
@@ -134,7 +141,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         // Start testing
         GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", "XADES_B", inFiles, OUT_FILE_NAME);
-        gtfd.setOutXslt(MAIN_XSLT_FILE_NAME);
+        gtfd.setOutXsltPath(MAIN_XSLT_FILE_NAME);
         gtfd.setOutDownload(true);
 
         // Create XML to sign
@@ -153,7 +160,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
             assertEquals(new String(file.getBody()), fd.data);
             assertEquals(file.getHeaders().getContentType(), fd.type);
 
-            if (input.getDisplayXslt() != null) {
+            if (input.isHasDisplayXslt()) {
                 file = this.restTemplate.getForEntity(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_FILE_FOR_TOKEN + "/" + token + "/" + GetFileType.XSLT + "/" + inputIndex, byte[].class);
 
                 fd = FileDef.find(input.getFileName());
