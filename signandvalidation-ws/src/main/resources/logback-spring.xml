@@ -12,7 +12,7 @@
         <includeContext>false</includeContext>
         <includeCallerData>false</includeCallerData>
         <fieldNames>
-            <timestamp>timestamp</timestamp>
+            <timestamp>@timestamp</timestamp>
             <message>message</message>
             <thread>thread</thread>
             <logger>logger</logger>
