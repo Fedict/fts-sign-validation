@@ -9,14 +9,24 @@ import com.bosa.signandvalidation.config.ErrorStrings;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 
+import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -45,8 +55,25 @@ public class ValidationController extends ControllerBase implements ErrorStrings
     }
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) {
-        return reportsService.getSignatureIndicationsDto(validateSignatureFull(toValidate));
+    public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
+        WSReportsDTO report = validateSignatureFull(toValidate);
+        SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsDto(report);
+        signDto.setDiagnosticData(report.getDiagnosticData());
+
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(XmlReportRoot.class);
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            StringWriter sw = new StringWriter();
+            XmlReportRoot root = new XmlReportRoot();
+            root.setReport(report.getDetailedReport());
+            jaxbMarshaller.marshal(root, sw);
+            signDto.setReport(sw.toString());
+        } catch(Exception e) {
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Cannot render Detailed Signature report");
+        }
+
+        return signDto;
     }
 
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -130,5 +157,16 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
+    }
+
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
+    private static class XmlReportRoot {
+
+        private XmlDetailedReport report;
+
+        public void setReport(XmlDetailedReport report) {
+            this.report = report;
+        }
     }
 }
