@@ -5,6 +5,7 @@ import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.dataloaders.InterceptOCSPDataLoader;
 import com.bosa.signandvalidation.service.*;
 
+import com.bosa.signandvalidation.service.ShadowRemoteDocumentValidationService;
 import eu.europa.esig.dss.asic.cades.signature.ASiCWithCAdESService;
 import eu.europa.esig.dss.asic.xades.signature.ASiCWithXAdESService;
 import eu.europa.esig.dss.cades.signature.CAdESService;
@@ -20,10 +21,13 @@ import eu.europa.esig.dss.service.ocsp.JdbcCacheOCSPSource;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
 import eu.europa.esig.dss.spi.client.http.DSSFileLoader;
 import eu.europa.esig.dss.spi.client.http.IgnoreDataLoader;
+import eu.europa.esig.dss.spi.client.jdbc.JdbcCacheConnector;
 import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
+import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
+import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.tsl.function.OfficialJournalSchemeInformationURI;
 import eu.europa.esig.dss.tsl.job.TLValidationJob;
@@ -137,7 +141,7 @@ public class DSSBeanConfig {
 
     @Bean
     public OCSPDataLoader ocspDataLoader() {
-        OCSPDataLoader ocspDataLoader = new InterceptOCSPDataLoader();
+        OCSPDataLoader ocspDataLoader = new OCSPDataLoader();
         ocspDataLoader.setProxyConfig(proxyConfig);
         return ocspDataLoader;
     }
@@ -145,9 +149,7 @@ public class DSSBeanConfig {
     @Bean
     public FileCacheDataLoader fileCacheDataLoader() {
         FileCacheDataLoader fileCacheDataLoader = new FileCacheDataLoader();
-        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.POLICY);
-        dataLoader.setProxyConfig(proxyConfig);
-        fileCacheDataLoader.setDataLoader(dataLoader);
+        fileCacheDataLoader.setDataLoader(dataLoader());
         // Per default uses "java.io.tmpdir" property
         // fileCacheDataLoader.setFileCacheDirectory(new File("/tmp"));
         return fileCacheDataLoader;
@@ -156,16 +158,14 @@ public class DSSBeanConfig {
     @Bean
     public OnlineCRLSource onlineCRLSource() {
         OnlineCRLSource onlineCRLSource = new OnlineCRLSource();
-        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CRL);
-        dataLoader.setProxyConfig(proxyConfig);
-        onlineCRLSource.setDataLoader(dataLoader);
+        onlineCRLSource.setDataLoader(dataLoader());
         return onlineCRLSource;
     }
 
     @Bean
     public JdbcCacheCRLSource cachedCRLSource() {
         JdbcCacheCRLSource jdbcCacheCRLSource = new JdbcCacheCRLSource();
-        jdbcCacheCRLSource.setDataSource(dataSource);
+        jdbcCacheCRLSource.setJdbcCacheConnector(new JdbcCacheConnector(dataSource));
         jdbcCacheCRLSource.setProxySource(onlineCRLSource());
         jdbcCacheCRLSource.setDefaultNextUpdateDelay((long) (60 * 3)); // 3 minutes
         return jdbcCacheCRLSource;
@@ -181,7 +181,7 @@ public class DSSBeanConfig {
     @Bean
     public JdbcCacheOCSPSource cachedOCSPSource() {
         JdbcCacheOCSPSource jdbcCacheOCSPSource = new JdbcCacheOCSPSource();
-        jdbcCacheOCSPSource.setDataSource(dataSource);
+        jdbcCacheOCSPSource.setJdbcCacheConnector(new JdbcCacheConnector(dataSource));
         jdbcCacheOCSPSource.setProxySource(onlineOcspSource());
         jdbcCacheOCSPSource.setDefaultNextUpdateDelay((long) (1000 * 60 * 3)); // 3 minutes
         return jdbcCacheOCSPSource;
@@ -227,7 +227,7 @@ public class DSSBeanConfig {
         certificateVerifier.setOcspSource(cachedOCSPSource());
         CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CERT_VERIFICATION);
         dataLoader.setProxyConfig(proxyConfig);
-        certificateVerifier.setDataLoader(dataLoader);
+        certificateVerifier.setAIASource(new DefaultAIASource(dataLoader));
         if (testKsenabled)
             certificateVerifier.setTrustedCertSources(trustedListSource(), extraTrustStoreSource(), testTrustStoreSource());
         else
@@ -341,9 +341,7 @@ public class DSSBeanConfig {
     public DSSFileLoader onlineLoader() {
         FileCacheDataLoader offlineFileLoader = new FileCacheDataLoader();
         offlineFileLoader.setCacheExpirationTime(0);
-        CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.ONLINE_LOADING);
-        dataLoader.setProxyConfig(proxyConfig);
-        offlineFileLoader.setDataLoader(dataLoader);
+        offlineFileLoader.setDataLoader(dataLoader());
         offlineFileLoader.setFileCacheDirectory(tlCacheDirectory());
         return offlineFileLoader;
     }
