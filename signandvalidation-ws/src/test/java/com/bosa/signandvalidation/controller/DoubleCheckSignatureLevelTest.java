@@ -36,7 +36,7 @@ import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
 import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DoubleCheckSigntureLevelTest extends SignAndValidationTestBase implements ErrorStrings {
+public class DoubleCheckSignatureLevelTest extends SignAndValidationTestBase implements ErrorStrings {
 
     @Autowired
     ObjectMapper mapper;
