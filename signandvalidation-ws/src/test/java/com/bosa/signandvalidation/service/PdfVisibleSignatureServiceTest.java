@@ -41,8 +41,8 @@ public class PdfVisibleSignatureServiceTest {
 
         File testFolder = new File("src/test/resources/imageTests");
         for(File f : testFolder.listFiles()) {
-            String fileName = f.getName();
-            if (!fileName.endsWith(".psp")) continue;
+            String fileNameBits[] = f.getName().split("\\.");
+            if ("psp".compareTo(fileNameBits[1]) != 0) continue;
 
             System.out.println("File : " + f.getPath());
             RemoteSignatureParameters params = new RemoteSignatureParameters();
@@ -52,20 +52,23 @@ public class PdfVisibleSignatureServiceTest {
             input.setPspFilePath(f.getPath());
             Mockito.reset(storageService);
             Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(f.getPath()), eq(false))).thenReturn(Utils.toByteArray(new FileInputStream(f)));
-            input.setSignLanguage(fileName.substring(0, 2));
+            input.setSignLanguage(fileNameBits[0].substring(0, 2));
             input.setPsfC("2,20,20,300,150");
-            srv.checkAndFillParams(params, doc, input, THE_BUCKET, fileName.charAt(2) == 'T' ? photo : null);
+            srv.checkAndFillParams(params, doc, input, THE_BUCKET, fileNameBits[0].charAt(2) == 'T' ? photo : null);
 
             RemoteSignatureImageParameters sigImgParams = params.getImageParameters();
             byte actualBytes[] = sigImgParams.getImage().getBytes();
 
-            File png = new File(testFolder, "_" + fileName.substring(0, fileName.length() - 3) + "png");
+            File png = new File(testFolder, "_" + fileNameBits[0] + ".png");
             if (!png.exists()) new InMemoryDocument(actualBytes).save(png.getPath());
 
             byte expectedBytes[] = Utils.toByteArray(new FileInputStream(png));
 
-            assertTrue(Arrays.equals(expectedBytes, actualBytes));
-            assertEquals(IMG_DPI, sigImgParams.getDpi());
+            if (!Arrays.equals(expectedBytes, actualBytes)) {
+                png = new File(testFolder, "E_" + fileNameBits[0] + ".png");
+                new InMemoryDocument(actualBytes).save(png.getPath());
+                fail("Difference between expected image and rendered image for psp :" + fileNameBits[0] + ". rendered image is here : " + png);
+            }
         }
     }
 }
