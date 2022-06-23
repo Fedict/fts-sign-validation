@@ -60,11 +60,14 @@ public class PdfVisibleSignatureServiceTest {
             byte actualBytes[] = sigImgParams.getImage().getBytes();
 
             File png = new File(testFolder, "_" + fileNameBits[0] + ".png");
+
+            // If expected image not yet generated, create it in the resource folder
             if (!png.exists()) new InMemoryDocument(actualBytes).save(png.getPath());
 
             byte expectedBytes[] = Utils.toByteArray(new FileInputStream(png));
 
             if (!Arrays.equals(expectedBytes, actualBytes)) {
+                // In case of difference, create image for quicker analysis
                 png = new File(testFolder, "E_" + fileNameBits[0] + ".png");
                 new InMemoryDocument(actualBytes).save(png.getPath());
                 fail("Difference between expected image and rendered image for psp :" + fileNameBits[0] + ". rendered image is here : " + png);
