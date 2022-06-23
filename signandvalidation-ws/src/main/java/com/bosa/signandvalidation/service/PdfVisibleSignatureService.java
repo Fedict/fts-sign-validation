@@ -12,8 +12,8 @@ import eu.europa.esig.dss.enumerations.SignerTextPosition;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
-import eu.europa.esig.dss.pades.signature.PAdESService;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
@@ -22,7 +22,6 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -47,21 +46,15 @@ import java.awt.Font;
  * that is then given to DSS to be put in the PDf visible signature field.
  */
 @Service
+@RequiredArgsConstructor
 public class PdfVisibleSignatureService {
 
     private static final String FONTS_PATH_PROPERTY = "fonts.path";
 
-    @Autowired
-    private PAdESService padesService;
-
-    @Autowired
-    private StorageService storageService;
+    private final StorageService storageService;
 
     private final HashMap<String, byte[]> fontFiles = new HashMap<String, byte[]>(20);
     
-    public PdfVisibleSignatureService() {
-    }
-
     private final Logger logger = Logger.getLogger(PdfVisibleSignatureService.class.getName());
 
     public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, TokenSignInput input, String bucket, byte[] photo)
@@ -138,7 +131,7 @@ public class PdfVisibleSignatureService {
         String psfC = null;
 
         // If present, get the profile JSON from the minio, parse it and overwrite the defaults for all values present
-        if (null != input && null != input.getPspFilePath()) {
+        if (null != input.getPspFilePath()) {
             try {
                 byte[] json = storageService.getFileAsBytes(bucket, input.getPspFilePath(), false);
                 PdfSignatureProfile psp = (new ObjectMapper()).readValue(new String(json), PdfSignatureProfile.class);
@@ -160,20 +153,16 @@ public class PdfVisibleSignatureService {
                 throw new NullParameterException("Error parsing PDF Signature Profile file: " + e.getMessage());
             }
         }
-        if (null != photo)
-		image = photo;
-	else if (Arrays.equals(image, DEFAULT))
-		image = IMAGE;
+
+        if (null != photo) image = photo;
+	    else if (Arrays.equals(image, DEFAULT)) image = IMAGE;
 
         RemoteSignatureImageParameters sigImgParams = new RemoteSignatureImageParameters();
         remoteSigParams.setImageParameters(sigImgParams);
 
         RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
         sigImgParams.setFieldParameters(sigFieldParams);
-        if (null != sigFieldId) {
-            sigFieldParams.setFieldId(sigFieldId);
-	}
-        else {
+        if (sigFieldId == null) {
             if (!"default".equals(sigFieldCoords))
                 psfC = sigFieldCoords;
             if (null == psfC)
@@ -181,6 +170,8 @@ public class PdfVisibleSignatureService {
             int[] ret = fillCoordinates(sigFieldParams, psfC);
             xPdfField = ret[0];
             yPdfField = ret[1];
+    	} else {
+            sigFieldParams.setFieldId(sigFieldId);
         }
 
         fillParams(remoteSigParams, texts, lang, signingDate, fontStr, textPadding, textSize, textAlignH, textAlignV, textPos, textColor, bgColor, imageDpi, image, xPdfField, yPdfField);

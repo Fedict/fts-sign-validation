@@ -1,69 +1,145 @@
 package com.bosa.signandvalidation.service;
 
-import com.bosa.signingconfigurator.exception.NullParameterException;
+import com.bosa.signandvalidation.model.TokenSignInput;
 
+import eu.europa.esig.dss.model.InMemoryDocument;
+import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
+import eu.europa.esig.dss.ws.dto.RemoteDocument;
 
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageParameters;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.*;
 
+@ExtendWith(MockitoExtension.class)
 public class PdfVisibleSignatureServiceTest {
-    @Test
-    public void testFillCoordinates() throws Exception {
-        RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
-        int[] ret = PdfVisibleSignatureService.fillCoordinates(sigFieldParams, "1,2,3,4,5");
-        assertEquals(1, sigFieldParams.getPage());
-        assertEquals((float) 2.0, sigFieldParams.getOriginX());
-        assertEquals((float) 3.0, sigFieldParams.getOriginY());
-        assertEquals((float) 4.0, sigFieldParams.getWidth());
-        assertEquals((float) 5.0, sigFieldParams.getHeight());
-        assertEquals(2, ret.length);
-        assertEquals(4, ret[0]);
-        assertEquals(5, ret[1]);
-    }
+    private static final String THE_BUCKET = "THE_BUCKET";
+    private static final Integer IMG_DPI = 400;
+
+    @Mock
+    private StorageService storageService;
 
     @Test
-    public void testMakeText() throws Exception {
-        LinkedHashMap<String,String> texts = new LinkedHashMap<String,String>();
-        texts.put("en", "Signed by %gn% %sn% (%nn%=%rrn%)\non %d(MMM d YYYY)%");
-        texts.put("nl", "Getekend door %gn% %sn% (%nn%=%rrn%)\nop %d(d MMM YYYY)%");
-        texts.put("fr", "Signé par %gn% %sn% (%nn%=%rrn%)\nau %d(d MMM YYYY)%");
-        texts.put("de", "Unterzeichnet von %gn% %sn% (%nn%=%rrn%)\nam %d(d MMM YYYY)%");
+    public void testRenderSignature() throws Exception {
 
-        Date signingDate = new Date();
-        signingDate.setTime(1623318619435L);
+        PdfVisibleSignatureService srv = new PdfVisibleSignatureService(storageService);
 
-        RemoteCertificate signingCert = CertInfoTest.getTomTestCertificate();
+        RemoteCertificate cert = CertInfoTest.getTomTestCertificate();
+        byte photo[] = Utils.toByteArray(new FileInputStream("src/test/resources/photo.png"));
+        byte pdfFile[] = Utils.toByteArray(new FileInputStream("src/test/resources/mini.pdf"));
 
-        String text = PdfVisibleSignatureService.makeText(null, null, signingDate, signingCert);
-        assertEquals("Tom Test", text);
-        text = PdfVisibleSignatureService.makeText(texts, null, signingDate, signingCert);
-        assertEquals("Signed by Tom Test (73040102749=73040102749)\non Jun 10 2021", text);
-        text = PdfVisibleSignatureService.makeText(texts, "en", signingDate, signingCert);
-        assertEquals("Signed by Tom Test (73040102749=73040102749)\non Jun 10 2021", text);
-        text = PdfVisibleSignatureService.makeText(texts, "nl", signingDate, signingCert);
-        // Ignore minor "locale" differences for date formatting (Ideally we should change the locale in the main code but there is a risk of PRD regression)
-        text = text.replaceAll(" jun\\. ", " jun ");
-        assertEquals("Getekend door Tom Test (73040102749=73040102749)\nop 10 jun 2021", text);
-        text = PdfVisibleSignatureService.makeText(texts, "fr", signingDate, signingCert);
-        assertEquals("Signé par Tom Test (73040102749=73040102749)\nau 10 juin 2021", text);
-        text = PdfVisibleSignatureService.makeText(texts, "de", signingDate, signingCert);
-        // Ignore minor "locale" differences for date formatting (Ideally we should change the locale in the main code but there is a risk of PRD regression)
-        text = text.replaceAll(" Juni ", " Jun ");
-        assertEquals("Unterzeichnet von Tom Test (73040102749=73040102749)\nam 10 Jun 2021", text);
-        try {
-            PdfVisibleSignatureService.makeText(texts, "xx", signingDate, signingCert);
-            fail(); // we shouldn't get here
-        } catch (NullParameterException e) {
-            System.out.println(e.getMessage());
+        File testFolder = new File("src/test/resources/imageTests");
+        for(File f : testFolder.listFiles()) {
+            String fileName = f.getName();
+            if (!fileName.endsWith(".psp")) continue;
+
+            System.out.println("File : " + f.getPath());
+            RemoteSignatureParameters params = new RemoteSignatureParameters();
+            params.setSigningCertificate(cert);
+            RemoteDocument doc = new RemoteDocument(pdfFile, "A.pdf");
+            TokenSignInput input = new TokenSignInput();
+            input.setPspFilePath(f.getPath());
+            Mockito.reset(storageService);
+            Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(f.getPath()), eq(false))).thenReturn(Utils.toByteArray(new FileInputStream(f)));
+            input.setSignLanguage(fileName.substring(0, 2));
+            input.setPsfC("2,20,20,300,150");
+            srv.checkAndFillParams(params, doc, input, THE_BUCKET, fileName.charAt(2) == 'T' ? photo : null);
+
+            RemoteSignatureImageParameters sigImgParams = params.getImageParameters();
+            byte actualBytes[] = sigImgParams.getImage().getBytes();
+
+            File png = new File(testFolder, "_" + fileName.substring(0, fileName.length() - 3) + "png");
+            if (!png.exists()) new InMemoryDocument(actualBytes).save(png.getPath());
+
+            byte expectedBytes[] = Utils.toByteArray(new FileInputStream(png));
+
+            assertTrue(Arrays.equals(expectedBytes, actualBytes));
+            assertEquals(IMG_DPI, sigImgParams.getDpi());
         }
-
-        texts = new LinkedHashMap<String,String>();
-        texts.put("en", "%d(MMM d YYYY)% %d(yyyy.MMMMM.dd)%");
-        text = PdfVisibleSignatureService.makeText(texts, null, signingDate, signingCert);
-        assertEquals("Jun 10 2021 2021.June.10", text);
-   }
+    }
 }
+
+/*
+    private VisualSignatureAlignmentHorizontal alignmentHorizontal;
+        NONE,
+        LEFT,
+        CENTER,
+        RIGHT;
+
+    private VisualSignatureAlignmentVertical alignmentVertical;
+        NONE,
+        TOP,
+        MIDDLE,
+        BOTTOM;
+
+    private ImageScaling imageScaling;
+        STRETCH,
+        ZOOM_AND_CENTER,
+        CENTER;
+
+    private RemoteColor backgroundColor;
+        private Integer red;
+        private Integer green;
+        private Integer blue;
+        private Integer alpha;
+
+    private Integer dpi;
+    private RemoteDocument image;
+    private VisualSignatureRotation rotation;
+        NONE,
+        AUTOMATIC,
+        ROTATE_90,
+        ROTATE_180,
+        ROTATE_270;
+
+    private RemoteSignatureFieldParameters fieldParameters;
+        private String fieldId;
+        private Float originX;
+        private Float originY;
+        private Float width;
+        private Float height;
+        private Integer page;
+
+
+    private RemoteSignatureImageTextParameters textParameters;
+        private RemoteColor backgroundColor;
+        private RemoteDocument font;
+        private TextWrapping textWrapping;
+            FILL_BOX,
+            FILL_BOX_AND_LINEBREAK,
+            FONT_BASED;
+
+        private Float padding;
+        private SignerTextHorizontalAlignment signerTextHorizontalAlignment;
+            LEFT,
+            CENTER,
+            RIGHT;
+
+        private SignerTextVerticalAlignment signerTextVerticalAlignment;
+            TOP,
+            MIDDLE,
+            BOTTOM;
+
+        private SignerTextPosition signerTextPosition;
+            TOP,
+            BOTTOM,
+            RIGHT,
+            LEFT;
+
+        private Integer size;
+        private String text;
+        private RemoteColor textColor;
+
+    private Integer zoom;
+ */
