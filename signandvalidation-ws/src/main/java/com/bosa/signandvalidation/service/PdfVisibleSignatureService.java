@@ -4,11 +4,12 @@ import com.bosa.signandvalidation.model.PdfSignatureProfile;
 import com.bosa.signandvalidation.model.TokenSignInput;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 
+import eu.europa.esig.dss.enumerations.*;
+import eu.europa.esig.dss.utils.Utils;
+import eu.europa.esig.dss.ws.dto.RemoteColor;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
-import eu.europa.esig.dss.enumerations.SignerTextHorizontalAlignment;
-import eu.europa.esig.dss.enumerations.SignerTextVerticalAlignment;
-import eu.europa.esig.dss.enumerations.SignerTextPosition;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageTextParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.io.File;
@@ -38,7 +40,8 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Date;
 import java.text.SimpleDateFormat;
-import java.awt.Font;
+
+import static eu.europa.esig.dss.enumerations.VisualSignatureRotation.AUTOMATIC;
 
 /**
  * The current DSS lib has problems in creating a consistent PDF visible signature,
@@ -57,7 +60,7 @@ public class PdfVisibleSignatureService {
     
     private final Logger logger = Logger.getLogger(PdfVisibleSignatureService.class.getName());
 
-    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, TokenSignInput input, String bucket, byte[] photo)
+    public void checkAndFillParams1(RemoteSignatureParameters remoteSigParams, RemoteDocument document, TokenSignInput input, String bucket, byte[] photo)
             throws NullParameterException {
 
         String sigFieldId = input.getPsfN();
@@ -155,7 +158,7 @@ public class PdfVisibleSignatureService {
         }
 
         if (null != photo) image = photo;
-	    else if (Arrays.equals(image, DEFAULT)) image = IMAGE;
+	    else if (Arrays.equals(image, DEFAULT_BYTES)) image = IMAGE;
 
         RemoteSignatureImageParameters sigImgParams = new RemoteSignatureImageParameters();
         remoteSigParams.setImageParameters(sigImgParams);
@@ -163,7 +166,7 @@ public class PdfVisibleSignatureService {
         RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
         sigImgParams.setFieldParameters(sigFieldParams);
         if (sigFieldId == null) {
-            if (!"default".equals(sigFieldCoords))
+            if (!DEFAULT_STRING.equals(sigFieldCoords))
                 psfC = sigFieldCoords;
             if (null == psfC)
                 throw new NullParameterException("default PDF signature coordinates requested, but these we not specified in the psp (or no psp)");
@@ -251,7 +254,7 @@ public class PdfVisibleSignatureService {
         }
         else {
             // Assume it's a system font
-            if (fontName.equals("default"))
+            if (fontName.equals(DEFAULT_STRING))
                 fontName = null;
             return new Font(fontName, fontType, fontSize);
         }
@@ -346,9 +349,9 @@ public class PdfVisibleSignatureService {
         sigFieldParams.setPage(Integer.parseInt(coords[0]));
         sigFieldParams.setOriginX((float) Integer.parseInt(coords[1]));
         sigFieldParams.setOriginY((float) Integer.parseInt(coords[2]));
-	int width = Integer.parseInt(coords[3]);
+    	int width = Integer.parseInt(coords[3]);
         sigFieldParams.setWidth((float) width);
-	int heigth = Integer.parseInt(coords[4]);
+    	int heigth = Integer.parseInt(coords[4]);
         sigFieldParams.setHeight((float) heigth);
         return new int[] {width, heigth};
     }
@@ -364,6 +367,183 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
+    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, TokenSignInput input, String bucket, byte[] photo)
+            throws NullParameterException, IOException {
+
+        RemoteSignatureImageParameters sigImgParams = new RemoteSignatureImageParameters();
+        remoteSigParams.setImageParameters(sigImgParams);
+        RemoteSignatureFieldParameters fieldParams = new RemoteSignatureFieldParameters();
+        sigImgParams.setFieldParameters(fieldParams);
+        RemoteSignatureImageTextParameters textParams = new RemoteSignatureImageTextParameters();
+        sigImgParams.setTextParameters(textParams);
+
+        PdfSignatureProfile psp = getPspOrDefaults(bucket, input.getPspFilePath());
+
+        String sigFieldId = input.getPsfN();
+        if (sigFieldId != null) {
+            fieldParams.setFieldId(sigFieldId);
+        } else {
+            String sigFieldCoords = input.getPsfC();
+            if (sigFieldCoords == null) return;
+            convertFiledCoords(sigFieldCoords, psp.defaultCoordinates, fieldParams);
+        }
+
+        Date signingDate = remoteSigParams.getBLevelParams().getSigningDate();
+        String text = makeText(psp.texts, input.getSignLanguage(), signingDate, remoteSigParams.getSigningCertificate());
+
+        textParams.setSize(psp.textSize);
+        RemoteDocument dssFont = new RemoteDocument();
+        dssFont.setBytes(Utils.toByteArray(new FileInputStream("src/test/resources/OpenSansBold.ttf")));
+        textParams.setFont(dssFont);
+        Font font = getFont(psp.font, textParams.getSize());
+
+        textParams.setTextWrapping(TextWrapping.FILL_BOX);
+        textParams.setTextColor(makeColor(psp.textColor));
+        textParams.setText(text);
+        textParams.setPadding((float)psp.textPadding);
+        textParams.setSignerTextPosition(SignerTextPosition.valueOf(psp.textPos));
+        textParams.setSignerTextVerticalAlignment(SignerTextVerticalAlignment.valueOf(psp.textAlignV));
+        textParams.setSignerTextHorizontalAlignment(SignerTextHorizontalAlignment.valueOf(psp.textAlignH));
+
+        byte image[] = photo != null ? photo : psp.image;
+
+        sigImgParams.setImage(new RemoteDocument(image, "image.png"));
+        sigImgParams.setDpi(psp.imageDpi);
+        sigImgParams.setImageScaling(ImageScaling.CENTER);
+        sigImgParams.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.NONE);
+        sigImgParams.setAlignmentVertical(VisualSignatureAlignmentVertical.NONE);
+        sigImgParams.setBackgroundColor(makeColor(psp.bgColor));
+        sigImgParams.setRotation(AUTOMATIC);
+        sigImgParams.setZoom(1);
+
+        legacyRender(sigImgParams, document, psp, text, image, font);
+    }
+
+    private void legacyRender(RemoteSignatureImageParameters sigImgParams, RemoteDocument document, PdfSignatureProfile psp, String text, byte[] image, Font font) throws NullParameterException {
+        RemoteSignatureImageTextParameters textParams = sigImgParams.getTextParameters();
+        RemoteSignatureFieldParameters fieldParams = sigImgParams.getFieldParameters();
+
+        int txtPos = getTextPos(textParams.getSignerTextPosition());
+        int txtAlignH = getHorizontalAlign(textParams.getSignerTextHorizontalAlignment());
+        int txtAlignV = getVerticalAlign(textParams.getSignerTextVerticalAlignment());
+
+        int xPdfField = 0; // width of the PDF visible signature field
+        int yPdfField = 0; // height of the PDF visible signature field
+        if (fieldParams.getFieldId() != null) {
+            // Pdf field -> get w/h from PDF
+            PDRectangle rect = getPdfSignatureRectangle(document, fieldParams.getFieldId());
+            xPdfField = (int) rect.getWidth();
+            yPdfField = (int) rect.getHeight();
+        } else {
+            xPdfField = fieldParams.getWidth().intValue();
+            yPdfField = fieldParams.getHeight().intValue();
+        }
+
+        try {
+//psp.bgColor = "#000000";
+//psp.textColor = "#FFFFFF";
+            byte[] pdfVisbleSigImage = PdfImageBuilder.makePdfImage(
+                    xPdfField, yPdfField,
+                    psp.bgColor, textParams.getPadding().intValue(),
+                    text, psp.textColor, txtPos, txtAlignH, txtAlignV, font,
+                    image);
+
+            RemoteDocument imageDoc = new RemoteDocument();
+            imageDoc.setBytes(pdfVisbleSigImage);
+//imageDoc = null;
+sigImgParams.setImage(imageDoc);
+textParams.setFont(null);
+textParams.setPadding(0F);
+        }
+        catch (Exception e) {
+            logger.log(Level.SEVERE, e.toString());
+            throw new NullParameterException(e.getMessage());
+        }
+    }
+
+    private PdfSignatureProfile getPspOrDefaults(String bucket, String pspPath) throws NullParameterException {
+
+        PdfSignatureProfile psp = new PdfSignatureProfile();
+        if (pspPath != null) {
+            try {
+                byte[] json = storageService.getFileAsBytes(bucket, pspPath, false);
+                psp = (new ObjectMapper()).readValue(new String(json), PdfSignatureProfile.class);
+            }
+            catch (Exception e) {
+                throw new NullParameterException("Error reading or parsing PDF Signature Profile file: " + e.getMessage());
+            }
+        }
+
+        if (psp.bgColor == null) psp.bgColor = "#D0D0D0";   // light gray, same as IMAGE background color;
+        if (psp.textSize == null) psp.textSize = 14;
+        if (psp.textPadding == null) psp.textPadding = 20;
+        if (psp.textAlignH == null) psp.textAlignH = SignerTextHorizontalAlignment.LEFT.toString();
+        if (psp.textAlignV == null) psp.textAlignV = SignerTextVerticalAlignment.TOP.toString();
+        if (psp.textPos == null) psp.textPos = SignerTextPosition.BOTTOM.toString();
+        if (psp.textColor == null) psp.textColor = "#0000FF"; // blue
+        if (psp.imageDpi == null) psp.imageDpi = 400;
+        if (psp.image != null && Arrays.equals(psp.image, DEFAULT_BYTES)) psp.image = IMAGE;
+
+        return psp;
+    }
+
+    private RemoteColor makeColor(String color) {
+       if (color.length() != 7) throw new IllegalArgumentException("Invalid color code specified: " + color);
+
+       return new RemoteColor(Integer.parseInt(color.substring(1, 3), 16),
+               Integer.parseInt(color.substring(3, 5), 16),
+               Integer.parseInt(color.substring(5, 7), 16));
+    }
+
+    private void convertFiledCoords(String sigFieldCoords, String defaultCoordinates, RemoteSignatureFieldParameters fieldParams) throws NullParameterException {
+
+        if (DEFAULT_STRING.equals(sigFieldCoords)) {
+            sigFieldCoords = defaultCoordinates;
+            if (sigFieldCoords == null) {
+                throw new NullParameterException("default PDF signature coordinates requested, but these we not specified in the psp (or no psp)");
+            }
+        }
+        String[] coords = sigFieldCoords.split(",");
+        if (coords.length != 5) {
+            throw new NullParameterException("expected 5 values for PDF signature coordinates but was: '" + sigFieldCoords + "'");
+        }
+        fieldParams.setPage(Integer.parseInt(coords[0]));
+        fieldParams.setOriginX(Float.parseFloat(coords[1]));
+        fieldParams.setOriginY(Float.parseFloat(coords[2]));
+        fieldParams.setWidth(Float.parseFloat(coords[3]));
+        fieldParams.setHeight(Float.parseFloat(coords[4]));
+    }
+
+    // Check if the sigFieldId is present, and get its enclosing rectangle
+    private static PDRectangle getPdfSignatureRectangle(RemoteDocument document, String sigFieldId) {
+        List<String> fieldIds = new ArrayList<>();
+
+        try {
+            PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(document.getBytes()), (String) null);
+
+            List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
+            if (sigFields.size() == 0)
+                throw new PdfVisibleSignatureException("A PDF signature field was specified but the PDF does not contain one");
+
+            for (PDSignatureField sigField : sigFields) {
+                String name = sigField.getPartialName();
+                fieldIds.add(name);
+                if (sigFieldId.equals(name)) {
+                    if (null != sigField.getSignature()) {
+                        throw new PdfVisibleSignatureException("The specified PDF signature field already contains a signature");
+                    }
+                    PDAnnotationWidget widget = sigField.getWidget();
+                    return widget.getRectangle();
+                }
+            }
+            throw new PdfVisibleSignatureException("Bad PDF signature field specified, available field(s) are: " + fieldIds.toString());
+
+        } catch (IOException e) {
+            throw new PdfVisibleSignatureException(e.toString());
+        }
+    }
+
+
     // Default values
     private static final int TEXT_SIZE = 14;
     private static final int TEXT_PADDING = 20;
@@ -374,36 +554,40 @@ public class PdfVisibleSignatureService {
     private static final String TEXT_COLOR = "#0000FF"; // blue
     private static final String BG_COLOR = "#D0D0D0";   // light gray, same as IMAGE background color
     private static final int IMAGE_DPI = 400;
-    private static final byte[] DEFAULT = "default".getBytes();
+
+    private static final String DEFAULT_STRING = "default";
+    private static final byte[] DEFAULT_BYTES = DEFAULT_STRING.getBytes();
+
     // Simple PNG image of a paper and a pen on gray (#D0D0D0) background, size = 125 x 150 pixels
     private static final byte[] IMAGE = Base64.getDecoder().decode(
-        "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" +
-        "ObgQrfD45AAAAABJRU5ErkJggg==");
+            "iVBORw0KGgoAAAANSUhEUgAAAH0AAACWCAYAAADzA4dkAAAAAXNSR0IArs4c6QAAAARnQU1BAACx" +
+                    "jwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAXkSURBVHhe7Z0tUCMxGIaXMyDBIcGBow5ZXCU4" +
+                    "JCjAUcWgAAeqoCgKJCiQdeDAUQcOHBYJips3bJhcr1122/3Lvu8zk2na3t309tkvSb/8dKzb7X4F" +
+                    "goo/4aMgQtIJkXRCJJ0QSSdE0gmRdEIknRBJJ0TSCYmVhv36+gpqtVr4TBTJ4+NjMDY2Fj4bjliR" +
+                    "fnV1FdZE0aThIlak39zcBPv7+6bearWC9/d3Uxf5MDk5GTSbTVOHh+XlZVMflsTS0dSL/LFNehrS" +
+                    "NZAjRNIJkXRCJJ0QSSdE0gmRdEIknRBJJ0TSCZF0QjKVjkkC5IyTlG63G/7t8oLP2O+zJy12EiVv" +
+                    "MpU+MTER1uJzdnYW1spLWp9xmOuTBpnOst3d3QWdTif2fw5TtsfHx+GzcrO9vW2mPIfl4+MjaDQa" +
+                    "Qb1eD1+JBi0D0NQqEWlK10COEEknRNIJkXRCJJ0QSSdE0gmRdEIknRBJJ0TSCck09z7qpESVSTq5" +
+                    "5MWEy9bWVtBut8Nnoh+bm5vB6elp+CwaLyZcNjY2wpoYRFHXKDPpCwsLplVQGVxwjYpAAzlCJJ0Q" +
+                    "SSdE0gmRdEIknRBJJyQz6WntAil7mZ2dDf/H/pCZdB92qqTB6+trWPMHTbiMAHaprK6u5pJZQ6sC" +
+                    "Sj3hItIlTekayBEi6YRIOiGSToikEyLphEg6IZJOSGbJGeTeLy8vCztMxweSLIP2IiNnP6SIJu4y" +
+                    "aC8ycjMzM2FNRFHEMujMpL+8vJhWQSW6FLEMWgM5QiSdEEknRNIJkXRCJJ0QSSdE0gnJTDrShirR" +
+                    "pag184r0AilqzXxmEy46ZCiapGvm0TKAUs+yiXRJU7qad0IknRBJJ0TSCZF0QiSdEEknpDLJGZ9+" +
+                    "snMYvEjO2A+ZJ0lOVfaNONLPz8/NPgNcB+w52N3dDZ6enoLPz8/wT3xTqead9eTp8fFxk9I9OTkJ" +
+                    "jo6OzEQOhINarWYeXTKTjhYh71LUqcpFcn19HczPzwfPz88/y85brZZ5b25uLnh4eDB1Fw3kPMVG" +
+                    "98HBgdlYAtl2g4ntCnBD9EPSPQNib29v/4luFAumazGIBr19uUXSPWNtbS1oNpv/RTdAX46CZh0D" +
+                    "uEFIuof0i2406Xjc29szI/dBUQ4kveSgCUdTboHsqOheWVkJ3xmMpJcYfCe3fbeVaoUnjW4XSS8h" +
+                    "Vqg7ModwiAfDRLeLpJcMKxT09t2IeLw3THS7SHpJ6G2u+43M0dRjPmOY6HaR9BJgo9s213aeA7g3" +
+                    "A0BCZpjodpH0AumNbrffBvZmqNfr4SvfS6dHRdILIm5042ZABi5NJD1n4kZ3v5shLSQ9R5JEd+/N" +
+                    "kCaSngNliG4XSc+YskS3i6RnRNzothm3rKPbRdIzICq6Ubc3Q2/GLS8qKb2b4g8BQl5cXKG90W1n" +
+                    "y/qtdMmbSkpP84cAIfA3XKGDotvOlhUV3S6V3Z+exrr7OAcH4LpANkB0u7IhGTlyPCKqR5GNFgTg" +
+                    "39ehBAXxm1D3ZsB7ozblaUrXQG4IcOEHNdd4rSx99yAkPQG/CY26GcqEpMcEAzqfo9tF0mMAqW4i" +
+                    "xcfodpH0GNhVKj5HtwuldCRvsLMTX8d+AxEOwS4+RrcLnXQIx05OfIeH+CgQxejLEcWNRuMnS+dj" +
+                    "dLvQScd2XmTNDg8P/1mG1Atk2+/EFxcXQafTMa/bjJtv0e1CJx0b93Fqhc2R9wPbe23OHYmp9fX1" +
+                    "H9luPt1XKPv0t7c3E6kQOzU19dNn24ma6elp8xxUSbaFUjqwffL9/b0ZlIGlpSWTs8d7eB2lSrIt" +
+                    "tNItENput02E47wWe4rD4uKiKVWETjoGZBDsgkEdmnQ0+wzQScdXr52dHSPeFkyhsggHlM07Ihv9" +
+                    "uS1MwgF9n86IpBMi6YRIOiGSToikEyLphEg6IZJOiKQTkniHC2ahsAhB5AeWduEQYICpXxwKPAqx" +
+                    "pGO5UJV/H8UnsNBjVGI177izfFwAWDXSchAr0kW10ECOEEknRNIJkXRCJJ0QSSdE0gmRdDqC4C+5" +
+                    "ObgQrfD45AAAAABJRU5ErkJggg==");
 }
+

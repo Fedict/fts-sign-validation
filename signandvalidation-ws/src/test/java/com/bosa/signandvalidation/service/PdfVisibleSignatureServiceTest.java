@@ -7,20 +7,25 @@ import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.imageio.ImageIO;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.*;
+import java.io.IOException;
+import java.util.Date;
 
 @ExtendWith(MockitoExtension.class)
 public class PdfVisibleSignatureServiceTest {
@@ -30,22 +35,27 @@ public class PdfVisibleSignatureServiceTest {
     @Mock
     private StorageService storageService;
 
+    private static final RemoteCertificate cert = CertInfoTest.getTomTestCertificate();
+    private static final String resources = "src/test/resources/";
+    private static final File testFolder = new File(resources + "imageTests");
+    private static byte photo[];
+    private static byte pdfFile[];
+
+    @BeforeAll
+    private static void init() throws IOException {
+        photo = Utils.toByteArray(new FileInputStream(resources + "photo.png"));
+        pdfFile = Utils.toByteArray(new FileInputStream(resources + "mini.pdf"));
+    }
+
     @Test
-    public void testRenderSignature() throws Exception {
+    public void testRenderSignatureWithPsp() throws Exception {
 
-        PdfVisibleSignatureService srv = new PdfVisibleSignatureService(storageService);
-
-        RemoteCertificate cert = CertInfoTest.getTomTestCertificate();
-        byte photo[] = Utils.toByteArray(new FileInputStream("src/test/resources/photo.png"));
-        byte pdfFile[] = Utils.toByteArray(new FileInputStream("src/test/resources/mini.pdf"));
-
-        File testFolder = new File("src/test/resources/imageTests");
         for(File f : testFolder.listFiles()) {
             String fileNameBits[] = f.getName().split("\\.");
             if ("psp".compareTo(fileNameBits[1]) != 0) continue;
 
-            System.out.println("File : " + f.getPath());
             RemoteSignatureParameters params = new RemoteSignatureParameters();
+            params.getBLevelParams().setSigningDate(new Date(1655970685000L));
             params.setSigningCertificate(cert);
             RemoteDocument doc = new RemoteDocument(pdfFile, "A.pdf");
             TokenSignInput input = new TokenSignInput();
@@ -54,98 +64,65 @@ public class PdfVisibleSignatureServiceTest {
             Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(f.getPath()), eq(false))).thenReturn(Utils.toByteArray(new FileInputStream(f)));
             input.setSignLanguage(fileNameBits[0].substring(0, 2));
             input.setPsfC("2,20,20,300,150");
-            srv.checkAndFillParams(params, doc, input, THE_BUCKET, fileNameBits[0].charAt(2) == 'T' ? photo : null);
+            new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, fileNameBits[0].charAt(2) == 'T' ? photo : null);
 
-            RemoteSignatureImageParameters sigImgParams = params.getImageParameters();
-            byte actualBytes[] = sigImgParams.getImage().getBytes();
-
-            File png = new File(testFolder, "_" + fileNameBits[0] + ".png");
-
-            // If expected image not yet generated, create it in the resource folder
-            if (!png.exists()) new InMemoryDocument(actualBytes).save(png.getPath());
-
-            byte expectedBytes[] = Utils.toByteArray(new FileInputStream(png));
-
-            if (!Arrays.equals(expectedBytes, actualBytes)) {
-                // In case of difference, create image for quicker analysis
-                png = new File(testFolder, "E_" + fileNameBits[0] + ".png");
-                new InMemoryDocument(actualBytes).save(png.getPath());
-                fail("Difference between expected image and rendered image for psp :" + fileNameBits[0] + ". rendered image is here : " + png);
-            }
+            compareImages(params.getImageParameters().getImage().getBytes(), fileNameBits[0]);
         }
     }
+
+    @Test
+    public void testRenderSignature() throws Exception {
+        RemoteSignatureParameters params = new RemoteSignatureParameters();
+        params.setSigningCertificate(cert);
+        RemoteDocument doc = new RemoteDocument(pdfFile, "A.pdf");
+        TokenSignInput input = new TokenSignInput();
+        input.setSignLanguage("fr");
+        input.setPsfC("2,20,20,300,150");
+        new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, photo);
+
+        compareImages(params.getImageParameters().getImage().getBytes(), "noPSP1");
+    }
+
+    private void compareImages(byte[] actualBytes, String expectedFileName) throws IOException {
+        expectedFileName = "_" + expectedFileName;
+        File imageFile = new File(testFolder, expectedFileName + ".png");
+
+        System.out.println("Expected image file : " + imageFile.getPath());
+
+        // If expected image not yet generated, create it in the resource folder
+        if (!imageFile.exists()) new InMemoryDocument(actualBytes).save(imageFile.getPath());
+
+        BufferedImage expectedImage = ImageIO.read(imageFile);
+        BufferedImage actualImage = ImageIO.read(new ByteArrayInputStream(actualBytes));
+
+        int expectedImageWidth = expectedImage.getWidth();
+        int expectedImageHeight = expectedImage.getHeight();
+
+        int mismatchPixels = 0;
+        if (actualImage.getWidth() == expectedImageWidth && actualImage.getHeight() == expectedImageHeight) {
+            for (int y = 0; y < expectedImageHeight; y++) {
+                for (int x = 0; x < expectedImageWidth; x++) {
+                    if (actualImage.getRGB(x, y) != expectedImage.getRGB(x, y)) {
+                        expectedImage.setRGB(x, y, 0xFF0000);
+                        mismatchPixels++;
+                    }
+                }
+            }
+            if (mismatchPixels == 0) return;
+        }
+
+        // In case of image size or pixel mismatch, save actual image for quicker analysis
+        imageFile = new File(testFolder, expectedFileName + "_ACTUAL.png");
+        new InMemoryDocument(actualBytes).save(imageFile.getPath());
+
+        if (mismatchPixels == 0) {
+            fail(String.format("Image sizes mismatch: actual : %d x %d - expected : %d x %d\nActual Image is here : %s",
+                    actualImage.getWidth(), actualImage.getHeight(), expectedImageWidth, expectedImageHeight, imageFile.getPath()));
+        }
+
+        // In case of pixel mismatch, save red painted image for quicker analysis
+        imageFile = new File(testFolder, expectedFileName + "_INV_PIXELS.png");
+        ImageIO.write(expectedImage, "png", imageFile);
+        fail("Difference between expected image and rendered image. Image with red painted invalid pixels is here : " + imageFile.getPath());
+    }
 }
-
-/*
-    private VisualSignatureAlignmentHorizontal alignmentHorizontal;
-        NONE,
-        LEFT,
-        CENTER,
-        RIGHT;
-
-    private VisualSignatureAlignmentVertical alignmentVertical;
-        NONE,
-        TOP,
-        MIDDLE,
-        BOTTOM;
-
-    private ImageScaling imageScaling;
-        STRETCH,
-        ZOOM_AND_CENTER,
-        CENTER;
-
-    private RemoteColor backgroundColor;
-        private Integer red;
-        private Integer green;
-        private Integer blue;
-        private Integer alpha;
-
-    private Integer dpi;
-    private RemoteDocument image;
-    private VisualSignatureRotation rotation;
-        NONE,
-        AUTOMATIC,
-        ROTATE_90,
-        ROTATE_180,
-        ROTATE_270;
-
-    private RemoteSignatureFieldParameters fieldParameters;
-        private String fieldId;
-        private Float originX;
-        private Float originY;
-        private Float width;
-        private Float height;
-        private Integer page;
-
-
-    private RemoteSignatureImageTextParameters textParameters;
-        private RemoteColor backgroundColor;
-        private RemoteDocument font;
-        private TextWrapping textWrapping;
-            FILL_BOX,
-            FILL_BOX_AND_LINEBREAK,
-            FONT_BASED;
-
-        private Float padding;
-        private SignerTextHorizontalAlignment signerTextHorizontalAlignment;
-            LEFT,
-            CENTER,
-            RIGHT;
-
-        private SignerTextVerticalAlignment signerTextVerticalAlignment;
-            TOP,
-            MIDDLE,
-            BOTTOM;
-
-        private SignerTextPosition signerTextPosition;
-            TOP,
-            BOTTOM,
-            RIGHT,
-            LEFT;
-
-        private Integer size;
-        private String text;
-        private RemoteColor textColor;
-
-    private Integer zoom;
- */
