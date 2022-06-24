@@ -15,15 +15,12 @@ public class PdfVisibleSignatureTest {
     @Test
     public void testFillCoordinates() throws Exception {
         RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
-        int[] ret = PdfVisibleSignatureService.fillCoordinates(sigFieldParams, "1,2,3,4,5");
+        PdfVisibleSignatureService.convertFieldCoords("1,2,3,4,5", null, sigFieldParams);
         assertEquals(1, sigFieldParams.getPage());
         assertEquals((float) 2.0, sigFieldParams.getOriginX());
         assertEquals((float) 3.0, sigFieldParams.getOriginY());
         assertEquals((float) 4.0, sigFieldParams.getWidth());
         assertEquals((float) 5.0, sigFieldParams.getHeight());
-        assertEquals(2, ret.length);
-        assertEquals(4, ret[0]);
-        assertEquals(5, ret[1]);
     }
 
     @Test
