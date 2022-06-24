@@ -142,20 +142,20 @@ public class PdfVisibleSignatureService {
         if (psp.bgColor == null) psp.bgColor = "#D0D0D0";   // light gray, same as IMAGE background color;
         if (psp.textSize == null) psp.textSize = 14;
         if (psp.textPadding == null) psp.textPadding = 20;
-        if (psp.textAlignH == null) psp.textAlignH = SignerTextHorizontalAlignment.LEFT.toString();
-        if (psp.textAlignV == null) psp.textAlignV = SignerTextVerticalAlignment.TOP.toString();
-        if (psp.textPos == null) psp.textPos = SignerTextPosition.BOTTOM.toString();
+        if (psp.textAlignH == null) psp.textAlignH = SignerTextHorizontalAlignment.LEFT;
+        if (psp.textAlignV == null) psp.textAlignV = SignerTextVerticalAlignment.TOP;
+        if (psp.textPos == null) psp.textPos = SignerTextPosition.BOTTOM;
         if (psp.textColor == null) psp.textColor = "#0000FF"; // blue
         if (psp.imageDpi == null) psp.imageDpi = 400;
         if (psp.image != null && Arrays.equals(psp.image, DEFAULT_BYTES)) psp.image = IMAGE;
 
         if (psp.version == 2) {
-            if (psp.textWrapping == null) psp.textWrapping = TextWrapping.FONT_BASED.toString();
-            if (psp.imageScaling == null) psp.imageScaling = ImageScaling.CENTER.toString();
-            if (psp.horizAlignment == null) psp.horizAlignment = VisualSignatureAlignmentHorizontal.NONE.toString();
-            if (psp.vertAlignment == null) psp.vertAlignment = VisualSignatureAlignmentVertical.NONE.toString();
+            if (psp.textWrapping == null) psp.textWrapping = TextWrapping.FONT_BASED;
+            if (psp.imageScaling == null) psp.imageScaling = ImageScaling.CENTER;
+            if (psp.horizAlignment == null) psp.horizAlignment = VisualSignatureAlignmentHorizontal.NONE;
+            if (psp.vertAlignment == null) psp.vertAlignment = VisualSignatureAlignmentVertical.NONE;
             if (psp.bodyBgColor == null) psp.bodyBgColor = "#DDDDDD";
-            if (psp.rotation == null) psp.rotation = VisualSignatureRotation.AUTOMATIC.toString();
+            if (psp.rotation == null) psp.rotation = VisualSignatureRotation.AUTOMATIC;
             if (psp.zoom == null) psp.zoom = 100;
         }
 
@@ -239,23 +239,23 @@ public class PdfVisibleSignatureService {
         dssFont.setBytes(Utils.toByteArray(new FileInputStream("src/test/resources/OpenSansBold.ttf")));
         textParams.setFont(dssFont);
 
-        textParams.setTextWrapping(TextWrapping.valueOf(psp.textWrapping));
+        textParams.setTextWrapping(psp.textWrapping);
         textParams.setTextColor(makeColor(psp.textColor));
         textParams.setBackgroundColor(makeColor(psp.bgColor));
         textParams.setText(text);
         textParams.setPadding(psp.textPadding.floatValue());
-        textParams.setSignerTextPosition(SignerTextPosition.valueOf(psp.textPos));
-        textParams.setSignerTextVerticalAlignment(SignerTextVerticalAlignment.valueOf(psp.textAlignV));
-        textParams.setSignerTextHorizontalAlignment(SignerTextHorizontalAlignment.valueOf(psp.textAlignH));
+        textParams.setSignerTextPosition(psp.textPos);
+        textParams.setSignerTextVerticalAlignment(psp.textAlignV);
+        textParams.setSignerTextHorizontalAlignment(psp.textAlignH);
 
         if (image != null) sigImgParams.setImage(new RemoteDocument(image, "image.png"));
         sigImgParams.setDpi(psp.imageDpi);
 
-        sigImgParams.setImageScaling(ImageScaling.valueOf(psp.imageScaling));
-        sigImgParams.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.valueOf(psp.horizAlignment));
-        sigImgParams.setAlignmentVertical(VisualSignatureAlignmentVertical.valueOf(psp.vertAlignment));
+        sigImgParams.setImageScaling(psp.imageScaling);
+        sigImgParams.setAlignmentHorizontal(psp.horizAlignment);
+        sigImgParams.setAlignmentVertical(psp.vertAlignment);
         sigImgParams.setBackgroundColor(makeColor(psp.bodyBgColor));
-        sigImgParams.setRotation(VisualSignatureRotation.valueOf(psp.rotation));
+        sigImgParams.setRotation(psp.rotation);
         sigImgParams.setZoom(psp.zoom);
     }
 
@@ -307,31 +307,31 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    int getTextPos(String textPos) {
+    int getTextPos(SignerTextPosition textPos) {
         switch(textPos) {
-            case "TOP":    return PdfImageBuilder.POS_TOP;
-            case "BOTTOM": return PdfImageBuilder.POS_BOTTOM;
-            case "LEFT":   return PdfImageBuilder.POS_LEFT;
+            case TOP:    return PdfImageBuilder.POS_TOP;
+            case BOTTOM: return PdfImageBuilder.POS_BOTTOM;
+            case LEFT:   return PdfImageBuilder.POS_LEFT;
         }
         return PdfImageBuilder.POS_RIGHT;
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
-    int getHorizontalAlign(String textAlignH) {
+    int getHorizontalAlign(SignerTextHorizontalAlignment textAlignH) {
         switch(textAlignH) {
-            case "LEFT":  return PdfImageBuilder.HALIGN_LEFT;
-            case "RIGHT": return PdfImageBuilder.HALIGN_RIGHT;
+            case LEFT:  return PdfImageBuilder.HALIGN_LEFT;
+            case RIGHT: return PdfImageBuilder.HALIGN_RIGHT;
         }
         return PdfImageBuilder.HALIGN_CENTER;
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
-    int getVerticalAlign(String textAlignV) {
+    int getVerticalAlign(SignerTextVerticalAlignment textAlignV) {
         switch(textAlignV) {
-            case "TOP":  return PdfImageBuilder.VALIGN_TOP;
-            case "BOTTOM": return PdfImageBuilder.VALIGN_BOTTOM;
+            case TOP:  return PdfImageBuilder.VALIGN_TOP;
+            case BOTTOM: return PdfImageBuilder.VALIGN_BOTTOM;
         }
         return PdfImageBuilder.VALIGN_MIDDLE;
     }
