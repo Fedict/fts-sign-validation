@@ -48,9 +48,9 @@ public class PdfVisibleSignatureServiceTest {
     }
 
     @Test
-    public void testRenderSignatureWithPsp() throws Exception {
+    public void testV1RenderSignatureWithPsp() throws Exception {
 
-        for(File f : testFolder.listFiles()) {
+        for (File f : testFolder.listFiles()) {
             String fileNameBits[] = f.getName().split("\\.");
             if ("psp".compareTo(fileNameBits[1]) != 0) continue;
 
@@ -71,7 +71,7 @@ public class PdfVisibleSignatureServiceTest {
     }
 
     @Test
-    public void testRenderSignature() throws Exception {
+    public void testV1RenderSignature() throws Exception {
         RemoteSignatureParameters params = new RemoteSignatureParameters();
         params.setSigningCertificate(cert);
         RemoteDocument doc = new RemoteDocument(pdfFile, "A.pdf");
@@ -124,5 +124,10 @@ public class PdfVisibleSignatureServiceTest {
         imageFile = new File(testFolder, expectedFileName + "_INV_PIXELS.png");
         ImageIO.write(expectedImage, "png", imageFile);
         fail("Difference between expected image and rendered image. Image with red painted invalid pixels is here : " + imageFile.getPath());
+    }
+
+    @Test
+    public void testV2RenderSignatureWithPsp() throws Exception {
+
     }
 }
