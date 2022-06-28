@@ -21,11 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Date;
+import java.io.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PdfVisibleSignatureServiceTest {
@@ -37,36 +33,38 @@ public class PdfVisibleSignatureServiceTest {
 
     private static final RemoteCertificate cert = CertInfoTest.getTomTestCertificate();
     private static final String resources = "src/test/resources/";
-    private static final File testFolder = new File(resources + "imageTests");
-    private static byte photo[];
-    private static byte pdfFile[];
+    public static final File pspTestFolder = new File(resources + "imageTests");
+    public static final File pdfFile = new File(resources + "sample.pdf");
+    private static byte photoBytes[];
+    private static byte pdfFileBytes[];
 
     @BeforeAll
     private static void init() throws IOException {
-        photo = Utils.toByteArray(new FileInputStream(resources + "photo.png"));
-        pdfFile = Utils.toByteArray(new FileInputStream(resources + "mini.pdf"));
+        photoBytes = Utils.toByteArray(new FileInputStream(resources + "photo.png"));
+        pdfFileBytes = Utils.toByteArray(new FileInputStream(pdfFile));
     }
 
     @Test
     public void testV1RenderSignatureWithPsp() throws Exception {
 
-        for (File f : testFolder.listFiles()) {
-            String fileNameBits[] = f.getName().split("\\.");
-            if ("psp".compareTo(fileNameBits[1]) != 0) continue;
+        for (File f : pspTestFolder.listFiles()) {
+            int posExt = f.getName().lastIndexOf(".psp");
+            if (posExt >= 1) {
+                String fileNameNoExt = f.getName().substring(0, posExt);
 
-            RemoteSignatureParameters params = new RemoteSignatureParameters();
-            params.getBLevelParams().setSigningDate(new Date(1655970685000L));
-            params.setSigningCertificate(cert);
-            RemoteDocument doc = new RemoteDocument(pdfFile, "A.pdf");
-            TokenSignInput input = new TokenSignInput();
-            input.setPspFilePath(f.getPath());
-            Mockito.reset(storageService);
-            Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(f.getPath()), eq(false))).thenReturn(Utils.toByteArray(new FileInputStream(f)));
-            input.setSignLanguage(fileNameBits[0].substring(0, 2));
-            input.setPsfC("2,20,20,300,150");
-            new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, fileNameBits[0].charAt(2) == 'T' ? photo : null);
+                RemoteSignatureParameters params = new RemoteSignatureParameters();
+                params.setSigningCertificate(cert);
+                RemoteDocument doc = new RemoteDocument(pdfFileBytes, "A.pdf");
+                TokenSignInput input = new TokenSignInput();
+                input.setPspFilePath(f.getPath());
+                Mockito.reset(storageService);
+                Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(f.getPath()), eq(false))).thenReturn(Utils.toByteArray(new FileInputStream(f)));
+                input.setSignLanguage(fileNameNoExt.substring(0, 2));
+                input.setPsfC("2,20,20,300,150");
+                new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, fileNameNoExt.charAt(2) == 'T' ? photoBytes : null);
 
-            compareImages(params.getImageParameters().getImage().getBytes(), fileNameBits[0]);
+                compareImages(params.getImageParameters().getImage().getBytes(), fileNameNoExt);
+            }
         }
     }
 
@@ -74,18 +72,20 @@ public class PdfVisibleSignatureServiceTest {
     public void testV1RenderSignature() throws Exception {
         RemoteSignatureParameters params = new RemoteSignatureParameters();
         params.setSigningCertificate(cert);
-        RemoteDocument doc = new RemoteDocument(pdfFile, "A.pdf");
+        RemoteDocument doc = new RemoteDocument(pdfFileBytes, "A.pdf");
         TokenSignInput input = new TokenSignInput();
         input.setSignLanguage("fr");
         input.setPsfC("2,20,20,300,150");
-        new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, photo);
+        new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, photoBytes);
 
         compareImages(params.getImageParameters().getImage().getBytes(), "noPSP1");
     }
 
-    private void compareImages(byte[] actualBytes, String expectedFileName) throws IOException {
+    public static void compareImages(byte[] actualBytes, String expectedFileName) throws IOException {
+        int pixelsToIgnore = 0xFFFFAEC9;
+
         expectedFileName = "_" + expectedFileName;
-        File imageFile = new File(testFolder, expectedFileName + ".png");
+        File imageFile = new File(pspTestFolder, expectedFileName + ".png");
 
         System.out.println("Expected image file : " + imageFile.getPath());
 
@@ -102,7 +102,9 @@ public class PdfVisibleSignatureServiceTest {
         if (actualImage.getWidth() == expectedImageWidth && actualImage.getHeight() == expectedImageHeight) {
             for (int y = 0; y < expectedImageHeight; y++) {
                 for (int x = 0; x < expectedImageWidth; x++) {
-                    if (actualImage.getRGB(x, y) != expectedImage.getRGB(x, y)) {
+                    int actualRGB = actualImage.getRGB(x, y);
+                    int expectedRGB = expectedImage.getRGB(x, y);
+                    if (expectedRGB != pixelsToIgnore && actualRGB != expectedRGB) {
                         expectedImage.setRGB(x, y, 0xFF0000);
                         mismatchPixels++;
                     }
@@ -112,7 +114,7 @@ public class PdfVisibleSignatureServiceTest {
         }
 
         // In case of image size or pixel mismatch, save actual image for quicker analysis
-        imageFile = new File(testFolder, expectedFileName + "_ACTUAL.png");
+        imageFile = new File(pspTestFolder, expectedFileName + "_ACTUAL.png");
         new InMemoryDocument(actualBytes).save(imageFile.getPath());
 
         if (mismatchPixels == 0) {
@@ -121,13 +123,8 @@ public class PdfVisibleSignatureServiceTest {
         }
 
         // In case of pixel mismatch, save red painted image for quicker analysis
-        imageFile = new File(testFolder, expectedFileName + "_INV_PIXELS.png");
+        imageFile = new File(pspTestFolder, expectedFileName + "_INV_PIXELS.png");
         ImageIO.write(expectedImage, "png", imageFile);
         fail("Difference between expected image and rendered image. Image with red painted invalid pixels is here : " + imageFile.getPath());
-    }
-
-    @Test
-    public void testV2RenderSignatureWithPsp() throws Exception {
-
     }
 }

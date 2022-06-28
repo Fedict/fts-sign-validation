@@ -529,18 +529,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(token.getSignProfile(), clientSigParams, token.getPolicy());
 
-            String fileName;
+            String filePath;
             List<DSSReference> references = null;
             TokenSignInput firstInput = token.getInputs().get(0);
             if (token.isXadesMultifile()) {
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(signingDate, idsToSign, parameters.getReferenceDigestAlgorithm());
-                fileName = token.getOutFilePath();
+                filePath = token.getOutFilePath();
             } else {
-                fileName = firstInput.getFilePath();
+                filePath = firstInput.getFilePath();
             }
-            byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), fileName, true);
+            byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, token.getOutFilePath());
 
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
