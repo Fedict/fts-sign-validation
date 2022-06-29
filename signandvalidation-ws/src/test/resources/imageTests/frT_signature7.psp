@@ -3,7 +3,7 @@
   "texts" : {
     "en": "Signed by %gn% %sn%\nOn %d(MMM d YYYY)%",
     "nl": "Getekend door %gn% %sn%\nOp %d(MMM d YYYY)%",
-    "fr": "Signé par %gn% %sn%\nLe %d(MMM d YYYY)% Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+    "fr": "Signé par %gn% %sn%\nLe %d(MMM d YYYY)%\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
     "de": "Unterzeichnet von %gn% %sn%\nAm %d(MMM d YYYY)%"
   },
   "font": "freescpt",

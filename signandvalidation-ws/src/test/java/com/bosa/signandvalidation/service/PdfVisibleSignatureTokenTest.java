@@ -48,11 +48,11 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
         photoBytes = Utils.toByteArray(new FileInputStream("src/test/resources/photo.png"));
 
         for (File f : pspTestFolder.listFiles()) {
-            if (f.getName().endsWith(".psp")) testSignature(f);
+            if (f.getName().endsWith(".psp")) testRenderSignature(f);
         }
     }
 
-    private void testSignature(File pspFile) throws IOException {
+    private void testRenderSignature(File pspFile) throws IOException {
         Mockito.reset(storageService);
         Mockito.when(storageService.isValidAuth(any(), any())).thenReturn(true);
 

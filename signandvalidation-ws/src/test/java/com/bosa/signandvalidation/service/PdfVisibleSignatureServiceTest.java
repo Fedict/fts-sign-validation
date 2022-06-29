@@ -25,8 +25,10 @@ import java.io.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PdfVisibleSignatureServiceTest {
+
+    private static int PIXEL_TO_IGNORE = 0xFFFFAEC9;
+    private static int INVALID_PIXEL = 0xFFFF0000;
     private static final String THE_BUCKET = "THE_BUCKET";
-    private static final Integer IMG_DPI = 400;
 
     @Mock
     private StorageService storageService;
@@ -46,7 +48,6 @@ public class PdfVisibleSignatureServiceTest {
 
     @Test
     public void testV1RenderSignatureWithPsp() throws Exception {
-
         for (File f : pspTestFolder.listFiles()) {
             int posExt = f.getName().lastIndexOf(".psp");
             if (posExt >= 1) {
@@ -82,7 +83,6 @@ public class PdfVisibleSignatureServiceTest {
     }
 
     public static void compareImages(byte[] actualBytes, String expectedFileName) throws IOException {
-        int pixelsToIgnore = 0xFFFFAEC9;
 
         expectedFileName = "_" + expectedFileName;
         File imageFile = new File(pspTestFolder, expectedFileName + ".png");
@@ -104,8 +104,8 @@ public class PdfVisibleSignatureServiceTest {
                 for (int x = 0; x < expectedImageWidth; x++) {
                     int actualRGB = actualImage.getRGB(x, y);
                     int expectedRGB = expectedImage.getRGB(x, y);
-                    if (expectedRGB != pixelsToIgnore && actualRGB != expectedRGB) {
-                        expectedImage.setRGB(x, y, 0xFF0000);
+                    if (expectedRGB != PIXEL_TO_IGNORE && actualRGB != expectedRGB) {
+                        expectedImage.setRGB(x, y, INVALID_PIXEL);
                         mismatchPixels++;
                     }
                 }
