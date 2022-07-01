@@ -1,0 +1,16 @@
+{
+  "version" : 2,
+  "bgColor" : "#00FF00",
+  "texts" : {
+  },
+  "font": "unk",
+  "textSize" : 14,
+  "textPadding" : 20,
+  "textAlignH" : "CENTER",
+  "textAlignV" : "MIDDLE",
+  "textPos" : "RIGHT",
+  "textColor" : "#0000FF",
+  "defaultCoordinates" : "1,30,20,120,60",
+  "imageDpi" : 100,
+  "image" : "ZGVmYXVsdA=="
+}

@@ -34,8 +34,8 @@ public class PdfVisibleSignatureServiceTest {
     private StorageService storageService;
 
     private static final RemoteCertificate cert = CertInfoTest.getTomTestCertificate();
-    private static final String resources = "src/test/resources/";
-    public static final File pspTestFolder = new File(resources + "imageTests");
+    static final String resources = "src/test/resources/";
+    private static final File pspTestFolder = new File(resources + "imageTests");
     public static final File pdfFile = new File(resources + "sample.pdf");
     private static byte photoBytes[];
     private static byte pdfFileBytes[];
@@ -51,6 +51,7 @@ public class PdfVisibleSignatureServiceTest {
         for (File f : pspTestFolder.listFiles()) {
             int posExt = f.getName().lastIndexOf(".psp");
             if (posExt >= 1) {
+                byte[] pspBytes = Utils.toByteArray(new FileInputStream(f));
                 String fileNameNoExt = f.getName().substring(0, posExt);
 
                 RemoteSignatureParameters params = new RemoteSignatureParameters();
@@ -59,7 +60,7 @@ public class PdfVisibleSignatureServiceTest {
                 TokenSignInput input = new TokenSignInput();
                 input.setPspFilePath(f.getPath());
                 Mockito.reset(storageService);
-                Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(f.getPath()), eq(false))).thenReturn(Utils.toByteArray(new FileInputStream(f)));
+                Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(f.getPath()), eq(false))).thenReturn(pspBytes);
                 input.setSignLanguage(fileNameNoExt.substring(0, 2));
                 input.setPsfC("2,20,20,300,150");
                 new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, fileNameNoExt.charAt(2) == 'T' ? photoBytes : null);

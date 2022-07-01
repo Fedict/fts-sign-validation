@@ -5,6 +5,7 @@ import com.bosa.signandvalidation.controller.SigningControllerBaseTest;
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import eu.europa.esig.dss.model.Digest;
+import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
@@ -40,6 +41,8 @@ import static org.mockito.ArgumentMatchers.*;
 public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
     @MockBean
     private StorageService storageService;
+
+    public static final File pspTestFolder = new File(resources + "imageTestsV2");
 
     private static byte photoBytes[];
 
@@ -100,15 +103,25 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, clientSignatureParameters, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
 
+        File pdfInError = new File(pspTestFolder, "PDF_IN_ERROR.pdf");
+        if (!pdfInError.exists()) new InMemoryDocument(signedDocument.getBytes()).save(pdfInError.getPath());
+
+        pdfInError = new File(pspTestFolder, pspFileName.substring(0, pspFileName.length() - 4) + ".pdf");
+        new InMemoryDocument(signedDocument.getBytes()).save(pdfInError.getPath());
+
+
+        /*
         BufferedImage signature = getSignatureImage(signedDocument.getBytes());
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         ImageIO.write(signature, "png", outStream);
         PdfVisibleSignatureServiceTest.compareImages(outStream.toByteArray(), pspFileName.substring(0, pspFileName.length() - 4));
+         */
     }
 
     private BufferedImage getSignatureImage(byte[] docBytes) throws IOException
     {
         PDDocument document = PDDocument.load(docBytes);
+        extractPageAnnotationImages(document, "image-%s-%s%s.%s");
         PDPage pdPage = document.getPages().get(0);
         Map<String, PDAppearanceStream> allStreams = new HashMap<>();
         PDAnnotation pdAnnotation = pdPage.getAnnotations().get(0);
@@ -179,5 +192,109 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
         pdfGraphicsStreamEngine.processPage(pdPage);
 
         return outImages[0];
+    }
+
+
+    void extractPageAnnotationImages(PDDocument document, String fileNameFormat) throws IOException
+    {
+        int page = 1;
+        for (final PDPage pdPage : document.getPages())
+        {
+            final int currentPage = page;
+            Map<String, PDAppearanceStream> allStreams = new HashMap<>();
+            int annot = 1;
+            for (PDAnnotation pdAnnotation  : pdPage.getAnnotations()) {
+                System.out.println("Annot " + annot + " - " + pdAnnotation.getAnnotationFlags() + " - " + pdAnnotation.getSubtype() + " - " + pdAnnotation.getClass().getName());
+                PDAppearanceDictionary appearancesDictionary = pdAnnotation.getAppearance();
+                Map<String, PDAppearanceEntry> dictsOrStreams = new HashMap();
+                dictsOrStreams.put("Down", appearancesDictionary.getDownAppearance());
+                dictsOrStreams.put("Normal", appearancesDictionary.getNormalAppearance());
+                dictsOrStreams.put("Rollover", appearancesDictionary.getRolloverAppearance());
+                for (Map.Entry<String, PDAppearanceEntry> entry : dictsOrStreams.entrySet()) {
+                    if (entry.getValue().isStream()) {
+                        System.out.println("Str " + annot + " - " + pdAnnotation) ;
+                        allStreams.put(String.format("%d-%s", annot, entry.getKey()), entry.getValue().getAppearanceStream());
+                    } else {
+                        for (Map.Entry<COSName, PDAppearanceStream> subEntry : entry.getValue().getSubDictionary().entrySet()) {
+                            System.out.println("SubStr " + annot + " - " + pdAnnotation) ;
+                            allStreams.put(String.format("%d-%s.%s", annot, entry.getKey(), subEntry.getKey().getName()), subEntry.getValue());
+                        }
+                    }
+                }
+                annot++;
+            }
+
+            PDFGraphicsStreamEngine pdfGraphicsStreamEngine = new PDFGraphicsStreamEngine(pdPage)
+            {
+                String current = null;
+
+                @Override
+                public void processPage(PDPage page) throws IOException {
+                    for (Map.Entry<String,PDAppearanceStream> entry : allStreams.entrySet()) {
+                        current = entry.getKey();
+                        System.out.println("Annot " + entry.getKey() + " - " + entry.getValue()) ;
+                        processChildStream(entry.getValue(), pdPage);
+                    }
+                }
+
+                @Override
+                public void drawImage(PDImage pdImage) throws IOException
+                {
+                    System.out.println("Img " + pdImage.getSuffix() + " - " + pdImage.getHeight() + " - " + pdImage.getWidth());
+                    if (pdImage instanceof PDImageXObject)
+                    {
+                        Matrix ctm = getGraphicsState().getCurrentTransformationMatrix();
+                        String flips = "";
+                        if (ctm.getScaleX() < 0)
+                            flips += "h";
+                        if (ctm.getScaleY() < 0)
+                            flips += "v";
+                        if (flips.length() > 0)
+                            flips = "-" + flips;
+                        PDImageXObject image = (PDImageXObject)pdImage;
+                        File file = new File(String.format(fileNameFormat, currentPage, current, flips, image.getSuffix()));
+                        ImageIO.write(image.getImage(), image.getSuffix(), new FileOutputStream(file));
+                    }
+                }
+
+                @Override
+                public void appendRectangle(Point2D p0, Point2D p1, Point2D p2, Point2D p3) throws IOException { }
+
+                @Override
+                public void clip(int windingRule) throws IOException { }
+
+                @Override
+                public void moveTo(float x, float y) throws IOException {  }
+
+                @Override
+                public void lineTo(float x, float y) throws IOException { }
+
+                @Override
+                public void curveTo(float x1, float y1, float x2, float y2, float x3, float y3) throws IOException {  }
+
+                @Override
+                public Point2D getCurrentPoint() throws IOException { return new Point2D.Float(); }
+
+                @Override
+                public void closePath() throws IOException { }
+
+                @Override
+                public void endPath() throws IOException { }
+
+                @Override
+                public void strokePath() throws IOException { }
+
+                @Override
+                public void fillPath(int windingRule) throws IOException { }
+
+                @Override
+                public void fillAndStrokePath(int windingRule) throws IOException { }
+
+                @Override
+                public void shadingFill(COSName shadingName) throws IOException { }
+            };
+            pdfGraphicsStreamEngine.processPage(pdPage);
+            page++;
+        }
     }
 }
