@@ -5,7 +5,6 @@ import com.bosa.signandvalidation.controller.SigningControllerBaseTest;
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import eu.europa.esig.dss.model.Digest;
-import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
@@ -45,6 +44,13 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
     public static final File pspTestFolder = new File(resources + "imageTestsV2");
 
     private static byte photoBytes[];
+
+    @Test
+    public void testExtract() throws Exception {
+
+        PDDocument document = PDDocument.load(Utils.toByteArray(new FileInputStream(resources + "imageTestsV2/deF_V2signature1.pdf")));
+        extractPageAnnotationImages(document, "image-%s-%s%s.%s");
+    }
 
     @Test
     public void testV2RenderSignaturesWithPsp() throws Exception {
@@ -103,19 +109,15 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, clientSignatureParameters, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
 
-        File pdfInError = new File(pspTestFolder, "PDF_IN_ERROR.pdf");
-        if (!pdfInError.exists()) new InMemoryDocument(signedDocument.getBytes()).save(pdfInError.getPath());
+/*
+        File pdf = new File(pspTestFolder, pspFileName.substring(0, pspFileName.length() - 4) + ".pdf");
+        new InMemoryDocument(signedDocument.getBytes()).save(pdf.getPath());
+ */
 
-        pdfInError = new File(pspTestFolder, pspFileName.substring(0, pspFileName.length() - 4) + ".pdf");
-        new InMemoryDocument(signedDocument.getBytes()).save(pdfInError.getPath());
-
-
-        /*
         BufferedImage signature = getSignatureImage(signedDocument.getBytes());
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         ImageIO.write(signature, "png", outStream);
         PdfVisibleSignatureServiceTest.compareImages(outStream.toByteArray(), pspFileName.substring(0, pspFileName.length() - 4));
-         */
     }
 
     private BufferedImage getSignatureImage(byte[] docBytes) throws IOException
@@ -207,9 +209,11 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
                 System.out.println("Annot " + annot + " - " + pdAnnotation.getAnnotationFlags() + " - " + pdAnnotation.getSubtype() + " - " + pdAnnotation.getClass().getName());
                 PDAppearanceDictionary appearancesDictionary = pdAnnotation.getAppearance();
                 Map<String, PDAppearanceEntry> dictsOrStreams = new HashMap();
-                dictsOrStreams.put("Down", appearancesDictionary.getDownAppearance());
                 dictsOrStreams.put("Normal", appearancesDictionary.getNormalAppearance());
+/*
                 dictsOrStreams.put("Rollover", appearancesDictionary.getRolloverAppearance());
+                dictsOrStreams.put("Normal", appearancesDictionary.getNormalAppearance());
+ */
                 for (Map.Entry<String, PDAppearanceEntry> entry : dictsOrStreams.entrySet()) {
                     if (entry.getValue().isStream()) {
                         System.out.println("Str " + annot + " - " + pdAnnotation) ;

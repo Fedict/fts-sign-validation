@@ -252,11 +252,15 @@ public class PdfVisibleSignatureService {
         sigImgParams.setDpi(psp.imageDpi);
 
         sigImgParams.setImageScaling(psp.imageScaling);
+        sigImgParams.setBackgroundColor(makeColor(psp.bodyBgColor));
+        sigImgParams.setZoom(psp.zoom);
+
+        // Alignment of the signature relative to page borders
         sigImgParams.setAlignmentHorizontal(psp.horizAlignment);
         sigImgParams.setAlignmentVertical(psp.vertAlignment);
-        sigImgParams.setBackgroundColor(makeColor(psp.bodyBgColor));
+
+        // Adapt signature rotation
         sigImgParams.setRotation(psp.rotation);
-        sigImgParams.setZoom(psp.zoom);
     }
 
     ///////////////////////////////////////////////////////////////////////////
