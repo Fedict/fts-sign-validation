@@ -1,7 +1,7 @@
 {
   "version" : 2,
-  "textSize" : 11,
-  "textAlignH" : "CENTER",
   "defaultCoordinates" : "1,0,200,210,160",
-  "image" : "ZGVmYXVsdA=="
+  "image" : "ZGVmYXVsdA==",
+  "textSize" : 11,
+  "textAlignH" : "CENTER"
 }

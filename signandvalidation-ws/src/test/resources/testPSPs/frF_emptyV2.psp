@@ -1,7 +1,6 @@
 {
   "version" : 2,
   "defaultCoordinates" : "1,0,150,210,160",
-  "font": "freescpt",
   "textSize" : 40,
   "textPos" : "TOP",
   "textAlignH" : "CENTER"

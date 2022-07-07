@@ -8,7 +8,7 @@
     "de": "Unterzeichnet von %gn% %sn%\nAm %d(MMM d YYYY)%"
   },
   "font": "basic",
-  "textSize" : 3,
+  "textSize" : 4,
   "textPadding" : 0,
   "textAlignH" : "RIGHT",
   "textAlignV" : "MIDDLE",
