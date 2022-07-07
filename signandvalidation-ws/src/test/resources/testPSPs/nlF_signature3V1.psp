@@ -1,0 +1,19 @@
+{
+  "bgColor" : "#0000FF",
+  "texts" : {
+    "en": "Signed by %gn% %sn%\nOn %d(MMM d YYYY)%",
+    "nl": "Getekend door %gn% %sn%\nOp %d(MMM d YYYY)%",
+    "fr": "Signé par %gn% %sn%\nLe %d(MMM d YYYY)%",
+    "de": "Unterzeichnet von %gn% %sn%\nAm %d(MMM d YYYY)%"
+  },
+  "font": "freescpt",
+  "textSize" : 11,
+  "textPadding" : 33,
+  "textAlignH" : "CENTER",
+  "textAlignV" : "MIDDLE",
+  "textPos" : "LEFT",
+  "textColor" : "#000000",
+  "defaultCoordinates" : "1,0,0,200,200",
+  "imageDpi" : 400,
+  "image" : "ZGVmYXVsdA=="
+}

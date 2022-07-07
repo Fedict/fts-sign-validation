@@ -36,6 +36,7 @@ import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xades.reference.DSSTransform;
 import org.apache.xml.security.transforms.Transforms;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -148,6 +149,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Autowired
     private StorageService storageService;
+
+    @Value("${signing.time}")
+    private Long signingTime;
 
     @GetMapping(value = PING, produces = TEXT_PLAIN_VALUE)
     public String ping() {
@@ -524,7 +528,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             // Signer allowed to sign ?
             checkNNAllowedToSign(token.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
 
-            Date signingDate = new Date();
+            Date signingDate = signingTime == null ? new Date() : new Date(signingTime);
             clientSigParams.setSigningDate(signingDate);
 
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(token.getSignProfile(), clientSigParams, token.getPolicy());
@@ -579,9 +583,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
 
             // Signing within allowed time ?
+            Date now = signingTime == null ? new Date() : new Date(signingTime);
             long signTimeout = token.getSignTimeout() != null ? token.getSignTimeout() * 1000 : SIGN_DURATION_SECS * 1000;
-            if (new Date().getTime() >= (clientSigParams.getSigningDate().getTime() + signTimeout)) {
-                logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "");
+            long expiredBy = now.getTime() - signTimeout - clientSigParams.getSigningDate().getTime();
+            if (expiredBy > 0) {
+                logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "Expired by :" + Long.toString(expiredBy / 1000) + " seconds");
             }
 
             // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document

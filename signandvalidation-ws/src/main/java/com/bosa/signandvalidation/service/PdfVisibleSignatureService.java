@@ -5,7 +5,6 @@ import com.bosa.signandvalidation.model.TokenSignInput;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 
 import eu.europa.esig.dss.enumerations.*;
-import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteColor;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
@@ -28,6 +27,7 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
@@ -41,14 +41,13 @@ import java.text.SimpleDateFormat;
 @RequiredArgsConstructor
 public class PdfVisibleSignatureService {
 
-    private static final String FONTS_PATH_PROPERTY = "fonts.path";
-
-    private static final String DEFAULT_STRING      = "default";
+    public static final String FONTS_PATH_PROPERTY = "fonts.path";
+    public static final String DEFAULT_STRING      = "default";
     private static final byte[] DEFAULT_BYTES       = DEFAULT_STRING.getBytes();
     private static final String SURNAME_TOKEN       = "%sn%";
     private static final String GIVENNAME_TOKEN     = "%gn%";
     private static final String NN_TOKEN            = "%nn%";       // Placeholder for National number
-    private static final String LEGACY_NN_TOKEN     = "%rrn%";      // Old Placeholder for National number - to be delete one day ;-)
+    private static final String LEGACY_NN_TOKEN     = "%rrn%";      // Old Placeholder for National number - to delete some day ;-)
 
     private static final String DEFAULT_TEXT = GIVENNAME_TOKEN + " " + SURNAME_TOKEN;
 
@@ -87,7 +86,7 @@ public class PdfVisibleSignatureService {
 
     private final StorageService storageService;
 
-    private final HashMap<String, byte[]> fontFiles = new HashMap<String, byte[]>(20);
+    private final Map<String, byte[]> fontFiles = new ConcurrentHashMap<String, byte[]>(20);
     
     private final Logger logger = Logger.getLogger(PdfVisibleSignatureService.class.getName());
 
@@ -107,13 +106,16 @@ public class PdfVisibleSignatureService {
         if (sigFieldId != null) {
             fieldParams.setFieldId(sigFieldId);
         } else {
-            String sigFieldCoords = input.getPsfC();
-            if (sigFieldCoords == null) return;
-            convertFieldCoords(sigFieldCoords, psp.defaultCoordinates, fieldParams);
+            String inputCoordinates = input.getPsfC();
+            if (inputCoordinates == null) return;
+            convertFieldCoords(inputCoordinates, psp.defaultCoordinates, fieldParams);
         }
 
-        Date signingDate = remoteSigParams.getBLevelParams().getSigningDate();
-        String text = makeText(psp.texts, input.getSignLanguage(), signingDate, remoteSigParams.getSigningCertificate());
+        String text = makeText(psp.texts,
+                input.getSignLanguage(),
+                remoteSigParams.getBLevelParams().getSigningDate(),
+                remoteSigParams.getSigningCertificate());
+
         byte image[] = photo != null ? photo : psp.image;
 
         if (psp.version == 1) {
@@ -151,12 +153,17 @@ public class PdfVisibleSignatureService {
 
         if (psp.version == 2) {
             if (psp.textWrapping == null) psp.textWrapping = TextWrapping.FONT_BASED;
-            if (psp.imageScaling == null) psp.imageScaling = ImageScaling.CENTER;
+            if (psp.imageScaling == null) psp.imageScaling = ImageScaling.ZOOM_AND_CENTER;
             if (psp.horizAlignment == null) psp.horizAlignment = VisualSignatureAlignmentHorizontal.NONE;
             if (psp.vertAlignment == null) psp.vertAlignment = VisualSignatureAlignmentVertical.NONE;
-            if (psp.bodyBgColor == null) psp.bodyBgColor = "#DDDDDD";
+            if (psp.bodyBgColor == null) psp.bodyBgColor = psp.bgColor;
             if (psp.rotation == null) psp.rotation = VisualSignatureRotation.AUTOMATIC;
             if (psp.zoom == null) psp.zoom = 100;
+
+            // DSS rendered fonts are passed in a "Remote" object represented by an in-memory binary file
+            // Therefore the "Bold" and "Italic" derived fonts are not supported
+            // remove the optional "/bi" from the font name
+            psp.font = psp.font == null ? DEFAULT_STRING : psp.font.replaceAll("/[^/]*$", "");
         }
 
         return psp;
@@ -164,17 +171,17 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    static void convertFieldCoords(String sigFieldCoords, String defaultCoordinates, RemoteSignatureFieldParameters fieldParams) throws NullParameterException {
+    static void convertFieldCoords(String inputCoordinates, String pspDefaultCoordinates, RemoteSignatureFieldParameters fieldParams) throws NullParameterException {
 
-        if (DEFAULT_STRING.equals(sigFieldCoords)) {
-            sigFieldCoords = defaultCoordinates;
-            if (sigFieldCoords == null) {
+        if (DEFAULT_STRING.equals(inputCoordinates)) {
+            inputCoordinates = pspDefaultCoordinates;
+            if (inputCoordinates == null) {
                 throw new NullParameterException("default PDF signature coordinates requested, but these we not specified in the psp (or no psp)");
             }
         }
-        String[] coords = sigFieldCoords.split(",");
+        String[] coords = inputCoordinates.split(",");
         if (coords.length != 5) {
-            throw new NullParameterException("expected 5 values for PDF signature coordinates but was: '" + sigFieldCoords + "'");
+            throw new NullParameterException("expected 5 values for PDF signature coordinates but was: '" + inputCoordinates + "'");
         }
         fieldParams.setPage(Integer.parseInt(coords[0]));
         fieldParams.setOriginX(Float.parseFloat(coords[1]));
@@ -235,10 +242,6 @@ public class PdfVisibleSignatureService {
         sigImgParams.setTextParameters(textParams);
 
         textParams.setSize(psp.textSize);
-        RemoteDocument dssFont = new RemoteDocument();
-        dssFont.setBytes(Utils.toByteArray(new FileInputStream("src/test/resources/OpenSansBold.ttf")));
-        textParams.setFont(dssFont);
-
         textParams.setTextWrapping(psp.textWrapping);
         textParams.setTextColor(makeColor(psp.textColor));
         textParams.setBackgroundColor(makeColor(psp.bgColor));
@@ -247,6 +250,8 @@ public class PdfVisibleSignatureService {
         textParams.setSignerTextPosition(psp.textPos);
         textParams.setSignerTextVerticalAlignment(psp.textAlignV);
         textParams.setSignerTextHorizontalAlignment(psp.textAlignH);
+        RemoteDocument rd = new RemoteDocument(readFontFromFileOrCache(psp.font), psp.font);
+        textParams.setFont(rd);
 
         if (image != null) sigImgParams.setImage(new RemoteDocument(image, "image.png"));
         sigImgParams.setDpi(psp.imageDpi);
@@ -290,18 +295,21 @@ public class PdfVisibleSignatureService {
             yPdfField = fieldParams.getHeight();
         }
 
-        Font font = getFont(psp.font, psp.textSize);
         try {
             RemoteDocument imageDoc = new RemoteDocument();
             sigImgParams.setImage(imageDoc);
 
             imageDoc.setBytes(PdfImageBuilder.makePdfImage(
                     (int)xPdfField, (int)yPdfField,
-                    psp.bgColor, psp.textPadding,
-                    text, psp.textColor, getTextPos(psp.textPos),
+                    psp.bgColor,
+                    psp.textPadding,
+                    text,
+                    psp.textColor,
+                    getTextPos(psp.textPos),
                     getHorizontalAlign(psp.textAlignH),
                     getVerticalAlign(psp.textAlignV),
-                    font, image));
+                    getFont(psp.font, psp.textSize),
+                    image));
         }
         catch (Exception e) {
             logger.log(Level.SEVERE, e.toString());
