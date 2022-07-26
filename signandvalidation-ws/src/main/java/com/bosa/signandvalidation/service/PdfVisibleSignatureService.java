@@ -422,7 +422,7 @@ public class PdfVisibleSignatureService {
         if (fontFiles.containsKey(fontName))
             return fontFiles.get(fontName);
         byte[] buf = readFontFromFile(fontName);
-        fontFiles.put(fontName, buf);
+        if (buf != null) fontFiles.put(fontName, buf);
         return buf;
     }
 
