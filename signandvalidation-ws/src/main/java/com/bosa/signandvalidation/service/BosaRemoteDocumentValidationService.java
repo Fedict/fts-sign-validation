@@ -41,29 +41,19 @@ public class BosaRemoteDocumentValidationService {
 	public WSReportsDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, RemoteSignatureParameters parameters) {
 
 		// Let DSS to it's normal validation
-		WSReportsDTO report = remoteDocumentValidationService.validateDocument(
-			new DataToValidateDTO(signedDocument, originalDocuments, policy));
+		WSReportsDTO report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
 
 		// When some back end servers (don't know which ones...) are down seems DSS can produce a signature that does not reflect the
 		// requested "parameters.getSignatureLevel()". For example even though an LTA was requested the result is not LTA.
 		// The code below is there to double-check this, it also makes sure SHA1 & MD5 are never used
+		int maxSigId = 0;
+		Date maxSigTime = null;
 		XmlDiagnosticData diagsData = report.getDiagnosticData();
 		List<eu.europa.esig.dss.diagnostic.jaxb.XmlSignature> signatures = diagsData.getSignatures();
+
 		int sigCount = signatures.size();
 		for (int i = 0; i < sigCount; i++) {
 			eu.europa.esig.dss.diagnostic.jaxb.XmlSignature sig = signatures.get(i);
-
-			if (null != parameters) {
-				// Check if the signature level (of the sig we just made) corresponds with the requested level
-				SignatureLevel expSigLevel = parameters.getSignatureLevel();
-				SignatureLevel sigLevel = sig.getSignatureFormat();
-				if (!sigLevel.equals(expSigLevel) && ((1 == sigCount) || sigWasJustMade(sig.getClaimedSigningTime()))) {
-					modifyReports(report, i, SubIndication.FORMAT_FAILURE,
-					"expected level " + expSigLevel + " but was: " + sigLevel);
-					continue;
-				}
-			}
-
 			// Check if the signature algo is MD5 or SHA1
 			XmlBasicSignature basicSig = sig.getBasicSignature();
 			DigestAlgorithm digestAlgo = basicSig.getDigestAlgoUsedToSignThisToken();
@@ -72,11 +62,30 @@ public class BosaRemoteDocumentValidationService {
 				modifyReports(report, i, SubIndication.CRYPTO_CONSTRAINTS_FAILURE,
 					digestAlgo + " signatures not allowed");
 			}
+			// Identify the latest signature (for next step)
+			// Though this could not be the signature we "just made".
+			// It would be better to identify the signature based on the signed digest but this one is still better than the previous one using the 10 seconds delay
+			Date sigTime = sig.getClaimedSigningTime();
+			if (maxSigTime == null || sigTime.after(maxSigTime)) {
+				maxSigTime = sigTime;
+				maxSigId = i;
+			}
+		}
+
+		if (parameters != null && maxSigTime != null) {
+			// Check if the signature level (of the sig we just made) corresponds with the requested level
+			SignatureLevel expSigLevel = parameters.getSignatureLevel();
+			SignatureLevel sigLevel = signatures.get(maxSigId).getSignatureFormat();
+			if (!sigLevel.equals(expSigLevel)) {
+				modifyReports(report, maxSigId, SubIndication.FORMAT_FAILURE, "expected level " + expSigLevel + " but was: " + sigLevel);
+			}
 		}
 
 		return report;
 	}
 
+	// This method assumes that the report uses the same order as the signature list... which I guess is not defined anywhere
+	// TODO : Use a proper identifier of the signature, like the signed digest, instead of the sigIdx
 	private void modifyReports(WSReportsDTO report, int sigIdx, SubIndication subIndication, String errMesg) {
 		// Modify the simple report
 		XmlSimpleReport simpleReport = report.getSimpleReport();
@@ -103,9 +112,7 @@ public class BosaRemoteDocumentValidationService {
 		// Modify the detailed report
 		XmlDetailedReport detailedReport = report.getDetailedReport();
 		List<Serializable> sigs = detailedReport.getSignatureOrTimestampOrCertificate();
-		int sigsCount = sigs.size();
-		eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signat =
-			(eu.europa.esig.dss.detailedreport.jaxb.XmlSignature) sigs.get(sigIdx);
+		eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signat = (eu.europa.esig.dss.detailedreport.jaxb.XmlSignature) sigs.get(sigIdx);
 		XmlValidationProcessBasicSignature validation = signat.getValidationProcessBasicSignature();
 		XmlConclusion conclusion = validation.getConclusion();
 		conclusion.setIndication(Indication.TOTAL_FAILED);
@@ -115,11 +122,5 @@ public class BosaRemoteDocumentValidationService {
 		err.setKey("err");
 		err.setValue(errMesg);
 		conclusion.getErrors().add(err);
-	}
-
-	// Return true if the signingTime is no more then 10 seconds in the past
-	static boolean sigWasJustMade(Date signingTime) {
-		return  (null != signingTime) &&
-			((System.currentTimeMillis() - signingTime.getTime()) < 10000);
 	}
 }
