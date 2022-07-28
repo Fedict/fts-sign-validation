@@ -17,7 +17,6 @@ import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
 import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
 import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
-import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlValidationProcessBasicSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
 
@@ -40,14 +39,13 @@ public class BosaRemoteDocumentValidationService {
 
 	public WSReportsDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, RemoteSignatureParameters parameters) {
 
-		// Let DSS to it's normal validation
+		// Let DSS do its normal validation
 		WSReportsDTO report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
 
 		// When some back end servers (don't know which ones...) are down seems DSS can produce a signature that does not reflect the
 		// requested "parameters.getSignatureLevel()". For example even though an LTA was requested the result is not LTA.
 		// The code below is there to double-check this, it also makes sure SHA1 & MD5 are never used
-		int maxSigId = 0;
-		Date maxSigTime = null;
+		eu.europa.esig.dss.diagnostic.jaxb.XmlSignature maxSig = null;
 		XmlDiagnosticData diagsData = report.getDiagnosticData();
 		List<eu.europa.esig.dss.diagnostic.jaxb.XmlSignature> signatures = diagsData.getSignatures();
 
@@ -59,68 +57,69 @@ public class BosaRemoteDocumentValidationService {
 			DigestAlgorithm digestAlgo = basicSig.getDigestAlgoUsedToSignThisToken();
 			String dAlgo = digestAlgo.toString();
 			if ("SHA1".equals(dAlgo) || "MD5".equals(dAlgo)) {
-				modifyReports(report, i, SubIndication.CRYPTO_CONSTRAINTS_FAILURE,
+				modifyReports(report, sig.getId(), SubIndication.CRYPTO_CONSTRAINTS_FAILURE,
 					digestAlgo + " signatures not allowed");
 			}
 			// Identify the latest signature (for next step)
 			// Though this could not be the signature we "just made".
 			// It would be better to identify the signature based on the signed digest but this one is still better than the previous one using the 10 seconds delay
-			Date sigTime = sig.getClaimedSigningTime();
-			if (maxSigTime == null || sigTime.after(maxSigTime)) {
-				maxSigTime = sigTime;
-				maxSigId = i;
+			if (maxSig == null || sig.getClaimedSigningTime().after(maxSig.getClaimedSigningTime())) {
+				maxSig = sig;
 			}
 		}
 
-		if (parameters != null && maxSigTime != null) {
+		if (parameters != null && maxSig != null) {
 			// Check if the signature level (of the sig we just made) corresponds with the requested level
 			SignatureLevel expSigLevel = parameters.getSignatureLevel();
-			SignatureLevel sigLevel = signatures.get(maxSigId).getSignatureFormat();
+			SignatureLevel sigLevel = maxSig.getSignatureFormat();
 			if (!sigLevel.equals(expSigLevel)) {
-				modifyReports(report, maxSigId, SubIndication.FORMAT_FAILURE, "expected level " + expSigLevel + " but was: " + sigLevel);
+				modifyReports(report, maxSig.getId(), SubIndication.FORMAT_FAILURE, "expected level " + expSigLevel + " but was: " + sigLevel);
 			}
 		}
 
 		return report;
 	}
 
-	// This method assumes that the report uses the same order as the signature list... which I guess is not defined anywhere
-	// TODO : Use a proper identifier of the signature, like the signed digest, instead of the sigIdx
-	private void modifyReports(WSReportsDTO report, int sigIdx, SubIndication subIndication, String errMesg) {
+	private void modifyReports(WSReportsDTO report, String sigId, SubIndication subIndication, String errMesg) {
 		// Modify the simple report
 		XmlSimpleReport simpleReport = report.getSimpleReport();
-		List<XmlToken> tokens = simpleReport.getSignatureOrTimestamp();
-		XmlToken token = tokens.get(sigIdx);
-		if (!Indication.TOTAL_FAILED.equals(token.getIndication())) {
-			token.setIndication(Indication.TOTAL_FAILED);
-			token.setSubIndication(subIndication);
-			// DSS 5.8 had an "errors" field.
-			// DSS 5.9 has AdESValidationDetails and QualificationDetails
-			//			each have 3 lists of key/value pairs "error", "warning" and "info"
-			// We're using the "error" list to add the error.
-			XmlDetails adesValidationDetails = token.getAdESValidationDetails();
-			if (adesValidationDetails == null) token.setAdESValidationDetails(adesValidationDetails = new XmlDetails());
-			XmlMessage error = new XmlMessage();
-			error.setKey("err");
-			error.setValue(errMesg);
-			adesValidationDetails.getError().add(error);
-			int validSigsCount = simpleReport.getValidSignaturesCount();
-			if (validSigsCount > 0)
-				simpleReport.setValidSignaturesCount(validSigsCount - 1);
+		for (XmlToken token : simpleReport.getSignatureOrTimestamp()) {
+			if (token.getId().equals(sigId)) {
+				if (!Indication.TOTAL_FAILED.equals(token.getIndication())) {
+					token.setIndication(Indication.TOTAL_FAILED);
+					token.setSubIndication(subIndication);
+					// DSS 5.8 had an "errors" field.
+					// DSS 5.9 has AdESValidationDetails and QualificationDetails
+					//			each have 3 lists of key/value pairs "error", "warning" and "info"
+					// We're using the "error" list to add the error.
+					XmlDetails adesValidationDetails = token.getAdESValidationDetails();
+					if (adesValidationDetails == null) token.setAdESValidationDetails(adesValidationDetails = new XmlDetails());
+					XmlMessage error = new XmlMessage();
+					error.setKey("err");
+					error.setValue(errMesg);
+					adesValidationDetails.getError().add(error);
+					int validSigsCount = simpleReport.getValidSignaturesCount();
+					if (validSigsCount > 0)
+						simpleReport.setValidSignaturesCount(validSigsCount - 1);
+				}
+				break;
+			}
 		}
-
 		// Modify the detailed report
-		XmlDetailedReport detailedReport = report.getDetailedReport();
-		List<Serializable> sigs = detailedReport.getSignatureOrTimestampOrCertificate();
-		eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signat = (eu.europa.esig.dss.detailedreport.jaxb.XmlSignature) sigs.get(sigIdx);
-		XmlValidationProcessBasicSignature validation = signat.getValidationProcessBasicSignature();
-		XmlConclusion conclusion = validation.getConclusion();
-		conclusion.setIndication(Indication.TOTAL_FAILED);
-		conclusion.setSubIndication(subIndication);
+		for (Serializable sigTsOrCert : report.getDetailedReport().getSignatureOrTimestampOrCertificate()) {
+			eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signat = (eu.europa.esig.dss.detailedreport.jaxb.XmlSignature)sigTsOrCert;
+			if (signat.getId().equals(sigId)) {
+				XmlValidationProcessBasicSignature validation = signat.getValidationProcessBasicSignature();
+				XmlConclusion conclusion = validation.getConclusion();
+				conclusion.setIndication(Indication.TOTAL_FAILED);
+				conclusion.setSubIndication(subIndication);
 
-		eu.europa.esig.dss.detailedreport.jaxb.XmlMessage err = new eu.europa.esig.dss.detailedreport.jaxb.XmlMessage();
-		err.setKey("err");
-		err.setValue(errMesg);
-		conclusion.getErrors().add(err);
+				eu.europa.esig.dss.detailedreport.jaxb.XmlMessage err = new eu.europa.esig.dss.detailedreport.jaxb.XmlMessage();
+				err.setKey("err");
+				err.setValue(errMesg);
+				conclusion.getErrors().add(err);
+				break;
+			}
+		}
 	}
 }
