@@ -58,6 +58,7 @@ public class SigningControllerInputCheckTest {
     public void testInputsErrors() throws Exception {
         // Check general input
         TokenObject token = new TokenObject();
+        token.setSigningType(SigningType.SingleFile);
         token.setSignProfile("Profile");
         testToken(token, EMPTY_PARAM + "'inputs' field is empty");
 
@@ -85,7 +86,7 @@ public class SigningControllerInputCheckTest {
         testToken(token, EMPTY_PARAM + "'OutXslt' must be null for 'non Xades Multifile'");
 
         // ... then check "Xades multifile", first with one file
-        token.setXadesMultifile(true);
+        token.setSigningType(SigningType.XadesMultiFile);
         testToken(token, EMPTY_PARAM + "'XmlEltId' is NULL");
 
         input.setXmlEltId("#234234");

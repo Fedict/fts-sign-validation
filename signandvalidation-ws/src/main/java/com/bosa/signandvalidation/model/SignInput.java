@@ -17,4 +17,5 @@ public class SignInput {
 
     // Only when "fileName" file is of type XML
     private String displayXsltPath; // An optional XSLT filename in the bucket can be provided to display the XML
+
 }

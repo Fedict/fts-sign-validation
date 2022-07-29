@@ -4,7 +4,6 @@ import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.*;
 import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
-import com.bosa.signandvalidation.utils.XmlUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
@@ -183,7 +182,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setPsfN(tokenData.getPsfN());
             input.setDisplayXsltPath(tokenData.getXslt());
             inputs.add(input);
-            TokenObject token = new TokenObject(false, tokenData.getName(), tokenData.getProf(), inputs, tokenData.getOut());
+            TokenObject token = new TokenObject(SigningType.SingleFile, tokenData.getName(), tokenData.getProf(), inputs, tokenData.getOut());
             if (tokenData.getPolicyId() != null) {
                 token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), DigestAlgorithm.valueOf(tokenData.getPolicyDigestAlgorithm())));
             }
@@ -219,16 +218,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         // Password not needed anymore
         gtfd.setPassword(null);
 
-        TokenObject token = new TokenObject();
-        token.setXadesMultifile(true);
-        token.setBucket(gtfd.getBucket());
-        token.setSignTimeout(gtfd.getSignTimeout());
-        token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
-        token.setSignProfile(gtfd.getSignProfile());
-        PolicyDTO policy = gtfd.getPolicy();
-        if (policy != null) {
-            token.setPolicy(new PolicyParameters(policy.getId(), policy.getDescription(), policy.getDigestAlgorithm()));
-        }
+        SigningType signingType = gtfd.getSignType();
         List<TokenSignInput> tokenInputs = new ArrayList<>();
         for(SignInput input : gtfd.getInputs()) {
             TokenSignInput ti = new TokenSignInput();
@@ -237,16 +227,25 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ti.setDisplayXsltPath(input.getDisplayXsltPath());
             tokenInputs.add(ti);
         }
-        token.setInputs(tokenInputs);
+        TokenObject token = new TokenObject(signingType == null ? SigningType.XadesMultiFile : signingType,
+                                    gtfd.getBucket(), gtfd.getSignProfile(), tokenInputs, gtfd.getOutFilePath());
+        token.setSignTimeout(gtfd.getSignTimeout());
+        token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
+        PolicyDTO policy = gtfd.getPolicy();
+        if (policy != null) {
+            token.setPolicy(new PolicyParameters(policy.getId(), policy.getDescription(), policy.getDigestAlgorithm()));
+        }
         token.setOutXsltPath(gtfd.getOutXsltPath());
-        token.setOutFilePath(gtfd.getOutFilePath());
         token.setOutDownload(gtfd.isOutDownload());
+        token.setOutPathPrefix(gtfd.getOutPathPrefix());
         token.setRequestDocumentReadConfirm(gtfd.isRequestDocumentReadConfirm());
         token.setPreviewDocuments(gtfd.isPreviewDocuments());
 
         checkToken(token);
 
-        createSignedFile(token);
+        if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
+            createXadesMultifileToBeSigned(token);
+        }
 
         // Create Token
         String tokenString = createToken(token);
@@ -305,7 +304,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkValue("fileName", input.getFilePath(), false, null, filenamesList);
 
             MediaType inputFileType = MediaTypeUtil.getMediaTypeFromFilename(input.getFilePath());
-            if (token.isXadesMultifile()) {
+            if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
                 checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
                 if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFilePath() != null) {
                     logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades", null);
@@ -328,13 +327,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         if (token.getOutXsltPath() != null) {
-            if (token.isXadesMultifile()) {
+            if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
                 checkValue("OutXslt", token.getOutXsltPath(), true, null, filenamesList);
             } else {
                 logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'OutXslt' must be null for 'non Xades Multifile'", null);
             }
         }
-        checkValue("outFileName", token.getOutFilePath(), false, null, filenamesList);
+        if (token.getSigningType().equals(SigningType.Bulk)) {
+            checkValue("outPathPrefix", token.getOutPathPrefix(), false, null, null);
+        } else {
+            checkValue("outFileName", token.getOutFilePath(), false, null, filenamesList);
+        }
     }
 
     private static void checkValue(String name, String value, boolean nullable, Pattern patternToMatch, List<String> uniqueList) {
@@ -357,7 +360,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    private void createSignedFile(TokenObject token) {
+    private void createXadesMultifileToBeSigned(TokenObject token) {
         try {
             logger.info("Creating Xades xml file : " + token.getOutFilePath());
 
@@ -442,15 +445,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     inputMetadata.setHasDisplayXslt(input.getDisplayXsltPath() != null);
                     signedInputsMetadata.add(inputMetadata);
                 }
-                SignInputMetadata fi = signedInputsMetadata.get(0);
 
-                String xsltUrl = null;
-                if (fi.isHasDisplayXslt()) {
-                    xsltUrl = "${BEurl}/signing/getDocumentForToken?type=xslt&token=" + tokenString;
-                }
+                boolean getPhoto = false;
+                for(TokenSignInput input : token.getInputs()) getPhoto |= input.isPsfP();
 
                 logger.info("Returning from getMetadataForToken()" + tokenFootprint);
-                return new DocumentMetadataDTO(fi.getFileName(), fi.getMimeType(), xsltUrl, token.getInputs().get(0).isPsfP(), !token.isOutDownload(), token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), signedInputsMetadata);
+                return new DocumentMetadataDTO(token.getSigningType(), getPhoto, !token.isOutDownload(),
+                        token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), signedInputsMetadata);
 
             } catch (RuntimeException e){
                     logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -535,22 +536,22 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             String filePath;
             List<DSSReference> references = null;
-            TokenSignInput firstInput = token.getInputs().get(0);
-            if (token.isXadesMultifile()) {
+            TokenSignInput inputToSign = token.getInputs().get(dataToSignForTokenDto.getFileIdToSign());
+            if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(signingDate, idsToSign, parameters.getReferenceDigestAlgorithm());
                 filePath = token.getOutFilePath();
             } else {
-                filePath = firstInput.getFilePath();
+                filePath = inputToSign.getFilePath();
             }
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, token.getOutFilePath());
 
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
 
-            if (!token.isXadesMultifile() && parameters.getSignatureLevel().toString().startsWith("PAdES")) {
-                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, firstInput, token.getBucket(), clientSigParams.getPhoto());
+            if (!token.getSigningType().equals(SigningType.XadesMultiFile) && parameters.getSignatureLevel().toString().startsWith("PAdES")) {
+                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams.getPhoto());
             }
 
             ToBeSignedDTO dataToSign = altSignatureService.getDataToSignWithReferences(fileToSign, parameters, references);
@@ -597,25 +598,26 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             String fileName;
             List<DSSReference> references = null;
-            TokenSignInput firstInput = token.getInputs().get(0);
-            if (token.isXadesMultifile()) {
+            TokenSignInput inputToSign = token.getInputs().get(signDto.getFileIdToSign());
+            if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(clientSigParams.getSigningDate(), idsToSign, parameters.getReferenceDigestAlgorithm());
                 fileName = token.getOutFilePath();
             } else {
-                fileName = firstInput.getFilePath();
+                fileName = inputToSign.getFilePath();
             }
 
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), fileName, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, token.getOutFilePath());
             if (parameters.getSignatureLevel().toString().startsWith("PAdES")) {
-                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, firstInput, token.getBucket(), clientSigParams.getPhoto());
+                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams.getPhoto());
             }
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocumentWithReferences(fileToSign, parameters, signatureValueDto, references);
-            signedDoc.setName(token.getOutFilePath());
+
+            signedDoc.setName(getOutFileName(token, inputToSign));
 
             logger.info("signDocumentForToken(): validating the signed doc" + tokenFootprint);
             signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token);
@@ -634,6 +636,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+    }
+
+    private static String getOutFileName(TokenObject token, TokenSignInput inputToSign) {
+        if (!token.getSigningType().equals(SigningType.Bulk)) return token.getOutFilePath();
+        String filePath = inputToSign.getFilePath();
+        int pos = filePath.lastIndexOf('/');
+        return pos == -1 ? token.getOutPathPrefix() + filePath : filePath.substring(0, pos) + token.getOutPathPrefix() + filePath.substring(pos + 1);
     }
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters) {

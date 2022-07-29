@@ -21,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 public class TokenObject {
     private long createTime;
-    private boolean xadesMultifile;
+    private SigningType signingType;
     private String bucket;
     private Integer signTimeout;
     private List<String> nnAllowedToSign;
@@ -36,11 +36,12 @@ public class TokenObject {
 
     private String outXsltPath;
     private String outFilePath;
+    private String OutPathPrefix;
     private boolean outDownload;
 
     // Mandatory parameters
-    public TokenObject(boolean xadesMultifile, String bucket, String signProfile, List<TokenSignInput> inputs, String outFilePath) {
-        this.xadesMultifile = xadesMultifile;
+    public TokenObject(SigningType signingType, String bucket, String signProfile, List<TokenSignInput> inputs, String outFilePath) {
+        this.signingType = signingType;
         this.inputs = inputs;
         this.bucket = bucket;
         this.signProfile = signProfile;

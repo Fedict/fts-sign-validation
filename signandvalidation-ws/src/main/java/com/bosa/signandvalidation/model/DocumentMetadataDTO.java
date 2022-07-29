@@ -19,9 +19,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class DocumentMetadataDTO {
-    private String filename;
-    private String mimetype;
-    private String xsltUrl;
+    private SigningType signingType;
     private boolean readPhoto;
     private boolean disallowSignedDownloads;
     private boolean requestDocumentReadConfirm;
@@ -29,10 +27,8 @@ public class DocumentMetadataDTO {
 
     private List<SignInputMetadata> inputs;
     
-    public DocumentMetadataDTO(String filename, String mimetype, String xsltUrl, boolean readPhoto, boolean disallowSignedDownloads, boolean requestDocumentReadConfirm, boolean previewDocuments, List<SignInputMetadata> inputs) {
-        this.filename = filename;
-        this.mimetype = mimetype;
-        this.xsltUrl = xsltUrl;
+    public DocumentMetadataDTO(SigningType signingType, boolean readPhoto, boolean disallowSignedDownloads, boolean requestDocumentReadConfirm, boolean previewDocuments, List<SignInputMetadata> inputs) {
+        this.signingType = signingType;
         this.readPhoto = readPhoto;
         this.previewDocuments = previewDocuments;
         this.disallowSignedDownloads = disallowSignedDownloads;

@@ -19,6 +19,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class GetTokenForDocumentsDTO {
+    private SigningType signType;
     private String bucket;
     private String password;
     private Integer signTimeout;
@@ -33,6 +34,7 @@ public class GetTokenForDocumentsDTO {
 
     private String outXsltPath;
     private String outFilePath;
+    private String outPathPrefix;
     private boolean outDownload;
 
     // Mandatory parameters
