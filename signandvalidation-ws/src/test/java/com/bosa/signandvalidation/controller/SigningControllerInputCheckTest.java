@@ -83,7 +83,7 @@ public class SigningControllerInputCheckTest {
         input.setDisplayXsltPath(null);
 
         token.setOutXsltPath("file2.xml");
-        testToken(token, EMPTY_PARAM + "'OutXslt' must be null for 'non Xades Multifile'");
+        testToken(token, EMPTY_PARAM + "'outXslt' must be null for 'non Xades Multifile'");
 
         // ... then check "Xades multifile", first with one file
         token.setSigningType(SigningType.XadesMultiFile);
@@ -139,6 +139,10 @@ public class SigningControllerInputCheckTest {
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
             ctrl.checkToken(token);
         });
-        assertTrue(exception.getMessage().contains(s));
+        boolean verified = exception.getMessage().contains(s);
+        if (!verified) {
+            System.out.println("Expection :" + exception.getMessage() + " does not contain :" + s);
+        }
+        assertTrue(verified);
     }
 }

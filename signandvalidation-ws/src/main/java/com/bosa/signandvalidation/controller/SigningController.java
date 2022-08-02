@@ -51,7 +51,6 @@ import java.text.SimpleDateFormat;
 
 import static com.bosa.signandvalidation.exceptions.Utils.getTokenFootprint;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
-import static com.bosa.signandvalidation.model.GetFileType.OUT;
 import static com.bosa.signandvalidation.model.SigningType.Bulk;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -523,7 +522,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 if (!token.isOutDownload()) {
                     logAndThrowEx(tokenString, BAD_REQUEST, NOT_ALLOWED_TO_DOWNLOAD, "Forging request attempt !");
                 }
-                if (inputIndexes.length == 1) singleFilePath = getOutFileName(token, input);
+                if (inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
                 break;
         }
 
@@ -531,7 +530,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         InputStream fileStream = null;
         try {
             MediaType contentType = APPLICATION_OCTET_STREAM;
-            String attachmentName = "Files.zip";
+            String attachmentName = "FTS" + new SimpleDateFormat("yyyyMMDD HHmmss").format(new Date()) + ".zip";
             if (singleFilePath != null) {
                 attachmentName = getNameFromPath(singleFilePath);
                 FileStoreInfo fi = storageService.getFileInfo(token.getBucket(), singleFilePath);
@@ -551,7 +550,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             } else {
                 out = new ZipOutputStream(response.getOutputStream());
                 for(Integer inputId : inputIndexes) {
-                    String fileNameToZip = getNameFromPath(getOutFileName(token, token.getInputs().get(inputId)));
+                    String fileNameToZip = getNameFromPath(getOutFilePath(token, token.getInputs().get(inputId)));
                     out.putNextEntry(new ZipEntry(fileNameToZip));
                     fileStream = storageService.getFileAsStream(token.getBucket(), fileNameToZip);
                     Utils.copy(fileStream, out);
@@ -681,10 +680,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocumentWithReferences(fileToSign, parameters, signatureValueDto, references);
 
-            signedDoc.setName(getOutFileName(token, inputToSign));
+            signedDoc.setName(getOutFilePath(token, inputToSign));
 
             logger.info("signDocumentForToken(): validating the signed doc" + tokenFootprint);
-            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token);
+            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token, signedDoc.getName());
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
@@ -700,7 +699,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private static String getOutFileName(TokenObject token, TokenSignInput inputToSign) {
+    private static String getOutFilePath(TokenObject token, TokenSignInput inputToSign) {
         String prefix = token.getOutPathPrefix();
         return (prefix == null) ? token.getOutFilePath() : prefix + inputToSign.getFilePath();
     }
@@ -708,12 +707,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters) {
-        return validateResult(signedDoc, detachedContents, parameters, null);
+        return validateResult(signedDoc, detachedContents, parameters, null, null);
     }
 
     /*****************************************************************************************/
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token) {
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token, String outFilePath) {
         WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null, parameters);
 
         if (null != token) {
@@ -728,7 +727,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
                 mapper.writeValue(out, reportDto);
 
-                storageService.storeFile(token.getBucket(), token.getOutFilePath() + ".validationreport.json", out.toString().getBytes());
+                storageService.storeFile(token.getBucket(), outFilePath + ".validationreport.json", out.toString().getBytes());
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to serialize or save the validation report", e);
             }

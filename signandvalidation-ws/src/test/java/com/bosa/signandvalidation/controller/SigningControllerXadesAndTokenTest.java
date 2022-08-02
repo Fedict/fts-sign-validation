@@ -26,8 +26,7 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doAnswer;
 import static org.springframework.http.MediaType.APPLICATION_PDF;
@@ -188,9 +187,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, 0, csp, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, sdto, RemoteDocument.class);
 
-        assertNotNull(signedDocument);
-
-        System.out.println(new String(signedDocument.getBytes()));
+        assertNull(signedDocument);
     }
 
     private static String lastOccurenceOf(String name, char c) {
@@ -233,9 +230,6 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignXMLElementsDTO signDto = new SignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_XADES_MULTI_DOC, signDto, RemoteDocument.class);
-        assertNotNull(signedDocument);
-
-        System.out.println(signedDocument.getName());
-        System.out.println(new String(signedDocument.getBytes()));
+        assertNull(signedDocument);
     }
 }

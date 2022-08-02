@@ -6,6 +6,7 @@ import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.esig.dss.model.Digest;
+import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
@@ -27,10 +28,13 @@ import java.util.List;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureServiceTest.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doAnswer;
 
 public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
 
     private static final String DEFAULT_COORDINATES = "1,0,0,200,150";
+    private static final String THE_BUCKET = "THE_BUCKET";
+    private static final String THE_OUT_FILENAME = "out";
 
     @MockBean
     private StorageService storageService;
@@ -81,6 +85,8 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
             psp.version = 2;
             pspFileBytes = om.writeValueAsString(psp).getBytes();
         }
+        final String pspFileString = new String(pspFileBytes);
+
         Mockito.when(storageService.getFileAsBytes(anyString(), eq(pspFileName), anyBoolean())).thenReturn(pspFileBytes);
 
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
@@ -97,13 +103,13 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
         GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
         getTokenDTO.setProf("PADES_B");
         getTokenDTO.setLang(pspFileName.substring(0, 2));
-        getTokenDTO.setName("THE_BUCKET");
+        getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setPsfC(DEFAULT_STRING);
         getTokenDTO.setPsfP(photo == null ? "false" : "true");
         getTokenDTO.setPsp(pspFileName);
         getTokenDTO.setIn("sample.pdf");
         getTokenDTO.setSignTimeout(1000);
-        getTokenDTO.setOut("out");
+        getTokenDTO.setOut(THE_OUT_FILENAME);
         String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
 
         // get data to sign
@@ -113,25 +119,32 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
         // sign
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
 
+        // This code will be triggered when signDocumentForToken will store it's output file to the file store
+        doAnswer(invocation -> {
+            // So here we're going to check the output PDF file
+            byte[] signedBytes = (byte[]) invocation.getArgument(2);
+
+            /*
+            File pdf = new File(pspFile.getParent(), pspFileName.substring(0, pspFileName.length() - 4) + ".pdf");
+            new InMemoryDocument(signedBytes).save(pdf.getPath());
+             */
+
+            String defaultCoordinates = (new ObjectMapper()).readValue(pspFileString, PdfSignatureProfile.class).defaultCoordinates;
+            if (defaultCoordinates == null) defaultCoordinates = DEFAULT_COORDINATES;
+            String coords[] = defaultCoordinates.split(",");
+
+            BufferedImage actualFirstPageImage = new PDFRenderer(PDDocument.load(signedBytes)).renderImageWithDPI(0, 72);
+            BufferedImage actualSignature = actualFirstPageImage.getSubimage(Integer.parseInt(coords[1]), Integer.parseInt(coords[2]), Integer.parseInt(coords[3]), Integer.parseInt(coords[4]));
+
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            ImageIO.write(actualSignature, "png", outStream);
+            PdfVisibleSignatureServiceTest.compareImages(outStream.toByteArray(), pspFileName.substring(0, pspFileName.length() - 4) + (forceV2 ? "_TOV2_TOKEN" : "_TOKEN"));
+            return null;
+        }).when(storageService).storeFile(eq(THE_BUCKET), eq(THE_OUT_FILENAME), any());
+
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
-
-        /*
-        File pdf = new File(pspFile.getParent(), pspFileName.substring(0, pspFileName.length() - 4) + ".pdf");
-        new InMemoryDocument(signedDocument.getBytes()).save(pdf.getPath());
-         */
-
-        String defaultCoordinates = (new ObjectMapper()).readValue(new String(pspFileBytes), PdfSignatureProfile.class).defaultCoordinates;
-        if (defaultCoordinates == null) defaultCoordinates = DEFAULT_COORDINATES;
-        String coords[] = defaultCoordinates.split(",");
-
-        BufferedImage actualFirstPageImage = new PDFRenderer(PDDocument.load(signedDocument.getBytes())).renderImageWithDPI(0, 72);
-        BufferedImage actualSignature = actualFirstPageImage.getSubimage(Integer.parseInt(coords[1]), Integer.parseInt(coords[2]), Integer.parseInt(coords[3]), Integer.parseInt(coords[4]));
-
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        ImageIO.write(actualSignature, "png", outStream);
-        PdfVisibleSignatureServiceTest.compareImages(outStream.toByteArray(), pspFileName.substring(0, pspFileName.length() - 4) + (forceV2 ? "_TOV2_TOKEN" : "_TOKEN"));
     }
 }
