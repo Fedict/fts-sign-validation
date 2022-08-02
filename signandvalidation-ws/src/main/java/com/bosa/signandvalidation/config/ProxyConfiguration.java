@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Collection;
+
 @Configuration
 public class ProxyConfiguration {
 
@@ -19,8 +21,8 @@ public class ProxyConfiguration {
     private String httpUser;
     @Value("${proxy.http.password}")
     private String httpPassword;
-    @Value("${proxy.http.exclude}")
-    private String httpExcludedHosts;
+    @Value("#{'${proxy.http.exclude}'.split(',')}")
+    private Collection<String> httpExcludedHosts;
 
     @Value("${proxy.https.enabled}")
     private boolean httpsEnabled;
@@ -32,8 +34,8 @@ public class ProxyConfiguration {
     private String httpsUser;
     @Value("${proxy.https.password}")
     private String httpsPassword;
-    @Value("${proxy.https.exclude}")
-    private String httpsExcludedHosts;
+    @Value("#{'${proxy.https.exclude}'.split(',')}")
+    private Collection<String> httpsExcludedHosts;
 
     @Bean
     public ProxyConfig proxyConfig() {

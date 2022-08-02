@@ -90,18 +90,18 @@ public class StorageService {
         return Base64.getEncoder().encodeToString(getFileAsBytes(bucket, name, true));
     }
 
-    public byte[] getFileAsBytes(String bucket, String name, boolean getSize) {
+    public byte[] getFileAsBytes(String bucket, String path, boolean isLargeFile) {
         byte[] outBytes = null;
         InputStream inStream = null;
         try {
             if (bucket == null) bucket = secretBucket;
             int size = 8192;
-            if (getSize) {
-                StatObjectResponse so = getClient().statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
+            if (isLargeFile) {
+                StatObjectResponse so = getClient().statObject(StatObjectArgs.builder().bucket(bucket).object(path).build());
                 size = (int) so.size();
             }
 
-            inStream = getClient().getObject(GetObjectArgs.builder().bucket(bucket).object(name).build());
+            inStream = getClient().getObject(GetObjectArgs.builder().bucket(bucket).object(path).build());
             ByteArrayOutputStream out = new ByteArrayOutputStream(size);
             byte[] buffer = new byte[8192];
             int read;
@@ -111,7 +111,7 @@ public class StorageService {
             inStream.close();
             outBytes = out.toByteArray();
         } catch (Exception e) {
-            logAndThrow("getting", name, e);
+            logAndThrow("getting", path, e);
         } finally {
             if (inStream != null) {
                 try {

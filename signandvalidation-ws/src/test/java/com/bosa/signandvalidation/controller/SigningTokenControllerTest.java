@@ -14,11 +14,13 @@ import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +35,10 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
     @MockBean
     private StorageService storageService;
+
+    // Warning : Unit tests are running with a fixed "hardcoded" time.
+    @Value("${signing.time}")
+    private Long signingTime;
 
     @Test
     public void testSigningTimeNOK() throws Exception {
@@ -56,7 +62,8 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         getTokenDTO.setProf("PADES_B");
         getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setIn(inFile.getName());
-        getTokenDTO.setSignTimeout(0);
+        // GetDataToSignForToken (With 10 second timeout)
+        getTokenDTO.setSignTimeout(10);
         getTokenDTO.setOut("out");
         String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
 
@@ -67,9 +74,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // sign
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
 
-        // sign document
-        clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
+        // Set time of GetDataToSignForToken 11 seconds ago
+        clientSignatureParameters.setSigningDate(new Date(signingTime - 11000));
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, clientSignatureParameters, signatureValue.getValue());
+
+        // sign document
         Map result = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, Map.class);
         assertNotNull(result);
 

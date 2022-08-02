@@ -4,6 +4,7 @@ import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.*;
 import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
+import com.bosa.signandvalidation.utils.XmlUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
@@ -35,6 +36,7 @@ import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xades.reference.DSSTransform;
 import org.apache.xml.security.transforms.Transforms;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,8 +69,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
@@ -149,6 +149,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Autowired
     private StorageService storageService;
+
+    @Value("${signing.time}")
+    private Long signingTime;
 
     @GetMapping(value = PING, produces = TEXT_PLAIN_VALUE)
     public String ping() {
@@ -374,7 +377,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             Document doc = dbf.newDocumentBuilder().newDocument();
             context.createMarshaller().marshal(root, doc);
 
-            //logger.info(xmlDocToString(doc));
+            //logger.info(XmlUtil.xmlDocToString(doc));
 
             TransformerFactory tf = new net.sf.saxon.BasicTransformerFactory();
             // If requested create target file
@@ -386,12 +389,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 tf.newTransformer(new StreamSource(xsltStream)).transform(new DOMSource(doc), xsltDom);
                 doc = (Document)xsltDom.getNode();
 
-            // logger.info(xmlDocToString(doc));
+                //logger.info(XmlUtil.xmlDocToString(doc));
             }
 
             putFilesContent(doc.getFirstChild(), token);
 
-            //logger.info(xmlDocToString(doc));
+            //logger.info(XmlUtil.xmlDocToString(doc));
 
             // Save target XML to bucket
             ByteArrayOutputStream outStream = new ByteArrayOutputStream(32768);
@@ -525,23 +528,23 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             // Signer allowed to sign ?
             checkNNAllowedToSign(token.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
 
-            Date signingDate = new Date();
+            Date signingDate = signingTime == null ? new Date() : new Date(signingTime);
             clientSigParams.setSigningDate(signingDate);
 
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(token.getSignProfile(), clientSigParams, token.getPolicy());
 
-            String fileName;
+            String filePath;
             List<DSSReference> references = null;
             TokenSignInput firstInput = token.getInputs().get(0);
             if (token.isXadesMultifile()) {
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(signingDate, idsToSign, parameters.getReferenceDigestAlgorithm());
-                fileName = token.getOutFilePath();
+                filePath = token.getOutFilePath();
             } else {
-                fileName = firstInput.getFilePath();
+                filePath = firstInput.getFilePath();
             }
-            byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), fileName, true);
+            byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, token.getOutFilePath());
 
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
@@ -580,9 +583,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
 
             // Signing within allowed time ?
+            Date now = signingTime == null ? new Date() : new Date(signingTime);
             long signTimeout = token.getSignTimeout() != null ? token.getSignTimeout() * 1000 : SIGN_DURATION_SECS * 1000;
-            if (new Date().getTime() >= (clientSigParams.getSigningDate().getTime() + signTimeout)) {
-                logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "");
+            long expiredBy = now.getTime() - signTimeout - clientSigParams.getSigningDate().getTime();
+            if (expiredBy > 0) {
+                logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "Expired by :" + Long.toString(expiredBy / 1000) + " seconds");
             }
 
             // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
@@ -799,19 +804,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             references.add(reference);
         }
         return references;
-    }
-
-    private String xmlDocToString(Document doc) throws TransformerException {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer = tf.newTransformer();
-        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-        StringWriter writer = new StringWriter();
-        transformer.transform(new DOMSource(doc), new StreamResult(writer));
-        return writer.getBuffer().toString();
     }
 
     /*****************************************************************************************
