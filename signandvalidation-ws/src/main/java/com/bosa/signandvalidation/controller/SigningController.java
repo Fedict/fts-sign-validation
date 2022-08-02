@@ -51,6 +51,8 @@ import java.text.SimpleDateFormat;
 
 import static com.bosa.signandvalidation.exceptions.Utils.getTokenFootprint;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static com.bosa.signandvalidation.model.GetFileType.OUT;
+import static com.bosa.signandvalidation.model.SigningType.Bulk;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
 
@@ -60,6 +62,8 @@ import java.security.cert.CertificateException;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -209,7 +213,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    @PostMapping(value = GET_TOKEN_FOR_DOCUMENTS, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
+    /*****************************************************************************************/
+
+     @PostMapping(value = GET_TOKEN_FOR_DOCUMENTS, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocuments(@RequestBody GetTokenForDocumentsDTO gtfd) {
         // Validate input
         if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
@@ -253,6 +259,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return tokenString;
     }
 
+    /*****************************************************************************************/
+
     private static String objectToString(Object input) {
         try {
             return new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValueAsString(input);
@@ -261,6 +269,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             return e.toString();
         }
     }
+
+    /*****************************************************************************************/
 
     void checkToken(TokenObject token) {
 
@@ -330,15 +340,32 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
                 checkValue("OutXslt", token.getOutXsltPath(), true, null, filenamesList);
             } else {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'OutXslt' must be null for 'non Xades Multifile'", null);
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'outXslt' must be null for 'non Xades Multifile'", null);
             }
         }
-        if (token.getSigningType().equals(SigningType.Bulk)) {
-            checkValue("outPathPrefix", token.getOutPathPrefix(), false, null, null);
-        } else {
-            checkValue("outFileName", token.getOutFilePath(), false, null, filenamesList);
+
+        String prefix = token.getOutPathPrefix();
+        if (prefix != null) {
+            if (prefix.endsWith("/")) {
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'outPathPrefix' can't end with '/'", null);
+            }
+
+            if (token.getOutFilePath() != null) {
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'outFilePath' must be null if outPathPrefix is set", null);
+            }
+            // Check "prefixed" names collisions
+        }
+
+        if (token.getOutFilePath() != null) {
+            if (!token.getSigningType().equals(Bulk)) {
+                checkValue("outFileName", token.getOutFilePath(), false, null, filenamesList);
+            } else {
+                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'outFilePath' must be null for 'Bulk Signing'", null);
+            }
         }
     }
+
+    /*****************************************************************************************/
 
     private static void checkValue(String name, String value, boolean nullable, Pattern patternToMatch, List<String> uniqueList) {
         if (value != null) {
@@ -359,6 +386,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
         }
     }
+
+    /*****************************************************************************************/
 
     private void createXadesMultifileToBeSigned(TokenObject token) {
         try {
@@ -411,6 +440,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
+    /*****************************************************************************************/
+
     private void putFilesContent(Node node, TokenObject token) {
         while(node != null) {
             putFilesContent(node.getFirstChild(), token);
@@ -430,6 +461,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             node = node.getNextSibling();
         }
     }
+
+    /*****************************************************************************************/
 
     @GetMapping(value = GET_METADATA_FOR_TOKEN)
     public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String tokenString) {
@@ -459,63 +492,92 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             return null; // We won't get here
     }
 
+    /*****************************************************************************************/
+
     private static String getNameFromPath(String filePath) {
         int pos = filePath.lastIndexOf("/");
         return pos == -1 ? filePath : filePath.substring(pos + 1);
     }
 
-    @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{type}/{inputIndex}")
+    /*****************************************************************************************/
+
+    @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{type}/{inputIndexes}")
     public void getFileForToken(@PathVariable("token") String tokenString,
                                 @PathVariable GetFileType type,
-                                @PathVariable Integer inputIndex,
+                                @PathVariable(required = true) Integer inputIndexes[],
                                 @RequestParam(required = false)  String forceDownload,
                                 HttpServletResponse response) {
 
         TokenObject token = extractToken(tokenString);
 
-        String filePath = null;
-        if (inputIndex != null) {
-            TokenSignInput input = token.getInputs().get(inputIndex);
-            switch(type) {
-                case DOC:
-                    filePath = input.getFilePath();
-                    break;
-                case PSP:
-                    filePath = input.getPspFilePath();
-                    break;
-                case XSLT:
-                    filePath = input.getDisplayXsltPath();
-                    break;
-            }
-        } else {
-            if (type.equals(GetFileType.XSLT)) {
-                filePath = token.getOutXsltPath();
-            }
+        String singleFilePath = null;
+        TokenSignInput input = token.getInputs().get(inputIndexes[0]);
+        switch (type) {
+            case DOC:
+                singleFilePath = input.getFilePath();
+                break;
+            case XSLT:
+                singleFilePath = input.getDisplayXsltPath();
+                break;
+            case OUT:
+                if (!token.isOutDownload()) {
+                    logAndThrowEx(tokenString, BAD_REQUEST, NOT_ALLOWED_TO_DOWNLOAD, "Forging request attempt !");
+                }
+                if (inputIndexes.length == 1) singleFilePath = getOutFileName(token, input);
+                break;
         }
 
-        InputStream file = null;
+        ZipOutputStream out = null;
+        InputStream fileStream = null;
         try {
-            FileStoreInfo fi = storageService.getFileInfo(token.getBucket(), filePath);
-            String contentDisposition = forceDownload != null || !fi.getContentType().equals(APPLICATION_PDF) ? "attachment; filename=\"" + getNameFromPath(filePath) + "\"" : "inline";
+            MediaType contentType = APPLICATION_OCTET_STREAM;
+            String attachmentName = "Files.zip";
+            if (singleFilePath != null) {
+                attachmentName = getNameFromPath(singleFilePath);
+                FileStoreInfo fi = storageService.getFileInfo(token.getBucket(), singleFilePath);
+                contentType = fi.getContentType();
+            }
 
-            response.setContentType(fi.getContentType().toString());
+            String contentDisposition = forceDownload != null || !contentType.equals(APPLICATION_PDF) ? "attachment; filename=\"" + attachmentName + "\"" : "inline";
+            response.setContentType(contentType.toString());
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Cache-Control", "no-cache");
             response.setHeader("Content-Transfer-Encoding", "binary");
             response.setHeader("Content-Disposition", contentDisposition);
-            file = storageService.getFileAsStream(token.getBucket(), filePath);
-            Utils.copy(file, response.getOutputStream());
-            file.close();
+
+            if (singleFilePath != null) {
+                fileStream = storageService.getFileAsStream(token.getBucket(), singleFilePath);
+                Utils.copy(fileStream, response.getOutputStream());
+            } else {
+                out = new ZipOutputStream(response.getOutputStream());
+                for(Integer inputId : inputIndexes) {
+                    String fileNameToZip = getNameFromPath(getOutFileName(token, token.getInputs().get(inputId)));
+                    out.putNextEntry(new ZipEntry(fileNameToZip));
+                    fileStream = storageService.getFileAsStream(token.getBucket(), fileNameToZip);
+                    Utils.copy(fileStream, out);
+                    out.closeEntry();
+                    fileStream.close();
+                }
+                out.close();
+            }
+            fileStream.close();
         } catch (IOException e) {
             logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
-            if (file != null) {
+            if (fileStream != null) {
                 try {
-                    file.close();
+                    fileStream.close();
+                } catch (IOException ignored) { }
+            }
+            if (out != null) {
+                try {
+                    out.close();
                 } catch (IOException ignored) { }
             }
         }
     }
+
+    /*****************************************************************************************/
 
     @PostMapping(value = GET_DATA_TO_SIGN_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
@@ -574,6 +636,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
+    /*****************************************************************************************/
+
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
         try {
@@ -609,7 +673,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
 
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), fileName, true);
-            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, token.getOutFilePath());
+            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, fileName);
             if (parameters.getSignatureLevel().toString().startsWith("PAdES")) {
                 pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams.getPhoto());
             }
@@ -626,10 +690,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
             logger.info("Returning from signDocumentForToken()" + tokenFootprint);
 
-            if (token.isOutDownload()) {
-                return new ResponseEntity<>(signedDoc, HttpStatus.OK);
-            }
-
         } catch (Exception e) {
             DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -638,16 +698,20 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 
+    /*****************************************************************************************/
+
     private static String getOutFileName(TokenObject token, TokenSignInput inputToSign) {
-        if (!token.getSigningType().equals(SigningType.Bulk)) return token.getOutFilePath();
-        String filePath = inputToSign.getFilePath();
-        int pos = filePath.lastIndexOf('/');
-        return pos == -1 ? token.getOutPathPrefix() + filePath : filePath.substring(0, pos) + token.getOutPathPrefix() + filePath.substring(pos + 1);
+        String prefix = token.getOutPathPrefix();
+        return (prefix == null) ? token.getOutFilePath() : prefix + inputToSign.getFilePath();
     }
+
+    /*****************************************************************************************/
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters) {
         return validateResult(signedDoc, detachedContents, parameters, null);
     }
+
+    /*****************************************************************************************/
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token) {
         WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null, parameters);
@@ -686,6 +750,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return signedDoc;
     }
 
+    /*****************************************************************************************/
+
     private void checkDataToSign(RemoteSignatureParameters parameters, String tokenString) {
 
         Date now = new Date();
@@ -718,8 +784,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, CERT_CHAIN_INCOMPLETE, "cert count: " + chain.size());
     }
 
-
+    /*****************************************************************************************/
     // Create a "token" based of n the CreateSignFlowDTO. This will be the driver for the whole process
+
     private String createToken(TokenObject token)  {
         try {
             // JSONify & GZIP object
@@ -756,6 +823,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null;
     }
 
+    /*****************************************************************************************/
+
     // Extract and decrypt a "token"
     private TokenObject extractToken(String tokenString) {
         try {
@@ -781,6 +850,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return  null;
     }
 
+    /*****************************************************************************************/
+
     private void checkNNAllowedToSign(List<String> nnAllowedToSign, RemoteCertificate signingCertificate) {
         if (nnAllowedToSign != null) {
             CertInfo certInfo = new CertInfo(signingCertificate);
@@ -791,11 +862,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
+    /*****************************************************************************************/
+
     private List<String> getIdsToSign(List<SignElement> elementsToSign) {
         List<String> list = new ArrayList<String>(elementsToSign.size());
         for(SignElement elementToSign : elementsToSign) list.add(elementToSign.getId());
         return list;
     }
+
+    /*****************************************************************************************/
 
     private List<DSSReference> buildReferences(Date signingTime, List<String> xmlIds, DigestAlgorithm refDigestAlgo) {
         String timeRef = Long.toString(signingTime.getTime());
@@ -846,6 +921,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
+    /*****************************************************************************************/
 
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
@@ -868,6 +944,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
+    /*****************************************************************************************/
+
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
@@ -888,6 +966,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
         return null; // We won't get here
     }
+
+    /*****************************************************************************************/
 
     @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
@@ -910,6 +990,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
+    /*****************************************************************************************/
+
     @PostMapping(value = EXTEND_DOCUMENT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         try {
@@ -925,6 +1007,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
         return null; // We won't get here
     }
+
+    /*****************************************************************************************/
 
     @PostMapping(value = EXTEND_DOCUMENT_MULTIPLE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO extendDocumentDto) {
@@ -942,6 +1026,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
+    /*****************************************************************************************/
+
     @PostMapping(value = TIMESTAMP_DOCUMENT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument timestampDocument(@RequestBody TimestampDocumentDTO timestampDocumentDto) {
         try {
@@ -956,6 +1042,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
+    /*****************************************************************************************/
+
     @PostMapping(value = TIMESTAMP_DOCUMENT_MULTIPLE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampDocumentMultipleDTO timestampDocumentDto) {
         try {
@@ -969,6 +1057,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
         return null; // We won't get here
     }
+
+    /*****************************************************************************************/
 
     @PostMapping(value = GET_DATA_TO_SIGN_XADES_MULTI_DOC, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignXMLElementsDTO getDataToSignDto) {
@@ -997,6 +1087,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
+    /*****************************************************************************************/
+
     @PostMapping(value = SIGN_DOCUMENT_XADES_MULTI_DOC, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignXMLElementsDTO signDto) {
         try {
@@ -1015,3 +1107,5 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 }
+/*****************************************************************************************/
+

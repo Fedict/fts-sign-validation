@@ -69,4 +69,7 @@ public interface ErrorStrings {
 
 	/** Generated errors  */
 	String ERROR_SUFFIX = "_ERROR";
+
+	/** Not allowed to download signed files */
+	String NOT_ALLOWED_TO_DOWNLOAD = "NOT_ALLOWED_TO_DOWNLOAD";
 }
