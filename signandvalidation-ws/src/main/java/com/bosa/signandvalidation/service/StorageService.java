@@ -90,13 +90,13 @@ public class StorageService {
         return Base64.getEncoder().encodeToString(getFileAsBytes(bucket, name, true));
     }
 
-    public byte[] getFileAsBytes(String bucket, String path, boolean isLargeFile) {
+    public byte[] getFileAsBytes(String bucket, String path, boolean getFileSize) {
         byte[] outBytes = null;
         InputStream inStream = null;
         try {
             if (bucket == null) bucket = secretBucket;
             int size = 8192;
-            if (isLargeFile) {
+            if (getFileSize) {
                 StatObjectResponse so = getClient().statObject(StatObjectArgs.builder().bucket(bucket).object(path).build());
                 size = (int) so.size();
             }

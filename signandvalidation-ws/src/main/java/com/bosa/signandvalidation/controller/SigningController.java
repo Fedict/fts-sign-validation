@@ -522,7 +522,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 if (!token.isOutDownload()) {
                     logAndThrowEx(tokenString, BAD_REQUEST, NOT_ALLOWED_TO_DOWNLOAD, "Forging request attempt !");
                 }
-                if (inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
+                if (!token.getSigningType().equals(Bulk) || inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
                 break;
         }
 
