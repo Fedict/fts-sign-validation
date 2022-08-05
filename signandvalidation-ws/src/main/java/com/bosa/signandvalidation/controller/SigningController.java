@@ -262,7 +262,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         checkToken(token);
 
-        if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
+        if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
             createXadesMultifileToBeSigned(token);
         }
 
@@ -333,7 +333,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "input files must be either XML or PDF", null);
             }
 
-            if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
+            if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
                 checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
                 if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFilePath() != null) {
                     logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades", null);
@@ -361,7 +361,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         if (token.getOutXsltPath() != null) {
-            if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
+            if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
                 checkValue("OutXslt", token.getOutXsltPath(), true, null, filenamesList);
             } else {
                 logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'outXslt' must be null for 'non Xades Multifile'", null);
@@ -617,7 +617,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             TokenSignInput inputToSign = null;
             List<DSSReference> references = null;
             RemoteSignatureParameters parameters = null;
-            if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
+            if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
                 parameters = signingConfigService.getSignatureParams(token.getXmlSignProfile(), clientSigParams, token.getPolicy());
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
@@ -632,7 +632,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
 
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
-            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, token.getOutFilePath());
+            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
 
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
 
@@ -687,7 +687,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             TokenSignInput inputToSign = null;
             List<DSSReference> references = null;
             RemoteSignatureParameters parameters = null;
-            if (token.getSigningType().equals(SigningType.XadesMultiFile)) {
+            if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
                 parameters = signingConfigService.getSignatureParams(token.getXmlSignProfile(), clientSigParams, token.getPolicy());
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
@@ -702,7 +702,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
 
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
-            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, filePath);
+            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
             if (mediaType != null && APPLICATION_PDF.equals(mediaType)) {
                 pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams.getPhoto());
             }

@@ -24,8 +24,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -124,6 +123,6 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
-        assertNotNull(signedDocument);
+        assertNull(signedDocument);
     }
 }
