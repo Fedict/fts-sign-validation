@@ -24,7 +24,7 @@ public class SigningControllerInputCheckTest {
     @Test
     public void testNullPolicyId() throws Exception {
         TokenObject token = new TokenObject();
-        token.setSignProfile("Profile");
+        token.setPdfSignProfile("Profile");
         token.setPolicy(new PolicyParameters());
         testToken(token, EMPTY_PARAM + "policyId is null");
     }
@@ -32,7 +32,7 @@ public class SigningControllerInputCheckTest {
     @Test
     public void testMaxSignTimeout() throws Exception {
         TokenObject token = new TokenObject();
-        token.setSignProfile("Profile");
+        token.setPdfSignProfile("Profile");
         token.setSignTimeout(100000);
         testToken(token, "||SIGN_PERIOD_EXPIRED||signTimeout (100000) can't be larger than TOKEN_VALIDITY_SECS (18000)");
     }
@@ -40,7 +40,7 @@ public class SigningControllerInputCheckTest {
     @Test
     public void testNNAllowedToSignErrors() throws Exception {
         TokenObject token = new TokenObject();
-        token.setSignProfile("Profile");
+        token.setPdfSignProfile("Profile");
         int count = 100;
         List<String> nnAllowedToSign = new ArrayList<String>(count);
         while (count != 0) nnAllowedToSign.add(Integer.toString(--count));
@@ -58,8 +58,8 @@ public class SigningControllerInputCheckTest {
     public void testInputsErrors() throws Exception {
         // Check general input
         TokenObject token = new TokenObject();
-        token.setSigningType(SigningType.SingleFile);
-        token.setSignProfile("Profile");
+        token.setSigningType(SigningType.Standard);
+        token.setPdfSignProfile("Profile");
         testToken(token, EMPTY_PARAM + "'inputs' field is empty");
 
         List<TokenSignInput> inputs = new ArrayList<>();
@@ -132,7 +132,7 @@ public class SigningControllerInputCheckTest {
         token.setOutXsltPath("OutXSLT.xml");
 
         token.setOutFilePath("file2.xml");
-        testToken(token, EMPTY_PARAM + "'outFileName' (file2.xml) is not unique");
+        testToken(token, EMPTY_PARAM + "'outFilePath' (file2.xml) is not unique");
     }
 
     private void testToken(TokenObject token, String s) {

@@ -230,6 +230,6 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignXMLElementsDTO signDto = new SignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_XADES_MULTI_DOC, signDto, RemoteDocument.class);
-        assertNull(signedDocument);
+        assertNotNull(signedDocument);
     }
 }
