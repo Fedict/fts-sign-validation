@@ -816,7 +816,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
     // Create a "token" based of n the CreateSignFlowDTO. This will be the driver for the whole process
 
-    private String createToken(TokenObject token)  {
+    String createToken(TokenObject token)  {
         try {
             // JSONify & GZIP object
             ByteArrayOutputStream bos = new ByteArrayOutputStream();

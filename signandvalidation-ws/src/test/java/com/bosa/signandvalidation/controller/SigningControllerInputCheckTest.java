@@ -2,13 +2,13 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.PolicyParameters;
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 
 public class SigningControllerInputCheckTest {
 
@@ -25,8 +25,13 @@ public class SigningControllerInputCheckTest {
     public void testNullPolicyId() throws Exception {
         TokenObject token = new TokenObject();
         token.setPdfSignProfile("Profile");
-        token.setPolicy(new PolicyParameters());
+        PolicyParameters policyParams = new PolicyParameters();
+        token.setPolicy(policyParams);
         testToken(token, EMPTY_PARAM + "policyId is null");
+
+        policyParams.setPolicyId("ID");
+        testToken(token, "'inputs' field is empty");
+        assertEquals(DigestAlgorithm.SHA256, policyParams.getPolicyDigestAlgorithm());
     }
 
     @Test
@@ -68,9 +73,15 @@ public class SigningControllerInputCheckTest {
 
         // Check files input, first with "single file, non Xades"
         TokenSignInput input = new TokenSignInput();
+        input.setFilePath("file1.bin");
+        inputs.add(input);
+        testToken(token, EMPTY_PARAM + "input files must be either XML or PDF");
+
+        input.setFilePath("file1.xml");
+        testToken(token, EMPTY_PARAM + "No signProfile for file type provided (application/xml => Profile/null)");
+
         input.setFilePath("file1.pdf");
         input.setXmlEltId("#234234");
-        inputs.add(input);
         testToken(token, EMPTY_PARAM + "'XmlEltId' must be null for 'non Xades Multifile'");
         input.setXmlEltId(null);
 
@@ -131,7 +142,14 @@ public class SigningControllerInputCheckTest {
         testToken(token, EMPTY_PARAM + "'OutXslt' (file2.xml) is not unique");
         token.setOutXsltPath("OutXSLT.xml");
 
+        token.setOutPathPrefix("ABC/");
+        testToken(token, EMPTY_PARAM + "'outPathPrefix' can't end with '/'");
+
         token.setOutFilePath("file2.xml");
+        token.setOutPathPrefix("ABC_");
+        testToken(token, EMPTY_PARAM + "'outFilePath' must be null if outPathPrefix is set (Bulk Signing)");
+
+        token.setOutPathPrefix(null);
         testToken(token, EMPTY_PARAM + "'outFilePath' (file2.xml) is not unique");
     }
 
