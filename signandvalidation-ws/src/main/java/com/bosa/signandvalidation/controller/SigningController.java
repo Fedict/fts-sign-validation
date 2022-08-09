@@ -309,7 +309,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         List<String> nnsAllowedToSign = token.getNnAllowedToSign();
         if (nnsAllowedToSign != null) {
             if (nnsAllowedToSign.size() > MAX_NN_ALLOWED_TO_SIGN) {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "nnAllowedToSign (" + nnsAllowedToSign.size() + ") can't be larger than MAX_NN_ALLOWED_TO_SIGN (" + MAX_NN_ALLOWED_TO_SIGN + ")" , null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "nnAllowedToSign (" + nnsAllowedToSign.size() + ") can't be larger than MAX_NN_ALLOWED_TO_SIGN (" + MAX_NN_ALLOWED_TO_SIGN + ")" , null);
             }
             List<String> nnList = new ArrayList<String>();
             for(String nnAllowedToSign : nnsAllowedToSign) {
@@ -330,33 +330,33 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             boolean isPDF = APPLICATION_PDF.equals(inputFileType);
             boolean isXML = APPLICATION_XML.equals(inputFileType);
             if (!isPDF && !isXML) {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "input files must be either XML or PDF", null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "input files must be either XML or PDF", null);
             }
 
             if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
                 checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
                 if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFilePath() != null) {
-                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades", null);
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades", null);
                 }
             } else {
                 if (input.getXmlEltId() != null) {
-                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'XmlEltId' must be null for 'non Xades Multifile'", null);
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'XmlEltId' must be null for 'non Xades Multifile'", null);
                 }
 
                 if ((isPDF && token.getPdfSignProfile() == null) || (isXML && token.getXmlSignProfile() == null)) {
-                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "No signProfile for file type provided (" + inputFileType.toString() + " => " + token.getPdfSignProfile() + "/" + token.getXmlSignProfile() + ")", null);
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "No signProfile for file type provided (" + inputFileType.toString() + " => " + token.getPdfSignProfile() + "/" + token.getXmlSignProfile() + ")", null);
                 }
 
                 if (isPDF) {
                     String signLanguage = input.getSignLanguage();
                     if (signLanguage != null && !allowedLanguages.contains(signLanguage)) {
-                        logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'SignLanguage' (" + signLanguage + ") must be one of " + String.join(", ", allowedLanguages), null);
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'SignLanguage' (" + signLanguage + ") must be one of " + String.join(", ", allowedLanguages), null);
                     }
                     // TODO Validate  PSFxxx, psp, ... fields
                 }
             }
             if (!isXML && input.getDisplayXsltPath() != null) {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "DisplayXslt must be null for non-xml files", null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "DisplayXslt must be null for non-xml files", null);
             }
         }
 
@@ -364,18 +364,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
                 checkValue("OutXslt", token.getOutXsltPath(), true, null, filenamesList);
             } else {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'outXslt' must be null for 'non Xades Multifile'", null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXslt' must be null for 'non Xades Multifile'", null);
             }
         }
 
         String prefix = token.getOutPathPrefix();
         if (prefix != null) {
             if (prefix.endsWith("/")) {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'outPathPrefix' can't end with '/'", null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' can't end with '/'", null);
             }
 
             if (token.getOutFilePath() != null) {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'outFilePath' must be null if outPathPrefix is set (Bulk Signing)", null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outFilePath' must be null if outPathPrefix is set (Bulk Signing)", null);
             }
             // TODO : Check "prefixed" names collisions
         } else {
@@ -389,13 +389,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         if (value != null) {
             if (uniqueList != null) {
                 if (uniqueList.contains(value)) {
-                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'" + name + "' (" + value + ") is not unique", null);
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'" + name + "' (" + value + ") is not unique", null);
                 }
                 uniqueList.add(value);
             }
             if (patternToMatch != null) {
                 if (!patternToMatch.matcher(value).matches()) {
-                    logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'" + name + "' (" + value + ") does not match Regex (" + patternToMatch.pattern() + ")" , null);
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'" + name + "' (" + value + ") does not match Regex (" + patternToMatch.pattern() + ")" , null);
                 }
             }
         } else {

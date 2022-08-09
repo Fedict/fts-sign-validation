@@ -72,4 +72,6 @@ public interface ErrorStrings {
 
 	/** Not allowed to download signed files */
 	String NOT_ALLOWED_TO_DOWNLOAD = "NOT_ALLOWED_TO_DOWNLOAD";
+
+	String INVALID_PARAM = "INVALID Parameter";
 }
