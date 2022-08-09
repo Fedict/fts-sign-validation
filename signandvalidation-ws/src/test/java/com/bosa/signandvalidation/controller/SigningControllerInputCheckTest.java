@@ -94,7 +94,7 @@ public class SigningControllerInputCheckTest {
         input.setDisplayXsltPath(null);
 
         token.setOutXsltPath("file2.xml");
-        testToken(token, INVALID_PARAM, "'outXslt' must be null for 'non Xades Multifile'");
+        testToken(token, INVALID_PARAM, "'outXslt' must be null for non 'Xades Multifile'");
 
         // ... then check "Xades multifile", first with one file
         token.setSigningType(SigningType.XadesMultiFile);

@@ -27,6 +27,7 @@ public class TokenObject {
     private List<String> nnAllowedToSign;
     private boolean requestDocumentReadConfirm; // Request the user to check a "I have read the file" box before signing
     private boolean previewDocuments; // If true, display documents in the sign screen, otherwise provide list of downloadable links
+    private boolean selectDocuments;
 
     private String pdfSignProfile;
     private String xmlSignProfile;

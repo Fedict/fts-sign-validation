@@ -258,7 +258,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setOutDownload(gtfd.isOutDownload());
         token.setOutPathPrefix(gtfd.getOutPathPrefix());
         token.setRequestDocumentReadConfirm(gtfd.isRequestDocumentReadConfirm());
-        token.setPreviewDocuments(gtfd.isPreviewDocuments());
+         token.setPreviewDocuments(gtfd.isPreviewDocuments());
+         token.setSelectDocuments(gtfd.isSelectDocuments());
 
         checkToken(token);
 
@@ -360,11 +361,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
         }
 
-        if (token.getOutXsltPath() != null) {
-            if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
-                checkValue("OutXslt", token.getOutXsltPath(), true, null, filenamesList);
-            } else {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXslt' must be null for 'non Xades Multifile'", null);
+        if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
+            checkValue("OutXslt", token.getOutXsltPath(), true, null, filenamesList);
+        } else {
+            if (token.getOutXsltPath() != null) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXslt' must be null for non 'Xades Multifile'", null);
             }
         }
 
@@ -502,7 +503,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
                 logger.info("Returning from getMetadataForToken()" + tokenFootprint);
                 return new DocumentMetadataDTO(token.getSigningType(), getPhoto, !token.isOutDownload(),
-                        token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), signedInputsMetadata);
+                        token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isSelectDocuments(), signedInputsMetadata);
 
             } catch (RuntimeException e){
                     logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);

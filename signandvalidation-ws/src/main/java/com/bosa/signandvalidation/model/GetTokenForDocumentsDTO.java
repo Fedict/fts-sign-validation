@@ -25,6 +25,7 @@ public class GetTokenForDocumentsDTO {
     private Integer signTimeout;
     private boolean requestDocumentReadConfirm; // Request the user to check a "I have read the file" box before signing
     private boolean previewDocuments; // If true, display documents in the sign screen, otherwise provide list of downloadable links
+    private boolean selectDocuments; // If true, allow the user to select individual documents in a non-"Xades multifile" sign
     private List<String> nnAllowedToSign;
 
     private String signProfile;
