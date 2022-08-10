@@ -366,7 +366,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
         }
 
+        String prefix = token.getOutPathPrefix();
         if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
+            if (prefix != null) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for 'Xades Multifile'", null);
+            }
+
             checkValue("OutXslt", token.getOutXsltPath(), true, null, filenamesList);
             if (token.isSelectDocuments()) {
                 // Xades Multifile signs all files at the same time so can't have "cherry picked" files without large changes
@@ -382,7 +387,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
         }
 
-        String prefix = token.getOutPathPrefix();
         if (prefix != null) {
             if (prefix.endsWith("/")) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' can't end with '/'", null);
