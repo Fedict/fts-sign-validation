@@ -236,6 +236,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ti.setFilePath(input.getFilePath());
             ti.setXmlEltId(input.getXmlEltId());
             ti.setDisplayXsltPath(input.getDisplayXsltPath());
+            ti.setPspFilePath(input.getPspFilePath());
+            ti.setSignLanguage(input.getSignLanguage());
+            ti.setPsfC(input.getPsfC());
+            ti.setPsfN(input.getPsfN());
+            ti.setPsfP(input.isPsfP());
             tokenInputs.add(ti);
         }
 
@@ -246,8 +251,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
              pdfProfile = gtfd.getAltSignProfile();
          }
 
-         TokenObject token = new TokenObject(signingType == null ? SigningType.XadesMultiFile : signingType, gtfd.getBucket(),
-                                                    pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
+         if (signingType == null) signingType = SigningType.XadesMultiFile;
+         TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
         token.setSignTimeout(gtfd.getSignTimeout());
         token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
         PolicyDTO policy = gtfd.getPolicy();
@@ -258,8 +263,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setOutDownload(gtfd.isOutDownload());
         token.setOutPathPrefix(gtfd.getOutPathPrefix());
         token.setRequestDocumentReadConfirm(gtfd.isRequestDocumentReadConfirm());
-         token.setPreviewDocuments(gtfd.isPreviewDocuments());
-         token.setSelectDocuments(gtfd.isSelectDocuments());
+        token.setPreviewDocuments(gtfd.isPreviewDocuments());
+        token.setSelectDocuments(gtfd.isSelectDocuments());
 
         checkToken(token);
 
@@ -368,6 +373,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Can't individually select documents for 'Xades Multifile'", null);
             }
         } else {
+            if (inputs.size() > 1 && !token.isPreviewDocuments()) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "previewDocuments must be 'true' for non 'Xades Multifile' signature", null);
+            }
+
             if (token.getOutXsltPath() != null) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXslt' must be null for non 'Xades Multifile'", null);
             }
