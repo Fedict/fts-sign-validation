@@ -143,11 +143,11 @@ public class SigningControllerInputCheckTest {
         token.setOutXsltPath("OutXSLT.xml");
 
         token.setOutPathPrefix("ABC/");
-        testToken(token, INVALID_PARAM, "'outPathPrefix' can't end with '/'");
+        testToken(token, INVALID_PARAM, "'outPathPrefix' must be null for 'Xades Multifile'");
 
         token.setOutFilePath("file2.xml");
         token.setOutPathPrefix("ABC_");
-        testToken(token, INVALID_PARAM, "'outFilePath' must be null if outPathPrefix is set (Bulk Signing)");
+        testToken(token, INVALID_PARAM, "'outPathPrefix' must be null for 'Xades Multifile'");
 
         token.setOutPathPrefix(null);
         testToken(token, INVALID_PARAM, "'outFilePath' (file2.xml) is not unique");

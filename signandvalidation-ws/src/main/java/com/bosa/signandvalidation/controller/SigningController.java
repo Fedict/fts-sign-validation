@@ -557,7 +557,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 break;
             case OUT:
                 if (!token.isOutDownload()) {
-                    logAndThrowEx(tokenString, BAD_REQUEST, NOT_ALLOWED_TO_DOWNLOAD, "Forging request attempt !");
+                    logAndThrowEx(tokenString, BAD_REQUEST, BLOCKED_DOWNLOAD, "Forging request attempt !");
                 }
                 if (token.getSigningType().equals(XadesMultiFile) || inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
                 break;

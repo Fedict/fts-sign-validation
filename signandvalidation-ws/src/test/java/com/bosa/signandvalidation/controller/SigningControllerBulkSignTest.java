@@ -70,7 +70,7 @@ public class SigningControllerBulkSignTest {
         try {
             sc.getFileForToken(tokenStr, OUT, new Integer[]{ 0 }, null, resp);
         } catch (ResponseStatusException e) {
-            assertTrue(e.getReason().endsWith("NOT_ALLOWED_TO_DOWNLOAD||Forging request attempt !"));
+            assertTrue(e.getReason().endsWith("BLOCKED_DOWNLOAD||Forging request attempt !"));
         }
 
         // Test one file output
