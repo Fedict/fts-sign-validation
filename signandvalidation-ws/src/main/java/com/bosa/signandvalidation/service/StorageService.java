@@ -70,7 +70,7 @@ public class StorageService {
                 | InvalidResponseException | IOException
                 | NoSuchAlgorithmException | ServerException
                 | XmlParserException ex) {
-            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, "EX :" + ex.toString() + " - EX_CAUSE:" + ex.getCause() + " - EX_MSG :" + ex.getMessage(), ex);
             return false;
         }
     }
