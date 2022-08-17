@@ -53,6 +53,7 @@ public class SigningControllerBulkSignTest {
         Mockito.when(resp.getOutputStream()).thenReturn(outStream);
 
         TokenObject token = new TokenObject();
+        token.setTokenTimeout(100000);
         token.setSigningType(Standard);
         token.setBucket(THE_BUCKET);
         token.setOutPathPrefix(THE_PREFIX);

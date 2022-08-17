@@ -103,9 +103,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_FILE_FOR_TOKEN               = "/getFileForToken";
     public static final String SIGN_DOCUMENT_FOR_TOKEN          = "/signDocumentForToken";
 
-    public static final int TOKEN_VALIDITY_SECS                 = 5 * 60 * 60;
-    private static final long SIGN_DURATION_SECS                = 2 * 60;
-    private static final int MAX_NN_ALLOWED_TO_SIGN             = 32;
+    public static final int MAX_TOKEN_VALIDITY_SECS             = 4 * 24 * 60 * 60;
+    public static final int DEFAULT_TOKEN_VALIDITY_SECS         = 5 * 60 * 60;
+    public static final int DEFAULT_SIGN_DURATION_SECS          = 2 * 60;
+    public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
 
@@ -129,7 +130,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final SimpleDateFormat reportDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     // Secret key cache
-    private static final Cache<String, SecretKey> keyCache = CacheBuilder.newBuilder().expireAfterWrite(TOKEN_VALIDITY_SECS, TimeUnit.SECONDS).build();
+    private static final Cache<String, SecretKey> keyCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_TOKEN_VALIDITY_SECS, TimeUnit.SECONDS).build();
 
     @Autowired
     private SigningConfiguratorService signingConfigService;
@@ -207,7 +208,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 token.setNnAllowedToSign(nnAllowedToSign);
             }
 
-            checkToken(token);
+            checkTokenAndSetDefaults(token);
 
             String tokenString = createToken(token);
             logger.info("Returning from getTokenForDocument()" + getTokenFootprint(tokenString) + " params: " + objectToString(tokenData));
@@ -244,16 +245,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             tokenInputs.add(ti);
         }
 
-         String pdfProfile = gtfd.getSignProfile();
-         String xmlProfile = gtfd.getAltSignProfile();
-         if ((pdfProfile != null && pdfProfile.startsWith("XADES") || (xmlProfile != null && xmlProfile.startsWith("PADES")))) {
-             xmlProfile = pdfProfile;
-             pdfProfile = gtfd.getAltSignProfile();
-         }
+        String pdfProfile = gtfd.getSignProfile();
+        String xmlProfile = gtfd.getAltSignProfile();
+        if ((pdfProfile != null && pdfProfile.startsWith("XADES") || (xmlProfile != null && xmlProfile.startsWith("PADES")))) {
+            xmlProfile = pdfProfile;
+            pdfProfile = gtfd.getAltSignProfile();
+        }
 
-         if (signingType == null) signingType = SigningType.XadesMultiFile;
-         TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
-        token.setSignTimeout(gtfd.getSignTimeout());
+        if (signingType == null) signingType = SigningType.XadesMultiFile;
+        TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
+        token.setSignTimeout(gtfd.getSignTimeout() );
+        token.setTokenTimeout(gtfd.getTokenTimeout());
         token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
         PolicyDTO policy = gtfd.getPolicy();
         if (policy != null) {
@@ -266,7 +268,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setPreviewDocuments(gtfd.isPreviewDocuments());
         token.setSelectDocuments(gtfd.isSelectDocuments());
 
-        checkToken(token);
+        checkTokenAndSetDefaults(token);
 
         if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
             createXadesMultifileToBeSigned(token);
@@ -291,7 +293,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    void checkToken(TokenObject token) {
+    void checkTokenAndSetDefaults(TokenObject token) {
 
         if (token.getPdfSignProfile() == null && token.getXmlSignProfile() == null) {
             //TODO Validate signProfile further
@@ -309,9 +311,19 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             // TODO more policy checks ?
         }
 
-        if (token.getSignTimeout() != null && token.getSignTimeout() > TOKEN_VALIDITY_SECS) {
-            logAndThrowEx(FORBIDDEN, SIGN_PERIOD_EXPIRED, "signTimeout (" + token.getSignTimeout() + ") can't be larger than TOKEN_VALIDITY_SECS (" + TOKEN_VALIDITY_SECS + ")" , null);
+        Integer tokenTimeout = token.getTokenTimeout();
+        if (tokenTimeout != null) {
+            if (tokenTimeout > MAX_TOKEN_VALIDITY_SECS) {
+                logAndThrowEx(FORBIDDEN, SIGN_PERIOD_EXPIRED, "tokenTimeout (" + tokenTimeout + ") can't be larger than  MAX_TOKEN_VALIDITY_SECS (" + MAX_TOKEN_VALIDITY_SECS + ")" , null);
+            }
+        } else token.setTokenTimeout(tokenTimeout = DEFAULT_TOKEN_VALIDITY_SECS);
+
+        Integer signTimeout = token.getSignTimeout();
+        if (signTimeout == null) token.setSignTimeout(signTimeout = DEFAULT_SIGN_DURATION_SECS);
+        if (signTimeout > tokenTimeout) {
+            logAndThrowEx(FORBIDDEN, SIGN_PERIOD_EXPIRED, "signTimeout (" + signTimeout + ") can't be larger than  Token expiration (" + tokenTimeout + ")" , null);
         }
+
         List<String> nnsAllowedToSign = token.getNnAllowedToSign();
         if (nnsAllowedToSign != null) {
             if (nnsAllowedToSign.size() > MAX_NN_ALLOWED_TO_SIGN) {
@@ -691,8 +703,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Signing within allowed time ?
             Date now = signingTime == null ? new Date() : new Date(signingTime);
-            long signTimeout = token.getSignTimeout() != null ? token.getSignTimeout() * 1000 : SIGN_DURATION_SECS * 1000;
-            long expiredBy = now.getTime() - signTimeout - clientSigParams.getSigningDate().getTime();
+
+            long expiredBy = now.getTime() - token.getSignTimeout() * 1000L - clientSigParams.getSigningDate().getTime();
             if (expiredBy > 0) {
                 logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "Expired by :" + Long.toString(expiredBy / 1000) + " seconds");
             }
@@ -887,14 +899,24 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             GZIPInputStream zis = new GZIPInputStream(new ByteArrayInputStream(jweObject.getPayload().toBytes()));
             TokenObject token = om.readValue(zis, TokenObject.class);
 
-            if (new Date().getTime() > (token.getCreateTime() + TOKEN_VALIDITY_SECS * 60000)) {
+            if (new Date().getTime() > (token.getCreateTime() + token.getTokenTimeout() * 1000L)) {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
             }
+            // Save KeyID in token object for token deletion
+            token.setKeyId(keyId);
             return token;
         } catch(ParseException | IOException | JOSEException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         }
         return  null;
+    }
+
+    /*****************************************************************************************/
+
+    private void deleteToken(TokenObject token) {
+
+        SecretKey key = keyCache.getIfPresent(token.getKeyId());
+        if (key != null) keyCache.invalidate(key);
     }
 
     /*****************************************************************************************/

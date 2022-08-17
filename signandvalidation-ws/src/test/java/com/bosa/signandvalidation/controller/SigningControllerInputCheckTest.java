@@ -39,7 +39,7 @@ public class SigningControllerInputCheckTest {
         TokenObject token = new TokenObject();
         token.setPdfSignProfile("Profile");
         token.setSignTimeout(100000);
-        testToken(token, SIGN_PERIOD_EXPIRED, "signTimeout (100000) can't be larger than TOKEN_VALIDITY_SECS (18000)");
+        testToken(token, SIGN_PERIOD_EXPIRED, "signTimeout (100000) can't be larger than  Token expiration (18000)");
     }
 
     @Test
@@ -155,7 +155,7 @@ public class SigningControllerInputCheckTest {
 
     private void testToken(TokenObject token, String error, String s) {
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
-            ctrl.checkToken(token);
+            ctrl.checkTokenAndSetDefaults(token);
         });
         boolean verified = exception.getMessage().contains("||" + error + "||" + s);
         if (!verified) {
