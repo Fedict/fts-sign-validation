@@ -20,7 +20,6 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class TokenObject {
-    private String keyId;
     private long createTime;
     private SigningType signingType;
     private String bucket;

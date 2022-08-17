@@ -103,7 +103,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_FILE_FOR_TOKEN               = "/getFileForToken";
     public static final String SIGN_DOCUMENT_FOR_TOKEN          = "/signDocumentForToken";
 
-    public static final int MAX_TOKEN_VALIDITY_SECS             = 4 * 24 * 60 * 60;
     public static final int DEFAULT_TOKEN_VALIDITY_SECS         = 5 * 60 * 60;
     public static final int DEFAULT_SIGN_DURATION_SECS          = 2 * 60;
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
@@ -130,7 +129,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final SimpleDateFormat reportDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     // Secret key cache
-    private static final Cache<String, SecretKey> keyCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_TOKEN_VALIDITY_SECS, TimeUnit.SECONDS).build();
+    private static final Cache<String, SecretKey> keyCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
 
     @Autowired
     private SigningConfiguratorService signingConfigService;
@@ -312,11 +311,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         Integer tokenTimeout = token.getTokenTimeout();
-        if (tokenTimeout != null) {
-            if (tokenTimeout > MAX_TOKEN_VALIDITY_SECS) {
-                logAndThrowEx(FORBIDDEN, SIGN_PERIOD_EXPIRED, "tokenTimeout (" + tokenTimeout + ") can't be larger than  MAX_TOKEN_VALIDITY_SECS (" + MAX_TOKEN_VALIDITY_SECS + ")" , null);
-            }
-        } else token.setTokenTimeout(tokenTimeout = DEFAULT_TOKEN_VALIDITY_SECS);
+        if (tokenTimeout == null) token.setTokenTimeout(tokenTimeout = DEFAULT_TOKEN_VALIDITY_SECS);
 
         Integer signTimeout = token.getSignTimeout();
         if (signTimeout == null) token.setSignTimeout(signTimeout = DEFAULT_SIGN_DURATION_SECS);
@@ -894,6 +889,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (key == null) {
                 byte[] rawKey = storageService.getFileAsBytes(null, KEYS_FOLDER + keyId + KEYS_FILENAME_EXTENTION, false);
                 key = new SecretKeySpec(om.readValue(rawKey, byte[].class), SYMMETRIC_KEY_ALGO);
+                keyCache.put(keyId, key);
             }
             jweObject.decrypt(new DirectDecrypter(key));
             GZIPInputStream zis = new GZIPInputStream(new ByteArrayInputStream(jweObject.getPayload().toBytes()));
@@ -902,21 +898,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (new Date().getTime() > (token.getCreateTime() + token.getTokenTimeout() * 1000L)) {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
             }
-            // Save KeyID in token object for token deletion
-            token.setKeyId(keyId);
             return token;
         } catch(ParseException | IOException | JOSEException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         }
         return  null;
-    }
-
-    /*****************************************************************************************/
-
-    private void deleteToken(TokenObject token) {
-
-        SecretKey key = keyCache.getIfPresent(token.getKeyId());
-        if (key != null) keyCache.invalidate(key);
     }
 
     /*****************************************************************************************/
