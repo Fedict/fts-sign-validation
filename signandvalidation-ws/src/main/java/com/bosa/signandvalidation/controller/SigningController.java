@@ -230,6 +230,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         gtfd.setPassword(null);
 
         SigningType signingType = gtfd.getSignType();
+         if (signingType == null) signingType = SigningType.XadesMultiFile;
         List<TokenSignInput> tokenInputs = new ArrayList<>();
         for(SignInput input : gtfd.getInputs()) {
             TokenSignInput ti = new TokenSignInput();
@@ -246,12 +247,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         String pdfProfile = gtfd.getSignProfile();
         String xmlProfile = gtfd.getAltSignProfile();
-        if ((pdfProfile != null && pdfProfile.startsWith("XADES") || (xmlProfile != null && xmlProfile.startsWith("PADES")))) {
+        // the "contains("XADES") is there to allow the MDOC_XADES... profiles
+        if ((pdfProfile != null && pdfProfile.contains("XADES") || (xmlProfile != null && xmlProfile.startsWith("PADES")))) {
             xmlProfile = pdfProfile;
             pdfProfile = gtfd.getAltSignProfile();
         }
 
-        if (signingType == null) signingType = SigningType.XadesMultiFile;
         TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
         token.setSignTimeout(gtfd.getSignTimeout() );
         token.setTokenTimeout(gtfd.getTokenTimeout());
@@ -375,6 +376,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         String prefix = token.getOutPathPrefix();
         if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
+            if (!"MDOC_XADES_LTA".equals(token.getXmlSignProfile())) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'Xades Multifile' with an invalid signProfile :" + token.getXmlSignProfile(), null);
+            }
+
             if (prefix != null) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for 'Xades Multifile'", null);
             }
@@ -643,7 +648,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             List<DSSReference> references = null;
             RemoteSignatureParameters parameters = null;
             if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
-                parameters = signingConfigService.getSignatureParams(token.getXmlSignProfile(), clientSigParams, token.getPolicy());
+                String profile = token.getXmlSignProfile();
+                if (profile == null) {
+                    // Double check that profile is not NULL to avoid default being used
+                    logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
+                }
+                parameters = signingConfigService.getSignatureParams(profile, clientSigParams, token.getPolicy());
                 List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
                 for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
                 references = buildReferences(signingDate, idsToSign, parameters.getReferenceDigestAlgorithm());
@@ -653,6 +663,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 filePath = inputToSign.getFilePath();
                 mediaType = MediaTypeUtil.getMediaTypeFromFilename(filePath);
                 String profile = APPLICATION_PDF.equals(mediaType) ? token.getPdfSignProfile() : token.getXmlSignProfile();
+                if (profile == null) {
+                    // Double check that profile is not NULL to avoid default being used
+                    logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
+                }
                 parameters = signingConfigService.getSignatureParams(profile, clientSigParams, token.getPolicy());
             }
 

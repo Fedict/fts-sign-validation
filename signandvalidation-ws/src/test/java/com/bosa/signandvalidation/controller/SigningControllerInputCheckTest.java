@@ -64,7 +64,7 @@ public class SigningControllerInputCheckTest {
         // Check general input
         TokenObject token = new TokenObject();
         token.setSigningType(SigningType.Standard);
-        token.setPdfSignProfile("Profile");
+        token.setPdfSignProfile("XADES_B");
         testToken(token, EMPTY_PARAM, "'inputs' field is empty");
 
         List<TokenSignInput> inputs = new ArrayList<>();
@@ -78,7 +78,7 @@ public class SigningControllerInputCheckTest {
         testToken(token, INVALID_PARAM, "input files must be either XML or PDF");
 
         input.setFilePath("file1.xml");
-        testToken(token, INVALID_PARAM, "No signProfile for file type provided (application/xml => Profile/null)");
+        testToken(token, INVALID_PARAM, "No signProfile for file type provided (application/xml => XADES_B/null)");
 
         input.setFilePath("file1.pdf");
         input.setXmlEltId("#234234");
@@ -139,6 +139,9 @@ public class SigningControllerInputCheckTest {
         input2.setDisplayXsltPath("xslt");
 
         // finish with general params
+        testToken(token, INVALID_PARAM, "'Xades Multifile' with an invalid signProfile :null");
+        token.setXmlSignProfile("MDOC_XADES_LTA");
+
         testToken(token, INVALID_PARAM, "'OutXslt' (file2.xml) is not unique");
         token.setOutXsltPath("OutXSLT.xml");
 
