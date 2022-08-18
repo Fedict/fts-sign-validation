@@ -90,7 +90,7 @@
 			<Cryptographic />
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<SigningCertificatePresent Level="WARN" />
+			<SigningCertificatePresent Level="FAIL" />
 			<UnicitySigningCertificate Level="WARN" />
 			<SigningCertificateRefersCertificateChain Level="WARN" />
 			<CertDigestPresent Level="FAIL" />
