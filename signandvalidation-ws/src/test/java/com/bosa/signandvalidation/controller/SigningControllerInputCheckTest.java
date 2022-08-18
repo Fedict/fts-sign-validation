@@ -39,7 +39,7 @@ public class SigningControllerInputCheckTest {
         TokenObject token = new TokenObject();
         token.setPdfSignProfile("Profile");
         token.setSignTimeout(100000);
-        testToken(token, SIGN_PERIOD_EXPIRED, "signTimeout (100000) can't be larger than TOKEN_VALIDITY_SECS (18000)");
+        testToken(token, SIGN_PERIOD_EXPIRED, "signTimeout (100000) can't be larger than  Token expiration (18000)");
     }
 
     @Test
@@ -64,7 +64,7 @@ public class SigningControllerInputCheckTest {
         // Check general input
         TokenObject token = new TokenObject();
         token.setSigningType(SigningType.Standard);
-        token.setPdfSignProfile("Profile");
+        token.setPdfSignProfile("XADES_B");
         testToken(token, EMPTY_PARAM, "'inputs' field is empty");
 
         List<TokenSignInput> inputs = new ArrayList<>();
@@ -78,7 +78,7 @@ public class SigningControllerInputCheckTest {
         testToken(token, INVALID_PARAM, "input files must be either XML or PDF");
 
         input.setFilePath("file1.xml");
-        testToken(token, INVALID_PARAM, "No signProfile for file type provided (application/xml => Profile/null)");
+        testToken(token, INVALID_PARAM, "No signProfile for file type provided (application/xml => XADES_B/null)");
 
         input.setFilePath("file1.pdf");
         input.setXmlEltId("#234234");
@@ -139,6 +139,9 @@ public class SigningControllerInputCheckTest {
         input2.setDisplayXsltPath("xslt");
 
         // finish with general params
+        testToken(token, INVALID_PARAM, "'Xades Multifile' with an invalid signProfile :null");
+        token.setXmlSignProfile("MDOC_XADES_LTA");
+
         testToken(token, INVALID_PARAM, "'OutXslt' (file2.xml) is not unique");
         token.setOutXsltPath("OutXSLT.xml");
 
@@ -155,7 +158,7 @@ public class SigningControllerInputCheckTest {
 
     private void testToken(TokenObject token, String error, String s) {
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
-            ctrl.checkToken(token);
+            ctrl.checkTokenAndSetDefaults(token);
         });
         boolean verified = exception.getMessage().contains("||" + error + "||" + s);
         if (!verified) {
