@@ -255,7 +255,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
         token.setSignTimeout(gtfd.getSignTimeout() );
-        token.setTokenTimeout(gtfd.getTokenTimeout());
         token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
         PolicyDTO policy = gtfd.getPolicy();
         if (policy != null) {
