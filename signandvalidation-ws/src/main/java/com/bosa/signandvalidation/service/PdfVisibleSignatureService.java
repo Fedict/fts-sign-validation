@@ -129,7 +129,7 @@ public class PdfVisibleSignatureService {
 
     private PdfSignatureProfile getPspOrDefaults(String bucket, String pspPath) throws NullParameterException {
 
-        PdfSignatureProfile psp = new PdfSignatureProfile();
+        PdfSignatureProfile psp = null;
         if (pspPath != null) {
             try {
                 byte[] json = storageService.getFileAsBytes(bucket, pspPath, false);
@@ -138,7 +138,7 @@ public class PdfVisibleSignatureService {
             catch (Exception e) {
                 throw new NullParameterException("Error reading or parsing PDF Signature Profile file: " + e.getMessage());
             }
-        }
+        } else psp = new PdfSignatureProfile();
 
         if (psp.version == null) psp.version = 1;
         if (psp.bgColor == null) psp.bgColor = "#D0D0D0";   // light gray, same as IMAGE background color;

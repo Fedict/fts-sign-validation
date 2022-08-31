@@ -21,14 +21,17 @@ import java.util.List;
 @NoArgsConstructor
 public class TokenObject {
     private long createTime;
-    private boolean xadesMultifile;
+    private SigningType signingType;
     private String bucket;
     private Integer signTimeout;
+    private Integer tokenTimeout;
     private List<String> nnAllowedToSign;
     private boolean requestDocumentReadConfirm; // Request the user to check a "I have read the file" box before signing
     private boolean previewDocuments; // If true, display documents in the sign screen, otherwise provide list of downloadable links
+    private boolean selectDocuments;
 
-    private String signProfile;
+    private String pdfSignProfile;
+    private String xmlSignProfile;
     private PolicyParameters policy;
 
     private String path; // Path of all the files in the bucket to Sign
@@ -36,14 +39,16 @@ public class TokenObject {
 
     private String outXsltPath;
     private String outFilePath;
+    private String OutPathPrefix;
     private boolean outDownload;
 
     // Mandatory parameters
-    public TokenObject(boolean xadesMultifile, String bucket, String signProfile, List<TokenSignInput> inputs, String outFilePath) {
-        this.xadesMultifile = xadesMultifile;
+    public TokenObject(SigningType signingType, String bucket, String pdfSignProfile, String xmlSignProfile, List<TokenSignInput> inputs, String outFilePath) {
+        this.signingType = signingType;
         this.inputs = inputs;
         this.bucket = bucket;
-        this.signProfile = signProfile;
         this.outFilePath = outFilePath;
+        this.pdfSignProfile = pdfSignProfile;
+        this.xmlSignProfile = xmlSignProfile;
     }
 }

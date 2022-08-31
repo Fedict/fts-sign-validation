@@ -6,36 +6,19 @@
 package com.bosa.signandvalidation.model;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  *
  * @author wouter
  */
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class GetDataToSignForTokenDTO {
     private String token;
+    private int fileIdToSign;
     private ClientSignatureParameters clientSignatureParameters;
-    
-    public GetDataToSignForTokenDTO() {
-    }
-    
-    public GetDataToSignForTokenDTO(String token, String signingProfileId, ClientSignatureParameters clientSignatureParameters) {
-        this.token = token;
-        this.clientSignatureParameters = clientSignatureParameters;
-    }
-    
-    public String getToken() {
-        return token;
-    }
-    
-    public void setToken(String token) {
-        this.token = token;
-    }
-    
-    public ClientSignatureParameters getClientSignatureParameters() {
-        return clientSignatureParameters;
-    }
-    
-    public void setClientSignatureParameters(ClientSignatureParameters clientSignatureParameters) {
-        this.clientSignatureParameters = clientSignatureParameters;
-    }
 }

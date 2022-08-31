@@ -26,8 +26,7 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doAnswer;
 import static org.springframework.http.MediaType.APPLICATION_PDF;
@@ -79,7 +78,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         private final String xslt;
         private final String xsltData;
 
-        SignInput getXmlSignInput() { return new SignInput(name, id, xslt); }
+        SignInput getXmlSignInput() { return new SignInput(name, id, xslt, null, null, null, null, false); }
         public static FileDef find(String name) {
             for (FileDef fd : values()) {
                 String fdName = fd.name;
@@ -140,7 +139,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         unSignedXmlFile += "</" + ROOT_XSLT_ELT + ">";
 
         // Start testing
-        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", "XADES_B", inFiles, OUT_FILE_NAME);
+        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", "MDOC_XADES_LTA", inFiles, OUT_FILE_NAME);
         gtfd.setOutXsltPath(MAIN_XSLT_FILE_NAME);
         gtfd.setOutDownload(true);
 
@@ -177,7 +176,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         // Get hash & algo that must be signed
         ClientSignatureParameters csp = getClientSignatureParameters(sigToken.getKeys().get(0));
-        GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, "Not used !", csp);
+        GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, 0, csp);
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dto, DataToSignDTO.class);
 
         // Sign hash
@@ -185,12 +184,10 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         // Sign file & return its content
         csp.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, csp, signatureValue.getValue());
+        SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, 0, csp, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, sdto, RemoteDocument.class);
 
-        assertNotNull(signedDocument);
-
-        System.out.println(new String(signedDocument.getBytes()));
+        assertNull(signedDocument);
     }
 
     private static String lastOccurenceOf(String name, char c) {
@@ -234,8 +231,5 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         SignXMLElementsDTO signDto = new SignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_XADES_MULTI_DOC, signDto, RemoteDocument.class);
         assertNotNull(signedDocument);
-
-        System.out.println(signedDocument.getName());
-        System.out.println(new String(signedDocument.getBytes()));
     }
 }

@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 /** Contents of the PDF Signature Profile, a JSON file that is sent by the FPS to the S3 server */
 public class PdfSignatureProfile {
 	public String bgColor;			// in V1 = BG color of both the text and the signature
-									// in V2 = BG color of both the text
+									// in V2 = BG color of the text
 	public LinkedHashMap<String, String> texts;
 	public Integer textSize;
 	public String font;				// Font to use (format : <FontName>/<b><i>. Sample : "Serif/bi"

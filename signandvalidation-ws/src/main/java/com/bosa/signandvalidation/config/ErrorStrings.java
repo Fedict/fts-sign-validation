@@ -13,9 +13,6 @@ public interface ErrorStrings {
 	/** No signing certificate provided */
 	String NO_SIGN_CERT = "NO_SIGN_CERT";
 
-	/** Signing date out of bounds  */
-	String INVALID_SIG_DATE = "INVALID_SIG_DATE";
-
 	/** Invalid user name or password */
 	String INVALID_S3_LOGIN = "INVALID_S3_LOGIN";
 
@@ -24,9 +21,6 @@ public interface ErrorStrings {
 
 	/** "DSSDocument is null" */
 	String NO_DOC_TO_VALIDATE = "NO_DOC_TO_VALIDATE";
-
-	/** Required parameter token not provided */
-	String NO_TOKEN = "NO_TOKEN";
 
 	/** Certificate (probably the signing cert) revoked */
 	String CERT_REVOKED = "CERT_REVOKED";
@@ -49,13 +43,7 @@ public interface ErrorStrings {
 	/** Invalid signature level for document */
 	String INVALID_SIGNATURE_LEVEL = "INVALID_SIGNATURE_LEVEL";
 
-	/** Invalid document type in request */
-	String INVALID_TYPE = "INVALID_TYPE";
-
-	/** Coudln't parse request */
-	String PARSE_ERROR = "PARSE_ERROR";
-
-	/** NN of the certificat is not in the allowed to sign list */
+	/** NN of the certificate is not in the allowed to sign list */
 	String NOT_ALLOWED_TO_SIGN = "NOT_ALLOWED_TO_SIGN";
 
 	/** PDF signature field problem: not specified when needed or invalid value */
@@ -69,4 +57,12 @@ public interface ErrorStrings {
 
 	/** Generated errors  */
 	String ERROR_SUFFIX = "_ERROR";
+
+	// API (getToken...) errors
+	/** Returned by the GetToken calls when input is invalid **/
+	String INVALID_PARAM = "INVALID_PARAM";
+
+	// Internal (sign-validation to gui-sin) errors
+	/** Not allowed downloading signed files */
+	String BLOCKED_DOWNLOAD = "BLOCKED_DOWNLOAD";
 }
