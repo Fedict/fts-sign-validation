@@ -9,14 +9,22 @@ import eu.europa.esig.dss.diagnostic.CertificateWrapper;
 import eu.europa.esig.dss.diagnostic.DiagnosticData;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
+import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.simplecertificatereport.jaxb.XmlChainItem;
 import eu.europa.esig.dss.spi.DSSUtils;
+import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.converter.RemoteCertificateConverter;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
+import java.io.*;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 import static eu.europa.esig.dss.enumerations.Indication.INDETERMINATE;
@@ -33,7 +41,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     public static final String CERTIFICATES_ENDPOINT = "/validation/validateCertificates";
 
     @Test
-    public void certificatePassed() {
+    public void certificatePassed() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
         RemoteCertificate passedCertificate = getPassedCertificate();
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO(passedCertificate, null, null, NON_REPUDIATION);
@@ -42,7 +50,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
         CertificateIndicationsDTO indicationsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateIndicationsDTO.class);
 
         // then
-        assertEquals("TestSign CitizenCA", indicationsDTO.getCommonName());
+        assertEquals("Christian TestLongNames", indicationsDTO.getCommonName());
         assertEquals(PASSED, indicationsDTO.getIndication());
         assertNull(indicationsDTO.getSubIndication());
     }
@@ -147,7 +155,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     }
 
     @Test
-    public void certificatesPassedAndIndeterminate() {
+    public void certificatesPassedAndIndeterminate() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
         RemoteCertificate passedCertificate = getPassedCertificate();
         CertificateToValidateDTO passedToValidate = new CertificateToValidateDTO(passedCertificate, null, null, NON_REPUDIATION);
@@ -170,10 +178,10 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
         assertNotNull(result.getIndications());
         assertEquals(2, result.getIndications().size());
 
-        assertEquals("TestSign CitizenCA", result.getIndications().get(0).getCommonName());
+        assertEquals("Christian TestLongNames", result.getIndications().get(0).getCommonName());
         assertEquals(PASSED, result.getIndications().get(0).getIndication());
         assertNull(result.getIndications().get(0).getSubIndication());
-        assertFalse(result.getIndications().get(0).isKeyUsageCheckOk());
+        assertTrue(result.getIndications().get(0).isKeyUsageCheckOk());
 
         assertEquals("Rostislav Šaler", result.getIndications().get(1).getCommonName());
         assertEquals(INDETERMINATE, result.getIndications().get(1).getIndication());
@@ -181,8 +189,10 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
         assertTrue(result.getIndications().get(1).isKeyUsageCheckOk());
     }
 
-    private RemoteCertificate getPassedCertificate() {
-        return RemoteCertificateConverter.toRemoteCertificate(DSSUtils.loadCertificateFromBase64EncodedString("MIIDEzCCApigAwIBAgIRAIrCwoVCOYzX1jIQz06ouBAwCgYIKoZIzj0EAwMwMTELMAkGA1UEBhMCQkUxIjAgBgNVBAMMGVRlc3RTaWduIEJlbGdpdW0gUm9vdCBDQTYwHhcNMjAwMTE1MTQzMTM0WhcNMzIwMTE1MTQzMTM0WjBYMQswCQYDVQQGEwJCRTEbMBkGA1UECgwSQmVsZ2lhbiBHb3Zlcm5tZW50MRswGQYDVQQDDBJUZXN0U2lnbiBDaXRpemVuQ0ExDzANBgNVBAUTBjIwMjAwMTB2MBAGByqGSM49AgEGBSuBBAAiA2IABPnhhrdIIgz9aDKyMBkJOU1siv1nTs6OCx01ABYki83RwWJ9/i5Q5/hi7042x5Wc3VEinodQl2QIWAE4eARj9vU0sUlVROe+voMi6G6YO5FT1xMjJ6jN7C6XghV6/AG4vqOCAUswggFHMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdJQQWMBQGCCsGAQUFBwMEBggrBgEFBQcDAjAdBgNVHQ4EFgQUNhf7FN+hDfg+bJG9lMFaQ/3JkWAwHwYDVR0jBBgwFoAU3fBCho6noAuRtkDCNTbZxbBBWj4wNQYDVR0fBC4wLDAqoCigJoYkaHR0cDovL2hvbWUuc2NhcmxldC5iZS9zdGgvYnJjYTYuY3JsMEAGCCsGAQUFBwEBBDQwMjAwBggrBgEFBQcwAoYkaHR0cDovL2hvbWUuc2NhcmxldC5iZS9zdGgvYnJjYTYuY3J0MEkGA1UdIARCMEAwPgYEVR0gADA2MDQGCCsGAQUFBwIBFihodHRwczovL3JlcG9zaXRvcnkuZWlkcGtpLmJlbGdpdW0uYmUvZWlkMAoGCCqGSM49BAMDA2kAMGYCMQDutMmYelV3c9VDfEXx1KX9bu+1ATZibYu7wqo/B9r/nDs1ASN5OPR39/vEQ4eEodsCMQDu2fDqxlASFhwR1MMp/MDAbdIFTYmih+Q1gQasRZ5k6LOf9MeT3wUH8Lexi9Ruh8I="));
+    private RemoteCertificate getPassedCertificate() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(new FileInputStream("src/test/resources/citizen_nonrep.p12"), "123456".toCharArray());
+        return RemoteCertificateConverter.toRemoteCertificate(new CertificateToken((X509Certificate) keyStore.getCertificate("test")));
     }
 
 }
