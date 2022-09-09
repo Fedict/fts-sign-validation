@@ -34,12 +34,12 @@ public class TsaConfig {
     OnlineTSPSource tspSource() {
         if (mock) {
             MockOnlineTSPSource mockTSPSource = new MockOnlineTSPSource();
-            try (InputStream is = new ClassPathResource("/self-signed-tsa.p12").getInputStream()) {
-                mockTSPSource.setToken(new KeyStoreSignatureTokenConnection(is, "PKCS12", new KeyStore.PasswordProtection("ks-password".toCharArray())));
+            try (InputStream is = new ClassPathResource("/tsa.p12").getInputStream()) {
+                mockTSPSource.setToken(new KeyStoreSignatureTokenConnection(is, "PKCS12", new KeyStore.PasswordProtection("123456".toCharArray())));
             } catch (IOException e) {
                 LOG.warn("Cannot load the KeyStore");
             }
-            mockTSPSource.setAlias("self-signed-tsa");
+            mockTSPSource.setAlias("tsa");
             return mockTSPSource;
 
         } else {
