@@ -17,3 +17,4 @@ COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
 
 USER 1001
 CMD bin/catalina_wrapper.sh run
+
