@@ -45,6 +45,7 @@ public class PdfVisibleSignatureServiceTest {
     public static final File pdfFile = new File(RESOURCE_PATH, "sample.pdf");
     public static final File pspTestFolder = new File(RESOURCE_PATH, "testPSPs");
     private static final File pspImagesFolder = new File(RESOURCE_PATH, "PSPImages");
+    private static final File pspImagesFolderWindows = new File(pspImagesFolder, "Windows");
     private static byte photoBytes[];
     private static byte pdfFileBytes[];
 
@@ -53,16 +54,6 @@ public class PdfVisibleSignatureServiceTest {
         photoBytes = Utils.toByteArray(new FileInputStream(RESOURCE_PATH + "photo.png"));
         pdfFileBytes = Utils.toByteArray(new FileInputStream(pdfFile));
         System.setProperty(PdfVisibleSignatureService.FONTS_PATH_PROPERTY, RESOURCE_PATH + "fonts");
-    }
-
-
-    @Test
-    public void x() throws Exception {
-        String base64 = "iVBORw0KGgoAAAANSUhEUgAAAkAAAAEgCAIAAADT5FumAAAKoUlEQVR42u3dW3LjNhBAUe9mlpktakfK35RH4gMkgQYaOKfmYyqxLcDp+BZkivp5AUBCP74FAAgYAAgYAAgYAAIGAAIGAAIGgIABgIABgIABgIABIGAAIGAAIGAACBgACBgACBgAAgYAAgYAAkZ6b6ZmwhEwBAwBAwFDwBAwBAwEDAFDwBAwBAwEDAFDwBAwEDAEDAEDARMwEDAEDAEDAUPAEDAEDAYL2H9/dv8gYAgYDBSwg2Id/0HAEDDoE7Db6ZIxAUPAoE/AqqRLyQQMAYO4gLVIl4YJGAIGDQP2PEIyJmAIGEQHrHpyNEzAEDBoG7CmpZExAUPAoEnAYuqiYQKGgEHNgAVHRcMEDAGDCgHrkhMNEzAEDOoHLIyGCRgCBjcD1r0fAiZgCBhcDtggByANEzAEDC4EbKin7zRMwBAwKArYgL980jABQ8AgZS0ETMAQMMiaCg0TMAQMAcsaiV7LS3XfYROOgCFgCwcs89vBmHAEjPUCluI5unaLnOW9zUw4AsbyARtW9XU2fXPO8O+nCUfAWCxgiS6RqLXUmG6Ff1dNOALG2gEb3MPVVq/OSBkz4QgYKwUs3RXqTxYcEJiuDTPhCBgLByyFG2uOj0qPjJlwBIxlApb0BcJXl9338orARzfhCBirBiyR8pUPco17yDJMOAKGgM0SsKFebtx+MSYcAWONgKW+wWDJ4se881PLVZlwBIwlA5bO8fpHvm9hs7WZcAQMAUsesOHvuttohSYcAUPAMgds/Ho1W6cJR8BYIGATvMPW5hay1KtNw0w4AsZ6AUuqJGAT31hEwBAwBGySgC3yumwBQ8AQsMkDNuXrsgUMAUPABGy+Q5gJR8AQsPwBm+xlbQKGgCFgGz8uU5s1YLe2YMIRMGYP2BzHr1yv+go5hJlwBAwBEzABAwFDwARMwBAwELCZA/b4P40JR8AQsOUuQBcwEDAETMAEDAEDARMwAUPAQMAEDAQMARMwAUPAQMAETMAQMBAwAQMBY96Avd9eB+aFzCBg5A/YfHejFzAQMARMwAQMBAwBiwqYt1MBAUPABCzL8UvAEDAEbIqA5dpUpcWbcASM9QI2x3Nu0wTsLhOOgLFAwCY4hH2vP2nD6i3bhCNgCFjaU0u6hlVdsAlHwBCwiQI2+NYEDAGDpwGb5qqHLA1rsE4TjoCxRsBSH8KOVz5+w9qs0IQjYAjYjAEbZ4PNlmfCETBWDdhMl+0N27CWCzPhCBjLBCzpIax8zUNlrP1iTDgCxsIBm++680EaFrIME46AsVLA0h3Cbqy27906Ah/dhCNgrB2wkRt2e6nx953qcacrE46AsVjAEh3CHq7zNCrP9x7wEAKGgCFgyQ5hVRZZEpgbFzc++ZoChoDB/YClaFjF5T3v0GDpEjAEDAHLc+uKgF9TCRgIGAkCNnLDWi9sloyZcASMVQM2bMNiVpU/YyYcAUPARmrYCJe8l9eoa8ZMOALGwgEb7RA2wpOHea6qN+EIGGsHbJyGtT61RB6PQh7LhCNgLB+wERrWNCq9rrNo/LgmHAFDwHr/MqxXvTruzjsyI2BQJ2DvTvdxb/2g47zBSoOVmHAEDAHr9ON+nXq1WY8JR8AQsPAn3AIeZcw3aK66MBOOgCFggZcexFxPMWy9qi7PhCNgCFhIacIuBRy8XvUWacIRMATs2R0rmn6FKetVaakmHAFDwFreeKn7y4dH9mzBJhwBQ8A6NWzxej1etglHwBCw8JLFlCALAUPAoHnAHmZsvAakbpgJR8AQsJYxG/gEk71hJhwBQ8CSmyNg1zdiwhEwBEy9BAwEDAFTr6gdmXAEDAETsJSbMuEIGAKmXgIGAoaAqVfU7kw4AoaACdjwGxQwBAwBU69p9mjCETAEbMLTyQrbNOEIGALm+JVypyYcAUPAHL9SbtaEI2AImIAJGAgYAub5w6j9mnAEDAFz/Eq5ZROOgCFgApbyEGbCETAETL1SbtyEI2AImIAJGAgYAiZgAoaAgYCte/1hQcNMOAKGgDl+CRgIGAImYAKGgIGACZiAIWAImF+AzdYwE46AIWCOXwIGAoaACZiAIWAgYAImYAgYAiZgAgYChoAJmIAhYCBg1352r+zfhplwBAwBc/wSMBAwBEzABAwBAwETMAFDwBAwARMwEDAETMAEDAEDARMwAUPAQMAEDAQMARMwAQMBQ8AETMAQMBAwARMwBAwBEzABAwFDwARMwBAwEDABEzAEDAETMAEDAUPAOgds5YYJGAKGgDmETfBNMOEIGAImYAIGAoaACZiAIWAgYAImYAgYAiZgAgYChoC5EFHAEDAQMIewe9s34QgYAiZgAgYChoAJmIAhYCBgfg0mYAgYAuYQNtvGTTgChoAJmICBgCFgAiZgCBgImF+DHezahCNgCJhDWMotm3AEDAFzCEu5XxOOgCFgDmEpN2vCETAETMAEDAQMAfMsYtROTTgChoA5hKXcpglHwBAwh7CUezThCBgC5hCWcoMmHAFDwBzCUu7OhCNgCJiGpdyXCUfAEDABEzAQMARMw6J2ZMIRMARMw1LuxYQjYAiYgAkYCBgCpmFRuzDhCBgCpmEp12/CETAETMMGW7mAIWAI2NIBS9GwB8s24QgYAqZhKRdswhEwBEzDUi7VhCNgCJiGpVykCUfAEDANS7k8E46AIWAalnJhJhwBQ8BWaljHjNVejwlHwBAwDUu5EhOOgCFgSzYsLGPNFmDCETAEbOGGNc1Y48c14QgYAiZjfzI+lglHwBAwDatUl9ZfX8AQMARMxqrFpu5XEzAEDASsWnie/2nDhCNgCJiMJUuXgCFgCBjNMtaeCUfAEDDqlSyQCUfAEDCGuKpQwBAwABAwABAwAAQMAAQMAAQMAAEDAAEDAAEDQMAAQMAAQMAAQMAAEDAAEDAAEDAABAwABAwABAwAAQMAAQMAAQMAAQNAwGCUaf55b/49+6b+/on5RBAwmK1eYSUQLRAwBOx+fj4+vuTT62bj9leLXyoIGDSpV5VzyfHntjj6NAqYUxoCBoPW6/T49fdjPv6y+ffTJHx/8OZD//5S905IH9U5fri9zR4vFQQM+gTs90/n70R9fMzHQeT7s76bt/cx5QHbDGdhhzaXXXIY/c6egCFgMGi9Dg5Sm6eQ0zxspqvkrPZ98NprZHm9Co9fmye2kjMcCBjEBezgEHb6s/v7H3585EGENv95+fHrtMoPA3b6LQIBg54B2zxL7QXm4OnBzT97Z7XX1m/Ojpd36SnHzS9yfHja/O3X95ZdvoGAAQ3PlJGfCAIGAAIGAAIGgIABgIABgIABIGAAIGCQ6P+HKy/yPbgtoRcLg4BBaL1exS8HPvhg92oCAYNB6/X7UwqPccd3kd+7wdXmv/VuXiBgcCdgpzckPH0/ydMveHxL4uN8goDBWvXau+/tpXq9Ct4NubyLB28zrV4gYEjX+/iNwfayceNgdKler4L3GAMBg6UDtlmv1/Xn+l4FV3YUrkG9QMAgOmBP6nV6nlMvEDC4HI/X/rWCNy7c2Pv0zasNj5/YBAEDAAEDAAEDAAEDQMAAQMAAQMAAEDAAEDAAEDAABAwABAwABAwABAwAAQMAAQMAAQNAwABAwABAwAAQMN8CAAQMAAQMAAQMAAEDgP7+B09Bu3WWQQK3AAAAAElFTkSuQmCC";
-        String name = "src/test/resources/PSPImages/deF_signature1.png";
-
-        byte bytes[] = Base64.getDecoder().decode(base64);
-        new InMemoryDocument(bytes).save(name);
     }
 
     @Test
@@ -105,7 +96,12 @@ public class PdfVisibleSignatureServiceTest {
     }
 
     public static void compareImages(byte[] actualBytes, String expectedFileName) throws IOException {
+
         File imageFile = new File(pspImagesFolder, expectedFileName + ".png");
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            File windowsImageFile = new File(pspImagesFolderWindows, imageFile.getName());
+            if (windowsImageFile.exists()) imageFile = windowsImageFile;
+        }
 
         System.out.println("Expected image file : " + imageFile.getPath());
 
