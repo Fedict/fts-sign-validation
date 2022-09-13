@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.eq;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.Base64;
 import java.util.Date;
 
 @ExtendWith(MockitoExtension.class)
@@ -108,6 +109,11 @@ public class PdfVisibleSignatureServiceTest {
 
         // In case of image size or pixel mismatch, save actual image for quicker analysis
         imageFile = new File(pspImagesFolder, expectedFileName + "_ACTUAL.png");
+
+        // On CI/CD the platform differences create different images, in order to get a copy of them we print the B64
+        System.out.println(imageFile.getPath());
+        System.out.println(Base64.getEncoder().encodeToString(actualBytes));
+
         new InMemoryDocument(actualBytes).save(imageFile.getPath());
 
         if (differentPixelsCount < 0) {
