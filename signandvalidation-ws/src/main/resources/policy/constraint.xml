@@ -62,7 +62,7 @@
 				<RevocationInfoAccessPresent Level="WARN" />
 				<RevocationDataAvailable Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
+				<RevocationFreshness Level="WARN" Unit="SECONDS" Value="0" />
 				<KeyUsage Level="WARN">
 					<Id>nonRepudiation</Id>
 				</KeyUsage>
@@ -138,7 +138,7 @@
 				<RevocationInfoAccessPresent Level="WARN" />
 				<RevocationDataAvailable Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
+				<RevocationFreshness Level="WARN" Unit="SECONDS" Value="0" />
 				<KeyUsage Level="WARN">
 					<Id>nonRepudiation</Id>
 				</KeyUsage>
@@ -200,7 +200,7 @@
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
+				<RevocationFreshness Level="WARN" Unit="SECONDS" Value="0" />
 				<ExtendedKeyUsage Level="WARN">
 					<Id>timeStamping</Id>
 				</ExtendedKeyUsage>
@@ -297,7 +297,7 @@
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
+				<RevocationFreshness Level="WARN" Unit="SECONDS" Value="0" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
