@@ -115,8 +115,8 @@ public class PdfVisibleSignatureServiceTest {
         if (differentPixelsCount == 0) return;
 
         // On CI/CD the platform differences create different images, in order to get a copy of them we print the B64
-        System.out.println(imageFile.getPath());
-        System.out.println(Base64.getEncoder().encodeToString(actualBytes));
+        //System.out.println(imageFile.getPath());
+        //System.out.println(Base64.getEncoder().encodeToString(actualBytes));
 
         // In case of image size or pixel mismatch, save actual image for quicker analysis
         imageFile = new File(pspImagesFolder, expectedFileName + "_ACTUAL.png");
@@ -131,7 +131,7 @@ public class PdfVisibleSignatureServiceTest {
         // In case of pixel mismatch, save red painted image for quicker analysis
         imageFile = new File(pspImagesFolder, expectedFileName + "_INV_PIXELS.png");
         ImageIO.write(expectedImage, "png", imageFile);
-//        fail("Difference between expected image and rendered image. Image with red painted invalid pixels is here : " + imageFile.getPath());
+        fail("Difference between expected image and rendered image. Image with red painted invalid pixels is here : " + imageFile.getPath());
     }
 
     public static int countMismatchedPixels(BufferedImage actualImage, BufferedImage expectedImage) throws IOException {
