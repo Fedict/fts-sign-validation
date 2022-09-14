@@ -3,6 +3,7 @@ package com.bosa.signandvalidation.controller;
 import com.bosa.signandvalidation.SignAndValidationTestBase;
 import com.bosa.signandvalidation.model.DataToValidateDTO;
 import com.bosa.signandvalidation.model.SignatureIndicationsDTO;
+import com.bosa.signandvalidation.model.ValidateFullReportDTO;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.FileDocument;
@@ -230,7 +231,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
         // when
-        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATUREFULL_ENDPOINT, toValidate, WSReportsDTO.class);
+        ValidateFullReportDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATUREFULL_ENDPOINT, toValidate, ValidateFullReportDTO.class);
 
         // then
         assertNotNull(result.getDiagnosticData());
@@ -239,9 +240,6 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertNotNull(result.getValidationReport());
 
         assertEquals(1, result.getSimpleReport().getSignatureOrTimestamp().size());
-        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-                result.getValidationReport());
-        assertNotNull(reports);
     }
 
     @Test
