@@ -12,8 +12,6 @@ import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
-import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
-import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
@@ -27,7 +25,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +55,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
-        WSReportsDTO report = validateSignatureFullInternal(toValidate);
+        WSReportsDTO report = validateSignatureFull(toValidate);
         SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsDto(report);
         signDto.setDiagnosticData(report.getDiagnosticData());
 
@@ -79,27 +76,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
     }
 
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ValidateFullReportDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
-        WSReportsDTO reportsDto = validateSignatureFullInternal(toValidate);
-
-        List<Serializable> SignatureOrTimestamps = new ArrayList<>();
-        XmlSimpleReport report = reportsDto.getSimpleReport();
-        SimpleReport simpleReport = new SimpleReport();
-        for(XmlToken signatureOrTimestamp : report.getSignatureOrTimestamp()) {
-            SignatureOrTimestamps.add(signatureOrTimestamp);
-        }
-        simpleReport.setSignatureOrTimestamp(SignatureOrTimestamps);
-        simpleReport.setContainerType(report.getContainerType());
-        simpleReport.setValidSignaturesCount(report.getValidSignaturesCount());
-        simpleReport.setSignaturesCount(report.getSignaturesCount());
-        simpleReport.setValidationPolicy(report.getValidationPolicy());
-        simpleReport.setValidationTime(report.getValidationTime());
-        simpleReport.setDocumentName(report.getDocumentName());
-        simpleReport.setSemantic(report.getSemantic());
-        return new ValidateFullReportDTO(simpleReport, reportsDto.getDetailedReport(), reportsDto.getDiagnosticData(), reportsDto.getValidationReport());
-    }
-
-    private WSReportsDTO validateSignatureFullInternal(@RequestBody DataToValidateDTO toValidate) {
+    public WSReportsDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
         if (toValidate.getSignedDocument() == null)
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
 

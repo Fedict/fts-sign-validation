@@ -14,21 +14,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.io.IOException;
-import java.time.Duration;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(classes = {SignAndValidationTestBase.Config.class})
-@ActiveProfiles("localh2")
 public class SignAndValidationTestBase {
 
     public static final String LOCALHOST = "http://localhost:";
@@ -99,14 +91,4 @@ public class SignAndValidationTestBase {
         }
 
     }
-
-    @TestConfiguration(proxyBeanMethods = false)
-    static class Config {
-        @Bean
-        RestTemplateBuilder restTemplateBuilder() {
-            return new RestTemplateBuilder().setConnectTimeout(Duration.ofSeconds(20))
-                    .setReadTimeout(Duration.ofSeconds(120));
-        }
-    }
-
 }
