@@ -25,7 +25,7 @@
         <jackson-jaxrs-json-provider.version>2.9.9</jackson-jaxrs-json-provider.version>
         <hikaricp.version>3.3.1</hikaricp.version>
         <hsqldb.version>2.5.0</hsqldb.version>
-        <springfox.version>2.9.2</springfox.version>
+        <springfox.version>3.0.0</springfox.version>
         <log4j2.version>2.12.1</log4j2.version>
     </properties>
 
