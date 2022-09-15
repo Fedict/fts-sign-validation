@@ -25,7 +25,7 @@
         <jackson-jaxrs-json-provider.version>2.9.9</jackson-jaxrs-json-provider.version>
         <hikaricp.version>3.3.1</hikaricp.version>
         <hsqldb.version>2.5.0</hsqldb.version>
-        <springfox.version>3.0.0</springfox.version>
+        <springdoc.version>1.6.11</springdoc.version>
         <log4j2.version>2.12.1</log4j2.version>
     </properties>
 
@@ -132,16 +132,11 @@
                 <version>${hikaricp.version}</version>
             </dependency>
 
-            <!-- Swagger -->
+            <!-- Swagger -> springdoc -->
             <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
-                <version>${springfox.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger-ui</artifactId>
-                <version>${springfox.version}</version>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-ui</artifactId>
+                <version>${springdoc.version}</version>
             </dependency>
 
             <dependency>
