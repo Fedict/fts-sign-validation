@@ -398,17 +398,20 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
         }
 
-        if (prefix != null) {
+        String outPath = token.getOutFilePath();
+        if (outPath != null && outPath.length() == 0) token.setOutFilePath(outPath = null);
+
+            if (prefix != null) {
             if (prefix.endsWith("/")) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' can't end with '/'", null);
             }
 
-            if (token.getOutFilePath() != null) {
+            if (outPath != null) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outFilePath' must be null if outPathPrefix is set (Bulk Signing)", null);
             }
             // TODO : Check "prefixed" names collisions
         } else {
-            checkValue("outFilePath", token.getOutFilePath(), false, null, filenamesList);
+            checkValue("outFilePath", outPath, false, null, filenamesList);
         }
     }
 
@@ -577,12 +580,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         ZipOutputStream out = null;
         InputStream fileStream = null;
         try {
-            MediaType contentType = APPLICATION_OCTET_STREAM;
-            String attachmentName = "FTS" + new SimpleDateFormat("yyyyMMDD HHmmss").format(new Date()) + ".zip";
+            MediaType contentType = null;
+            String attachmentName = null;
             if (singleFilePath != null) {
                 attachmentName = getNameFromPath(singleFilePath);
                 FileStoreInfo fi = storageService.getFileInfo(token.getBucket(), singleFilePath);
                 contentType = fi.getContentType();
+            } else {
+                contentType = APPLICATION_OCTET_STREAM;
+                attachmentName = "FTS" + new SimpleDateFormat("yyyyMMDD HHmmss").format(new Date()) + ".zip";
             }
 
             String contentDisposition = forceDownload != null || !contentType.equals(APPLICATION_PDF) ? "attachment; filename=\"" + attachmentName + "\"" : "inline";
