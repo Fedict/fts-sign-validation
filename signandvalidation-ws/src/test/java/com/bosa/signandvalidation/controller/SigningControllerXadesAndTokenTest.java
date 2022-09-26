@@ -6,6 +6,7 @@ import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signandvalidation.service.StorageService;
 import com.bosa.signingconfigurator.model.PolicyParameters;
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.model.Digest;
 import eu.europa.esig.dss.model.SignatureValue;
@@ -215,9 +216,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         System.out.println(sb);
         RemoteDocument fileToSign = new RemoteDocument(sb.toString().getBytes(), "aFile.xml");
 
-        PolicyParameters policy = null;
-        // TODO The current code needs access to a proxy to validate the Policies, therefore it can't run on the pipelines
-//      policy = new PolicyParameters("http://signinfo.eda.just.fgov.be/SignaturePolicy/pdf/Notary/BE_Justice_Signature_Policy_Notary_eID_Hum_v0.10_202109_Fr.pdf", "policyDesc", DigestAlgorithm.SHA256);
+        PolicyParameters policy = new PolicyParameters("https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf", "policyDesc", DigestAlgorithm.SHA256);
 
         // get data to sign
         GetDataToSignXMLElementsDTO prepareSignDto = new GetDataToSignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets);

@@ -193,7 +193,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             TokenObject token = new TokenObject(SigningType.Standard, tokenData.getName(), pdfProfile, xmlProfile, inputs, tokenData.getOut());
             if (tokenData.getPolicyId() != null) {
-                token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), DigestAlgorithm.valueOf(tokenData.getPolicyDigestAlgorithm())));
+                String policyAlgorithm = tokenData.getPolicyDigestAlgorithm();
+                token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), policyAlgorithm == null ? null : DigestAlgorithm.valueOf(policyAlgorithm)));
             }
             token.setPreviewDocuments(true);
             token.setOutDownload(!tokenData.isNoDownload());

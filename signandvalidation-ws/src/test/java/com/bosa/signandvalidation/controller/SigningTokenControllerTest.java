@@ -1,9 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
-import com.bosa.signandvalidation.model.DataToSignDTO;
-import com.bosa.signandvalidation.model.GetDataToSignForTokenDTO;
-import com.bosa.signandvalidation.model.GetTokenForDocumentDTO;
-import com.bosa.signandvalidation.model.SignDocumentForTokenDTO;
+import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signandvalidation.service.StorageService;
 import eu.europa.esig.dss.model.Digest;
@@ -20,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +25,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
@@ -61,6 +60,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         getTokenDTO.setProf("PADES_B");
         getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setIn(inFile.getName());
+
         // GetDataToSignForToken (With 10 second timeout)
         getTokenDTO.setSignTimeout(10);
         getTokenDTO.setOut("out");
@@ -83,6 +83,43 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
         assert(result.get("message").toString().contains(SIGN_PERIOD_EXPIRED));
+    }
+
+    @Test
+    public void testSigningNotAllowedNN() throws Exception {
+        Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
+
+        File inFile = new File("src/test/resources/sample.pdf");
+        byte[] fileBytes = Utils.toByteArray(new FileInputStream(inFile));
+        Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(inFile.getName()), eq(true))).thenReturn(fileBytes);
+
+        Pkcs12SignatureToken token = new Pkcs12SignatureToken(
+                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                new KeyStore.PasswordProtection("123456".toCharArray())
+        );
+        List<DSSPrivateKeyEntry> keys = token.getKeys();
+        DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
+
+        ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
+
+        // get token from file
+        GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
+        getTokenDTO.setProf("PADES_B");
+        getTokenDTO.setName(THE_BUCKET);
+        getTokenDTO.setIn(inFile.getName());
+        List<AllowedToSign> signers = new ArrayList<>();
+        signers.add(new AllowedToSign("12345678901"));
+        getTokenDTO.setAllowedToSign(signers);
+        getTokenDTO.setOut("out");
+        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+
+        // get data to sign
+        GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dataToSignDTO, Map.class);
+        assertNotNull(result);
+
+        assertEquals(INTERNAL_SERVER_ERROR.value(), result.get("status"));
+        assert(result.get("message").toString().contains(NOT_ALLOWED_TO_SIGN));
     }
 
     @Test
