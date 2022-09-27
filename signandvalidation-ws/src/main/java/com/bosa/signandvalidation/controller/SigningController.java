@@ -246,14 +246,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             tokenInputs.add(ti);
         }
 
-        String pdfProfile = gtfd.getSignProfile();
-        String xmlProfile = gtfd.getAltSignProfile();
-        // the "contains("XADES") is there to allow the MDOC_XADES... profiles
-        if ((pdfProfile != null && pdfProfile.contains("XADES") || (xmlProfile != null && xmlProfile.startsWith("PADES")))) {
-            xmlProfile = pdfProfile;
-            pdfProfile = gtfd.getAltSignProfile();
-        }
-
+         String pdfProfile = searchProfile("PADES", gtfd);
+         String xmlProfile = searchProfile("XADES", gtfd);
         TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
         token.setSignTimeout(gtfd.getSignTimeout() );
         token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
@@ -278,6 +272,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         String tokenString = createToken(token);
         logger.info("Returning from getTokenForDocuments()" + getTokenFootprint(tokenString) + " params: " + objectToString(gtfd));
         return tokenString;
+    }
+
+    /*****************************************************************************************/
+
+    private String searchProfile(String profileSearch, GetTokenForDocumentsDTO gtfd) {
+        String profile = gtfd.getSignProfile();
+        if (profile != null && profile.contains(profileSearch)) return profile;
+        profile = gtfd.getAltSignProfile();
+        return profile != null && profile.contains(profileSearch) ? profile : null;
     }
 
     /*****************************************************************************************/
