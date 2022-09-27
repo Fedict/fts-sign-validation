@@ -158,7 +158,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         Map result = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, Map.class);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
-        assert(result.get("message").toString().endsWith(SIGN_CERT_EXPIRED + "||exp. date = 2021.03.06 12:28:05"));
+        assert(result.get("message").toString().contains(SIGN_CERT_EXPIRED + "||exp. date = 2021.03.06"));
     }
 
     @Test
