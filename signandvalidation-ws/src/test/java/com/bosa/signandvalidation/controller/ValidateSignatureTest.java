@@ -28,38 +28,6 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     public static final String SIGNATUREFULL_ENDPOINT = "/validation/validateSignatureFull";
 
     @Test
-    public void signatureB() {
-        // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
-
-        // when
-        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
-
-        // then
-        assertNotNull(result);
-        assertEquals(TOTAL_PASSED, result.getIndication());
-        assertNull(result.getSubIndicationLabel());
-    }
-
-    @Test
-    public void signatureT() {
-        // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_t.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_T);
-
-        // when
-        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
-
-        // then
-        assertNotNull(result);
-        assertEquals(TOTAL_PASSED, result.getIndication());
-        assertNull(result.getSubIndicationLabel());
-    }
-
-    @Test
     public void signatureLT() {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_lt.xml"));
@@ -255,5 +223,8 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertEquals(TOTAL_FAILED, result.getIndication());
         assertEquals(CRYPTO_CONSTRAINTS_FAILURE.toString(), result.getSubIndicationLabel());
     }
+
+
+
 
 }
