@@ -765,7 +765,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
-            logger.info("Returning from signDocumentForToken() for file " + token.getBucket()  + "/" + signedDoc.getName() + " -"  + tokenFootprint);
+            logger.info("Returning from signDocumentForToken(). {  bucket: \"" + token.getBucket()  + "\", fileName: \"" + signedDoc.getName() + "\" }");
 
         } catch (Exception e) {
             DataLoadersExceptionLogger.logAndThrow(e);
