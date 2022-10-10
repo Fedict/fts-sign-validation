@@ -34,6 +34,7 @@ import eu.europa.esig.dss.xades.reference.CanonicalizationTransform;
 import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xades.reference.DSSTransform;
 import org.apache.xml.security.transforms.Transforms;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -765,7 +766,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
-            logger.info("Returning from signDocumentForToken(). {  bucket: \"" + token.getBucket()  + "\", fileName: \"" + signedDoc.getName() + "\" }");
+
+            MDC.put("bucket", token.getBucket());
+            MDC.put("fileName", signedDoc.getName());
+            logger.info("Returning from signDocumentForToken().");
+            MDC.remove("bucket");
+            MDC.remove("fileName");
 
         } catch (Exception e) {
             DataLoadersExceptionLogger.logAndThrow(e);

@@ -78,6 +78,7 @@ public class Utils {
     }
 
     // The applicative logging system is used to track signature processes through the last 8 chars of the token
+    // Also store the token in the MDC for logging
     public static String getTokenFootprint(String token) {
         String footprint = token;
         if (null != token) {
@@ -85,7 +86,12 @@ public class Utils {
             if (len >= 8) footprint = "..." + token.substring(len - 8, len);
         } else footprint = "<null>";
 
-        MDC.MDCCloseable mdc = MDC.putCloseable("token", footprint);
+        MDC.put("token", footprint);
         return " token=" + footprint;
+    }
+
+    // Clear the token in the MDC to avoid polluting non-token logs with leftover token value
+    public static void clearMDCToken() {
+        MDC.remove("token");
     }
 }
