@@ -37,6 +37,7 @@ import org.apache.xml.security.transforms.Transforms;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -152,6 +153,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Autowired
     private StorageService storageService;
+
+    @Autowired
+    private Environment environment;
 
     @Value("${signing.time}")
     private Long signingTime;
@@ -801,17 +805,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         if (null != token) {
             try {
-                // Instead of saving the entire report, create our own report containing the simple/detailed reports and the signing cert
-                byte[] sigingCert = parameters.getSigningCertificate().getEncodedCertificate();
-                ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(), reportsDto.getDetailedReport(), sigingCert);
-
-                StringWriter out = new StringWriter();
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.setDateFormat(reportDateTimeFormat);
-                mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-                mapper.writeValue(out, reportDto);
-
-                storageService.storeFile(token.getBucket(), outFilePath + ".validationreport.json", out.toString().getBytes());
+                storageService.storeFile(token.getBucket(), outFilePath + ".validationreport.json", createReport(parameters, reportsDto).getBytes());
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to serialize or save the validation report", e);
             }
@@ -822,15 +816,41 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 reportsService.getLatestSignatureIndicationsDto(reportsDto, new Date(token.getCreateTime()));
 
         Indication indication = indications.getIndication();
-        if (indication != TOTAL_PASSED && !parameters.isSignWithExpiredCertificate()) {
-            String subIndication = indications.getSubIndicationLabel();
-            if (CERT_REVOKED.compareTo(subIndication) == 0) {
-                logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
+        if (indication != TOTAL_PASSED) {
+            if (this.environment.getActiveProfiles()[0].equals("local")) {
+                try {
+                    logger.severe(createReport(parameters, reportsDto));
+                } catch (IOException e) {
+                    logger.severe("Can't log report !!!!!!!!");
+                }
             }
-            DataLoadersExceptionLogger.logAndThrow();
-            logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
+            if (!parameters.isSignWithExpiredCertificate()) {
+                String subIndication = indications.getSubIndicationLabel();
+                if (CERT_REVOKED.compareTo(subIndication) == 0) {
+                    logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
+                }
+                DataLoadersExceptionLogger.logAndThrow();
+                logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
+            }
         }
         return signedDoc;
+    }
+
+    /*****************************************************************************************/
+
+    private static String createReport(RemoteSignatureParameters parameters, WSReportsDTO reportsDto) throws IOException {
+        // Instead of saving the entire report, create our own report containing the simple/detailed reports and the signing cert
+
+        ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(),
+                reportsDto.getDetailedReport(),
+                parameters.getSigningCertificate().getEncodedCertificate());
+
+        StringWriter out = new StringWriter();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setDateFormat(reportDateTimeFormat);
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        mapper.writeValue(out, reportDto);
+        return out.toString();
     }
 
     /*****************************************************************************************/
