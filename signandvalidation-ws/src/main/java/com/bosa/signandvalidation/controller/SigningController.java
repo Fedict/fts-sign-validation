@@ -1013,11 +1013,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             checkDataToSign(parameters, null);
 
-            String sigFieldId = null;
-            String inputCoordinates = "1,20,20,200,200";
-            String signLanguage = "fr";
             PdfSignatureProfile psp = new PdfSignatureProfile();
-            pdfVisibleSignatureService.checkAndFillParams(parameters, dataToSignDto.getToSignDocument(), sigFieldId, inputCoordinates, signLanguage, psp, clientSigParams.getPhoto());
+            psp.texts.put("no", clientSigParams.getText());
+            psp.textSize = clientSigParams.getTextSize();
+            psp.bgColor = clientSigParams.getBgColor();
+            pdfVisibleSignatureService.checkAndFillParams(parameters, dataToSignDto.getToSignDocument(), clientSigParams.getPsfN(), null, "no", psp, clientSigParams.getPhoto());
 
                 ToBeSignedDTO dataToSign = altSignatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -1073,11 +1073,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), clientSigParams, null);
 
-            String sigFieldId = null;
-            String inputCoordinates = "1,20,20,200,200";
-            String signLanguage = "fr";
             PdfSignatureProfile psp = new PdfSignatureProfile();
-            pdfVisibleSignatureService.checkAndFillParams(parameters, signDocumentDto.getToSignDocument(), sigFieldId, inputCoordinates, signLanguage, psp, clientSigParams.getPhoto());
+            psp.texts.put("no", clientSigParams.getText());
+            psp.textSize = clientSigParams.getTextSize();
+            psp.bgColor = clientSigParams.getBgColor();
+            pdfVisibleSignatureService.checkAndFillParams(parameters, signDocumentDto.getToSignDocument(), clientSigParams.getPsfN(), null, "no", psp, clientSigParams.getPhoto());
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);

@@ -111,7 +111,6 @@ public class PdfVisibleSignatureService {
         String sigFieldId = input.getPsfN();
         if (sigFieldId == null) {
             inputCoordinates = input.getPsfC();
-            if (inputCoordinates == null) return;
         }
 
         checkAndFillParams(remoteSigParams, document, sigFieldId, inputCoordinates, input.getSignLanguage(), psp, photo);
@@ -124,8 +123,10 @@ public class PdfVisibleSignatureService {
         makePspDefaults(psp);
 
         RemoteSignatureFieldParameters fieldParams = new RemoteSignatureFieldParameters();
-        if (sigFieldId != null) fieldParams.setFieldId(sigFieldId);
-        else convertFieldCoords(inputCoordinates, psp.defaultCoordinates, fieldParams);
+        if (sigFieldId == null) {
+            if (inputCoordinates == null) return;
+            convertFieldCoords(inputCoordinates, psp.defaultCoordinates, fieldParams);
+        } else fieldParams.setFieldId(sigFieldId);
 
         String text = makeText(psp.texts,
                 signLanguage,
@@ -198,7 +199,7 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    static String makeText(LinkedHashMap<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
+    static String makeText(HashMap<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
         String text = DEFAULT_TEXT;
         if (null != texts && texts.size() != 0) {
             if (null != lang) {
