@@ -1070,7 +1070,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
             logger.info("Entering signDocument()");
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters(), null);
+            ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), clientSigParams, null);
+
+            String sigFieldId = null;
+            String inputCoordinates = "1,20,20,200,200";
+            String signLanguage = "fr";
+            PdfSignatureProfile psp = new PdfSignatureProfile();
+            pdfVisibleSignatureService.checkAndFillParams(parameters, signDocumentDto.getToSignDocument(), sigFieldId, inputCoordinates, signLanguage, psp, clientSigParams.getPhoto());
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
