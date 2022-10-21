@@ -817,11 +817,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         Indication indication = indications.getIndication();
         if (indication != TOTAL_PASSED) {
-            if (this.environment.getActiveProfiles()[0].equals("local")) {
-                try {
-                    logger.severe(createReport(parameters, reportsDto));
-                } catch (IOException e) {
-                    logger.severe("Can't log report !!!!!!!!");
+            // When running in a "local" profile dump the signing report
+            for(String profile : this.environment.getActiveProfiles()) {
+                if ("local".equals(profile)) {
+                    try {
+                        logger.severe(createReport(parameters, reportsDto));
+                    } catch (IOException e) {
+                        logger.severe("Can't log report !!!!!!!!");
+                    }
                 }
             }
             if (!parameters.isSignWithExpiredCertificate()) {
