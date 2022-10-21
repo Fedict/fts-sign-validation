@@ -1005,11 +1005,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         logger.info("Entering getDataToSign()");
         try {
             dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
+            ClientSignatureParameters clientSigParams = dataToSignDto.getClientSignatureParameters();
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), clientSigParams, null);
 
             checkDataToSign(parameters, null);
 
-            ToBeSignedDTO dataToSign = altSignatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
+            String sigFieldId = null;
+            String inputCoordinates = "1,20,20,200,200";
+            String signLanguage = "fr";
+            PdfSignatureProfile psp = new PdfSignatureProfile();
+            pdfVisibleSignatureService.checkAndFillParams(parameters, dataToSignDto.getToSignDocument(), sigFieldId, inputCoordinates, signLanguage, psp, clientSigParams.getPhoto());
+
+                ToBeSignedDTO dataToSign = altSignatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), dataToSignDto.getClientSignatureParameters().getSigningDate());
             logger.info("Returning from getDataToSign()");

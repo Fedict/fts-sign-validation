@@ -95,41 +95,8 @@ public class PdfVisibleSignatureService {
     public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, TokenSignInput input, String bucket, byte[] photo)
             throws NullParameterException, IOException {
 
-        RemoteSignatureImageParameters sigImgParams = new RemoteSignatureImageParameters();
-        remoteSigParams.setImageParameters(sigImgParams);
-        RemoteSignatureFieldParameters fieldParams = new RemoteSignatureFieldParameters();
-        sigImgParams.setFieldParameters(fieldParams);
-
-        PdfSignatureProfile psp = getPspOrDefaults(bucket, input.getPspFilePath());
-
-        String sigFieldId = input.getPsfN();
-        if (sigFieldId != null) {
-            fieldParams.setFieldId(sigFieldId);
-        } else {
-            String inputCoordinates = input.getPsfC();
-            if (inputCoordinates == null) return;
-            convertFieldCoords(inputCoordinates, psp.defaultCoordinates, fieldParams);
-        }
-
-        String text = makeText(psp.texts,
-                input.getSignLanguage(),
-                remoteSigParams.getBLevelParams().getSigningDate(),
-                remoteSigParams.getSigningCertificate());
-
-        byte image[] = photo != null ? photo : psp.image;
-
-        if (psp.version == 1) {
-            fillParamsForV1(sigImgParams, document, psp, text, image);
-        } else {
-            fillParamsForV2(sigImgParams, psp, text, image);
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-
-    private PdfSignatureProfile getPspOrDefaults(String bucket, String pspPath) throws NullParameterException {
-
         PdfSignatureProfile psp = null;
+        String pspPath = input.getPspFilePath();
         if (pspPath != null) {
             try {
                 byte[] json = storageService.getFileAsBytes(bucket, pspPath, false);
@@ -139,6 +106,47 @@ public class PdfVisibleSignatureService {
                 throw new NullParameterException("Error reading or parsing PDF Signature Profile file: " + e.getMessage());
             }
         } else psp = new PdfSignatureProfile();
+
+        String inputCoordinates = null;
+        String sigFieldId = input.getPsfN();
+        if (sigFieldId == null) {
+            inputCoordinates = input.getPsfC();
+            if (inputCoordinates == null) return;
+        }
+
+        checkAndFillParams(remoteSigParams, document, sigFieldId, inputCoordinates, input.getSignLanguage(), psp, photo);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, String sigFieldId, String inputCoordinates, String signLanguage, PdfSignatureProfile psp, byte[] photo) throws NullParameterException, IOException {
+
+        makePspDefaults(psp);
+
+        RemoteSignatureFieldParameters fieldParams = new RemoteSignatureFieldParameters();
+        if (sigFieldId != null) fieldParams.setFieldId(sigFieldId);
+        else convertFieldCoords(inputCoordinates, psp.defaultCoordinates, fieldParams);
+
+        String text = makeText(psp.texts,
+                signLanguage,
+                remoteSigParams.getBLevelParams().getSigningDate(),
+                remoteSigParams.getSigningCertificate());
+
+        byte image[] = photo != null ? photo : psp.image;
+
+        RemoteSignatureImageParameters sigImgParams = new RemoteSignatureImageParameters();
+        remoteSigParams.setImageParameters(sigImgParams);
+        sigImgParams.setFieldParameters(fieldParams);
+        if (psp.version == 1) {
+            fillParamsForV1(sigImgParams, document, psp, text, image);
+        } else {
+            fillParamsForV2(sigImgParams, psp, text, image);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    private void makePspDefaults(PdfSignatureProfile psp) {
 
         if (psp.version == null) psp.version = 1;
         if (psp.bgColor == null) psp.bgColor = "#D0D0D0";   // light gray, same as IMAGE background color;
@@ -165,8 +173,6 @@ public class PdfVisibleSignatureService {
             // remove the optional "/bi" from the font name
             psp.font = psp.font == null ? DEFAULT_STRING : psp.font.replaceAll("/[^/]*$", "");
         }
-
-        return psp;
     }
 
     ///////////////////////////////////////////////////////////////////////////
