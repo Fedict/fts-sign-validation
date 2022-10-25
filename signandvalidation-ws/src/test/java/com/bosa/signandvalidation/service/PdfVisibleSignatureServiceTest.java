@@ -3,8 +3,8 @@ package com.bosa.signandvalidation.service;
 import com.bosa.signandvalidation.model.PdfSignatureProfile;
 import com.bosa.signandvalidation.model.TokenSignInput;
 
+import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.Serializers;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
@@ -26,7 +26,6 @@ import static org.mockito.ArgumentMatchers.eq;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.Base64;
 import java.util.Date;
 
 @ExtendWith(MockitoExtension.class)
@@ -75,7 +74,9 @@ public class PdfVisibleSignatureServiceTest {
                 input.setSignLanguage(fileNameNoExt.substring(0, 2));
                 String defaultCoordinates = (new ObjectMapper()).readValue(new String(pspFileBytes), PdfSignatureProfile.class).defaultCoordinates;
                 input.setPsfC(defaultCoordinates == null ? "1,10,10,200,150" : DEFAULT_STRING);
-                new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, fileNameNoExt.charAt(2) == 'T' ? photoBytes : null);
+                ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
+                if (fileNameNoExt.charAt(2) == 'T') clientSigParams.setPhoto(photoBytes);
+                new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, clientSigParams);
 
                 compareImages(params.getImageParameters().getImage().getBytes(), fileNameNoExt);
             }
@@ -90,7 +91,9 @@ public class PdfVisibleSignatureServiceTest {
         TokenSignInput input = new TokenSignInput();
         input.setSignLanguage("fr");
         input.setPsfC("2,20,20,300,150");
-        new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, photoBytes);
+        ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
+        clientSigParams.setPhoto(photoBytes);
+        new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, clientSigParams);
 
         compareImages(params.getImageParameters().getImage().getBytes(), "noPSP1");
     }

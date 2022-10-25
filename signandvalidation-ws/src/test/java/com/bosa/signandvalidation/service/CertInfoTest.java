@@ -31,7 +31,7 @@ public class CertInfoTest {
         }
     }
 
-    static RemoteCertificate getTomTestCertificate() {
+    public static RemoteCertificate getTomTestCertificate() {
         return new RemoteCertificate(Base64.getDecoder().decode(
                     "MIIEezCCBACgAwIBAgIRANar/0/BA2zhfogU3c2l9VgwCgYIKoZIzj0EAwMwWDEL" +
                             "MAkGA1UEBhMCQkUxGzAZBgNVBAoMEkJlbGdpYW4gR292ZXJubWVudDEbMBkGA1UE" +

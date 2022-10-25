@@ -690,7 +690,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
 
             if (mediaType != null && APPLICATION_PDF.equals(mediaType)) {
-                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams.getPhoto());
+                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams);
             }
 
             ToBeSignedDTO dataToSign = altSignatureService.getDataToSignWithReferences(fileToSign, parameters, references);
@@ -757,7 +757,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
             if (mediaType != null && APPLICATION_PDF.equals(mediaType)) {
-                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams.getPhoto());
+                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams);
             }
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
@@ -1013,13 +1013,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             checkDataToSign(parameters, null);
 
-            PdfSignatureProfile psp = new PdfSignatureProfile();
-            psp.texts.put("no", clientSigParams.getText());
-            psp.textSize = clientSigParams.getTextSize();
-            psp.bgColor = clientSigParams.getBgColor();
-            pdfVisibleSignatureService.checkAndFillParams(parameters, dataToSignDto.getToSignDocument(), clientSigParams.getPsfN(), null, "no", psp, clientSigParams.getPhoto());
+            pdfVisibleSignatureService.checkAndFillParams(parameters, dataToSignDto.getToSignDocument(), clientSigParams);
 
-                ToBeSignedDTO dataToSign = altSignatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
+            ToBeSignedDTO dataToSign = altSignatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), dataToSignDto.getClientSignatureParameters().getSigningDate());
             logger.info("Returning from getDataToSign()");
@@ -1073,11 +1069,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), clientSigParams, null);
 
-            PdfSignatureProfile psp = new PdfSignatureProfile();
-            psp.texts.put("no", clientSigParams.getText());
-            psp.textSize = clientSigParams.getTextSize();
-            psp.bgColor = clientSigParams.getBgColor();
-            pdfVisibleSignatureService.checkAndFillParams(parameters, signDocumentDto.getToSignDocument(), clientSigParams.getPsfN(), null, "no", psp, clientSigParams.getPhoto());
+            pdfVisibleSignatureService.checkAndFillParams(parameters, signDocumentDto.getToSignDocument(), clientSigParams);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
@@ -1257,5 +1249,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 }
+
 /*****************************************************************************************/
 
