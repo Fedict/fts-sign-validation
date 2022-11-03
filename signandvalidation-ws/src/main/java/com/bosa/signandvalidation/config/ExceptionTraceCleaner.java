@@ -1,6 +1,7 @@
 package com.bosa.signandvalidation.config;
 
 import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
+import com.bosa.signandvalidation.exceptions.Utils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
@@ -15,6 +16,7 @@ public class ExceptionTraceCleaner extends HandlerInterceptorAdapter {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, @Nullable ModelAndView modelAndView) throws Exception {
         DataLoadersExceptionLogger.clearThreadExceptions();
+        Utils.clearMDCToken();
     }
 
 }
