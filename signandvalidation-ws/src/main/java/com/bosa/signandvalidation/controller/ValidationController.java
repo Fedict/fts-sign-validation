@@ -16,7 +16,6 @@ import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationS
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -69,6 +68,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             root.setReport(report.getDetailedReport());
             jaxbMarshaller.marshal(root, sw);
             signDto.setReport(sw.toString());
+            logger.info("ValidateSignature is finished");
         } catch(Exception e) {
             throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Cannot render Detailed Signature report");
         }
@@ -86,6 +86,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             if (toValidate.getLevel() != null && reportsDto.getDiagnosticData() != null) {
                 checkSignatures(toValidate.getLevel(), reportsDto);
             }
+            logger.info("ValidateSignatureFull is finished");
             return reportsDto;
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -121,6 +122,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
                     logger.log(Level.SEVERE, "Certificate validation indication = {0}; certificate ID = {1}, issuer ID = {2}", new Object[]{rv.getIndication().toString(), item.getId(), item.getIssuerId()});
                 });
             }
+            logger.info("ValidateCertificate is finished");
             return rv;
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -134,9 +136,11 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 
         try {
-            return remoteCertificateValidationService.validateCertificate(
+            CertificateReportsDTO result = remoteCertificateValidationService.validateCertificate(
                 new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
 			toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
+            logger.info("ValidateCertificateFull is finished");
+            return result;
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -152,7 +156,8 @@ public class ValidationController extends ControllerBase implements ErrorStrings
                 indications.add(validateCertificate(toValidate));
             }
 
-        return new IndicationsListDTO(indications);
+            logger.info("ValidateCertificates is finished");
+            return new IndicationsListDTO(indications);
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
