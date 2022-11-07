@@ -43,6 +43,7 @@ public class PdfVisibleSignatureServiceTest {
     public static final File pdfFile = new File(RESOURCE_PATH, "sample.pdf");
     public static final File pspTestFolder = new File(RESOURCE_PATH, "testPSPs");
     private static final File pspImagesFolder = new File(RESOURCE_PATH, "PSPImages");
+    private static final File pspImagesFolderWindows = new File(pspImagesFolder, "Windows");
     private static byte photoBytes[];
     private static byte pdfFileBytes[];
 
@@ -93,7 +94,12 @@ public class PdfVisibleSignatureServiceTest {
     }
 
     public static void compareImages(byte[] actualBytes, String expectedFileName) throws IOException {
+
         File imageFile = new File(pspImagesFolder, expectedFileName + ".png");
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            File windowsImageFile = new File(pspImagesFolderWindows, imageFile.getName());
+            if (windowsImageFile.exists()) imageFile = windowsImageFile;
+        }
 
         System.out.println("Expected image file : " + imageFile.getPath());
 
@@ -106,8 +112,13 @@ public class PdfVisibleSignatureServiceTest {
         int differentPixelsCount = countMismatchedPixels(actualImage, expectedImage);
         if (differentPixelsCount == 0) return;
 
+        // On CI/CD the platform differences create different images, in order to get a copy of them we print the B64
+        //System.out.println(imageFile.getPath());
+        //System.out.println(Base64.getEncoder().encodeToString(actualBytes));
+
         // In case of image size or pixel mismatch, save actual image for quicker analysis
         imageFile = new File(pspImagesFolder, expectedFileName + "_ACTUAL.png");
+
         new InMemoryDocument(actualBytes).save(imageFile.getPath());
 
         if (differentPixelsCount < 0) {
