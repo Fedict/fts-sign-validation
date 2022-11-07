@@ -1007,6 +1007,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         logger.info("Entering getDataToSign()");
         try {
+            logger.info("Entering getDataToSign()");
             dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
 
