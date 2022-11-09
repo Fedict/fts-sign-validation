@@ -14,6 +14,7 @@ ADD ./signandvalidation-ws/target/*.war /usr/local/tomcat/webapps/signandvalidat
 ADD ./parameters /opt/signvalidation/profiles
 ADD ./fonts /opt/signvalidation/fonts
 COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
+ADD ./tomcat-settings.xml /usr/local/tomcat/conf/settings.xml
 
 USER 1001
 CMD bin/catalina_wrapper.sh run
