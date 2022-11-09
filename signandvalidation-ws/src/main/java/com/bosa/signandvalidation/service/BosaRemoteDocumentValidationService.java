@@ -55,11 +55,14 @@ public class BosaRemoteDocumentValidationService {
 			// Check if the signature algo is MD5 or SHA1
 			XmlBasicSignature basicSig = sig.getBasicSignature();
 			DigestAlgorithm digestAlgo = basicSig.getDigestAlgoUsedToSignThisToken();
-			String dAlgo = digestAlgo.toString();
-			if ("SHA1".equals(dAlgo) || "MD5".equals(dAlgo)) {
-				modifyReports(report, sig.getId(), SubIndication.CRYPTO_CONSTRAINTS_FAILURE,
-					digestAlgo + " signatures not allowed");
+			if (digestAlgo != null) {
+				String dAlgo = digestAlgo.toString();
+				if ("SHA1".equals(dAlgo) || "MD5".equals(dAlgo)) {
+					modifyReports(report, sig.getId(), SubIndication.CRYPTO_CONSTRAINTS_FAILURE,
+							digestAlgo + " signatures not allowed");
+				}
 			}
+
 			// Identify the latest signature (for next step)
 			// Though this could not be the signature we "just made".
 			// It would be better to identify the signature based on the signed digest but this one is still better than the previous one using the 10 seconds delay
