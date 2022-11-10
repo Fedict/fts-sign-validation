@@ -33,7 +33,7 @@
     </springProfile>
 
     <springProfile name="!local">
-        <root level="INFO">
+        <root level="DEBUG">
             <appender-ref ref="json" />
         </root>
     </springProfile>
