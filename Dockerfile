@@ -14,7 +14,8 @@ ADD ./signandvalidation-ws/target/*.war /usr/local/tomcat/webapps/signandvalidat
 ADD ./parameters /opt/signvalidation/profiles
 ADD ./fonts /opt/signvalidation/fonts
 COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
-RUN sed -i 's/connectionTimeout="20000"/connectionTimeout="x200000"/g' /usr/local/tomcat/conf/server.xml
+RUN sed -i 's/connectionTimeout="20000"/connectionTimeout="300000"/g' /usr/local/tomcat/conf/server.xml
+RUN cat /usr/local/tomcat/conf/server.xml
 
 USER 1001
 CMD bin/catalina_wrapper.sh run
