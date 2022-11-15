@@ -2,6 +2,7 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
+import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.*;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
@@ -17,8 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.bosa.signandvalidation.controller.SigningController.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 public class SigningControllerTest extends SigningControllerBaseTest {
@@ -152,8 +153,16 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
-        InMemoryDocument iMD = new InMemoryDocument(signedDocument.getBytes());
-        iMD.save("target/test.json");
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedDocument);
+        toValidate.setLevel(SignatureLevel.JAdES_BASELINE_B);
+
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + "/validation/validateSignature", toValidate, SignatureIndicationsDTO.class);
+
+        assertNotNull(result);
+        assertEquals(TOTAL_PASSED, result.getIndication());
+        assertNull(result.getSubIndicationLabel());
+
+        System.out.println("Jades signature : " + new String(signedDocument.getBytes()));
     }
 
     @Test
