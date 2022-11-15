@@ -1,0 +1,7 @@
+{
+  "profileId": "JADES_B",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "JAdES_BASELINE_B",
+  "signaturePackaging":"ENVELOPED",
+  "tspServer": "http://tss.eidpki.belgium.be/"
+}

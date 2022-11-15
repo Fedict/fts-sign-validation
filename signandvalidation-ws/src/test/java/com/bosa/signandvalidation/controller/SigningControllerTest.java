@@ -125,6 +125,38 @@ public class SigningControllerTest extends SigningControllerBaseTest {
     }
 
     @Test
+    public void testSigningJades() throws Exception {
+        Pkcs12SignatureToken token = new Pkcs12SignatureToken(
+                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                new KeyStore.PasswordProtection("123456".toCharArray())
+        );
+        List<DSSPrivateKeyEntry> keys = token.getKeys();
+        DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
+
+        ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
+
+        FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.json"));
+        RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
+
+        // get data to sign
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "JADES_B", clientSignatureParameters);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, DataToSignDTO.class);
+        assertNotNull(dataToSign);
+
+        // sign
+        SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
+
+        // sign document
+        clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "JADES_B", clientSignatureParameters, signatureValue.getValue());
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
+        assertNotNull(signedDocument);
+
+        InMemoryDocument iMD = new InMemoryDocument(signedDocument.getBytes());
+        iMD.save("target/test.json");
+    }
+
+    @Test
     public void testTimestampPdf() {
         FileDocument fileToTimestamp = new FileDocument(new File("src/test/resources/sample.pdf"));
         RemoteDocument remoteDocument = RemoteDocumentConverter.toRemoteDocument(fileToTimestamp);
