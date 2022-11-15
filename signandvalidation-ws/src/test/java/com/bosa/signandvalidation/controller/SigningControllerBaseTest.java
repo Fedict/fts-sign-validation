@@ -39,7 +39,7 @@ public class SigningControllerBaseTest extends SignAndValidationTestBase impleme
         saveProfileSignatureParameters(profileSigParamDao, "XADES_LTA", null, SignatureLevel.XAdES_BASELINE_LTA,
                 SignaturePackaging.ENVELOPED, SHA256, SHA256, null);
         saveProfileSignatureParameters(profileSigParamDao, "JADES_B", null, SignatureLevel.JAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPED, SHA256, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA256, SHA256, null);
         saveProfileSignatureParameters(profileSigParamDao, "MDOC_XADES_LTA", null, SignatureLevel.XAdES_BASELINE_LTA,
                 SignaturePackaging.ENVELOPED, SHA512, SHA256, null);
 
