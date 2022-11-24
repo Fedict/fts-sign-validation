@@ -1,5 +1,5 @@
 {
-  "profileId": "JADES_B",
+  "profileId": "JADES_LT",
   "digestAlgorithm": "SHA256",
   "signatureLevel": "JAdES_BASELINE_LT",
   "jadesSerializationType": "FLATTENED_JSON_SERIALIZATION",
