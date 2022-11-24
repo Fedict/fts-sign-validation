@@ -2,6 +2,7 @@
   "profileId": "JADES_LTA",
   "digestAlgorithm": "SHA256",
   "signatureLevel": "JAdES_BASELINE_LTA",
+  "jadesSerializationType": "JSON_SERIALIZATION",
   "signaturePackaging":"ENVELOPING",
   "tspServer": "http://tss.eidpki.belgium.be/"
 }

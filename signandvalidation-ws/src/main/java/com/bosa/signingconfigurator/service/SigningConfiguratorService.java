@@ -161,6 +161,7 @@ public class SigningConfiguratorService {
     private void fillProfileParams(ProfileSignatureParameters profileParams, RemoteSignatureParameters remoteSignatureParams) {
         remoteSignatureParams.setAsicContainerType(profileParams.getAsicContainerType());
         remoteSignatureParams.setSignatureLevel(profileParams.getSignatureLevel());
+        remoteSignatureParams.setJwsSerializationType(profileParams.getJadesSerializationType());
         remoteSignatureParams.setSignaturePackaging(profileParams.getSignaturePackaging());
         remoteSignatureParams.setDigestAlgorithm(profileParams.getDigestAlgorithm());
         remoteSignatureParams.setMaskGenerationFunction(profileParams.getMaskGenerationFunction());
