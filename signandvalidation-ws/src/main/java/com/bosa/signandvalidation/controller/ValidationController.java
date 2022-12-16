@@ -12,8 +12,11 @@ import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
+import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
+import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
+import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -82,6 +85,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
 
         try {
+            selectPolicyBasedOnSignedCerts(toValidate);
             WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
             if (toValidate.getLevel() != null && reportsDto.getDiagnosticData() != null) {
                 checkSignatures(toValidate.getLevel(), reportsDto);
@@ -94,6 +98,12 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, INVALID_SIGNATURE_LEVEL, e);
         }
         return null; // We won't get here
+    }
+
+    private void selectPolicyBasedOnSignedCerts(DataToValidateDTO toValidate) {
+        if (toValidate.getPolicy() != null) return;
+        RemoteDocument policy = null;
+        toValidate.setPolicy(policy);
     }
 
     private void checkSignatures(SignatureLevel level, WSReportsDTO reportsDto) throws IllegalSignatureFormatException {
