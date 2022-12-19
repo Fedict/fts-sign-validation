@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AbortJob {
 
-    @Scheduled(fixedDelay = 900000000, initialDelay = 30000)
+    @Scheduled(fixedDelay = 900000000, initialDelayString = "${shutdown.after.ms}")
     public void abort() {
         SignAndValidationApplication.stop();
         System.exit(0);
