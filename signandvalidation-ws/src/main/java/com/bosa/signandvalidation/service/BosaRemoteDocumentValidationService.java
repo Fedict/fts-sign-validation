@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.io.Serializable;
+import java.util.logging.Logger;
 
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDistinguishedName;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -26,7 +27,9 @@ import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
  * This validation service calls the DSS validation service and then applies some extra checks.
  */
 public class BosaRemoteDocumentValidationService {
-	private static final String BRCA_3_CONSTRAINT_FILE = "BRCA3_constraint.xml";
+	private static final String BRCA3_DN = "cn=belgium root ca3,c=be";
+	private static final String BRCA3_CONSTRAINT_FILE = "BRCA3_constraint.xml";
+	private static final Logger logger = Logger.getLogger(BosaRemoteDocumentValidationService.class.getName());
 	private ShadowRemoteDocumentValidationService remoteDocumentValidationService;
 
 	public BosaRemoteDocumentValidationService() {
@@ -45,12 +48,13 @@ public class BosaRemoteDocumentValidationService {
 		// Let DSS do its normal validation
 		WSReportsDTO report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
 		if (policy == null && hasBRCA3RevocationFreshnessError(report)) {
+			logger.warning("Document has BRCA3 signatures and no custom policy. Using custom BRCA3 policy to validate");
 			try {
-				InputStream brca3is = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + BRCA_3_CONSTRAINT_FILE);
-				RemoteDocument brca3Policy = new RemoteDocument(Utils.toByteArray(brca3is), BRCA_3_CONSTRAINT_FILE);
+				InputStream brca3is = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + BRCA3_CONSTRAINT_FILE);
+				RemoteDocument brca3Policy = new RemoteDocument(Utils.toByteArray(brca3is), BRCA3_CONSTRAINT_FILE);
 				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, brca3Policy));
 			} catch (IOException e) {
-				throw new RuntimeException(BRCA_3_CONSTRAINT_FILE + " not found");
+				throw new RuntimeException(BRCA3_CONSTRAINT_FILE + " not found");
 			}
 		}
 
@@ -113,7 +117,7 @@ public class BosaRemoteDocumentValidationService {
 		for (eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate cert : certs) {
 			if (id.equals(cert.getId())) {
 				for(XmlDistinguishedName formattedDn : cert.getSubjectDistinguishedName()) {
-					if ("CANONICAL".equals(formattedDn.getFormat()) && "cn=belgium root ca3,c=be".equals(formattedDn.getValue())) return true;
+					if ("CANONICAL".equals(formattedDn.getFormat()) && BRCA3_DN.equals(formattedDn.getValue())) return true;
 				}
 			}
 		}
