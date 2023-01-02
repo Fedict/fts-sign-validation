@@ -55,8 +55,8 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
 
         // then
         assertNotNull(result);
-        assertEquals(TOTAL_PASSED, result.getIndication());
         assertNull(result.getSubIndicationLabel());
+        assertEquals(TOTAL_PASSED, result.getIndication());
     }
 
 
