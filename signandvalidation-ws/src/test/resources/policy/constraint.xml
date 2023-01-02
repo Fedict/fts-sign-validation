@@ -238,7 +238,7 @@
 					<!-- Digest algorithms -->
 					<Algo Date="2007">MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
 					<Algo Date="2009">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-					<Algo Date="2024">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
+					<Algo Date="2023">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
 					<Algo Date="2026">SHA256</Algo> <!-- ETSI 119 312 V1.3.1 -->
 					<Algo Date="2026">SHA384</Algo> <!-- ETSI 119 312 V1.3.1 -->
 					<Algo Date="2026">SHA512</Algo> <!-- ETSI 119 312 V1.3.1 -->
@@ -252,11 +252,11 @@
 					<!-- Encryption algorithms -->
 					<Algo Date="2013" Size="160">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 					<Algo Date="2013" Size="192">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
-					<Algo Date="2024" Size="224">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+					<Algo Date="2023" Size="224">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 					<Algo Date="2026" Size="256">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 					<Algo Date="2009" Size="1024">RSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
 					<Algo Date="2016" Size="1536">RSA</Algo> <!-- ETSI 119 312 V1.1.1 -->
-					<Algo Date="2024" Size="2048">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+					<Algo Date="2023" Size="2048">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 					<Algo Date="2026" Size="3072">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 					<Algo Date="2026" Size="4096">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 					<Algo Date="2013" Size="160">ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
@@ -344,7 +344,7 @@
 		<AlgoExpirationDate Format="yyyy">
 			<!-- Digest algorithms -->
 			<Algo Date="2025">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-			<Algo Date="2023">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
+			<Algo Date="2024">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
 			<Algo Date="2026">SHA256</Algo> <!-- ETSI 119 312 V1.3.1 -->
 			<Algo Date="2026">SHA384</Algo> <!-- ETSI 119 312 V1.3.1 -->
 			<Algo Date="2026">SHA512</Algo> <!-- ETSI 119 312 V1.3.1 -->
@@ -358,11 +358,11 @@
 			<!-- Encryption algorithms -->
 			<Algo Date="2013" Size="160">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 			<Algo Date="2013" Size="192">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
-			<Algo Date="2023" Size="224">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+			<Algo Date="2024" Size="224">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 			<Algo Date="2026" Size="256">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 			<Algo Date="2009" Size="1024">RSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
 			<Algo Date="2016" Size="1536">RSA</Algo> <!-- ETSI 119 312 V1.1.1 -->
-			<Algo Date="2023" Size="2048">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+			<Algo Date="2024" Size="2048">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 			<Algo Date="2026" Size="3072">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 			<Algo Date="2026" Size="4096">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
 			<Algo Date="2013" Size="160">ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
