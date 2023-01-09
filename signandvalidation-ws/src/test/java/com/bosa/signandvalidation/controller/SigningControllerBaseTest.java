@@ -17,8 +17,7 @@ import org.springframework.context.ApplicationContext;
 import java.util.ArrayList;
 import java.util.List;
 
-import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA256;
-import static eu.europa.esig.dss.enumerations.DigestAlgorithm.SHA512;
+import static eu.europa.esig.dss.enumerations.DigestAlgorithm.*;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
 import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 
@@ -39,7 +38,7 @@ public class SigningControllerBaseTest extends SignAndValidationTestBase impleme
         saveProfileSignatureParameters(profileSigParamDao, "XADES_LTA", null, SignatureLevel.XAdES_BASELINE_LTA,
                 SignaturePackaging.ENVELOPED, SHA256, SHA256, null);
         saveProfileSignatureParameters(profileSigParamDao, "JADES_B", null, SignatureLevel.JAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA256, SHA256, null);
+                SignaturePackaging.ENVELOPING, SHA384, SHA384, null);
         saveProfileSignatureParameters(profileSigParamDao, "MDOC_XADES_LTA", null, SignatureLevel.XAdES_BASELINE_LTA,
                 SignaturePackaging.ENVELOPED, SHA512, SHA256, null);
 
