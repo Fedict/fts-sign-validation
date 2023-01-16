@@ -8,11 +8,11 @@
 			<Id>ASiC-S</Id>
 			<Id>ASiC-E</Id>
 		</AcceptableContainerTypes>
-<!-- 		<ZipCommentPresent Level="WARN" /> -->
-<!-- 		<AcceptableZipComment Level="WARN"> -->
-<!-- 			<Id>mimetype=application/vnd.etsi.asic-s+zip</Id> -->
-<!-- 			<Id>mimetype=application/vnd.etsi.asic-e+zip</Id> -->
-<!-- 		</AcceptableZipComment> -->
+		<!-- 		<ZipCommentPresent Level="WARN" /> -->
+		<!-- 		<AcceptableZipComment Level="WARN"> -->
+		<!-- 			<Id>mimetype=application/vnd.etsi.asic-s+zip</Id> -->
+		<!-- 			<Id>mimetype=application/vnd.etsi.asic-e+zip</Id> -->
+		<!-- 		</AcceptableZipComment> -->
 		<MimeTypeFilePresent Level="FAIL" />
 		<AcceptableMimeTypeFileContent Level="WARN">
 			<Id>application/vnd.etsi.asic-s+zip</Id>
@@ -44,16 +44,16 @@
 			<PdfPageDifference Level="FAIL" />
 			<PdfAnnotationOverlap Level="WARN" />
 			<PdfVisualDifference Level="WARN" />
-<!-- 			<TrustedServiceTypeIdentifier Level="WARN"> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/Svctype/CA/QC</Id> -->
-<!-- 			</TrustedServiceTypeIdentifier> -->
-<!-- 			<TrustedServiceStatus Level="FAIL"> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/undersupervision</Id> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/accredited</Id> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/supervisionincessation</Id> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/granted</Id> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/withdrawn</Id> -->
-<!-- 			</TrustedServiceStatus> -->
+			<!-- 			<TrustedServiceTypeIdentifier Level="WARN"> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/Svctype/CA/QC</Id> -->
+			<!-- 			</TrustedServiceTypeIdentifier> -->
+			<!-- 			<TrustedServiceStatus Level="FAIL"> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/undersupervision</Id> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/accredited</Id> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/supervisionincessation</Id> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/granted</Id> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/withdrawn</Id> -->
+			<!-- 			</TrustedServiceStatus> -->
 			<SigningCertificate>
 				<Recognition Level="FAIL" />
 				<Signature Level="FAIL" />
@@ -70,10 +70,10 @@
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<NotSelfSigned Level="WARN" />
-<!-- 				<Qualification Level="WARN" /> -->
-<!-- 				<SupportedByQSCD Level="WARN" /> -->
-<!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
-<!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
+				<!-- 				<Qualification Level="WARN" /> -->
+				<!-- 				<SupportedByQSCD Level="WARN" /> -->
+				<!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
+				<!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
 				<UsePseudonym Level="INFORM" />
 				<Cryptographic />
 			</SigningCertificate>
@@ -99,19 +99,19 @@
 			<IssuerSerialMatch Level="WARN" />
 			<SigningTime Level="FAIL" />
 			<MessageDigestOrSignedPropertiesPresent Level="FAIL" />
-<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
-			<ContentHints Level="FAIL" value="*" />
-			<CommitmentTypeIndication Level="FAIL">
-				<Id>1.2.840.113549.1.9.16.6.1</Id>
-				<Id>1.2.840.113549.1.9.16.6.4</Id>
-				<Id>1.2.840.113549.1.9.16.6.5</Id>
-				<Id>1.2.840.113549.1.9.16.6.6</Id>
-			</CommitmentTypeIndication>
-			<SignerLocation Level="FAIL" />
-			<ContentTimeStamp Level="FAIL" /> -->
+			<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
+                        <ContentHints Level="FAIL" value="*" />
+                        <CommitmentTypeIndication Level="FAIL">
+                            <Id>1.2.840.113549.1.9.16.6.1</Id>
+                            <Id>1.2.840.113549.1.9.16.6.4</Id>
+                            <Id>1.2.840.113549.1.9.16.6.5</Id>
+                            <Id>1.2.840.113549.1.9.16.6.6</Id>
+                        </CommitmentTypeIndication>
+                        <SignerLocation Level="FAIL" />
+                        <ContentTimeStamp Level="FAIL" /> -->
 		</SignedAttributes>
 		<UnsignedAttributes>
-<!--		<CounterSignature Level="IGNORE" /> check presence -->
+			<!--		<CounterSignature Level="IGNORE" /> check presence -->
 		</UnsignedAttributes>
 	</SignatureConstraints>
 	<CounterSignatureConstraints>
@@ -121,16 +121,16 @@
 			<SignatureIntact Level="FAIL" />
 			<SignatureDuplicated Level="FAIL" />
 			<ProspectiveCertificateChain Level="FAIL" />
-<!-- 			<TrustedServiceTypeIdentifier Level="WARN"> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/Svctype/CA/QC</Id> -->
-<!-- 			</TrustedServiceTypeIdentifier> -->
-<!-- 			<TrustedServiceStatus Level="FAIL"> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/undersupervision</Id> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/accredited</Id> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/supervisionincessation</Id> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/granted</Id> -->
-<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/withdrawn</Id> -->
-<!-- 			</TrustedServiceStatus> -->
+			<!-- 			<TrustedServiceTypeIdentifier Level="WARN"> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/Svctype/CA/QC</Id> -->
+			<!-- 			</TrustedServiceTypeIdentifier> -->
+			<!-- 			<TrustedServiceStatus Level="FAIL"> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/undersupervision</Id> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/accredited</Id> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/supervisionincessation</Id> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/granted</Id> -->
+			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/withdrawn</Id> -->
+			<!-- 			</TrustedServiceStatus> -->
 			<SigningCertificate>
 				<Recognition Level="FAIL" />
 				<Signature Level="FAIL" />
@@ -147,10 +147,10 @@
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<NotSelfSigned Level="WARN" />
-<!-- 				<Qualification Level="WARN" /> -->
-<!-- 				<SupportedByQSCD Level="WARN" /> -->
-<!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
-<!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
+				<!-- 				<Qualification Level="WARN" /> -->
+				<!-- 				<SupportedByQSCD Level="WARN" /> -->
+				<!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
+				<!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
 				<UsePseudonym Level="INFORM" />
 				<Cryptographic />
 			</SigningCertificate>
@@ -159,6 +159,7 @@
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
+				<!-- 210 was picked because the CA CRL for BRCA3 is updated every six months with an overlap of one month -> 30 x 7 /> -->
 				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
@@ -173,16 +174,16 @@
 			<IssuerSerialMatch Level="WARN" />
 			<SigningTime Level="FAIL" />
 			<MessageDigestOrSignedPropertiesPresent Level="FAIL" />
-<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
-			<ContentHints Level="FAIL" value="*" />
-			<CommitmentTypeIndication Level="FAIL">
-				<Id>1.2.840.113549.1.9.16.6.1</Id>
-				<Id>1.2.840.113549.1.9.16.6.4</Id>
-				<Id>1.2.840.113549.1.9.16.6.5</Id>
-				<Id>1.2.840.113549.1.9.16.6.6</Id>
-			</CommitmentTypeIndication>
-			<SignerLocation Level="FAIL" />
-			<ContentTimeStamp Level="FAIL" /> -->
+			<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
+                        <ContentHints Level="FAIL" value="*" />
+                        <CommitmentTypeIndication Level="FAIL">
+                            <Id>1.2.840.113549.1.9.16.6.1</Id>
+                            <Id>1.2.840.113549.1.9.16.6.4</Id>
+                            <Id>1.2.840.113549.1.9.16.6.5</Id>
+                            <Id>1.2.840.113549.1.9.16.6.6</Id>
+                        </CommitmentTypeIndication>
+                        <SignerLocation Level="FAIL" />
+                        <ContentTimeStamp Level="FAIL" /> -->
 		</SignedAttributes>
 	</CounterSignatureConstraints>
 	<Timestamp>
@@ -239,39 +240,37 @@
 					<!-- Digest algorithms -->
 					<Algo Date="2007">MD5</Algo> <!-- ETSI TS 101 861 V1.3.1 -->
 					<Algo Date="2009">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-					<Algo Date="2023">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026">SHA256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026">SHA384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026">SHA512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026">SHA3-224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026">SHA3-256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026">SHA3-384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026">SHA3-512</Algo> <!-- ETSI 119 312 V1.3.1 -->
+					<Algo Date="2026">SHA224</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029">SHA256</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029">SHA384</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029">SHA512</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<!--		<Algo Date="2026">SHA3-224</Algo> 		Not referenced in ETSI/SOGIS  -->
+					<Algo Date="2029">SHA3-256</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029">SHA3-384</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029">SHA3-512</Algo> <!-- ETSI 119 312 V1.4.2 -->
 					<Algo Date="2011">RIPEMD160</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
 					<Algo Date="2015">WHIRLPOOL</Algo> <!-- ETSI 119 312 V1.1.1 -->
 					<!-- end Digest algorithms -->
 					<!-- Encryption algorithms -->
-					<Algo Date="2013" Size="160">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
-					<Algo Date="2013" Size="192">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
-					<Algo Date="2023" Size="224">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026" Size="256">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+					<Algo Date="2013" Size="1024">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
+					<Algo Date="2026" Size="2048">DSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029" Size="3072">DSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 					<Algo Date="2009" Size="1024">RSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
 					<Algo Date="2016" Size="1536">RSA</Algo> <!-- ETSI 119 312 V1.1.1 -->
-					<Algo Date="2023" Size="2048">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026" Size="3072">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026" Size="4096">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+					<Algo Date="2026" Size="1900">RSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029" Size="3000">RSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 					<Algo Date="2013" Size="160">ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 					<Algo Date="2013" Size="192">ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 					<Algo Date="2016" Size="224">ECDSA</Algo> <!-- ETSI 119 312 V1.1.1 -->
-					<Algo Date="2026" Size="256">ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026" Size="384">ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026" Size="512">ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+					<Algo Date="2029" Size="256">ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029" Size="384">ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029" Size="512">ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 					<Algo Date="2013" Size="160">PLAIN-ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 					<Algo Date="2013" Size="192">PLAIN-ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 					<Algo Date="2016" Size="224">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.1.1 -->
-					<Algo Date="2026" Size="256">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026" Size="384">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-					<Algo Date="2026" Size="512">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+					<Algo Date="2029" Size="256">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029" Size="384">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+					<Algo Date="2029" Size="512">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 					<!-- end Encryption algorithms -->
 				</AlgoExpirationDate>
 			</Cryptographic>
@@ -308,7 +307,7 @@
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="WARN" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -324,7 +323,7 @@
 			<Algo>PLAIN-ECDSA</Algo>
 		</AcceptableEncryptionAlgo>
 		<MiniPublicKeySize>
-			<Algo Size="160">DSA</Algo>
+			<Algo Size="1024">DSA</Algo>
 			<Algo Size="1024">RSA</Algo>
 			<Algo Size="160">ECDSA</Algo>
 			<Algo Size="160">PLAIN-ECDSA</Algo>
@@ -335,7 +334,6 @@
 			<Algo>SHA256</Algo>
 			<Algo>SHA384</Algo>
 			<Algo>SHA512</Algo>
-			<Algo>SHA3-224</Algo>
 			<Algo>SHA3-256</Algo>
 			<Algo>SHA3-384</Algo>
 			<Algo>SHA3-512</Algo>
@@ -344,47 +342,46 @@
 		</AcceptableDigestAlgo>
 		<AlgoExpirationDate Format="yyyy">
 			<!-- Digest algorithms -->
+			<!-- SHA1 is still used in for hashing the EID certs-->
 			<Algo Date="2025">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
-			<Algo Date="2024">SHA224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026">SHA256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026">SHA384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026">SHA512</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026">SHA3-224</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026">SHA3-256</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026">SHA3-384</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026">SHA3-512</Algo> <!-- ETSI 119 312 V1.3.1 -->
+			<Algo Date="2026">SHA224</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029">SHA256</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029">SHA384</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029">SHA512</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<!--		<Algo Date="2026">SHA3-224</Algo> 		Not referenced in ETSI/SOGIS  -->
+			<Algo Date="2029">SHA3-256</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029">SHA3-384</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029">SHA3-512</Algo> <!-- ETSI 119 312 V1.4.2 -->
 			<Algo Date="2011">RIPEMD160</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
 			<Algo Date="2015">WHIRLPOOL</Algo> <!-- ETSI 119 312 V1.1.1 -->
 			<!-- end Digest algorithms -->
 			<!-- Encryption algorithms -->
-			<Algo Date="2013" Size="160">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
-			<Algo Date="2013" Size="192">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
-			<Algo Date="2024" Size="224">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026" Size="256">DSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+			<Algo Date="2013" Size="1024">DSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
+			<Algo Date="2026" Size="2048">DSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029" Size="3072">DSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 			<Algo Date="2009" Size="1024">RSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
 			<Algo Date="2016" Size="1536">RSA</Algo> <!-- ETSI 119 312 V1.1.1 -->
-			<Algo Date="2024" Size="2048">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026" Size="3072">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026" Size="4096">RSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+			<Algo Date="2026" Size="1900">RSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029" Size="3000">RSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 			<Algo Date="2013" Size="160">ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 			<Algo Date="2013" Size="192">ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 			<Algo Date="2016" Size="224">ECDSA</Algo> <!-- ETSI 119 312 V1.1.1 -->
-			<Algo Date="2026" Size="256">ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026" Size="384">ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026" Size="512">ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+			<Algo Date="2029" Size="256">ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029" Size="384">ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029" Size="512">ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 			<Algo Date="2013" Size="160">PLAIN-ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 			<Algo Date="2013" Size="192">PLAIN-ECDSA</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 			<Algo Date="2016" Size="224">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.1.1 -->
-			<Algo Date="2026" Size="256">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026" Size="384">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
-			<Algo Date="2026" Size="512">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.3.1 -->
+			<Algo Date="2029" Size="256">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029" Size="384">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+			<Algo Date="2029" Size="512">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 			<!-- end Encryption algorithms -->
 		</AlgoExpirationDate>
-	</Cryptographic> 
-	
+	</Cryptographic>
+
 	<Model Value="SHELL" />
-	
-	<!-- eIDAS REGL 910/EU/2014 --> 
+
+	<!-- eIDAS REGL 910/EU/2014 -->
 	<eIDAS>
 		<TLFreshness Level="WARN" Unit="HOURS" Value="6" />
 		<TLNotExpired Level="WARN" />
