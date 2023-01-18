@@ -48,7 +48,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_B", clientSignatureParameters, signatureValue.getValue());
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_B", clientSignatureParameters, signatureValue.getValue(), null);
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
@@ -85,7 +85,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "CADES_B", clientSignatureParameters, signatureValue.getValue());
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "CADES_B", clientSignatureParameters, signatureValue.getValue(), null);
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
@@ -117,7 +117,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "PADES_B", clientSignatureParameters, signatureValue.getValue());
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "PADES_B", clientSignatureParameters, signatureValue.getValue(), null);
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
@@ -149,7 +149,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "JADES_B", clientSignatureParameters, signatureValue.getValue());
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "JADES_B", clientSignatureParameters, signatureValue.getValue(), null);
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
