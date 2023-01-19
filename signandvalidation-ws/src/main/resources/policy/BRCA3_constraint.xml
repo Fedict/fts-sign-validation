@@ -82,7 +82,8 @@
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<!-- 210 was picked because the CA CRL for BRCA3 is updated every six months with an overlap of one month -> 30 x 7 /> -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -158,7 +159,8 @@
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<!-- 210 was picked because the CA CRL for BRCA3 is updated every six months with an overlap of one month -> 30 x 7 /> -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -332,7 +334,6 @@
 			<Algo>SHA256</Algo>
 			<Algo>SHA384</Algo>
 			<Algo>SHA512</Algo>
-			<!--		<Algo>SHA3-224</Algo> 		Not referenced in ETSI/SOGIS -->
 			<Algo>SHA3-256</Algo>
 			<Algo>SHA3-384</Algo>
 			<Algo>SHA3-512</Algo>
