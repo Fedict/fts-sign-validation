@@ -14,6 +14,7 @@ import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
 import eu.europa.esig.dss.enumerations.ObjectIdentifierQualifier;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
+import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.service.http.commons.FileCacheDataLoader;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.spi.DSSUtils;
@@ -173,7 +174,8 @@ public class SigningConfiguratorService {
         remoteSignatureParams.setCertificateChain(clientParams.getCertificateChain());
         remoteSignatureParams.setDetachedContents(clientParams.getDetachedContents());
 
-        EncryptionAlgorithm encryptionAlgorithm = DSSUtils.loadCertificate(clientParams.getSigningCertificate().getEncodedCertificate()).getSignatureAlgorithm().getEncryptionAlgorithm();
+        CertificateToken certToken = DSSUtils.loadCertificate(clientParams.getSigningCertificate().getEncodedCertificate());
+        EncryptionAlgorithm encryptionAlgorithm = EncryptionAlgorithm.forName(certToken.getCertificate().getPublicKey().getAlgorithm());
         remoteSignatureParams.setEncryptionAlgorithm(encryptionAlgorithm);
 
         Date signingDate = clientParams.getSigningDate();
