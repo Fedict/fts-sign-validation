@@ -1,22 +1,25 @@
 package com.bosa.signandvalidation.service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
-import java.util.Date;
 import java.io.Serializable;
+import java.util.logging.Logger;
+
+import eu.europa.esig.dss.diagnostic.jaxb.XmlDistinguishedName;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
-import eu.europa.esig.dss.simplereport.jaxb.XmlDetails;
-import eu.europa.esig.dss.simplereport.jaxb.XmlMessage;
+import eu.europa.esig.dss.simplereport.jaxb.*;
+import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
-import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
-import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlValidationProcessBasicSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
 
@@ -24,6 +27,9 @@ import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
  * This validation service calls the DSS validation service and then applies some extra checks.
  */
 public class BosaRemoteDocumentValidationService {
+	private static final String BRCA3_DN = "cn=belgium root ca3,c=be";
+	private static final String BRCA3_CONSTRAINT_FILE = "BRCA3_constraint.xml";
+	private static final Logger logger = Logger.getLogger(BosaRemoteDocumentValidationService.class.getName());
 	private ShadowRemoteDocumentValidationService remoteDocumentValidationService;
 
 	public BosaRemoteDocumentValidationService() {
@@ -41,25 +47,37 @@ public class BosaRemoteDocumentValidationService {
 
 		// Let DSS do its normal validation
 		WSReportsDTO report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
+		if (policy == null && hasBRCA3RevocationFreshnessError(report)) {
+			logger.warning("Document has BRCA3 signatures and no custom policy. Using custom BRCA3 policy to validate");
+			try {
+				InputStream brca3is = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + BRCA3_CONSTRAINT_FILE);
+				RemoteDocument brca3Policy = new RemoteDocument(Utils.toByteArray(brca3is), BRCA3_CONSTRAINT_FILE);
+				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, brca3Policy));
+			} catch (IOException e) {
+				throw new RuntimeException(BRCA3_CONSTRAINT_FILE + " not found");
+			}
+		}
 
 		// When some back end servers (don't know which ones...) are down seems DSS can produce a signature that does not reflect the
 		// requested "parameters.getSignatureLevel()". For example even though an LTA was requested the result is not LTA.
 		// The code below is there to double-check this, it also makes sure SHA1 & MD5 are never used
-		eu.europa.esig.dss.diagnostic.jaxb.XmlSignature maxSig = null;
 		XmlDiagnosticData diagsData = report.getDiagnosticData();
-		List<eu.europa.esig.dss.diagnostic.jaxb.XmlSignature> signatures = diagsData.getSignatures();
-
+		List<XmlSignature> signatures = diagsData.getSignatures();
 		int sigCount = signatures.size();
+		XmlSignature maxSig = null;
 		for (int i = 0; i < sigCount; i++) {
-			eu.europa.esig.dss.diagnostic.jaxb.XmlSignature sig = signatures.get(i);
-			// Check if the signature algo is MD5 or SHA1
+			XmlSignature sig = signatures.get(i);
+			// Check if the signature algo is MD5 or SHA1 and make it an error
 			XmlBasicSignature basicSig = sig.getBasicSignature();
 			DigestAlgorithm digestAlgo = basicSig.getDigestAlgoUsedToSignThisToken();
-			String dAlgo = digestAlgo.toString();
-			if ("SHA1".equals(dAlgo) || "MD5".equals(dAlgo)) {
-				modifyReports(report, sig.getId(), SubIndication.CRYPTO_CONSTRAINTS_FAILURE,
-					digestAlgo + " signatures not allowed");
+			if (digestAlgo != null) {
+				String dAlgo = digestAlgo.toString();
+				if ("SHA1".equals(dAlgo) || "MD5".equals(dAlgo)) {
+					modifyReports(report, sig.getId(), SubIndication.CRYPTO_CONSTRAINTS_FAILURE,
+							digestAlgo + " signatures not allowed");
+				}
 			}
+
 			// Identify the latest signature (for next step)
 			// Though this could not be the signature we "just made".
 			// It would be better to identify the signature based on the signed digest but this one is still better than the previous one using the 10 seconds delay
@@ -78,6 +96,32 @@ public class BosaRemoteDocumentValidationService {
 		}
 
 		return report;
+	}
+
+	private static boolean hasBRCA3RevocationFreshnessError(WSReportsDTO report) {
+		for(XmlToken sigOrTS : report.getSimpleReport().getSignatureOrTimestamp()) {
+			if (sigOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature &&
+					Indication.INDETERMINATE.equals(sigOrTS.getIndication()) &&
+					SubIndication.TRY_LATER.equals(sigOrTS.getSubIndication())) {
+				XmlCertificateChain certChain = sigOrTS.getCertificateChain();
+				if (certChain == null) continue;
+				List<XmlCertificate> certChain2 = certChain.getCertificate();
+				XmlCertificate rootCert = certChain2.get(certChain2.size() - 1);
+				if (isBRCA3Cert(report.getDiagnosticData().getUsedCertificates(), rootCert.getId())) return true;
+			}
+		}
+	return false;
+	}
+
+	private static boolean isBRCA3Cert(List<eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate> certs, String id) {
+		for (eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate cert : certs) {
+			if (id.equals(cert.getId())) {
+				for(XmlDistinguishedName formattedDn : cert.getSubjectDistinguishedName()) {
+					if ("CANONICAL".equals(formattedDn.getFormat()) && BRCA3_DN.equals(formattedDn.getValue())) return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void modifyReports(WSReportsDTO report, String sigId, SubIndication subIndication, String errMesg) {

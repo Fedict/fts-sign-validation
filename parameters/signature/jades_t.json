@@ -1,0 +1,8 @@
+{
+  "profileId": "JADES_T",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "JAdES_BASELINE_T",
+  "jadesSerializationType": "JSON_SERIALIZATION",
+  "signaturePackaging":"ENVELOPING",
+  "tspServer": "http://tss.eidpki.belgium.be/"
+}
