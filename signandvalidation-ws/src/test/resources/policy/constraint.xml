@@ -13,7 +13,7 @@
 		<!-- 			<Id>mimetype=application/vnd.etsi.asic-s+zip</Id> -->
 		<!-- 			<Id>mimetype=application/vnd.etsi.asic-e+zip</Id> -->
 		<!-- 		</AcceptableZipComment> -->
-<MimeTypeFilePresent Level="INFORM" />
+		<MimeTypeFilePresent Level="INFORM" />
 		<AcceptableMimeTypeFileContent Level="WARN">
 			<Id>application/vnd.etsi.asic-s+zip</Id>
 			<Id>application/vnd.etsi.asic-e+zip</Id>
@@ -44,10 +44,10 @@
 			<PdfPageDifference Level="FAIL" />
 			<PdfAnnotationOverlap Level="WARN" />
 			<PdfVisualDifference Level="WARN" />
-<DocMDP Level="WARN" />
-<FieldMDP Level="WARN" />
-<SigFieldLock Level="WARN" />
-<UndefinedChanges Level="WARN" />
+			<DocMDP Level="WARN" />
+			<FieldMDP Level="WARN" />
+			<SigFieldLock Level="WARN" />
+			<UndefinedChanges Level="WARN" />
 			<!-- 			<TrustedServiceTypeIdentifier Level="WARN"> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/Svctype/CA/QC</Id> -->
 			<!-- 			</TrustedServiceTypeIdentifier> -->
@@ -68,15 +68,15 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<!-- Custom RevocationFreshness for Unit testing PKI -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1000" />
 				<KeyUsage Level="WARN">
 					<Id>nonRepudiation</Id>
 				</KeyUsage>
 				<SerialNumberPresent Level="WARN" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
-<!--<RevocationIssuerNotExpired Level="FAIL" /> -->
-<RevocationIssuerNotExpired Level="WARN" />
+				<RevocationIssuerNotExpired Level="FAIL" />
 				<NotSelfSigned Level="WARN" />
 <!--				<QcCompliance Level="WARN" /> -->
 <!--				<QcSSCD Level="WARN" /> -->
@@ -93,7 +93,8 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<!-- Custom RevocationFreshness for Unit testing PKI -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1000" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -104,14 +105,14 @@
 			<SigningCertificatePresent Level="WARN" />
 			<UnicitySigningCertificate Level="WARN" />
 			<SigningCertificateRefersCertificateChain Level="WARN" />
-<SigningCertificateDigestAlgorithm Level="WARN" />
+			<SigningCertificateDigestAlgorithm Level="WARN" />
 			<CertDigestPresent Level="FAIL" />
 			<CertDigestMatch Level="FAIL" />
 			<IssuerSerialMatch Level="WARN" />
-<KeyIdentifierMatch Level="WARN" />
+			<KeyIdentifierMatch Level="WARN" />
 			<SigningTime Level="FAIL" />
 			<MessageDigestOrSignedPropertiesPresent Level="FAIL" />
-<EllipticCurveKeySize Level="WARN" />
+			<EllipticCurveKeySize Level="WARN" />
 			<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
                         <ContentHints Level="FAIL" value="*" />
                         <CommitmentTypeIndication Level="FAIL">
@@ -154,7 +155,8 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<!-- Custom RevocationFreshness for Unit testing PKI -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1000" />
 				<KeyUsage Level="WARN">
 					<Id>nonRepudiation</Id>
 				</KeyUsage>
@@ -176,7 +178,8 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<!-- Custom RevocationFreshness for Unit testing PKI -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1000" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -185,16 +188,16 @@
 		</BasicSignatureConstraints>
 		<SignedAttributes>
 			<SigningCertificatePresent Level="WARN" />
-<UnicitySigningCertificate Level="WARN" />
-<SigningCertificateRefersCertificateChain Level="WARN" />
-<SigningCertificateDigestAlgorithm Level="WARN" />
+			<UnicitySigningCertificate Level="WARN" />
+			<SigningCertificateRefersCertificateChain Level="WARN" />
+			<SigningCertificateDigestAlgorithm Level="WARN" />
 			<CertDigestPresent Level="FAIL" />
 			<CertDigestMatch Level="FAIL" />
 			<IssuerSerialMatch Level="WARN" />
-<KeyIdentifierMatch Level="WARN" />
+			<KeyIdentifierMatch Level="WARN" />
 			<SigningTime Level="FAIL" />
 			<MessageDigestOrSignedPropertiesPresent Level="FAIL" />
-<EllipticCurveKeySize Level="WARN" />
+			<EllipticCurveKeySize Level="WARN" />
 			<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
                         <ContentHints Level="FAIL" value="*" />
                         <CommitmentTypeIndication Level="FAIL">
@@ -225,7 +228,8 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<!-- Custom RevocationFreshness for Unit testing PKI -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1000" />
 				<ExtendedKeyUsage Level="WARN">
 					<Id>timeStamping</Id>
 				</ExtendedKeyUsage>
@@ -238,9 +242,10 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="WARN" />
-<AcceptableRevocationDataFound Level="WARN" />
+				<AcceptableRevocationDataFound Level="WARN" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<!-- Custom RevocationFreshness for Unit testing PKI -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1000" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -308,7 +313,7 @@
 			<CertDigestMatch Level="WARN" />
 			<IssuerSerialMatch Level="WARN" />
 		</SignedAttributes>
-<TSAGeneralNameContentMatch Level="WARN" />
+		<TSAGeneralNameContentMatch Level="WARN" />
 	</Timestamp>
 	<Revocation>
 		<UnknownStatus Level="FAIL" />
@@ -326,7 +331,8 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<!-- Custom RevocationFreshness for Unit testing PKI -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1000" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -337,7 +343,8 @@
 				<RevocationDataAvailable Level="WARN" />
 				<AcceptableRevocationDataFound Level="WARN" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<!-- Custom RevocationFreshness for Unit testing PKI -->
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1000" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />

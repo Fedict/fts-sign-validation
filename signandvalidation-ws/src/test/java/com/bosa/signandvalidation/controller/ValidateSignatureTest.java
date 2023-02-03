@@ -186,7 +186,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         RemoteDocument originalFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
-        RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/BRCA3_constraint_test.xml"));
+        RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/policy/constraint.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, policy);
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
