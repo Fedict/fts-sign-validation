@@ -52,6 +52,7 @@ public class BosaRemoteDocumentValidationService {
 			try {
 				InputStream brca3is = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + BRCA3_CONSTRAINT_FILE);
 				RemoteDocument brca3Policy = new RemoteDocument(Utils.toByteArray(brca3is), BRCA3_CONSTRAINT_FILE);
+				brca3is.close();
 				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, brca3Policy));
 			} catch (IOException e) {
 				throw new RuntimeException(BRCA3_CONSTRAINT_FILE + " not found");

@@ -62,25 +62,25 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     // This test tries to at least confirm the particular behavior of the BRCA3 validation policy
     public void validateBRCA3() {
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/BRCA3.pdf"));
-        RemoteDocument brca3Policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/BRCA3_constraint.xml"));
+        RemoteDocument defaultPolicy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/constraint.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setPolicy(brca3Policy);
+        toValidate.setPolicy(defaultPolicy);
 
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         assertNotNull(result);
-        assertNull(result.getSubIndicationLabel());
-        assertEquals(TOTAL_PASSED, result.getIndication());
+        assertEquals(TRY_LATER.toString(), result.getSubIndicationLabel());
+        assertEquals(INDETERMINATE, result.getIndication());
 
-        RemoteDocument defaultPolicy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/constraint.xml"));
+        RemoteDocument brca3Policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/policy/BRCA3_constraint_test.xml"));
         toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setPolicy(defaultPolicy);
+        toValidate.setPolicy(brca3Policy);
 
         result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         assertNotNull(result);
-        assertEquals(TRY_LATER.toString(), result.getSubIndicationLabel());
-        assertEquals(INDETERMINATE, result.getIndication());
+        assertNull(result.getSubIndicationLabel());
+        assertEquals(TOTAL_PASSED, result.getIndication());
     }
 
 
@@ -186,7 +186,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         RemoteDocument originalFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
-        RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/constraint.xml"));
+        RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/BRCA3_constraint_test.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, policy);
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
