@@ -37,6 +37,7 @@ import org.apache.xml.security.transforms.Transforms;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -153,6 +154,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Autowired
     private StorageService storageService;
 
+    @Autowired
+    private Environment environment;
+
     @Value("${signing.time}")
     private Long signingTime;
 
@@ -194,7 +198,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             TokenObject token = new TokenObject(SigningType.Standard, tokenData.getName(), pdfProfile, xmlProfile, inputs, tokenData.getOut());
             if (tokenData.getPolicyId() != null) {
-                token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), DigestAlgorithm.valueOf(tokenData.getPolicyDigestAlgorithm())));
+                String policyAlgorithm = tokenData.getPolicyDigestAlgorithm();
+                token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), policyAlgorithm == null ? null : DigestAlgorithm.valueOf(policyAlgorithm)));
             }
             token.setPreviewDocuments(true);
             token.setOutDownload(!tokenData.isNoDownload());
@@ -246,14 +251,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             tokenInputs.add(ti);
         }
 
-        String pdfProfile = gtfd.getSignProfile();
-        String xmlProfile = gtfd.getAltSignProfile();
-        // the "contains("XADES") is there to allow the MDOC_XADES... profiles
-        if ((pdfProfile != null && pdfProfile.contains("XADES") || (xmlProfile != null && xmlProfile.startsWith("PADES")))) {
-            xmlProfile = pdfProfile;
-            pdfProfile = gtfd.getAltSignProfile();
-        }
-
+         String pdfProfile = searchProfile("PADES", gtfd);
+         String xmlProfile = searchProfile("XADES", gtfd);
         TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
         token.setSignTimeout(gtfd.getSignTimeout() );
         token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
@@ -278,6 +277,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         String tokenString = createToken(token);
         logger.info("Returning from getTokenForDocuments()" + getTokenFootprint(tokenString) + " params: " + objectToString(gtfd));
         return tokenString;
+    }
+
+    /*****************************************************************************************/
+
+    private String searchProfile(String profileSearch, GetTokenForDocumentsDTO gtfd) {
+        String profile = gtfd.getSignProfile();
+        if (profile != null && profile.contains(profileSearch)) return profile;
+        profile = gtfd.getAltSignProfile();
+        return profile != null && profile.contains(profileSearch) ? profile : null;
     }
 
     /*****************************************************************************************/
@@ -399,17 +407,20 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
         }
 
-        if (prefix != null) {
+        String outPath = token.getOutFilePath();
+        if (outPath != null && outPath.length() == 0) token.setOutFilePath(outPath = null);
+
+            if (prefix != null) {
             if (prefix.endsWith("/")) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' can't end with '/'", null);
             }
 
-            if (token.getOutFilePath() != null) {
+            if (outPath != null) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outFilePath' must be null if outPathPrefix is set (Bulk Signing)", null);
             }
             // TODO : Check "prefixed" names collisions
         } else {
-            checkValue("outFilePath", token.getOutFilePath(), false, null, filenamesList);
+            checkValue("outFilePath", outPath, false, null, filenamesList);
         }
     }
 
@@ -578,12 +589,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         ZipOutputStream out = null;
         InputStream fileStream = null;
         try {
-            MediaType contentType = APPLICATION_OCTET_STREAM;
-            String attachmentName = "FTS" + new SimpleDateFormat("yyyyMMDD HHmmss").format(new Date()) + ".zip";
+            MediaType contentType = null;
+            String attachmentName = null;
             if (singleFilePath != null) {
                 attachmentName = getNameFromPath(singleFilePath);
                 FileStoreInfo fi = storageService.getFileInfo(token.getBucket(), singleFilePath);
                 contentType = fi.getContentType();
+            } else {
+                contentType = APPLICATION_OCTET_STREAM;
+                attachmentName = "FTS" + new SimpleDateFormat("yyyyMMDD HHmmss").format(new Date()) + ".zip";
             }
 
             String contentDisposition = forceDownload != null || !contentType.equals(APPLICATION_PDF) ? "attachment; filename=\"" + attachmentName + "\"" : "inline";
@@ -752,7 +766,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             signedDoc.setName(getOutFilePath(token, inputToSign));
 
             logger.info("signDocumentForToken(): validating the signed doc" + tokenFootprint);
-            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token, signedDoc.getName());
+            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token, signedDoc.getName(), null);
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
@@ -780,28 +794,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters) {
-        return validateResult(signedDoc, detachedContents, parameters, null, null);
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, RemoteDocument validatePolicy) {
+        return validateResult(signedDoc, detachedContents, parameters, null, null, validatePolicy);
     }
 
     /*****************************************************************************************/
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token, String outFilePath) {
-        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, null, parameters);
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token, String outFilePath, RemoteDocument validatePolicy) {
+        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, validatePolicy, parameters);
 
         if (null != token) {
             try {
-                // Instead of saving the entire report, create our own report containing the simple/detailed reports and the signing cert
-                byte[] sigingCert = parameters.getSigningCertificate().getEncodedCertificate();
-                ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(), reportsDto.getDetailedReport(), sigingCert);
-
-                StringWriter out = new StringWriter();
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.setDateFormat(reportDateTimeFormat);
-                mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-                mapper.writeValue(out, reportDto);
-
-                storageService.storeFile(token.getBucket(), outFilePath + ".validationreport.json", out.toString().getBytes());
+                storageService.storeFile(token.getBucket(), outFilePath + ".validationreport.json", createReport(parameters, reportsDto).getBytes());
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to serialize or save the validation report", e);
             }
@@ -812,15 +816,44 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 reportsService.getLatestSignatureIndicationsDto(reportsDto, new Date(token.getCreateTime()));
 
         Indication indication = indications.getIndication();
-        if (indication != TOTAL_PASSED && !parameters.isSignWithExpiredCertificate()) {
-            String subIndication = indications.getSubIndicationLabel();
-            if (CERT_REVOKED.compareTo(subIndication) == 0) {
-                logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
+        if (indication != TOTAL_PASSED) {
+            // When running in a "local" profile dump the signing report
+            for(String profile : this.environment.getActiveProfiles()) {
+                if ("local".equals(profile)) {
+                    try {
+                        logger.severe(createReport(parameters, reportsDto));
+                    } catch (IOException e) {
+                        logger.severe("Can't log report !!!!!!!!");
+                    }
+                }
             }
-            DataLoadersExceptionLogger.logAndThrow();
-            logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
+            if (!parameters.isSignWithExpiredCertificate()) {
+                String subIndication = indications.getSubIndicationLabel();
+                if (CERT_REVOKED.compareTo(subIndication) == 0) {
+                    logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
+                }
+                DataLoadersExceptionLogger.logAndThrow();
+                logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
+            }
         }
         return signedDoc;
+    }
+
+    /*****************************************************************************************/
+
+    private static String createReport(RemoteSignatureParameters parameters, WSReportsDTO reportsDto) throws IOException {
+        // Instead of saving the entire report, create our own report containing the simple/detailed reports and the signing cert
+
+        ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(),
+                reportsDto.getDetailedReport(),
+                parameters.getSigningCertificate().getEncodedCertificate());
+
+        StringWriter out = new StringWriter();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setDateFormat(reportDateTimeFormat);
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        mapper.writeValue(out, reportDto);
+        return out.toString();
     }
 
     /*****************************************************************************************/
@@ -972,6 +1005,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = GET_DATA_TO_SIGN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
+        logger.info("Entering getDataToSign()");
         try {
             logger.info("Entering getDataToSign()");
             dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
@@ -1035,7 +1069,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
-            RemoteDocument ret =  validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters);
+            RemoteDocument ret =  validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters, signDocumentDto.getValidatePolicy());
             logger.info("Returning from signDocument()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1061,7 +1095,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
-            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters);
+            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters, null);
             logger.info("Returning from signDocumentMultiple()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1086,7 +1120,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteDocument extendedDoc = altSignatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters);
+            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null);
             logger.info("Returning from extendDocument()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1107,7 +1141,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters);
+            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null);
             logger.info("Returning from extendDocumentMultiple()");
             return ret;
         } catch (ProfileNotFoundException e) {

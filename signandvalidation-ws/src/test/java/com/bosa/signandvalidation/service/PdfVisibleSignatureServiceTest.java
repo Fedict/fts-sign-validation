@@ -4,6 +4,7 @@ import com.bosa.signandvalidation.model.PdfSignatureProfile;
 import com.bosa.signandvalidation.model.TokenSignInput;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.Serializers;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
@@ -25,6 +26,7 @@ import static org.mockito.ArgumentMatchers.eq;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.Base64;
 import java.util.Date;
 
 @ExtendWith(MockitoExtension.class)

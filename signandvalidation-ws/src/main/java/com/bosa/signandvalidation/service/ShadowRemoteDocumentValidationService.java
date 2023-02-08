@@ -69,6 +69,11 @@ public class ShadowRemoteDocumentValidationService {
     /**************** fileCacheDataLoader will land here */
     private DataLoader dataLoader;
 
+    /**************** fileCacheDataLoader setter */
+    public void setDataLoader(DataLoader dataLoader) {
+        this.dataLoader = dataLoader;
+    }
+
     /**
      * Sets the certificate verifier
      *
@@ -76,11 +81,6 @@ public class ShadowRemoteDocumentValidationService {
      */
     public void setVerifier(CertificateVerifier verifier) {
         this.verifier = verifier;
-    }
-
-    /**************** fileCacheDataLoader setter */
-    public void setDataLoader(DataLoader dataLoader) {
-        this.dataLoader = dataLoader;
     }
 
     /**
@@ -120,7 +120,7 @@ public class ShadowRemoteDocumentValidationService {
         String signatureId = dataToValidate.getSignatureId();
         if (signatureId == null) {
             List<AdvancedSignature> signatures = validator.getSignatures();
-            if (signatures.size() > 0) {
+            if (!signatures.isEmpty()) {
                 LOG.debug("SignatureId is not defined, the first signature is used");
                 signatureId = signatures.get(0).getId();
             }
@@ -143,7 +143,6 @@ public class ShadowRemoteDocumentValidationService {
     private SignedDocumentValidator initValidator(DataToValidateDTO dataToValidate) {
         DSSDocument signedDocument = RemoteDocumentConverter.toDSSDocument(dataToValidate.getSignedDocument());
         SignedDocumentValidator signedDocValidator = SignedDocumentValidator.fromDocument(signedDocument);
-
         if (Utils.isCollectionNotEmpty(dataToValidate.getOriginalDocuments())) {
             signedDocValidator.setDetachedContents(RemoteDocumentConverter.toDSSDocuments(dataToValidate.getOriginalDocuments()));
         }

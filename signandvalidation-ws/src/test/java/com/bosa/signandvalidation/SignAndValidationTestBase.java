@@ -17,12 +17,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("localh2")
 public class SignAndValidationTestBase {
 
     public static final String LOCALHOST = "http://localhost:";
@@ -93,5 +91,4 @@ public class SignAndValidationTestBase {
         }
 
     }
-
 }

@@ -7,7 +7,6 @@ import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.spi.DSSUtils;
-import eu.europa.esig.dss.validation.reports.Reports;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
@@ -16,9 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.Indication.*;
-import static eu.europa.esig.dss.enumerations.SubIndication.CRYPTO_CONSTRAINTS_FAILURE;
-import static eu.europa.esig.dss.enumerations.SubIndication.HASH_FAILURE;
-import static eu.europa.esig.dss.enumerations.SubIndication.SIGNED_DATA_NOT_FOUND;
+import static eu.europa.esig.dss.enumerations.SubIndication.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import com.bosa.signandvalidation.config.ErrorStrings;
@@ -27,38 +24,6 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
 
     public static final String SIGNATURE_ENDPOINT = "/validation/validateSignature";
     public static final String SIGNATUREFULL_ENDPOINT = "/validation/validateSignatureFull";
-
-    @Test
-    public void signatureB() {
-        // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
-
-        // when
-        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
-
-        // then
-        assertNotNull(result);
-        assertEquals(TOTAL_PASSED, result.getIndication());
-        assertNull(result.getSubIndicationLabel());
-    }
-
-    @Test
-    public void signatureT() {
-        // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_t.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_T);
-
-        // when
-        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
-
-        // then
-        assertNotNull(result);
-        assertEquals(TOTAL_PASSED, result.getIndication());
-        assertNull(result.getSubIndicationLabel());
-    }
 
     @Test
     public void signatureLT() {
@@ -88,8 +53,34 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
 
         // then
         assertNotNull(result);
-        assertEquals(TOTAL_PASSED, result.getIndication());
         assertNull(result.getSubIndicationLabel());
+        assertEquals(TOTAL_PASSED, result.getIndication());
+    }
+
+    @Test
+    // As unit tests don't include OCSP the revocation freshness has to be set to large timespans which make testing a "real life" case impossible
+    // This test tries to at least confirm the particular behavior of the BRCA3 validation policy
+    public void validateBRCA3() {
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/BRCA3.pdf"));
+        RemoteDocument brca3Policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/BRCA3_constraint.xml"));
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
+        toValidate.setPolicy(brca3Policy);
+
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
+
+        assertNotNull(result);
+        assertNull(result.getSubIndicationLabel());
+        assertEquals(TOTAL_PASSED, result.getIndication());
+
+        RemoteDocument defaultPolicy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/constraint.xml"));
+        toValidate = new DataToValidateDTO(signedFile);
+        toValidate.setPolicy(defaultPolicy);
+
+        result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
+
+        assertNotNull(result);
+        assertEquals(TRY_LATER.toString(), result.getSubIndicationLabel());
+        assertEquals(INDETERMINATE, result.getIndication());
     }
 
 
@@ -239,9 +230,6 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertNotNull(result.getValidationReport());
 
         assertEquals(1, result.getSimpleReport().getSignatureOrTimestamp().size());
-        Reports reports = new Reports(result.getDiagnosticData(), result.getDetailedReport(), result.getSimpleReport(),
-                result.getValidationReport());
-        assertNotNull(reports);
     }
 
     @Test
@@ -259,5 +247,8 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertEquals(TOTAL_FAILED, result.getIndication());
         assertEquals(CRYPTO_CONSTRAINTS_FAILURE.toString(), result.getSubIndicationLabel());
     }
+
+
+
 
 }

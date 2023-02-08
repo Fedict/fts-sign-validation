@@ -9,14 +9,19 @@ import eu.europa.esig.dss.diagnostic.CertificateWrapper;
 import eu.europa.esig.dss.diagnostic.DiagnosticData;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
+import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.simplecertificatereport.jaxb.XmlChainItem;
-import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.converter.RemoteCertificateConverter;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
+import java.io.*;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 import static eu.europa.esig.dss.enumerations.Indication.INDETERMINATE;
@@ -33,7 +38,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     public static final String CERTIFICATES_ENDPOINT = "/validation/validateCertificates";
 
     @Test
-    public void certificatePassed() {
+    public void certificatePassed() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
         RemoteCertificate passedCertificate = getPassedCertificate();
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO(passedCertificate, null, null, NON_REPUDIATION);
@@ -42,27 +47,22 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
         CertificateIndicationsDTO indicationsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateIndicationsDTO.class);
 
         // then
-        assertEquals("TestSign CitizenCA", indicationsDTO.getCommonName());
+        assertEquals("Christian TestLongNames", indicationsDTO.getCommonName());
         assertEquals(PASSED, indicationsDTO.getIndication());
         assertNull(indicationsDTO.getSubIndication());
     }
 
     @Test
-    public void certificateIndeterminate() {
+    public void certificateIndeterminate() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-        RemoteCertificate issuerCertificate = RemoteCertificateConverter
-                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
-
-        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate,
-                Arrays.asList(issuerCertificate), null, NON_REPUDIATION);
+        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
+                Collections.singletonList(getExpiredIssuingCACertificate()), null, NON_REPUDIATION);
 
         // when
         CertificateIndicationsDTO indicationsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateIndicationsDTO.class);
 
         // then
-        assertEquals("Rostislav Šaler", indicationsDTO.getCommonName());
+        assertEquals("FredWith IssuingCACertExpired", indicationsDTO.getCommonName());
         assertEquals(INDETERMINATE, indicationsDTO.getIndication());
     }
 
@@ -80,12 +80,9 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     }
 
     @Test
-    public void certificateKeyUsageOk() {
+    public void certificateKeyUsageOk() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-
-        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate,
+        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
                 null, null, NON_REPUDIATION);
 
         // when
@@ -96,12 +93,9 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     }
 
     @Test
-    public void certificateKeyUsageNok() {
+    public void certificateKeyUsageNok() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-
-        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate,
+        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
                 null, null, KEY_CERT_SIGN);
 
         // when
@@ -112,15 +106,10 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     }
 
     @Test
-    public void certificateFull() {
+    public void certificateFull() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-        RemoteCertificate issuerCertificate = RemoteCertificateConverter
-                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
-
-        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(remoteCertificate,
-                Arrays.asList(issuerCertificate), null, NON_REPUDIATION);
+        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
+                Collections.singletonList(getExpiredIssuingCACertificate()), null, NON_REPUDIATION);
 
         // when
         CertificateReportsDTO reportsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATEFULL_ENDPOINT, toValidate, CertificateReportsDTO.class);
@@ -147,21 +136,12 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     }
 
     @Test
-    public void certificatesPassedAndIndeterminate() {
+    public void certificatesPassedAndIndeterminate() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
-        RemoteCertificate passedCertificate = getPassedCertificate();
-        CertificateToValidateDTO passedToValidate = new CertificateToValidateDTO(passedCertificate, null, null, NON_REPUDIATION);
-
-        RemoteCertificate remoteCertificate = RemoteCertificateConverter.toRemoteCertificate(
-                DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
-        RemoteCertificate issuerCertificate = RemoteCertificateConverter
-                .toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
-        CertificateToValidateDTO indeterminateToValidate = new CertificateToValidateDTO(remoteCertificate,
-                Collections.singletonList(issuerCertificate), null, NON_REPUDIATION);
-
         List<CertificateToValidateDTO> toValidateList = new ArrayList<>();
-        toValidateList.add(passedToValidate);
-        toValidateList.add(indeterminateToValidate);
+        toValidateList.add(new CertificateToValidateDTO(getPassedCertificate(), null, null, NON_REPUDIATION));
+        toValidateList.add(new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
+                Collections.singletonList(getExpiredIssuingCACertificate()), null, NON_REPUDIATION));
 
         // when
         IndicationsListDTO result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATES_ENDPOINT, toValidateList, IndicationsListDTO.class);
@@ -170,19 +150,41 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
         assertNotNull(result.getIndications());
         assertEquals(2, result.getIndications().size());
 
-        assertEquals("TestSign CitizenCA", result.getIndications().get(0).getCommonName());
+        assertEquals("Christian TestLongNames", result.getIndications().get(0).getCommonName());
         assertEquals(PASSED, result.getIndications().get(0).getIndication());
         assertNull(result.getIndications().get(0).getSubIndication());
-        assertFalse(result.getIndications().get(0).isKeyUsageCheckOk());
+        assertTrue(result.getIndications().get(0).isKeyUsageCheckOk());
 
-        assertEquals("Rostislav Šaler", result.getIndications().get(1).getCommonName());
+        assertEquals("FredWith IssuingCACertExpired", result.getIndications().get(1).getCommonName());
         assertEquals(INDETERMINATE, result.getIndications().get(1).getIndication());
         assertNotNull(result.getIndications().get(1).getSubIndication());
         assertTrue(result.getIndications().get(1).isKeyUsageCheckOk());
     }
 
-    private RemoteCertificate getPassedCertificate() {
-        return RemoteCertificateConverter.toRemoteCertificate(DSSUtils.loadCertificateFromBase64EncodedString("MIIDEzCCApigAwIBAgIRAIrCwoVCOYzX1jIQz06ouBAwCgYIKoZIzj0EAwMwMTELMAkGA1UEBhMCQkUxIjAgBgNVBAMMGVRlc3RTaWduIEJlbGdpdW0gUm9vdCBDQTYwHhcNMjAwMTE1MTQzMTM0WhcNMzIwMTE1MTQzMTM0WjBYMQswCQYDVQQGEwJCRTEbMBkGA1UECgwSQmVsZ2lhbiBHb3Zlcm5tZW50MRswGQYDVQQDDBJUZXN0U2lnbiBDaXRpemVuQ0ExDzANBgNVBAUTBjIwMjAwMTB2MBAGByqGSM49AgEGBSuBBAAiA2IABPnhhrdIIgz9aDKyMBkJOU1siv1nTs6OCx01ABYki83RwWJ9/i5Q5/hi7042x5Wc3VEinodQl2QIWAE4eARj9vU0sUlVROe+voMi6G6YO5FT1xMjJ6jN7C6XghV6/AG4vqOCAUswggFHMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdJQQWMBQGCCsGAQUFBwMEBggrBgEFBQcDAjAdBgNVHQ4EFgQUNhf7FN+hDfg+bJG9lMFaQ/3JkWAwHwYDVR0jBBgwFoAU3fBCho6noAuRtkDCNTbZxbBBWj4wNQYDVR0fBC4wLDAqoCigJoYkaHR0cDovL2hvbWUuc2NhcmxldC5iZS9zdGgvYnJjYTYuY3JsMEAGCCsGAQUFBwEBBDQwMjAwBggrBgEFBQcwAoYkaHR0cDovL2hvbWUuc2NhcmxldC5iZS9zdGgvYnJjYTYuY3J0MEkGA1UdIARCMEAwPgYEVR0gADA2MDQGCCsGAQUFBwIBFihodHRwczovL3JlcG9zaXRvcnkuZWlkcGtpLmJlbGdpdW0uYmUvZWlkMAoGCCqGSM49BAMDA2kAMGYCMQDutMmYelV3c9VDfEXx1KX9bu+1ATZibYu7wqo/B9r/nDs1ASN5OPR39/vEQ4eEodsCMQDu2fDqxlASFhwR1MMp/MDAbdIFTYmih+Q1gQasRZ5k6LOf9MeT3wUH8Lexi9Ruh8I="));
+    private static Map<String, KeyStore> keyStores = new HashMap<>();
+
+    private KeyStore getKeyStore(String keyFileName) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+
+        KeyStore keyStore = keyStores.get(keyFileName);
+        if (keyStore == null) {
+            keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(new FileInputStream("src/test/resources/" + keyFileName), "123456".toCharArray());
+            keyStores.put(keyFileName, keyStore);
+        }
+        return keyStore;
     }
 
+    private RemoteCertificate getPassedCertificate() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+        return RemoteCertificateConverter.toRemoteCertificate(new CertificateToken((X509Certificate) getKeyStore("citizen_nonrep.p12").getCertificate("test")));
+    }
+
+    private RemoteCertificate getExpiredIssuingCACertificateInstanceCert() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+        //return RemoteCertificateConverter.toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CZ.cer")));
+        return RemoteCertificateConverter.toRemoteCertificate(new CertificateToken((X509Certificate) getKeyStore("expiredIssuingCa_citizen.p12").getCertificate("test")));
+    }
+
+    private RemoteCertificate getExpiredIssuingCACertificate() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+        //return RemoteCertificateConverter.toRemoteCertificate(DSSUtils.loadCertificate(new File("src/test/resources/CA_CZ.cer")));
+        return RemoteCertificateConverter.toRemoteCertificate(new CertificateToken((X509Certificate) getKeyStore("expiredIssuingCa_citizen.p12").getCertificateChain("test")[1]));
+    }
 }

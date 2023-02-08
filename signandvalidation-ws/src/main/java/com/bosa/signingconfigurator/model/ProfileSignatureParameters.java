@@ -24,6 +24,8 @@ public class ProfileSignatureParameters extends JsonObject {
 
     private SignatureLevel signatureLevel;
 
+    private JWSSerializationType jadesSerializationType;
+
     private SignaturePackaging signaturePackaging;
 
     private DigestAlgorithm digestAlgorithm;
@@ -121,6 +123,17 @@ public class ProfileSignatureParameters extends JsonObject {
             throw new NullPointerException("signatureLevel");
         }
         this.signatureLevel = signatureLevel;
+    }
+
+    public JWSSerializationType getJadesSerializationType() {
+        return jadesSerializationType;
+    }
+
+    public void setJadesSerializationType(final JWSSerializationType jadesSerializationType) {
+        if (jadesSerializationType == null) {
+            throw new NullPointerException("jadesSerializationType");
+        }
+        this.jadesSerializationType = jadesSerializationType;
     }
 
     public DigestAlgorithm getReferenceDigestAlgorithm() {
