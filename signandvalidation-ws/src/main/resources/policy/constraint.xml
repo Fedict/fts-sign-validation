@@ -68,7 +68,7 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="HOURS" Value="12" />
 				<KeyUsage Level="WARN">
 					<Id>nonRepudiation</Id>
 				</KeyUsage>
@@ -89,8 +89,7 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
-<!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
-				<AcceptableRevocationDataFound Level="FAIL" /> -->
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
 				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
 				<NotRevoked Level="FAIL" />
@@ -153,7 +152,7 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="HOURS" Value="12" />
 				<KeyUsage Level="WARN">
 					<Id>nonRepudiation</Id>
 				</KeyUsage>
@@ -172,8 +171,7 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
-<!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
-				<AcceptableRevocationDataFound Level="FAIL" /> -->
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
 				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
 				<NotRevoked Level="FAIL" />
@@ -221,10 +219,9 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
-<!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
-				<AcceptableRevocationDataFound Level="FAIL" /> -->
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="HOURS" Value="12" />
 				<ExtendedKeyUsage Level="WARN">
 					<Id>timeStamping</Id>
 				</ExtendedKeyUsage>
@@ -322,8 +319,7 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
-<!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
-				<AcceptableRevocationDataFound Level="FAIL" /> -->
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
 				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
 				<NotRevoked Level="FAIL" />
