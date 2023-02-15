@@ -68,7 +68,7 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="HOURS" Value="12" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<KeyUsage Level="WARN">
 					<Id>nonRepudiation</Id>
 				</KeyUsage>
@@ -91,7 +91,7 @@
 				<RevocationDataAvailable Level="FAIL" />
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -152,7 +152,7 @@
 <!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
 				<AcceptableRevocationDataFound Level="FAIL" /> -->
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="HOURS" Value="12" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<KeyUsage Level="WARN">
 					<Id>nonRepudiation</Id>
 				</KeyUsage>
@@ -173,7 +173,7 @@
 				<RevocationDataAvailable Level="FAIL" />
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -221,7 +221,7 @@
 				<RevocationDataAvailable Level="FAIL" />
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="HOURS" Value="12" />
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
 				<ExtendedKeyUsage Level="WARN">
 					<Id>timeStamping</Id>
 				</ExtendedKeyUsage>
@@ -236,7 +236,7 @@
 				<RevocationDataAvailable Level="WARN" />
 				<AcceptableRevocationDataFound Level="WARN" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -321,7 +321,7 @@
 				<RevocationDataAvailable Level="FAIL" />
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="0" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -332,7 +332,7 @@
 				<RevocationDataAvailable Level="WARN" />
 				<AcceptableRevocationDataFound Level="WARN" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="0" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
