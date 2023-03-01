@@ -65,8 +65,7 @@
 				<AuthorityInfoAccessPresent Level="WARN" />
 				<RevocationInfoAccessPresent Level="WARN" />
 				<RevocationDataAvailable Level="FAIL" />
-<!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
-				<AcceptableRevocationDataFound Level="FAIL" /> -->
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
 				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<KeyUsage Level="WARN">
@@ -99,7 +98,8 @@
 			<Cryptographic />
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<SigningCertificatePresent Level="WARN" />
+			<!-- Block Adobe PKCS7 signed PDFs -->
+			<SigningCertificatePresent Level="FAIL" />
 			<UnicitySigningCertificate Level="WARN" />
 			<SigningCertificateRefersCertificateChain Level="WARN" />
 			<SigningCertificateDigestAlgorithm Level="WARN" />
@@ -149,8 +149,7 @@
 				<AuthorityInfoAccessPresent Level="WARN" />
 				<RevocationInfoAccessPresent Level="WARN" />
 				<RevocationDataAvailable Level="FAIL" />
-<!--			Defaults to "FAIL" as DSS 5.11.1 doc states.
-				<AcceptableRevocationDataFound Level="FAIL" /> -->
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
 				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<KeyUsage Level="WARN">
@@ -181,7 +180,8 @@
 			<Cryptographic />
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<SigningCertificatePresent Level="WARN" />
+			<!-- Block Adobe PKCS7 signed PDFs -->
+			<SigningCertificatePresent Level="FAIL" />
 			<UnicitySigningCertificate Level="WARN" />
 			<SigningCertificateRefersCertificateChain Level="WARN" />
 			<SigningCertificateDigestAlgorithm Level="WARN" />
@@ -221,7 +221,7 @@
 				<RevocationDataAvailable Level="FAIL" />
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<ExtendedKeyUsage Level="WARN">
 					<Id>timeStamping</Id>
 				</ExtendedKeyUsage>
@@ -296,7 +296,8 @@
 			</Cryptographic>
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<SigningCertificatePresent Level="WARN" />
+			<!-- Block Adobe PKCS7 signed PDFs -->
+			<SigningCertificatePresent Level="FAIL" />
 			<!-- <UnicitySigningCertificate Level="WARN" /> RFC 5816 -->
 			<SigningCertificateRefersCertificateChain Level="WARN" />
 			<!-- <SigningCertificateDigestAlgorithm Level="WARN" /> TODO : too strict to enforce now -->
@@ -321,7 +322,7 @@
 				<RevocationDataAvailable Level="FAIL" />
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -332,7 +333,7 @@
 				<RevocationDataAvailable Level="WARN" />
 				<AcceptableRevocationDataFound Level="WARN" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="0" />
+				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
