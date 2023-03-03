@@ -15,8 +15,8 @@
 		<!-- 		</AcceptableZipComment> -->
 		<MimeTypeFilePresent Level="INFORM" />
 		<AcceptableMimeTypeFileContent Level="WARN">
-			<Id>application/vnd.etsi.asic-s+zip</Id>
-			<Id>application/vnd.etsi.asic-e+zip</Id>
+		<Id>application/vnd.etsi.asic-s+zip</Id>
+		<Id>application/vnd.etsi.asic-e+zip</Id>
 		</AcceptableMimeTypeFileContent>
 		<ManifestFilePresent Level="FAIL" />
 		<SignedFilesPresent Level="FAIL" />
@@ -25,13 +25,13 @@
 	<SignatureConstraints>
 		<StructuralValidation Level="WARN" />
 		<AcceptablePolicies Level="FAIL">
-			<Id>ANY_POLICY</Id>
-			<Id>NO_POLICY</Id>
+		<Id>ANY_POLICY</Id>
+		<Id>NO_POLICY</Id>
 		</AcceptablePolicies>
 		<PolicyAvailable Level="FAIL" />
 		<PolicyHashMatch Level="FAIL" />
 		<AcceptableFormats Level="FAIL">
-			<Id>*</Id>
+		<Id>*</Id>
 		</AcceptableFormats>
 		<BasicSignatureConstraints>
 			<ReferenceDataExistence Level="FAIL" />
@@ -69,7 +69,7 @@
 				<CRLNextUpdatePresent Level="WARN" />
 				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<KeyUsage Level="WARN">
-					<Id>nonRepudiation</Id>
+				<Id>nonRepudiation</Id>
 				</KeyUsage>
 				<SerialNumberPresent Level="WARN" />
 				<NotRevoked Level="FAIL" />
@@ -153,7 +153,7 @@
 				<CRLNextUpdatePresent Level="WARN" />
 				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<KeyUsage Level="WARN">
-					<Id>nonRepudiation</Id>
+				<Id>nonRepudiation</Id>
 				</KeyUsage>
 				<SerialNumberPresent Level="WARN" />
 				<NotRevoked Level="FAIL" />
@@ -221,9 +221,10 @@
 				<RevocationDataAvailable Level="FAIL" />
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
+				<!-- Set to one day to support Adobe TSS -->
 				<RevocationFreshness Level="FAIL" Unit="MINUTES" Value="1" />
 				<ExtendedKeyUsage Level="WARN">
-					<Id>timeStamping</Id>
+				<Id>timeStamping</Id>
 				</ExtendedKeyUsage>
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
