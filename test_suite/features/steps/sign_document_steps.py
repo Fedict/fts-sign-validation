@@ -25,5 +25,4 @@ def sign_documents(context):
 
 @then("The result is {result}")
 def sign_doc_result(context, result):
-    print(context.response.text)
     assert result in context.response.text

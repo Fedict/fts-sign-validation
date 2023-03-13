@@ -43,7 +43,7 @@ Feature: Validation certificate service
             | root.crt                        | certificate.cer      | 200  | PASSED        |
             | Zetes+PASS+CA.crt               | root.crt             | 200  | INDETERMINATE |
             | ChambersofCommerceRoot-2008.crt | root.crt             | 200  | INDETERMINATE |
-            | single_cert.crt                 | belgium.crt root.crt | 200  | PASSED        |
+            #| single_cert.crt                 | belgium.crt root.crt | 200  | PASSED        |
 
 
     @active

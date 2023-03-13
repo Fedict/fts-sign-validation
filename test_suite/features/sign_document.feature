@@ -13,23 +13,23 @@ Feature: Signing a document
         Examples:
             | property                              | value          | code | result                            |
             | clientSignatureParameters/signingDate | 1583325341312  | 400  | SIG_CRYPTO_FAILURE                |
-            | clientSignatureParameters/signingDate | 0              | 500  | not in certificate validity range |
-            | clientSignatureParameters/signingDate | 20000000000000 | 500  | not in certificate validity range |
+            | clientSignatureParameters/signingDate | 0              | 500  | is not yet valid at signing time  |
+            | clientSignatureParameters/signingDate | 20000000000000 | 500  | is expired at signing time        |
             # Boundary value testing
             | clientSignatureParameters/signingDate | 1496921161000  | 400  | SIG_CRYPTO_FAILURE                |
             | clientSignatureParameters/signingDate | 2445839844000  | 400  | SIG_CRYPTO_FAILURE                |
-            | clientSignatureParameters/signingDate | 1496921160999  | 500  | not in certificate validity range |
-            | clientSignatureParameters/signingDate | 2445839844001  | 500  | not in certificate validity range |
+            | clientSignatureParameters/signingDate | 1496921160999  | 500  | is not yet valid at signing time  |
+            | clientSignatureParameters/signingDate | 2445839844001  | 500  | is expired at signing time        |
             | signatureValue                        | apples         | 400  | Unexpected end of base64-encoded  |
             | signatureValue                        | YXBwbGVz       | 400  | SIG_CRYPTO_FAILURE                |
             | toSignDocument/bytes                  | apples         | 400  | Unexpected end of base64-encoded  |
-            | toSignDocument/bytes                  | YXBwbGVz       | 500  | XML expected                      |
+            | toSignDocument/bytes                  | YXBwbGVz       | 500  | the provided document is not XML! |
             | signingProfileId                      | YXBwbGVz       | 400  | not found                         |
             | signingProfileId                      | XADES_1        | 400  | SIG_CRYPTO_FAILURE                |
             | signingProfileId                      | XADES_2        | 400  | SIG_CRYPTO_FAILURE                |
 
 
-    @active @wip
+    @active
     Scenario Outline: Sign a document
         Given Prepare the <document>
         When Send the document
@@ -52,4 +52,3 @@ Feature: Signing a document
         Examples:
             | document       | code | result                  |
             | signables.json | 500  | Not supported operation |
-# | signable_huge.json | 400  | INDETERMINATE |
