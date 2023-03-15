@@ -1,6 +1,6 @@
 {
   "profileId": "JADES_T",
-  "digestAlgorithm": "SHA256",
+  "digestAlgorithm": "SHA384",
   "signatureLevel": "JAdES_BASELINE_T",
   "jadesSerializationType": "JSON_SERIALIZATION",
   "signaturePackaging":"ENVELOPING",

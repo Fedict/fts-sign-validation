@@ -13,10 +13,10 @@
 		<!-- 			<Id>mimetype=application/vnd.etsi.asic-s+zip</Id> -->
 		<!-- 			<Id>mimetype=application/vnd.etsi.asic-e+zip</Id> -->
 		<!-- 		</AcceptableZipComment> -->
-		<MimeTypeFilePresent Level="FAIL" />
+		<MimeTypeFilePresent Level="INFORM" />
 		<AcceptableMimeTypeFileContent Level="WARN">
-			<Id>application/vnd.etsi.asic-s+zip</Id>
-			<Id>application/vnd.etsi.asic-e+zip</Id>
+		<Id>application/vnd.etsi.asic-s+zip</Id>
+		<Id>application/vnd.etsi.asic-e+zip</Id>
 		</AcceptableMimeTypeFileContent>
 		<ManifestFilePresent Level="FAIL" />
 		<SignedFilesPresent Level="FAIL" />
@@ -25,13 +25,13 @@
 	<SignatureConstraints>
 		<StructuralValidation Level="WARN" />
 		<AcceptablePolicies Level="FAIL">
-			<Id>ANY_POLICY</Id>
-			<Id>NO_POLICY</Id>
+		<Id>ANY_POLICY</Id>
+		<Id>NO_POLICY</Id>
 		</AcceptablePolicies>
 		<PolicyAvailable Level="FAIL" />
 		<PolicyHashMatch Level="FAIL" />
 		<AcceptableFormats Level="FAIL">
-			<Id>*</Id>
+		<Id>*</Id>
 		</AcceptableFormats>
 		<BasicSignatureConstraints>
 			<ReferenceDataExistence Level="FAIL" />
@@ -44,6 +44,10 @@
 			<PdfPageDifference Level="FAIL" />
 			<PdfAnnotationOverlap Level="WARN" />
 			<PdfVisualDifference Level="WARN" />
+			<DocMDP Level="WARN" />
+			<FieldMDP Level="WARN" />
+			<SigFieldLock Level="WARN" />
+			<UndefinedChanges Level="WARN" />
 			<!-- 			<TrustedServiceTypeIdentifier Level="WARN"> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/Svctype/CA/QC</Id> -->
 			<!-- 			</TrustedServiceTypeIdentifier> -->
@@ -61,19 +65,22 @@
 				<AuthorityInfoAccessPresent Level="WARN" />
 				<RevocationInfoAccessPresent Level="WARN" />
 				<RevocationDataAvailable Level="FAIL" />
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
 				<KeyUsage Level="WARN">
-					<Id>nonRepudiation</Id>
+				<Id>nonRepudiation</Id>
 				</KeyUsage>
 				<SerialNumberPresent Level="WARN" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
+				<RevocationIssuerNotExpired Level="FAIL" />
 				<NotSelfSigned Level="WARN" />
-				<!-- 				<Qualification Level="WARN" /> -->
-				<!-- 				<SupportedByQSCD Level="WARN" /> -->
-				<!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
-				<!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
+<!--				<QcCompliance Level="WARN" /> -->
+<!--				<QcSSCD Level="WARN" /> -->
+<!-- 				<QcLegislationCountryCodes Level="WARN" /> -->
+<!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
+<!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
 				<UsePseudonym Level="INFORM" />
 				<Cryptographic />
 			</SigningCertificate>
@@ -81,8 +88,9 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -90,14 +98,18 @@
 			<Cryptographic />
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<SigningCertificatePresent Level="WARN" />
+			<!-- Block Adobe PKCS7 signed PDFs -->
+			<SigningCertificatePresent Level="FAIL" />
 			<UnicitySigningCertificate Level="WARN" />
 			<SigningCertificateRefersCertificateChain Level="WARN" />
+			<SigningCertificateDigestAlgorithm Level="WARN" />
 			<CertDigestPresent Level="FAIL" />
 			<CertDigestMatch Level="FAIL" />
 			<IssuerSerialMatch Level="WARN" />
+			<KeyIdentifierMatch Level="WARN" />
 			<SigningTime Level="FAIL" />
 			<MessageDigestOrSignedPropertiesPresent Level="FAIL" />
+			<EllipticCurveKeySize Level="WARN" />
 			<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
                         <ContentHints Level="FAIL" value="*" />
                         <CommitmentTypeIndication Level="FAIL">
@@ -137,19 +149,20 @@
 				<AuthorityInfoAccessPresent Level="WARN" />
 				<RevocationInfoAccessPresent Level="WARN" />
 				<RevocationDataAvailable Level="FAIL" />
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
 				<KeyUsage Level="WARN">
-					<Id>nonRepudiation</Id>
+				<Id>nonRepudiation</Id>
 				</KeyUsage>
 				<SerialNumberPresent Level="WARN" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<NotSelfSigned Level="WARN" />
-				<!-- 				<Qualification Level="WARN" /> -->
-				<!-- 				<SupportedByQSCD Level="WARN" /> -->
-				<!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
-				<!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
+<!--				<QcCompliance Level="WARN" /> -->
+<!--				<QcSSCD Level="WARN" /> -->
+<!-- 				<IssuedToNaturalPerson Level="INFORM" /> -->
+<!-- 				<IssuedToLegalPerson Level="INFORM" /> -->
 				<UsePseudonym Level="INFORM" />
 				<Cryptographic />
 			</SigningCertificate>
@@ -157,8 +170,9 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -166,12 +180,18 @@
 			<Cryptographic />
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<SigningCertificatePresent Level="WARN" />
+			<!-- Block Adobe PKCS7 signed PDFs -->
+			<SigningCertificatePresent Level="FAIL" />
+			<UnicitySigningCertificate Level="WARN" />
+			<SigningCertificateRefersCertificateChain Level="WARN" />
+			<SigningCertificateDigestAlgorithm Level="WARN" />
 			<CertDigestPresent Level="FAIL" />
 			<CertDigestMatch Level="FAIL" />
 			<IssuerSerialMatch Level="WARN" />
+			<KeyIdentifierMatch Level="WARN" />
 			<SigningTime Level="FAIL" />
 			<MessageDigestOrSignedPropertiesPresent Level="FAIL" />
+			<EllipticCurveKeySize Level="WARN" />
 			<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
                         <ContentHints Level="FAIL" value="*" />
                         <CommitmentTypeIndication Level="FAIL">
@@ -199,10 +219,12 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<!-- Set to one day to support Adobe TSS -->
+				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
 				<ExtendedKeyUsage Level="WARN">
-					<Id>timeStamping</Id>
+				<Id>timeStamping</Id>
 				</ExtendedKeyUsage>
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
@@ -213,8 +235,9 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="WARN" />
+				<AcceptableRevocationDataFound Level="WARN" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -227,7 +250,7 @@
 					<Algo>SHA256</Algo>
 					<Algo>SHA384</Algo>
 					<Algo>SHA512</Algo>
-					<Algo>SHA3-224</Algo>
+<!--				<Algo>SHA3-224</Algo> 		Not referenced in ETSI/SOGIS -->
 					<Algo>SHA3-256</Algo>
 					<Algo>SHA3-384</Algo>
 					<Algo>SHA3-512</Algo>
@@ -274,12 +297,16 @@
 			</Cryptographic>
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<SigningCertificatePresent Level="WARN" />
+			<!-- Block Adobe PKCS7 signed PDFs -->
+			<SigningCertificatePresent Level="FAIL" />
 			<!-- <UnicitySigningCertificate Level="WARN" /> RFC 5816 -->
+			<SigningCertificateRefersCertificateChain Level="WARN" />
+			<!-- <SigningCertificateDigestAlgorithm Level="WARN" /> TODO : too strict to enforce now -->
 			<CertDigestPresent Level="WARN" />
 			<CertDigestMatch Level="WARN" />
 			<IssuerSerialMatch Level="WARN" />
 		</SignedAttributes>
+		<TSAGeneralNameContentMatch Level="WARN" />
 	</Timestamp>
 	<Revocation>
 		<UnknownStatus Level="FAIL" />
@@ -294,8 +321,9 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="FAIL" />
+				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -304,8 +332,9 @@
 				<Signature Level="FAIL" />
 				<NotExpired Level="FAIL" />
 				<RevocationDataAvailable Level="WARN" />
+				<AcceptableRevocationDataFound Level="WARN" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="1" />
+				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -319,14 +348,18 @@
 			<Algo>DSA</Algo>
 			<Algo>ECDSA</Algo>
 			<Algo>PLAIN-ECDSA</Algo>
+<!-- 		<Algo>Ed25519</Algo> 				Not referenced in ETSI/SOGIS -->
 		</AcceptableEncryptionAlgo>
 		<MiniPublicKeySize>
 			<Algo Size="1024">DSA</Algo>
 			<Algo Size="1024">RSA</Algo>
 			<Algo Size="160">ECDSA</Algo>
 			<Algo Size="160">PLAIN-ECDSA</Algo>
+<!-- 		<Algo Size="24">Ed25519</Algo> 		Not referenced in ETSI/SOGIS -->
 		</MiniPublicKeySize>
 		<AcceptableDigestAlgo>
+<!--		<Algo>MD2</Algo> 		Not referenced in ETSI/SOGIS -->
+<!--		<Algo>MD5</Algo> -->
 			<Algo>SHA1</Algo>
 			<Algo>SHA224</Algo>
 			<Algo>SHA256</Algo>
@@ -341,6 +374,8 @@
 		</AcceptableDigestAlgo>
 		<AlgoExpirationDate Format="yyyy">
 			<!-- Digest algorithms -->
+<!--		<Algo Date="2005">MD2</Algo> 		Not referenced in ETSI/SOGIS -->
+<!--		<Algo Date="2005">MD5</Algo>  ETSI TS 102 176-1 (Historical) V2.1.1 -->
 			<!-- SHA1 is still used in for hashing the EID certs-->
 			<Algo Date="2025">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
 			<Algo Date="2026">SHA224</Algo> <!-- ETSI 119 312 V1.4.2 -->
@@ -374,6 +409,8 @@
 			<Algo Date="2029" Size="256">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 			<Algo Date="2029" Size="384">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
 			<Algo Date="2029" Size="512">PLAIN-ECDSA</Algo> <!-- ETSI 119 312 V1.4.2 -->
+
+<!-- 		<Algo Date="2026" Size="32">Ed25519</Algo> 		Not referenced in ETSI/SOGIS -->
 			<!-- end Encryption algorithms -->
 		</AlgoExpirationDate>
 	</Cryptographic>

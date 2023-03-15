@@ -690,7 +690,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
 
             if (mediaType != null && APPLICATION_PDF.equals(mediaType)) {
-                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams.getPhoto());
+                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams);
             }
 
             ToBeSignedDTO dataToSign = altSignatureService.getDataToSignWithReferences(fileToSign, parameters, references);
@@ -757,7 +757,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
             if (mediaType != null && APPLICATION_PDF.equals(mediaType)) {
-                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams.getPhoto());
+                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams);
             }
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
@@ -1007,11 +1007,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         logger.info("Entering getDataToSign()");
         try {
-            logger.info("Entering getDataToSign()");
             dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
+            ClientSignatureParameters clientSigParams = dataToSignDto.getClientSignatureParameters();
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), clientSigParams, null);
 
             checkDataToSign(parameters, null);
+
+            pdfVisibleSignatureService.checkAndFillParams(parameters, dataToSignDto.getToSignDocument(), clientSigParams);
 
             ToBeSignedDTO dataToSign = altSignatureService.getDataToSign(dataToSignDto.getToSignDocument(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -1064,7 +1066,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
             logger.info("Entering signDocument()");
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters(), null);
+            ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), clientSigParams, null);
+
+            pdfVisibleSignatureService.checkAndFillParams(parameters, signDocumentDto.getToSignDocument(), clientSigParams);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
@@ -1244,5 +1249,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 }
+
 /*****************************************************************************************/
 
