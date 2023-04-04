@@ -222,7 +222,7 @@
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
 				<!-- Set to one day to support Adobe TSS -->
-				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
+				<RevocationFreshness Level="FAIL" Unit="HOURS" Value="24" />
 				<ExtendedKeyUsage Level="WARN">
 				<Id>timeStamping</Id>
 				</ExtendedKeyUsage>
