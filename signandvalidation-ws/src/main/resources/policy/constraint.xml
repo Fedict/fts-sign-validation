@@ -90,7 +90,7 @@
 				<RevocationDataAvailable Level="FAIL" />
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
@@ -151,7 +151,7 @@
 				<RevocationDataAvailable Level="FAIL" />
 				<AcceptableRevocationDataFound Level="FAIL" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
+				<RevocationFreshness Level="FAIL" Unit="DAYS" Value="210" />
 				<KeyUsage Level="WARN">
 				<Id>nonRepudiation</Id>
 				</KeyUsage>
