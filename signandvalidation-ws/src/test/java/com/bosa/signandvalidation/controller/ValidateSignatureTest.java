@@ -69,8 +69,12 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
         assertNotNull(result);
-        assertEquals(TRY_LATER.toString(), result.getSubIndicationLabel());
-        assertEquals(INDETERMINATE, result.getIndication());
+        // Temporary change for BRCA3 exception as now even the BRCA4 Policy will allow BRCA3 signatures
+        // TODO : Change when a final solution is available for Revocation Freshness issues
+        //assertEquals(TRY_LATER.toString(), result.getSubIndicationLabel());
+        //assertEquals(INDETERMINATE, result.getIndication());
+        assertNull(result.getSubIndicationLabel());
+        assertEquals(TOTAL_PASSED, result.getIndication());
 
         RemoteDocument brca3Policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/policy/BRCA3_constraint_test.xml"));
         toValidate = new DataToValidateDTO(signedFile);
