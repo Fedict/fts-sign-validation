@@ -98,8 +98,8 @@
 			<Cryptographic />
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<!-- Block Adobe PKCS7 signed PDFs -->
-			<SigningCertificatePresent Level="FAIL" />
+			<!-- To block Adobe PKCS7 signed PDFs put this to "FAIL" -->
+			<SigningCertificatePresent Level="WARN" />
 			<UnicitySigningCertificate Level="WARN" />
 			<SigningCertificateRefersCertificateChain Level="WARN" />
 			<SigningCertificateDigestAlgorithm Level="WARN" />
@@ -180,8 +180,8 @@
 			<Cryptographic />
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<!-- Block Adobe PKCS7 signed PDFs -->
-			<SigningCertificatePresent Level="FAIL" />
+			<!-- To block Adobe PKCS7 signed PDFs put this to "FAIL" -->
+			<SigningCertificatePresent Level="WARN" />
 			<UnicitySigningCertificate Level="WARN" />
 			<SigningCertificateRefersCertificateChain Level="WARN" />
 			<SigningCertificateDigestAlgorithm Level="WARN" />
@@ -297,7 +297,6 @@
 			</Cryptographic>
 		</BasicSignatureConstraints>
 		<SignedAttributes>
-			<!-- Block Adobe PKCS7 signed PDFs -->
 			<SigningCertificatePresent Level="FAIL" />
 			<!-- <UnicitySigningCertificate Level="WARN" /> RFC 5816 -->
 			<SigningCertificateRefersCertificateChain Level="WARN" />
@@ -365,7 +364,7 @@
 			<Algo>SHA256</Algo>
 			<Algo>SHA384</Algo>
 			<Algo>SHA512</Algo>
-			<!--		<Algo>SHA3-224</Algo> 		Not referenced in ETSI/SOGIS -->
+<!--		<Algo>SHA3-224</Algo> 		Not referenced in ETSI/SOGIS -->
 			<Algo>SHA3-256</Algo>
 			<Algo>SHA3-384</Algo>
 			<Algo>SHA3-512</Algo>
