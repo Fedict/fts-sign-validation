@@ -1,10 +1,11 @@
 package com.bosa.signandvalidation.model;
 
-import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
+import lombok.Data;
 
+@Data
 public class SignatureIndicationsDTO {
 
     private Indication indication;
@@ -15,8 +16,7 @@ public class SignatureIndicationsDTO {
 
     private String report;
 
-    public SignatureIndicationsDTO() {
-    }
+    private NormalizedReport normalizedReport;
 
     public SignatureIndicationsDTO(Indication indication) {
         this.indication = indication;
@@ -31,28 +31,4 @@ public class SignatureIndicationsDTO {
         this.indication = indication;
         this.subIndicationLabel = subIndication;
     }
-
-    public Indication getIndication() {
-        return indication;
-    }
-
-    public void setIndication(Indication indication) {
-        this.indication = indication;
-    }
-
-    public String getSubIndicationLabel() {
-        return subIndicationLabel;
-    }
-
-    public void setSubIndicationLabel(String subIndicationLabel) {
-        this.subIndicationLabel = subIndicationLabel;
-    }
-
-    public void setReport(String report) { this.report = report; }
-
-    public String getReport() { return this.report; }
-
-    public void setDiagnosticData(XmlDiagnosticData diagnosticData) { this.diagnosticData = diagnosticData; }
-
-    public XmlDiagnosticData getDiagnosticData() { return this.diagnosticData; }
 }
