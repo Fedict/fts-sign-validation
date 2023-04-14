@@ -9,14 +9,18 @@ import com.bosa.signandvalidation.config.ErrorStrings;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 
+import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
+import eu.europa.esig.dss.detailedreport.jaxb.XmlMessage;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlSigningCertificate;
+import eu.europa.esig.dss.enumerations.Indication;
+import eu.europa.esig.dss.enumerations.KeyUsageBit;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
-import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.enumerations.SignatureQualification;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
-import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
-import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -28,11 +32,13 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import static eu.europa.esig.dss.i18n.MessageTag.BBB_ICS_ISASCP_ANS;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -61,6 +67,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         WSReportsDTO report = validateSignatureFull(toValidate);
         SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsDto(report);
         signDto.setDiagnosticData(report.getDiagnosticData());
+        signDto.setNormalizedReport(getNormalizedReport(report));
 
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(XmlReportRoot.class);
@@ -108,6 +115,46 @@ public class ValidationController extends ControllerBase implements ErrorStrings
                 }
             }
         }
+    }
+
+    private NormalizedReport getNormalizedReport(WSReportsDTO report) {
+        NormalizedReport result = new NormalizedReport();
+        List<NormalizedSignatureInfo> signatures = result.getSignatures();
+
+        for(Serializable signOrTsOrCert : report.getDetailedReport().getSignatureOrTimestampOrCertificate()) {
+            if (!(signOrTsOrCert instanceof eu.europa.esig.dss.detailedreport.jaxb.XmlSignature)) continue;
+            eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signature = (eu.europa.esig.dss.detailedreport.jaxb.XmlSignature) signOrTsOrCert;
+            NormalizedSignatureInfo si = new NormalizedSignatureInfo();
+            XmlConclusion conclusion = signature.getConclusion();
+            if (conclusion != null) {
+                if (Indication.TOTAL_PASSED.equals(conclusion.getIndication())) {
+                    si.setValid(true);
+                    for(XmlSignature diagSignature : report.getDiagnosticData().getSignatures()) {
+                        if (!diagSignature.getId().equals(signature.getId())) continue;
+                        si.setClaimedSigningTime(diagSignature.getClaimedSigningTime());
+                        XmlCertificate signingCert = diagSignature.getSigningCertificate().getCertificate();
+                        si.setSignerCommonName(signingCert.getCommonName());
+                        for(KeyUsageBit keyUsage : signingCert.getKeyUsageBits()) {
+                            if (KeyUsageBit.NON_REPUDIATION.equals(keyUsage)) {
+                                si.setQualified(SignatureQualification.QESIG.equals(signature.getValidationSignatureQualification().getSignatureQualification()));
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    List<XmlMessage> warnings = signature.getValidationProcessBasicSignature().getConclusion().getWarnings();
+                    for(XmlMessage warning : warnings) {
+                        if (BBB_ICS_ISASCP_ANS.equals(warning.getKey()) && "The signed attribute: 'signing-certificate' is absent!".equals(warning.getValue())) {
+                            si.setMissingSigningCert(true);
+                            break;
+                        }
+                    }
+                } else si.setSubIndication(conclusion.getSubIndication().name());
+            }
+            signatures.add(si);
+        }
+
+        return  result;
     }
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
