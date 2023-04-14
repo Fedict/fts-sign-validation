@@ -15,6 +15,14 @@ ADD ./parameters /opt/signvalidation/profiles
 ADD ./fonts /opt/signvalidation/fonts
 COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
 
+USER root
+COPY Certigna.crt $JAVA_HOME/lib/security
+RUN cd $JAVA_HOME/lib/security \
+    && keytool keytool -list -keystore cacerts -storepass changeit
+RUN cd $JAVA_HOME/lib/security \
+    && keytool keytool -import -alias certigna -file Certigna.crt -keystore cacerts -storepass changeit \
+    && rm Certigna.crt
+
 USER 1001
 CMD bin/catalina_wrapper.sh run
 
