@@ -14,8 +14,6 @@ public class SignatureIndicationsDTO {
 
     private String subIndicationLabel;
 
-    private XmlDiagnosticData diagnosticData;
-
     private String report;
 
     private NormalizedReport normalizedReport;
