@@ -266,7 +266,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setRequestDocumentReadConfirm(gtfd.isRequestDocumentReadConfirm());
         token.setPreviewDocuments(gtfd.isPreviewDocuments());
          token.setSelectDocuments(gtfd.isSelectDocuments());
-         token.setSkipErrors(gtfd.isSkipErrors());
+         token.setNoSkipErrors(gtfd.isNoSkipErrors());
 
         checkTokenAndSetDefaults(token);
 
@@ -544,7 +544,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
                 logger.info("Returning from getMetadataForToken()" + tokenFootprint);
                 return new DocumentMetadataDTO(token.getSigningType(), getPhoto, !token.isOutDownload(),
-                        token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isSelectDocuments(), token.isSkipErrors(), signedInputsMetadata);
+                        token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isSelectDocuments(), token.isNoSkipErrors(), signedInputsMetadata);
 
             } catch (RuntimeException e){
                     logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
