@@ -1,5 +1,6 @@
 package com.bosa.signandvalidation.model;
 
+import eu.europa.esig.dss.enumerations.SignatureLevel;
 import lombok.Data;
 
 import java.util.Date;
@@ -14,6 +15,7 @@ public class NormalizedSignatureInfo {
 
     // Signature info
     private Date        claimedSigningTime;
-    private Date        signingTime;
+    private Date        bestSigningTime;
     private String      signerCommonName;
+    private String      signatureFormat;
 }
