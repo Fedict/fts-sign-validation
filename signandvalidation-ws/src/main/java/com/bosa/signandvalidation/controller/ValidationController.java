@@ -13,11 +13,14 @@ import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlMessage;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.KeyUsageBit;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.enumerations.SignatureQualification;
+import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
+import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
@@ -138,17 +141,31 @@ public class ValidationController extends ControllerBase implements ErrorStrings
                     }
                 } else si.setSubIndication(conclusion.getSubIndication().name());
             }
-            getDiagnosticInfo(si, report, signature.getId());
+            getSimpleReportInfo(si, report.getSimpleReport(), signature.getId());
+            getDiagnosticInfo(si, report.getDiagnosticData(), signature.getId());
             signatures.add(si);
         }
 
         return  result;
     }
 
-    private void getDiagnosticInfo(NormalizedSignatureInfo si, WSReportsDTO report, String id) {
-        for (XmlSignature diagSignature : report.getDiagnosticData().getSignatures()) {
+    private void getSimpleReportInfo(NormalizedSignatureInfo si, XmlSimpleReport simpleReport, String id) {
+        for (XmlToken signatureOrTS : simpleReport.getSignatureOrTimestamp()) {
+            if (!(signatureOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature)) continue;
+            eu.europa.esig.dss.simplereport.jaxb.XmlSignature simpleSignature = (eu.europa.esig.dss.simplereport.jaxb.XmlSignature) signatureOrTS;
+
+            if (simpleSignature.getId().equals(id)) {
+                si.setClaimedSigningTime(simpleSignature.getSigningTime());
+                si.setBestSigningTime(simpleSignature.getBestSignatureTime());
+                break;
+            }
+        }
+    }
+
+    private void getDiagnosticInfo(NormalizedSignatureInfo si, XmlDiagnosticData diagData, String id) {
+        for (XmlSignature diagSignature : diagData.getSignatures()) {
             if (diagSignature.getId().equals(id)) {
-                si.setClaimedSigningTime(diagSignature.getClaimedSigningTime());
+                si.setSignatureFormat(diagSignature.getSignatureFormat().name());
                 XmlCertificate signingCert = diagSignature.getSigningCertificate().getCertificate();
                 si.setSignerCommonName(signingCert.getCommonName());
                 if (!signingCert.getKeyUsageBits().contains(KeyUsageBit.NON_REPUDIATION)) si.setQualified(false);
