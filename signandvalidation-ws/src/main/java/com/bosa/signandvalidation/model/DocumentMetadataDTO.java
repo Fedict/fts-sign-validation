@@ -24,12 +24,14 @@ public class DocumentMetadataDTO {
     private boolean selectDocuments;
     private boolean requestDocumentReadConfirm;
     private boolean previewDocuments; // If true, display documents in the sign screen, otherwise provide list of downloadable links
+    private boolean noSkipErrors; // If true, disable the user to skip a file in error to sign
 
     private List<SignInputMetadata> inputs;
     
-    public DocumentMetadataDTO(SigningType signingType, boolean readPhoto, boolean noSignedDownloads, boolean requestDocumentReadConfirm, boolean previewDocuments, boolean selectDocuments, List<SignInputMetadata> inputs) {
+    public DocumentMetadataDTO(SigningType signingType, boolean readPhoto, boolean noSignedDownloads, boolean requestDocumentReadConfirm, boolean previewDocuments, boolean selectDocuments, boolean noSkipErrors, List<SignInputMetadata> inputs) {
         this.signingType = signingType;
         this.readPhoto = readPhoto;
+        this.noSkipErrors = noSkipErrors;
         this.selectDocuments = selectDocuments;
         this.previewDocuments = previewDocuments;
         this.noSignedDownloads = noSignedDownloads;
