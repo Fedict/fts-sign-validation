@@ -21,12 +21,31 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <dss.version>5.12.RC1</dss.version>
+        <dss.version>5.12</dss.version>
         <jackson-jaxrs-json-provider.version>2.9.9</jackson-jaxrs-json-provider.version>
         <hikaricp.version>3.3.1</hikaricp.version>
         <hsqldb.version>2.5.0</hsqldb.version>
         <springdoc.version>1.6.11</springdoc.version>
         <log4j2.version>2.12.3</log4j2.version>
+
+        <!-- DSS5.12 imports - kept for reference
+        <slf4j.version>2.0.7</slf4j.version>
+        <logback-classic.version>1.3.7</logback-classic.version> Version 1.4+ supports only Java 11+
+
+        <jakarta.bind-api.version>2.3.3</jakarta.bind-api.version> Synchronized with santuario
+        <jakarta.activation-api.version>1.2.2</jakarta.activation-api.version> Synchronized with santuario
+        <woodstox-core.version>6.5.0</woodstox-core.version> To be used while santuario is not updated
+        <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
+        -->
+
+        <httpclient5.version>5.2.1</httpclient5.version>
+        <pdfbox.version>2.0.28</pdfbox.version>
+        <openpdf.version>1.3.30</openpdf.version>
+        <verapdf.version>1.22.2</verapdf.version>
+        <xmlsec.version>2.3.3</xmlsec.version>
+        <bouncycastle.version>1.72</bouncycastle.version>
+        <jose4j.version>0.9.3</jose4j.version>
+
     </properties>
 
     <repositories>
@@ -150,6 +169,50 @@
                 <artifactId>jackson-databind</artifactId>
                 <version>2.13.4.2</version>
                 <scope>compile</scope>
+            </dependency>
+
+            <!-- Public Dependencies -->
+
+            <dependency>
+                <groupId>org.apache.httpcomponents.client5</groupId>
+                <artifactId>httpclient5</artifactId>
+                <version>${httpclient5.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.pdfbox</groupId>
+                <artifactId>pdfbox</artifactId>
+                <version>${pdfbox.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.librepdf</groupId>
+                <artifactId>openpdf</artifactId>
+                <version>${openpdf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.verapdf</groupId>
+                <artifactId>validation-model</artifactId>
+                <version>${verapdf.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.santuario</groupId>
+                <artifactId>xmlsec</artifactId>
+                <version>${xmlsec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bitbucket.b_c</groupId>
+                <artifactId>jose4j</artifactId>
+                <version>${jose4j.version}</version>
             </dependency>
 
         </dependencies>
