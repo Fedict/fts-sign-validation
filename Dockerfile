@@ -17,14 +17,14 @@ COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
 
 USER root
 
+## Remove the below line from Dockerfile & remove "Certigna.crt" file from source tree when the below line fails (probably after switching to a Java 20 docker image)
+## It was added because Certigna CA cert is needed to access "https://www.ssi.gouv.fr/uploads/tl-fr.xml", Certigna CA cert is included in Java 20.
+## The line below will fail if the cert already is present in cacert
 RUN cd $JAVA_HOME/lib/security && ! keytool --list -cacerts -storepass changeit | grep -q "Certificate fingerprint (SHA-256): 71:E6:53:BF:BF:5E:72:51:5B:40:99:BB:D5:EC:88:72:81:2B:47:C6:EC:1F:A9:AD:D3:27:E1:C9:2C:9E:A1:6D"
-
 COPY Certigna.crt $JAVA_HOME/lib/security
 RUN cd $JAVA_HOME/lib/security \
     && keytool -import -alias certigna -file Certigna.crt -cacerts -storepass changeit \
     && rm Certigna.crt
-
-RUN cd $JAVA_HOME/lib/security && ! keytool --list -cacerts -storepass changeit | grep -q "Certificate fingerprint (SHA-256): 71:E6:53:BF:BF:5E:72:51:5B:40:99:BB:D5:EC:88:72:81:2B:47:C6:EC:1F:A9:AD:D3:27:E1:C9:2C:9E:A1:6D"
 
 USER 1001
 CMD bin/catalina_wrapper.sh run
