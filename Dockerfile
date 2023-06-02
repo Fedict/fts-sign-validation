@@ -17,9 +17,11 @@ COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
 
 USER root
 
-RUN cd $JAVA_HOME/lib/security && keytool --list -cacerts -storepass changeit | grep -q "FB:8F:EC:75:91:69:B9:10:6B:1E:51:16"
+RUN cd $JAVA_HOME/lib/security && keytool --list -cacerts | grep -q "FB:8F:EC:75:91:69:B9:10:6B:1E:51:16"
 
-RUN cd $JAVA_HOME/lib/security && keytool --list -cacerts -storepass changeit | grep -q "Certificate fingerprint (SHA-256): 71:E6:53:BF:BF:5E:72:51:5B:40:99:BB:D5:EC:88:72:81:2B:47:C6:EC:1F:A9:AD:D3:27:E1:C9:2C:9E:A1:6D"
+RUN cd $JAVA_HOME/lib/security && keytool --list -cacerts -storepass changeit | !grep -q "Certificate fingerprint (SHA-256): 71:E6:53:BF:BF:5E:72:51:5B:40:99:BB:D5:EC:88:72:81:2B:47:C6:EC:1F:A9:AD:D3:27:E1:C9:2C:9E:A1:6D"
+RUN cd $JAVA_HOME/lib/security && keytool --list -cacerts -storepass changeit | !grep -q "FB:8F:EC:75:91:69:B9:10:6B:1E:51:16"
+
 
 COPY Certigna.crt $JAVA_HOME/lib/security
 RUN cd $JAVA_HOME/lib/security \
