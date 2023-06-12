@@ -1,5 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
+import com.bosa.signandvalidation.config.ThreadedCertificateVerifier;
 import com.bosa.signandvalidation.exceptions.IllegalSignatureFormatException;
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.ReportsService;
@@ -21,6 +22,9 @@ import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.enumerations.SignatureQualification;
 import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
 import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
+import eu.europa.esig.dss.spi.x509.CertificateSource;
+import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
+import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
@@ -33,6 +37,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
@@ -93,6 +98,11 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
 
         try {
+            byte[] extraTrustKeystore = toValidate.getExtraTrustKeystore();
+            if (extraTrustKeystore != null) {
+                ThreadedCertificateVerifier.setExtraCertificateSource(getCertificateSource(extraTrustKeystore));
+            }
+
             WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
             if (toValidate.getLevel() != null && reportsDto.getDiagnosticData() != null) {
                 checkSignatures(toValidate.getLevel(), reportsDto);
@@ -103,8 +113,19 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (IllegalSignatureFormatException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_SIGNATURE_LEVEL, e);
+        } finally {
+            ThreadedCertificateVerifier.clearExtraCertificateSource(); // Cleanup
         }
         return null; // We won't get here
+    }
+
+    private CertificateSource getCertificateSource(byte ksFile[]) {
+        KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(
+                new ByteArrayInputStream(ksFile), "PKCS12", null
+        );
+        CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
+        trustedCertificateSource.importAsTrusted(keystore);
+        return trustedCertificateSource;
     }
 
     private void checkSignatures(SignatureLevel level, WSReportsDTO reportsDto) throws IllegalSignatureFormatException {
