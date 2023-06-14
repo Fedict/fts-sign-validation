@@ -16,7 +16,7 @@ public class DataToValidateDTO {
     private List<RemoteDocument> originalDocuments;
     private RemoteDocument policy;
     private SignatureLevel level;
-    private byte[] extraTrustKeystore;
+    private byte[] extraTrustCertificate;
 
     public DataToValidateDTO(RemoteDocument signedDocument, RemoteDocument originalDocument, RemoteDocument policy) {
         this(signedDocument, originalDocument == null  ? null : Arrays.asList(originalDocument), policy);

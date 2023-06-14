@@ -18,7 +18,14 @@ public class ThreadedCertificateVerifier extends CommonCertificateVerifier {
     public ListCertificateSource getTrustedCertSources() {
         ListCertificateSource trustedSources = super.getTrustedCertSources();
         CertificateSource extraTrustSource = allThreadsExtraTrustSources.get();
-        if (extraTrustSource != null) trustedSources.add(extraTrustSource);
+        if (extraTrustSource != null) {
+            // Add a copy of the trusted sources to a new list
+            ListCertificateSource currentTrustedSources = trustedSources;
+            trustedSources = new ListCertificateSource();
+            trustedSources.addAll(currentTrustedSources);
+            trustedSources.add(extraTrustSource);
+        }
+
         return trustedSources;
     }
 }

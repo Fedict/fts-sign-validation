@@ -20,6 +20,7 @@ import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.KeyUsageBit;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.enumerations.SignatureQualification;
+import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
 import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
@@ -37,10 +38,13 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.StringWriter;
+import java.io.*;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -98,9 +102,9 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
 
         try {
-            byte[] extraTrustKeystore = toValidate.getExtraTrustKeystore();
-            if (extraTrustKeystore != null) {
-                ThreadedCertificateVerifier.setExtraCertificateSource(getCertificateSource(extraTrustKeystore));
+            byte[] extraTrustCertificate = toValidate.getExtraTrustCertificate();
+            if (extraTrustCertificate != null) {
+                ThreadedCertificateVerifier.setExtraCertificateSource(getCertificateSource(extraTrustCertificate));
             }
 
             WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
@@ -113,16 +117,39 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } catch (IllegalSignatureFormatException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_SIGNATURE_LEVEL, e);
+        } catch (CertificateException|IOException|NoSuchAlgorithmException|KeyStoreException e) {
+            // Exceptions linked to getCertificateSource keystore manipulation
+            logAndThrowEx(BAD_REQUEST, INVALID_PARAM, e);
         } finally {
             ThreadedCertificateVerifier.clearExtraCertificateSource(); // Cleanup
         }
         return null; // We won't get here
     }
 
-    private CertificateSource getCertificateSource(byte ksFile[]) {
-        KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(
-                new ByteArrayInputStream(ksFile), "PKCS12", null
-        );
+    private CertificateSource getCertificateSource(byte certificate[]) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certificate));
+
+        // Ideally we should be able to add "cert" like this:
+        //
+        //		KeyStoreCertificateSource keystore = new KeyStoreCertificateSource("PKCS12", null);
+        //		CertificateToken certificateToken = new CertificateToken(cert);
+        //		keystore.addCertificate(certificateToken);
+        //
+        // but because "KeyStoreCertificateSource" depends on key aliases to be present and CertificateToken doesn't handle aliases
+        // we're forced to use the inefficient code below : creating a keystore, add the cert, marshal the keystore and
+        // unmarshal it as a KeyStoreCertificateSource
+
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null, null);
+        keyStore.setCertificateEntry("alias", cert);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(1000);
+        keyStore.store(baos, "".toCharArray());
+
+        InputStream keyStoreStream = new ByteArrayInputStream(baos.toByteArray());
+        KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", "");
+
         CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
         trustedCertificateSource.importAsTrusted(keystore);
         return trustedCertificateSource;
@@ -202,8 +229,8 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
         try {
             CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(
-                new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
-			toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
+                    new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
+                            toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
             CertificateIndicationsDTO rv = reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
             if(rv.getIndication() != PASSED) {
                 certificateReportsDTO.getSimpleCertificateReport().getChain().forEach(item -> {
@@ -226,7 +253,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         try {
             CertificateReportsDTO result = remoteCertificateValidationService.validateCertificate(
                 new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
-			toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
+			        toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
             logger.info("ValidateCertificateFull is finished");
             return result;
         } catch (RuntimeException e) {

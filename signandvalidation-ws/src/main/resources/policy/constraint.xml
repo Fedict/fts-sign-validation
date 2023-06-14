@@ -237,7 +237,7 @@
 				<RevocationDataAvailable Level="WARN" />
 				<AcceptableRevocationDataFound Level="WARN" />
 				<CRLNextUpdatePresent Level="WARN" />
-				<RevocationFreshness Level="FAIL" Unit="SECONDS" Value="70" />
+				<RevocationFreshness Level="FAIL" Unit="HOURS" Value="5" />
 				<NotRevoked Level="FAIL" />
 				<NotOnHold Level="FAIL" />
 				<Cryptographic />
