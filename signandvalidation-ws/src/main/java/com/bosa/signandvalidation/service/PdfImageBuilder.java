@@ -232,6 +232,7 @@ public class PdfImageBuilder {
 		System.out.println("  300 100 \"#ffffff\" 20 \" \\nSigned by:\\nAn Vos\\n \\nDate: 2021.09.20\\n \" \"#0000ff\" LEFT CENTER MIDDLE Courier 36");
 	}
 
+	/* Disabled -> Sast false positive
 	public static void main(String[] args) throws Exception {
 
 		//for (String s : java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames())
@@ -264,6 +265,7 @@ public class PdfImageBuilder {
 		writeFile(new File("out.png"), out);
 		System.out.println("Output written to out.png");
 	}
+	 */
 
 	static int getTextPos(String pos) {
 		if ("LEFT".equals(pos))

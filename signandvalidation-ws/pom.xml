@@ -60,7 +60,7 @@
                 <artifactId>spring-boot-starter-jdbc</artifactId>
             </dependency>
 
-            <!-- DSS -->
+        <!-- DSS -->
         <dependency>
             <groupId>eu.europa.ec.joinup.sd-dss</groupId>
             <artifactId>dss-service</artifactId>
@@ -69,8 +69,25 @@
                     <artifactId>commons-logging</artifactId>
                     <groupId>commons-logging</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents.client5</groupId>
+                    <artifactId>httpclient5</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents.client5</groupId>
+                    <artifactId>httpcore5</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
+        <dependency>    <!-- Force use of 5.2.1 -->
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+        <dependency>    <!-- Force use of 5.2 -->
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>eu.europa.ec.joinup.sd-dss</groupId>
             <artifactId>dss-tsl-validation</artifactId>

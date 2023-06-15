@@ -13,9 +13,7 @@ import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlMessage;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
+import eu.europa.esig.dss.diagnostic.jaxb.*;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.KeyUsageBit;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
@@ -216,10 +214,21 @@ public class ValidationController extends ControllerBase implements ErrorStrings
                 si.setSignatureFormat(diagSignature.getSignatureFormat().name());
                 XmlCertificate signingCert = diagSignature.getSigningCertificate().getCertificate();
                 si.setSignerCommonName(signingCert.getCommonName());
-                if (!signingCert.getKeyUsageBits().contains(KeyUsageBit.NON_REPUDIATION)) si.setQualified(false);
+                if (!isNonRepudiationCert(signingCert)) si.setQualified(false);
                 break;
             }
         }
+    }
+
+    private boolean isNonRepudiationCert(XmlCertificate cert) {
+        for(XmlCertificateExtension ext : cert.getCertificateExtensions()) {
+            if (!(ext instanceof XmlKeyUsages)) continue;
+            List<KeyUsageBit> keyUsageBits = ((XmlKeyUsages)ext).getKeyUsageBit();
+            if (keyUsageBits.contains(KeyUsageBit.NON_REPUDIATION)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
