@@ -43,17 +43,16 @@ public class RemoteXadesSignatureServiceImpl extends RemoteDocumentSignatureServ
         if (refs == null) {
             return getDataToSign(remoteDocument, remoteParameters);
         }
+
         Objects.requireNonNull(remoteDocument, "remoteDocument must be defined!");
         Objects.requireNonNull(remoteParameters, "remoteParameters must be defined!");
         Objects.requireNonNull(remoteParameters.getSignatureLevel(), "signatureLevel must be defined!");
         LOG.info("GetDataToSign in process...");
         SerializableSignatureParameters parameters = createParameters(remoteParameters);
         DSSDocument dssDocument = RemoteDocumentConverter.toDSSDocument(remoteDocument);
-        if (refs != null) {
-            ((XAdESSignatureParameters)parameters).setReferences(refs);
-            for(DSSReference ref : refs) {
-                ref.setContents(dssDocument);
-            }
+        ((XAdESSignatureParameters)parameters).setReferences(refs);
+        for(DSSReference ref : refs) {
+            ref.setContents(dssDocument);
         }
         ToBeSigned dataToSign = ((DocumentSignatureService)xadesService).getDataToSign(dssDocument, parameters);
         LOG.info("GetDataToSign is finished");
@@ -71,12 +70,11 @@ public class RemoteXadesSignatureServiceImpl extends RemoteDocumentSignatureServ
         LOG.info("SignDocument in process...");
         SerializableSignatureParameters parameters = createParameters(remoteParameters);
         DSSDocument dssDocument = RemoteDocumentConverter.toDSSDocument(remoteDocument);
-        if (refs != null) {
-            ((XAdESSignatureParameters)parameters).setReferences(refs);
-            for(DSSReference ref : refs) {
-                ref.setContents(dssDocument);
-            }
+        ((XAdESSignatureParameters)parameters).setReferences(refs);
+        for(DSSReference ref : refs) {
+            ref.setContents(dssDocument);
         }
+
         DSSDocument signDocument = ((DocumentSignatureService)xadesService).signDocument(dssDocument, parameters, toSignatureValue(signatureValueDTO));
         LOG.info("SignDocument is finished");
         return RemoteDocumentConverter.toRemoteDocument(signDocument);

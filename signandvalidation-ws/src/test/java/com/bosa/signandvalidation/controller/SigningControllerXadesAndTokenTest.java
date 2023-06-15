@@ -58,7 +58,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
             "<xsl:comment>" + XSLT_COMMENT + "</xsl:comment>" +
             "	<" + ROOT_XSLT_ELT + ">" +
             "		<xsl:for-each select=\"root/file\">" +
-            "			<" + FILE_XSLT_ELT + " iD=\"{@id}\" FileName=\"{tokenize(@name, '/')[last()]}\" MimeType=\"{tokenize(@name, '\\.')[last()]}\"></"+ FILE_XSLT_ELT + ">" +
+            "			<" + FILE_XSLT_ELT + " id=\"{@id}\" FileName=\"{tokenize(@name, '/')[last()]}\" MimeType=\"{tokenize(@name, '\\.')[last()]}\"></"+ FILE_XSLT_ELT + ">" +
             "		</xsl:for-each>" +
             "	</" + ROOT_XSLT_ELT + ">" +
             "</xsl:template>" +
@@ -67,7 +67,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
     @AllArgsConstructor
     private enum FileDef {
-        F1("root/aFile.xml", "1", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1"),
+        F1("root/aFile.xml", "Uno", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1"),
         F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2"),
         F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null),
         F4("dFile.pdf", "FOUR", APPLICATION_PDF, "QSBUZXN0", null, null);
@@ -135,7 +135,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
                 Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new ByteArrayInputStream(fd.xsltData.getBytes()));
             }
 
-            unSignedXmlFile += "<" + FILE_XSLT_ELT + " FileName=\"" + lastOccurenceOf(fd.name, '/') + "\" MimeType=\"" + lastOccurenceOf(fd.name, '.') + "\" iD=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">";
+            unSignedXmlFile += "<" + FILE_XSLT_ELT + " FileName=\"" + lastOccurenceOf(fd.name, '/') + "\" MimeType=\"" + lastOccurenceOf(fd.name, '.') + "\" id=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">";
         }
         unSignedXmlFile += "</" + ROOT_XSLT_ELT + ">";
 
