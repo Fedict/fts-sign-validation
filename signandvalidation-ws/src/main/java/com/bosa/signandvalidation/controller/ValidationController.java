@@ -18,7 +18,6 @@ import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.KeyUsageBit;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.enumerations.SignatureQualification;
-import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
 import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
@@ -100,9 +99,8 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
 
         try {
-            byte[] extraTrustCertificate = toValidate.getExtraTrustCertificate();
-            if (extraTrustCertificate != null) {
-                ThreadedCertificateVerifier.setExtraCertificateSource(getCertificateSource(extraTrustCertificate));
+            if (toValidate.getTrust() != null) {
+                ThreadedCertificateVerifier.setExtraCertificateSource(getCertificateSource(toValidate.getTrust()));
             }
 
             WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
@@ -124,32 +122,41 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         return null; // We won't get here
     }
 
-    private CertificateSource getCertificateSource(byte certificate[]) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-
-        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certificate));
-
-        // Ideally we should be able to add "cert" like this:
-        //
-        //		KeyStoreCertificateSource keystore = new KeyStoreCertificateSource("PKCS12", null);
-        //		CertificateToken certificateToken = new CertificateToken(cert);
-        //		keystore.addCertificate(certificateToken);
-        //
-        // but because "KeyStoreCertificateSource" depends on key aliases to be present and CertificateToken doesn't handle aliases
-        // we're forced to use the inefficient code below : creating a keystore, add the cert, marshal the keystore and
-        // unmarshal it as a KeyStoreCertificateSource
-
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, null);
-        keyStore.setCertificateEntry("alias", cert);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream(1000);
-        keyStore.store(baos, "".toCharArray());
-
-        InputStream keyStoreStream = new ByteArrayInputStream(baos.toByteArray());
-        KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", "");
+    private CertificateSource getCertificateSource(KeystoreOrCerts trust) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
 
         CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
-        trustedCertificateSource.importAsTrusted(keystore);
+        if (trust.getKeystore() != null) {
+            String password = trust.getPassword();
+            InputStream keyStoreStream = new ByteArrayInputStream(trust.getKeystore());
+            KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", password);
+            trustedCertificateSource.importAsTrusted(keystoreCrtSrc);
+        }
+
+        if (trust.getCerts() != null) {
+            // Ideally we should be able to add "cert" like this:
+            //
+            //		KeyStoreCertificateSource keystore = new KeyStoreCertificateSource("PKCS12", null);
+            //		CertificateToken certificateToken = new CertificateToken(cert);
+            //		keystore.addCertificate(certificateToken);
+            //
+            // but because "KeyStoreCertificateSource.importAsTrusted" depends on cert  aliases and CertificateToken doesn't set aliases
+            // we're forced to use the inefficient code below : creating a keystore, add the cert (with alias ;-) ) , marshal the keystore and
+            // unmarshal it as a KeyStoreCertificateSource
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(null, null);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            int count = 0;
+            for(byte[] certBytes : trust.getCerts()) {
+                X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certBytes));
+                keyStore.setCertificateEntry("alias_" + Integer.toString(count++), cert);
+            }
+            ByteArrayOutputStream baos = new ByteArrayOutputStream(1000);
+            keyStore.store(baos, null);
+            InputStream keyStoreStream = new ByteArrayInputStream(baos.toByteArray());
+            KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", null);
+            trustedCertificateSource.importAsTrusted(keystoreCrtSrc);
+        }
+
         return trustedCertificateSource;
     }
 
