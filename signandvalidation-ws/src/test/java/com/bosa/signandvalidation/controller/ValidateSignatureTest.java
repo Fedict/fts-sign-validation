@@ -2,6 +2,7 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.SignAndValidationTestBase;
 import com.bosa.signandvalidation.model.DataToValidateDTO;
+import com.bosa.signandvalidation.model.KeystoreOrCerts;
 import com.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
@@ -12,6 +13,10 @@ import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.Indication.*;
@@ -252,7 +257,22 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertEquals(CRYPTO_CONSTRAINTS_FAILURE.toString(), result.getSubIndicationLabel());
     }
 
+    @Test
+    public void signatureWithExtraTrust() throws IOException {
+        // given
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/Foreign_trust_signed.xml"));
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
+        KeystoreOrCerts ksc = new KeystoreOrCerts();
+        toValidate.setTrust(ksc);
+        ksc.setCerts(new ArrayList<>());
+        ksc.getCerts().add(Files.readAllBytes(Paths.get("src/test/resources/extra_trust.der")));
 
+        // when
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
+        // then
+        assertNotNull(result);
+        assertEquals(TOTAL_PASSED, result.getIndication());
+    }
 
 }

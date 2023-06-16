@@ -122,6 +122,11 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         return null; // We won't get here
     }
 
+    // The below password is only needed because, pre-Java 20 JVM, a "null" password keystore
+    // ignores the certificates added to it. With Java 20 they are accepted.
+    // This hardcoded password will of course trigger security review (sast or human)... although it should not since
+    // the keystore is only held in memory (although not in "unswapaable" memory... but that is another topic)
+    private static final String SILLY_PASSWORD = "123456";
     private CertificateSource getCertificateSource(KeystoreOrCerts trust) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
 
         CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
@@ -151,9 +156,10 @@ public class ValidationController extends ControllerBase implements ErrorStrings
                 keyStore.setCertificateEntry("alias_" + Integer.toString(count++), cert);
             }
             ByteArrayOutputStream baos = new ByteArrayOutputStream(1000);
-            keyStore.store(baos, null);
+
+            keyStore.store(baos, SILLY_PASSWORD.toCharArray());
             InputStream keyStoreStream = new ByteArrayInputStream(baos.toByteArray());
-            KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", null);
+            KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", SILLY_PASSWORD);
             trustedCertificateSource.importAsTrusted(keystoreCrtSrc);
         }
 
