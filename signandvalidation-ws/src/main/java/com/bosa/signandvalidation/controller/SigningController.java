@@ -128,8 +128,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final String SYMMETRIC_KEY_ALGO              = "AES";
 
     private static final SimpleDateFormat logDateTimeFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-    private static final SimpleDateFormat reportDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-
     // Secret key cache
     private static final Cache<String, SecretKey> keyCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
 
@@ -806,7 +804,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         if (null != token) {
             try {
-                storageService.storeFile(token.getBucket(), outFilePath + ".validationreport.json", createReport(parameters, reportsDto).getBytes());
+                storageService.storeFile(token.getBucket(), outFilePath + ".validationreport.json",
+                        reportsService.createJSONReport(parameters, reportsDto).getBytes());
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to serialize or save the validation report", e);
             }
@@ -822,7 +821,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             for(String profile : this.environment.getActiveProfiles()) {
                 if ("local".equals(profile)) {
                     try {
-                        logger.severe(createReport(parameters, reportsDto));
+                        logger.severe(reportsService.createJSONReport(parameters, reportsDto));
                     } catch (IOException e) {
                         logger.severe("Can't log report !!!!!!!!");
                     }
@@ -838,24 +837,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
         }
         return signedDoc;
-    }
-
-    /*****************************************************************************************/
-
-    private String createReport(RemoteSignatureParameters parameters, WSReportsDTO reportsDto) throws IOException {
-        // Instead of saving the entire report, create our own report containing the simple/detailed/normalized reports and the signing cert
-
-        ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(),
-                reportsDto.getDetailedReport(),
-                ValidationController.getNormalizedReport(reportsDto),
-                parameters.getSigningCertificate().getEncodedCertificate());
-
-        StringWriter out = new StringWriter();
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setDateFormat(reportDateTimeFormat);
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        mapper.writeValue(out, reportDto);
-        return out.toString();
     }
 
     /*****************************************************************************************/
