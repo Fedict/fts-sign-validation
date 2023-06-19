@@ -842,11 +842,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private static String createReport(RemoteSignatureParameters parameters, WSReportsDTO reportsDto) throws IOException {
-        // Instead of saving the entire report, create our own report containing the simple/detailed reports and the signing cert
+    private String createReport(RemoteSignatureParameters parameters, WSReportsDTO reportsDto) throws IOException {
+        // Instead of saving the entire report, create our own report containing the simple/detailed/normalized reports and the signing cert
 
         ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(),
                 reportsDto.getDetailedReport(),
+                ValidationController.getNormalizedReport(reportsDto),
                 parameters.getSigningCertificate().getEncodedCertificate());
 
         StringWriter out = new StringWriter();

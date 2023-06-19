@@ -116,7 +116,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         }
     }
 
-    private NormalizedReport getNormalizedReport(WSReportsDTO report) {
+    public static NormalizedReport getNormalizedReport(WSReportsDTO report) {
         NormalizedReport result = new NormalizedReport();
         List<NormalizedSignatureInfo> signatures = result.getSignatures();
 
@@ -147,7 +147,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         return  result;
     }
 
-    private void getSimpleReportInfo(NormalizedSignatureInfo si, XmlSimpleReport simpleReport, String id) {
+    private static void getSimpleReportInfo(NormalizedSignatureInfo si, XmlSimpleReport simpleReport, String id) {
         for (XmlToken signatureOrTS : simpleReport.getSignatureOrTimestamp()) {
             if (!(signatureOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature)) continue;
             eu.europa.esig.dss.simplereport.jaxb.XmlSignature simpleSignature = (eu.europa.esig.dss.simplereport.jaxb.XmlSignature) signatureOrTS;
@@ -160,7 +160,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         }
     }
 
-    private void getDiagnosticInfo(NormalizedSignatureInfo si, XmlDiagnosticData diagData, String id) {
+    private static void getDiagnosticInfo(NormalizedSignatureInfo si, XmlDiagnosticData diagData, String id) {
         for (XmlSignature diagSignature : diagData.getSignatures()) {
             if (diagSignature.getId().equals(id)) {
                 si.setSignatureFormat(diagSignature.getSignatureFormat().name());
@@ -172,7 +172,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         }
     }
 
-    private boolean isNonRepudiationCert(XmlCertificate cert) {
+    private static boolean isNonRepudiationCert(XmlCertificate cert) {
         for(XmlCertificateExtension ext : cert.getCertificateExtensions()) {
             if (!(ext instanceof XmlKeyUsages)) continue;
             List<KeyUsageBit> keyUsageBits = ((XmlKeyUsages)ext).getKeyUsageBit();
