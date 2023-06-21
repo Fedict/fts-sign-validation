@@ -73,23 +73,8 @@ public class ValidationController extends ControllerBase implements ErrorStrings
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
         WSReportsDTO report = validateSignatureFull(toValidate);
-        SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsDto(report);
-        signDto.setNormalizedReport(getNormalizedReport(report));
-
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(XmlReportRoot.class);
-            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-            StringWriter sw = new StringWriter();
-            XmlReportRoot root = new XmlReportRoot();
-            root.setReport(report.getDetailedReport());
-            jaxbMarshaller.marshal(root, sw);
-            signDto.setReport(sw.toString());
-            logger.info("ValidateSignature is finished");
-        } catch(Exception e) {
-            throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Cannot render Detailed Signature report");
-        }
-
+        SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsAndReportsDto(report);
+        logger.info("ValidateSignature is finished");
         return signDto;
     }
 
@@ -177,73 +162,6 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         }
     }
 
-    private NormalizedReport getNormalizedReport(WSReportsDTO report) {
-        NormalizedReport result = new NormalizedReport();
-        List<NormalizedSignatureInfo> signatures = result.getSignatures();
-
-        for(Serializable signOrTsOrCert : report.getDetailedReport().getSignatureOrTimestampOrCertificate()) {
-            if (!(signOrTsOrCert instanceof eu.europa.esig.dss.detailedreport.jaxb.XmlSignature)) continue;
-            eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signature = (eu.europa.esig.dss.detailedreport.jaxb.XmlSignature) signOrTsOrCert;
-
-            NormalizedSignatureInfo si = new NormalizedSignatureInfo();
-            si.setQualified(SignatureQualification.QESIG.equals(signature.getValidationSignatureQualification().getSignatureQualification()));
-            XmlConclusion conclusion = signature.getConclusion();
-            if (conclusion != null) {
-                if (Indication.TOTAL_PASSED.equals(conclusion.getIndication())) {
-                    si.setValid(true);
-                    List<XmlMessage> warnings = signature.getValidationProcessBasicSignature().getConclusion().getWarnings();
-                    for(XmlMessage warning : warnings) {
-                        if (BBB_ICS_ISASCP_ANS.equals(warning.getKey()) && "The signed attribute: 'signing-certificate' is absent!".equals(warning.getValue())) {
-                            si.setMissingSigningCert(true);
-                            break;
-                        }
-                    }
-                } else si.setSubIndication(conclusion.getSubIndication().name());
-            }
-            getSimpleReportInfo(si, report.getSimpleReport(), signature.getId());
-            getDiagnosticInfo(si, report.getDiagnosticData(), signature.getId());
-            signatures.add(si);
-        }
-
-        return  result;
-    }
-
-    private void getSimpleReportInfo(NormalizedSignatureInfo si, XmlSimpleReport simpleReport, String id) {
-        for (XmlToken signatureOrTS : simpleReport.getSignatureOrTimestamp()) {
-            if (!(signatureOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature)) continue;
-            eu.europa.esig.dss.simplereport.jaxb.XmlSignature simpleSignature = (eu.europa.esig.dss.simplereport.jaxb.XmlSignature) signatureOrTS;
-
-            if (simpleSignature.getId().equals(id)) {
-                si.setClaimedSigningTime(simpleSignature.getSigningTime());
-                si.setBestSigningTime(simpleSignature.getBestSignatureTime());
-                break;
-            }
-        }
-    }
-
-    private void getDiagnosticInfo(NormalizedSignatureInfo si, XmlDiagnosticData diagData, String id) {
-        for (XmlSignature diagSignature : diagData.getSignatures()) {
-            if (diagSignature.getId().equals(id)) {
-                si.setSignatureFormat(diagSignature.getSignatureFormat().name());
-                XmlCertificate signingCert = diagSignature.getSigningCertificate().getCertificate();
-                si.setSignerCommonName(signingCert.getCommonName());
-                if (!isNonRepudiationCert(signingCert)) si.setQualified(false);
-                break;
-            }
-        }
-    }
-
-    private boolean isNonRepudiationCert(XmlCertificate cert) {
-        for(XmlCertificateExtension ext : cert.getCertificateExtensions()) {
-            if (!(ext instanceof XmlKeyUsages)) continue;
-            List<KeyUsageBit> keyUsageBits = ((XmlKeyUsages)ext).getKeyUsageBit();
-            if (keyUsageBits.contains(KeyUsageBit.NON_REPUDIATION)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
         if (toValidate.getCertificate() == null)
@@ -299,16 +217,5 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
-    }
-
-    @XmlRootElement
-    @XmlAccessorType(XmlAccessType.FIELD)
-    private static class XmlReportRoot {
-
-        private XmlDetailedReport report;
-
-        public void setReport(XmlDetailedReport report) {
-            this.report = report;
-        }
     }
 }
