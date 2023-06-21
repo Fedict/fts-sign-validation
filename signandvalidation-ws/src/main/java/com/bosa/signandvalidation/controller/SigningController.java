@@ -114,8 +114,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String SIGN_DOCUMENT_XADES_MULTI_DOC    = "/signDocumentXades";
 
     private static final String KEYS_FOLDER                     = "keys/";
-    private static final String JSON_FILENAME_EXTENTION = ".json";
-    private static final String SYMMETRIC_KEY_ALGO              = "AES";
+    private static final String JSON_FILENAME_EXTENTION         = ".json";
 
     private static final SimpleDateFormat logDateTimeFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
     // Secret key cache
