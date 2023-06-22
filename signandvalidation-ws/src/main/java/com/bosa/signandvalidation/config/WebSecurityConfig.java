@@ -32,6 +32,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // javadoc uses frames
         http.headers().addHeaderWriter(javadocHeaderWriter());
+        // so does the GUI thing, from a different domain even.
+        HeadersConfigurer<HttpSecurity> headers = http.antMatcher("/signing/getDocumentForToken").headers();
+        headers.frameOptions().disable();
+        headers.contentSecurityPolicy("frame-ancestors 'self'");
+
         http.headers().addHeaderWriter(serverEsigDSS());
         LOG.info("WebSecurityConfig configured");
     }
