@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
@@ -20,8 +19,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${cors.allowedorigins")
-    private String allowedOrigins;
+    @Value("${frame-ancestors}")
+    private String frameAncestors;
 
     private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
 
@@ -32,10 +31,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // javadoc uses frames
         http.headers().addHeaderWriter(javadocHeaderWriter());
+
         // so does the GUI thing, from a different domain even.
-        HeadersConfigurer<HttpSecurity> headers = http.antMatcher("/signing/getDocumentForToken").headers();
-        headers.frameOptions().disable();
-        headers.contentSecurityPolicy("frame-ancestors 'self'");
+        http.headers().xssProtection().and().contentSecurityPolicy("frame-ancestors " + frameAncestors);
 
         http.headers().addHeaderWriter(serverEsigDSS());
         LOG.info("WebSecurityConfig configured");
