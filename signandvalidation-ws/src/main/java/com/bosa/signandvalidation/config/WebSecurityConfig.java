@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
@@ -31,8 +32,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // javadoc uses frames
         http.headers().addHeaderWriter(javadocHeaderWriter());
-        // so does the GUI thing, from a different domain even.
-        http.antMatcher("/signing/getDocumentForToken").headers().frameOptions().disable();
         http.headers().addHeaderWriter(serverEsigDSS());
         LOG.info("WebSecurityConfig configured");
     }
