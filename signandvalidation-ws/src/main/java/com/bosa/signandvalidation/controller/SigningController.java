@@ -30,6 +30,9 @@ import eu.europa.esig.dss.xades.DSSXMLUtils;
 import eu.europa.esig.dss.xades.reference.CanonicalizationTransform;
 import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xades.reference.DSSTransform;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.xml.security.transforms.Transforms;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,6 +162,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
      *
      ****************************************************************************************/
 
+    @Operation(summary = "Get a single document signing flow token", description = "Create signing flow, validate it's parameters and create a unique identifier")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token created and ready for use"),
+            @ApiResponse(responseCode = "500", description = "Error while creating the token")
+    })
     @PostMapping(value = GET_TOKEN_FOR_DOCUMENT, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocument(@RequestBody GetTokenForDocumentDTO tokenData) {
         try {
@@ -214,6 +222,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
+    @Operation(summary = "Get a 1 to N document signing flow token", description = "Create signing flow, validate it's parameters and create a unique identifier")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token created and ready for use"),
+            @ApiResponse(responseCode = "500", description = "Error while creating the token")
+    })
      @PostMapping(value = GET_TOKEN_FOR_DOCUMENTS, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocuments(@RequestBody GetTokenForDocumentsDTO gtfd) {
         // Validate input
