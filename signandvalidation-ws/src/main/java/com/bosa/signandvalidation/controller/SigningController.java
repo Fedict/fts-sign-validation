@@ -8,9 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.DirectDecrypter;
-import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 import com.bosa.signingconfigurator.exception.ProfileNotFoundException;
@@ -41,11 +38,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.*;
 import java.security.SecureRandom;
-import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -61,14 +56,10 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -124,12 +115,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String SIGN_DOCUMENT_XADES_MULTI_DOC    = "/signDocumentXades";
 
     private static final String KEYS_FOLDER                     = "keys/";
-    private static final String KEYS_FILENAME_EXTENTION         = ".json";
-    private static final String SYMMETRIC_KEY_ALGO              = "AES";
+    private static final String JSON_FILENAME_EXTENTION         = ".json";
 
     private static final SimpleDateFormat logDateTimeFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
     // Secret key cache
-    private static final Cache<String, SecretKey> keyCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
+    private static final Cache<String, TokenObject> tokenCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
 
     @Autowired
     private SigningConfiguratorService signingConfigService;
@@ -213,7 +203,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             checkTokenAndSetDefaults(token);
 
-            String tokenString = createToken(token);
+            String tokenString = saveToken(token);
             logger.info("Returning from getTokenForDocument()" + getTokenFootprint(tokenString) + " params: " + objectToString(tokenData));
             return tokenString;
         } catch (Exception e) {
@@ -273,7 +263,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         // Create Token
-        String tokenString = createToken(token);
+        String tokenString = saveToken(token);
         logger.info("Returning from getTokenForDocuments()" + getTokenFootprint(tokenString) + " params: " + objectToString(gtfd));
         return tokenString;
     }
@@ -470,6 +460,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             //logger.info(XmlUtil.xmlDocToString(doc));
 
             TransformerFactory tf = new net.sf.saxon.BasicTransformerFactory();
+            tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+
             // If requested create target file
             String xsltPath = token.getOutXsltPath();
             if (xsltPath != null) {
@@ -527,7 +520,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         String tokenFootprint = getTokenFootprint(tokenString);
         logger.info("Entering getMetadataForToken()" + tokenFootprint);
             try {
-                TokenObject token = extractToken(tokenString);
+                TokenObject token = getToken(tokenString);
                 List<SignInputMetadata> signedInputsMetadata = new ArrayList<>();
                 for(TokenSignInput input : token.getInputs()) {
                     SignInputMetadata inputMetadata = new SignInputMetadata();
@@ -566,7 +559,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                                 @RequestParam(required = false)  String forceDownload,
                                 HttpServletResponse response) {
 
-        TokenObject token = extractToken(tokenString);
+        TokenObject token = getToken(tokenString);
 
         String singleFilePath = null;
         TokenSignInput input = token.getInputs().get(inputIndexes[0]);
@@ -646,7 +639,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         String tokenFootprint = getTokenFootprint(tokenString);
         logger.info("Entering getDataToSignForToken()" + tokenFootprint);
         try {
-            TokenObject token = extractToken(dataToSignForTokenDto.getToken());
+            TokenObject token = getToken(dataToSignForTokenDto.getToken());
             ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
 
             // Signer allowed to sign ?
@@ -720,7 +713,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             String tokenFootprint = getTokenFootprint(signDto.getToken());
             logger.info("Entering signDocumentForToken()" + tokenFootprint);
 
-            TokenObject token = extractToken(signDto.getToken());
+            TokenObject token = getToken(signDto.getToken());
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
 
             // Signing within allowed time ?
@@ -874,37 +867,24 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     /*****************************************************************************************/
-    // Create a "token" based of n the CreateSignFlowDTO. This will be the driver for the whole process
+    // Save token object to storageService and return a tokenId
 
-    String createToken(TokenObject token)  {
+    String saveToken(TokenObject token)  {
         try {
-            // JSONify & GZIP object
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
             token.setCreateTime(new Date().getTime());
-            ObjectMapper om = new ObjectMapper();
-            om.setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValue(new GZIPOutputStream(bos), token);
 
-            // Create new symetric Key
-            KeyGenerator keygen = KeyGenerator.getInstance(SYMMETRIC_KEY_ALGO);
-            keygen.init(256);
-            SecretKey newKey = keygen.generateKey();
+            byte[] tokenBytes = new byte[12];
+            new SecureRandom().nextBytes(tokenBytes);
+            String tokenId = Base64.getUrlEncoder().encodeToString(tokenBytes);
 
-            // Create new random KeyID
-            byte[] kidBytes = new byte[9];
-            new SecureRandom().nextBytes(kidBytes);
-            String keyId = Base64.getUrlEncoder().encodeToString(kidBytes);
-            // Store key in secret bucket
-            byte[] jsonKey = om.writeValueAsBytes(newKey.getEncoded());
-            storageService.storeFile(null, KEYS_FOLDER + keyId + KEYS_FILENAME_EXTENTION, jsonKey);
-            keyCache.put(keyId, newKey);
+            // Store token in secret bucket
+            ObjectMapper om = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            storageService.storeFile(null, KEYS_FOLDER + tokenId + JSON_FILENAME_EXTENTION, om.writeValueAsBytes(token));
 
-            // Pack all into a JWE & Encrypt
-            JWEObject jweObject = new JWEObject(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256)
-                    .keyID(keyId)
-                    .build(), new Payload(bos.toByteArray()));
-            jweObject.encrypt(new DirectEncrypter(newKey));
-            return jweObject.serialize();
+            // Cache token
+            tokenCache.put(tokenId, token);
+
+            return tokenId;
         } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -914,27 +894,21 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    // Extract and decrypt a "token"
-    private TokenObject extractToken(String tokenString) {
+    // Get token from cache or storageService
+    private TokenObject getToken(String tokenId) {
         try {
-            ObjectMapper om = new ObjectMapper();
-            JWEObject jweObject = JWEObject.parse(tokenString);
-            String keyId = jweObject.getHeader().getKeyID();
-            SecretKey key = keyCache.getIfPresent(keyId);
-            if (key == null) {
-                byte[] rawKey = storageService.getFileAsBytes(null, KEYS_FOLDER + keyId + KEYS_FILENAME_EXTENTION, false);
-                key = new SecretKeySpec(om.readValue(rawKey, byte[].class), SYMMETRIC_KEY_ALGO);
-                keyCache.put(keyId, key);
+            TokenObject token = tokenCache.getIfPresent(tokenId);
+            if (token == null) {
+                byte[] rawToken = storageService.getFileAsBytes(null, KEYS_FOLDER + tokenId + JSON_FILENAME_EXTENTION, false);
+                token = new ObjectMapper().readValue(rawToken, TokenObject.class);
+                tokenCache.put(tokenId, token);
             }
-            jweObject.decrypt(new DirectDecrypter(key));
-            GZIPInputStream zis = new GZIPInputStream(new ByteArrayInputStream(jweObject.getPayload().toBytes()));
-            TokenObject token = om.readValue(zis, TokenObject.class);
 
             if (new Date().getTime() > (token.getCreateTime() + token.getTokenTimeout() * 1000L)) {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
             }
             return token;
-        } catch(ParseException | IOException | JOSEException e) {
+        } catch(IOException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         }
         return  null;
