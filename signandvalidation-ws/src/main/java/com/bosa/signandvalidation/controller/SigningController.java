@@ -771,7 +771,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             signedDoc.setName(getOutFilePath(token, inputToSign));
 
             logger.info("signDocumentForToken(): validating the signed doc" + tokenFootprint);
-            signedDoc = validateResult(signedDoc, clientSigParams.getDetachedContents(), parameters, token, signedDoc.getName(), null);
+
+            List<RemoteDocument> detachedDocuments = clientSigParams.getDetachedContents();
+            if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
+            detachedDocuments.add(fileToSign);
+
+            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), null);
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
@@ -1044,7 +1049,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
-            RemoteDocument ret =  validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters, signDocumentDto.getValidatePolicy());
+            List<RemoteDocument> detachedDocuments = clientSigParams.getDetachedContents();
+            if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
+            detachedDocuments.add(signDocumentDto.getToSignDocument());
+
+            RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, signDocumentDto.getValidatePolicy());
             logger.info("Returning from signDocument()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1070,7 +1079,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
-            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getClientSignatureParameters().getDetachedContents(), parameters, null);
+            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getToSignDocuments(), parameters, null);
             logger.info("Returning from signDocumentMultiple()");
             return ret;
         } catch (ProfileNotFoundException e) {
