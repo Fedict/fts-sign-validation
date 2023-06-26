@@ -59,6 +59,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -459,6 +460,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             //logger.info(XmlUtil.xmlDocToString(doc));
 
             TransformerFactory tf = new net.sf.saxon.BasicTransformerFactory();
+            tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+
             // If requested create target file
             String xsltPath = token.getOutXsltPath();
             if (xsltPath != null) {
