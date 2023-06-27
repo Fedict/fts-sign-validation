@@ -772,6 +772,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             logger.info("signDocumentForToken(): validating the signed doc" + tokenFootprint);
 
+            // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
+            // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
             List<RemoteDocument> detachedDocuments = clientSigParams.getDetachedContents();
             if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
             detachedDocuments.add(fileToSign);
@@ -781,6 +783,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
 
+            // Log bucket and filename only for this method
             MDC.put("bucket", token.getBucket());
             MDC.put("fileName", signedDoc.getName());
             logger.info("Returning from signDocumentForToken().");
@@ -1049,6 +1052,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.signDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto);
 
+            // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
+            // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
             List<RemoteDocument> detachedDocuments = clientSigParams.getDetachedContents();
             if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
             detachedDocuments.add(signDocumentDto.getToSignDocument());
@@ -1079,6 +1084,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
+            // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
+            // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
             RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getToSignDocuments(), parameters, signDocumentDto.getValidatePolicy());
             logger.info("Returning from signDocumentMultiple()");
             return ret;
