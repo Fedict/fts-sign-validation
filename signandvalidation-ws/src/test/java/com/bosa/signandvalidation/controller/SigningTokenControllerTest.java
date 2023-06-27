@@ -57,7 +57,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
         // get token from file
         GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
-        getTokenDTO.setProf("PADES_B");
+        getTokenDTO.setProf(SignProfiles.PADES_B.name());
         getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setIn(inFile.getName());
 
@@ -104,7 +104,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
         // get token from file
         GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
-        getTokenDTO.setProf("PADES_B");
+        getTokenDTO.setProf(SignProfiles.PADES_B.name());
         getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setIn(inFile.getName());
         List<AllowedToSign> signers = new ArrayList<>();
@@ -141,7 +141,48 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
         // get token from file
         GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
-        getTokenDTO.setProf("XADES_B");
+        getTokenDTO.setProf(SignProfiles.XADES_B.name());
+        getTokenDTO.setName(THE_BUCKET);
+        getTokenDTO.setIn(inFile.getName());
+        getTokenDTO.setSignTimeout(1000);
+        getTokenDTO.setNoDownload(false);
+        getTokenDTO.setOut("out");
+        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+
+        // get data to sign
+        GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dataToSignDTO, DataToSignDTO.class);
+
+        // sign
+        SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
+
+        // sign document
+        clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
+        SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
+        assertNull(signedDocument);
+    }
+
+    @Test
+    public void testSigningDetachedProfile() throws Exception {
+        Mockito.when(storageService.isValidAuth(any(), any())).thenReturn(true);
+
+        File inFile = new File("src/test/resources/sample.xml");
+        byte[] fileBytes = Utils.toByteArray(new FileInputStream(inFile));
+        Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(inFile.getName()), eq(true))).thenReturn(fileBytes);
+
+        Pkcs12SignatureToken token = new Pkcs12SignatureToken(
+                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                new KeyStore.PasswordProtection("123456".toCharArray())
+        );
+        List<DSSPrivateKeyEntry> keys = token.getKeys();
+        DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
+
+        ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
+
+        // get token from file
+        GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
+        getTokenDTO.setProf(SignProfiles.XADES_B_DETACHED.name());
         getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setIn(inFile.getName());
         getTokenDTO.setSignTimeout(1000);
