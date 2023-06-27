@@ -83,7 +83,7 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
 
         // sign document
-        SignDocumentMultipleDTO signDocumentDTO = new SignDocumentMultipleDTO(toSignDocuments, "XADES_B", clientSignatureParameters, signatureValue.getValue());
+        SignDocumentMultipleDTO signDocumentDTO = new SignDocumentMultipleDTO(toSignDocuments, "XADES_B", clientSignatureParameters, signatureValue.getValue(), null);
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
