@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class DataToValidateDTO {
 
-    @Schema(name = "signedDocument", required = true, description = "The base 64 encoded document to validate.<BR>" +
+    @Schema(name = "signedDocument", requiredMode = Schema.RequiredMode.REQUIRED, description = "The base 64 encoded document to validate.<BR>" +
             "It contains 3 fields : <UL>"+
             "<LI>bytes : (mandatory) = base 64 encoded data to validate</LI>" +
             "<LI>'digestAlgorithm' : (optional) = DO NOT USE</LI>" +
@@ -21,13 +21,13 @@ public class DataToValidateDTO {
             "</UL>")
     private RemoteDocument signedDocument;
 
-    @Schema(name = "originalDocuments", required = false, description = "For detached signatures, the list of documents that are covered by the signature(s)")
+    @Schema(name = "originalDocuments", description = "For detached signatures, the list of documents that are covered by the signature(s)")
     private List<RemoteDocument> originalDocuments;
 
-    @Schema(name = "policy", required = false, description = "The base 64 encoded 'policy.xml' file to use for the validation.<BR>Mainly used to allow tests to validate test certificates")
+    @Schema(name = "policy", description = "The base 64 encoded 'policy.xml' file to use for the validation.<BR>Mainly used to allow tests to validate test certificates")
     private RemoteDocument policy;
 
-    @Schema(name = "level", example = "XAdES_BASELINE_B", required = false, description = "Expected signature level of every signature in the file." +
+    @Schema(name = "level", example = "XAdES_BASELINE_B", description = "Expected signature level of every signature in the file." +
             "<BR>If a signature has a different level validation fails")
     private SignatureLevel level;
 

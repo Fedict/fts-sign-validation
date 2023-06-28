@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignatureFullValiationDTO {
-    @Schema(name = "diagnosticData", required = true, description = "The information set that was used as part of the validation process")
+    @Schema(name = "diagnosticData", description = "The information set that was used as part of the validation process")
     private XmlDiagnosticData diagnosticData;
-    @Schema(name = "simpleReport", required = false, description = "A 'general summary' validation report")
+    @Schema(name = "simpleReport", description = "A 'general summary' validation report")
     private XmlSimpleReport simpleReport;
-    @Schema(name = "detailedReport", required = true, description = "A validation report with the full validation information")
+    @Schema(name = "detailedReport", description = "A validation report with the full validation information")
     private XmlDetailedReport detailedReport;
 }

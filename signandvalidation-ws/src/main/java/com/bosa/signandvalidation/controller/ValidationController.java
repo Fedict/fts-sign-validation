@@ -50,7 +50,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
     }
 
     @Operation(summary = "Validate a single document's signatures", description = "Validate a signed file.<BR>" +
-            "<BR><B>NOTE : validaSignature calls validaSignatureFull and returns a smaller set of information<BR>" +
+            "<BR><B>NOTE : validaSignature calls validaSignatureFull and returns a smaller set of information</B><BR>" +
             "<BR>The Signature can be either part of the signed document or external to the document(s)" +
             "<BR>For external (DETACHED) signature validation a list of 'originalDocument' files must be provided" +
             "<BR>It is possible to check if all signatures have the expected signature level. For this you must set the 'level' value<BR>" +
@@ -73,7 +73,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         return signDto;
     }
 
-    @Operation(summary = "Validate a single document's signatures with full reports", description = "Validate a signed file.<BR>" +
+    @Operation(summary = "Validate a single document's signatures returning all validation reports", description = "Validate a signed file.<BR>" +
             "<BR>The Signature can be either part of the signed document or external to the document(s)" +
             "<BR>For external (DETACHED) signature validation a list of 'originalDocument' files must be provided" +
             "<BR>It is possible to check if all signatures have the expected signature level. For this you must set the 'level' value<BR>" +
@@ -81,7 +81,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             " can be provided to extend the trusted list of root certificates.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Validation occurred without error. Check the validation results",
-                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = SignatureIndicationsDTO.class)) }),
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = SignatureFullValiationDTO.class)) }),
             @ApiResponse(responseCode = "400", description = "One of the signatures does not match the expected signature level / Error trying to decode the 'trust' certificates or keystore files",
                     content = { @Content(mediaType = "text/plain") }),
             @ApiResponse(responseCode = "500", description = "Technical error",
@@ -119,6 +119,15 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         }
     }
 
+    @Operation(summary = "Validate a single certificate", description = "Validate a certificate.<BR>" +
+            "<BR><B>NOTE : validateCertificate calls validateCertificateFull and returns a smaller set of information</B><BR>")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Validation occurred without error. Check the validation results",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = CertificateIndicationsDTO.class)) }),
+            @ApiResponse(responseCode = "500", description = "Technical error",
+                    content = { @Content(mediaType = "text/plain") })
+    })
+
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
         if (toValidate.getCertificate() == null)
@@ -142,8 +151,16 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         return null; // We won't get here
     }
 
+    @Operation(summary = "Validate a single certificate returning all validation reports", description = "Validate a certificate.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Validation occurred without error. Check the validation results",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = CertificateFullValidationDTO.class)) }),
+            @ApiResponse(responseCode = "500", description = "Technical error",
+                    content = { @Content(mediaType = "text/plain") })
+    })
+
     @PostMapping(value = "/validateCertificateFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public CertificateReportsDTO validateCertificateFull(@RequestBody CertificateToValidateDTO toValidate) {
+    public CertificateFullValidationDTO validateCertificateFull(@RequestBody CertificateToValidateDTO toValidate) {
         if (toValidate.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 
@@ -152,12 +169,21 @@ public class ValidationController extends ControllerBase implements ErrorStrings
                 new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
 			toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
             logger.info("ValidateCertificateFull is finished");
-            return result;
+
+            return new CertificateFullValidationDTO(result.getDiagnosticData(), result.getSimpleCertificateReport(), result.getDetailedReport());
         } catch (RuntimeException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
     }
+
+    @Operation(summary = "Validate a list of certificates", description = "Validate a list of certificates returning a list of indications.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Validation occurred without error. Check the validation results",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = IndicationsListDTO.class)) }),
+            @ApiResponse(responseCode = "500", description = "Technical error",
+                    content = { @Content(mediaType = "text/plain") })
+    })
 
     @PostMapping(value = "/validateCertificates", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public IndicationsListDTO validateCertificates(@RequestBody List<CertificateToValidateDTO> toValidateList) {

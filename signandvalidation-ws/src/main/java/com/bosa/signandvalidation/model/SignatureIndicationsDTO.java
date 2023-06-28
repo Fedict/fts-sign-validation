@@ -10,16 +10,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SignatureIndicationsDTO {
 
-    @Schema(name = "indication", required = true, description = "The main result of the validation.")
+    @Schema(name = "indication", description = "The main result of the validation.")
     private Indication indication;
 
-    @Schema(name = "subIndicationLabel", required = false, description = "In case the indication is not 'TOTAL_PASSED' the sub indication will contain extra information about the validation issue.")
+    @Schema(name = "subIndicationLabel", description = "In case the indication is not 'TOTAL_PASSED' the sub indication will contain extra information about the validation issue.")
     private String subIndicationLabel;
 
-    @Schema(name = "report", required = true, description = "A validation report in XML form")
+    @Schema(name = "report", description = "A validation report in XML form")
     private String report;
 
-    @Schema(name = "normalizedReport", required = true, description = "A simple validation report. <BR>It is the same validation result as the 'SignBox' validation output")
+    @Schema(name = "normalizedReport", description = "A simple validation report. <BR>It is the same validation result as the 'SignBox' validation output")
     private NormalizedReport normalizedReport;
 
     public SignatureIndicationsDTO(Indication indication) {
