@@ -2,6 +2,7 @@ package com.bosa.signandvalidation.service;
 
 import com.bosa.signandvalidation.model.NormalizedReport;
 import com.bosa.signandvalidation.model.NormalizedSignatureInfo;
+import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
@@ -11,11 +12,8 @@ import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlKeyUsages;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSigningCertificate;
 import eu.europa.esig.dss.enumerations.KeyUsageBit;
-import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.enumerations.SignatureQualification;
 import eu.europa.esig.dss.simplereport.jaxb.*;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
@@ -27,7 +25,6 @@ import static com.bosa.signandvalidation.config.ErrorStrings.CERT_REVOKED;
 import static eu.europa.esig.dss.enumerations.Indication.*;
 import static eu.europa.esig.dss.enumerations.SignatureLevel.PAdES_BASELINE_LTA;
 import static eu.europa.esig.dss.enumerations.SubIndication.*;
-import static eu.europa.esig.dss.i18n.MessageTag.BBB_ICS_ISASCP_ANS;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ReportServiceTest {
@@ -38,7 +35,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoNoSignatureTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(0);
@@ -50,7 +47,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoOneSignatureTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -66,7 +63,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoOnePassedSignatureTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -83,7 +80,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoRevokedAdesCertTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -106,7 +103,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoRevokedQualifCertTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -129,7 +126,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoNoRevokedCertTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -152,7 +149,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoTwoSignTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(2);
@@ -174,7 +171,7 @@ public class ReportServiceTest {
     }
     @Test
     public void normalizedReportTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
 
         String theID = "ID1";
         String theCommonName = "TheSigner";
@@ -225,7 +222,7 @@ public class ReportServiceTest {
         assertTrue(theSignature.isValid());
         assertTrue(theSignature.isQualified());
         assertFalse(theSignature.isMissingSigningCert());
-        assertEquals(PAdES_BASELINE_LTA.name(), theSignature.getSignatureFormat());
+        assertEquals(PAdES_BASELINE_LTA, theSignature.getSignatureFormat());
         assertEquals(theCommonName, theSignature.getSignerCommonName());
     }
 

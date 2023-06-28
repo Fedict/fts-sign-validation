@@ -9,19 +9,10 @@ import com.bosa.signandvalidation.config.ErrorStrings;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 
-import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
-import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
-import eu.europa.esig.dss.detailedreport.jaxb.XmlMessage;
 import eu.europa.esig.dss.diagnostic.jaxb.*;
-import eu.europa.esig.dss.enumerations.Indication;
-import eu.europa.esig.dss.enumerations.KeyUsageBit;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
-import eu.europa.esig.dss.enumerations.SignatureQualification;
-import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
-import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,21 +20,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
-import java.io.Serializable;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import static eu.europa.esig.dss.i18n.MessageTag.BBB_ICS_ISASCP_ANS;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -67,9 +49,13 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         return "pong";
     }
 
-    @Operation(summary = "Validate a single document's signatures", description = "Validate a signed file.<BR> Optionally check if all signatures have the expected signature level.<BR>" +
-            "A list of Certificates (Either in a '.p12' or a list of '.cer' files) can be provided to extend the trusted list of root certificates.<BR>" +
-            " For DETACHED signature a list of 'originalDocument' files can be provided")
+    @Operation(summary = "Validate a single document's signatures", description = "Validate a signed file.<BR>" +
+            "<BR><B>NOTE : validaSignature calls validaSignatureFull and returns a smaller set of information<BR>" +
+            "<BR>The Signature can be either part of the signed document or external to the document(s)" +
+            "<BR>For external (DETACHED) signature validation a list of 'originalDocument' files must be provided" +
+            "<BR>It is possible to check if all signatures have the expected signature level. For this you must set the 'level' value<BR>" +
+            "<BR>To allow validation of 'non EIDAs' (Not part of the pan EU PKI) signatures a list of certificates (Either in a '.p12' or a list of '.cer' files)" +
+            " can be provided to extend the trusted list of root certificates.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Validation occurred without error. Check the validation results",
                     content = { @Content(mediaType = "application/json", schema = @Schema(implementation = SignatureIndicationsDTO.class)) }),
@@ -81,19 +67,34 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
-        WSReportsDTO report = validateSignatureFull(toValidate);
+        SignatureFullValiationDTO report = validateSignatureFull(toValidate);
         SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsAndReportsDto(report);
         logger.info("ValidateSignature is finished");
         return signDto;
     }
 
+    @Operation(summary = "Validate a single document's signatures with full reports", description = "Validate a signed file.<BR>" +
+            "<BR>The Signature can be either part of the signed document or external to the document(s)" +
+            "<BR>For external (DETACHED) signature validation a list of 'originalDocument' files must be provided" +
+            "<BR>It is possible to check if all signatures have the expected signature level. For this you must set the 'level' value<BR>" +
+            "<BR>To allow validation of 'non EIDAs' (Not part of the pan EU PKI) signatures a list of certificates (Either in a '.p12' or a list of '.cer' files)" +
+            " can be provided to extend the trusted list of root certificates.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Validation occurred without error. Check the validation results",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = SignatureIndicationsDTO.class)) }),
+            @ApiResponse(responseCode = "400", description = "One of the signatures does not match the expected signature level / Error trying to decode the 'trust' certificates or keystore files",
+                    content = { @Content(mediaType = "text/plain") }),
+            @ApiResponse(responseCode = "500", description = "Technical error",
+                    content = { @Content(mediaType = "text/plain") })
+    })
+
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public WSReportsDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
+    public SignatureFullValiationDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
         if (toValidate.getSignedDocument() == null)
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
 
         try {
-            WSReportsDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
+            SignatureFullValiationDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy());
             if (toValidate.getLevel() != null && reportsDto.getDiagnosticData() != null) {
                 checkSignatures(toValidate.getLevel(), reportsDto);
             }
@@ -107,7 +108,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         return null; // We won't get here
     }
 
-    private void checkSignatures(SignatureLevel level, WSReportsDTO reportsDto) throws IllegalSignatureFormatException {
+    private void checkSignatures(SignatureLevel level, SignatureFullValiationDTO reportsDto) throws IllegalSignatureFormatException {
         List<XmlSignature> signatures = reportsDto.getDiagnosticData().getSignatures();
         if (signatures != null)  {
             for (XmlSignature signature : signatures) {

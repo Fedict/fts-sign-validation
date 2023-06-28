@@ -13,13 +13,22 @@ import java.util.List;
 @NoArgsConstructor
 public class DataToValidateDTO {
 
-    @Schema(name = "signedDocument", required = true, description = "The base 64 encoded document to validate. It contains 3 fields : 'bytes' (mandatory) = base 64 encoded data to validate, 'digestAlgorithm' (optional) = DO NOT USE, 'name' (optional) = DO NOT USE")
+    @Schema(name = "signedDocument", required = true, description = "The base 64 encoded document to validate.<BR>" +
+            "It contains 3 fields : <UL>"+
+            "<LI>bytes : (mandatory) = base 64 encoded data to validate</LI>" +
+            "<LI>'digestAlgorithm' : (optional) = DO NOT USE</LI>" +
+            "<LI>'name' : (optional) = DO NOT USE</LI>" +
+            "</UL>")
     private RemoteDocument signedDocument;
+
     @Schema(name = "originalDocuments", required = false, description = "For detached signatures, the list of documents that are covered by the signature(s)")
     private List<RemoteDocument> originalDocuments;
-    @Schema(name = "policy", required = false, description = "The base 64 encoded 'policy.xml' file to use for the validation. Mainly used to allow tests to validate test certificates")
+
+    @Schema(name = "policy", required = false, description = "The base 64 encoded 'policy.xml' file to use for the validation.<BR>Mainly used to allow tests to validate test certificates")
     private RemoteDocument policy;
-    @Schema(name = "level", example = "XAdES_BASELINE_B", required = false, description = "Expected signature level of every signature in the file. If a signature has a different level validation fails")
+
+    @Schema(name = "level", example = "XAdES_BASELINE_B", required = false, description = "Expected signature level of every signature in the file." +
+            "<BR>If a signature has a different level validation fails")
     private SignatureLevel level;
 
     public DataToValidateDTO(RemoteDocument signedDocument) {

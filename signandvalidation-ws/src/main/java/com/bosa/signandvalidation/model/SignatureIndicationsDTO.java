@@ -1,8 +1,8 @@
 package com.bosa.signandvalidation.model;
 
-import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,12 +10,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SignatureIndicationsDTO {
 
+    @Schema(name = "indication", required = true, description = "The main result of the validation.")
     private Indication indication;
 
+    @Schema(name = "subIndicationLabel", required = false, description = "In case the indication is not 'TOTAL_PASSED' the sub indication will contain extra information about the validation issue.")
     private String subIndicationLabel;
 
+    @Schema(name = "report", required = true, description = "A validation report in XML form")
     private String report;
 
+    @Schema(name = "normalizedReport", required = true, description = "A simple validation report. <BR>It is the same validation result as the 'SignBox' validation output")
     private NormalizedReport normalizedReport;
 
     public SignatureIndicationsDTO(Indication indication) {

@@ -814,7 +814,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token, String outFilePath, RemoteDocument validatePolicy) {
-        WSReportsDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, validatePolicy, parameters);
+        SignatureFullValiationDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, validatePolicy, parameters);
 
         if (null != token) {
             try {
