@@ -155,7 +155,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         RemoteDocument originalFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, null);
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile);
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
         // when
@@ -173,7 +173,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         FileDocument fileDocument = new FileDocument("src/test/resources/sample.xml");
         RemoteDocument originalFile = new RemoteDocument(DSSUtils.digest(DigestAlgorithm.SHA256, fileDocument), fileDocument.getName());
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, null);
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile);
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
         // when
@@ -221,7 +221,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     public void signatureFullWithNoPolicyAndOriginalFile() {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
         // when
@@ -240,7 +240,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     public void signatureSHA1() {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b_sha1.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
         // when

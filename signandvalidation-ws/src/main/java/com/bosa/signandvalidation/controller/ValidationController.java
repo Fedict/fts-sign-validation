@@ -22,6 +22,11 @@ import eu.europa.esig.dss.simplereport.jaxb.XmlToken;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -61,6 +66,18 @@ public class ValidationController extends ControllerBase implements ErrorStrings
     public String ping() {
         return "pong";
     }
+
+    @Operation(summary = "Validate a single document's signatures", description = "Validate a signed file.<BR> Optionally check if all signatures have the expected signature level.<BR>" +
+            "A list of Certificates (Either in a '.p12' or a list of '.cer' files) can be provided to extend the trusted list of root certificates.<BR>" +
+            " For DETACHED signature a list of 'originalDocument' files can be provided")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Validation occurred without error. Check the validation results",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = SignatureIndicationsDTO.class)) }),
+            @ApiResponse(responseCode = "400", description = "One of the signatures does not match the expected signature level / Error trying to decode the 'trust' certificates or keystore files",
+                    content = { @Content(mediaType = "text/plain") }),
+            @ApiResponse(responseCode = "500", description = "Technical error",
+                    content = { @Content(mediaType = "text/plain") })
+    })
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
