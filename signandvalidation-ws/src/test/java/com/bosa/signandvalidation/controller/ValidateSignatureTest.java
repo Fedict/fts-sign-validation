@@ -2,7 +2,7 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.SignAndValidationTestBase;
 import com.bosa.signandvalidation.model.DataToValidateDTO;
-import com.bosa.signandvalidation.model.KeystoreOrCerts;
+import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
@@ -10,7 +10,6 @@ import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -160,7 +159,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         RemoteDocument originalFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, null);
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile);
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
         // when
@@ -178,7 +177,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         FileDocument fileDocument = new FileDocument("src/test/resources/sample.xml");
         RemoteDocument originalFile = new RemoteDocument(DSSUtils.digest(DigestAlgorithm.SHA256, fileDocument), fileDocument.getName());
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, null);
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile);
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
         // when
@@ -226,17 +225,16 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     public void signatureFullWithNoPolicyAndOriginalFile() {
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b.xml"));
-        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
         toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
 
         // when
-        WSReportsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATUREFULL_ENDPOINT, toValidate, WSReportsDTO.class);
+        SignatureFullValiationDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATUREFULL_ENDPOINT, toValidate, SignatureFullValiationDTO.class);
 
         // then
         assertNotNull(result.getDiagnosticData());
         assertNotNull(result.getDetailedReport());
         assertNotNull(result.getSimpleReport());
-        assertNotNull(result.getValidationReport());
 
         assertEquals(1, result.getSimpleReport().getSignatureOrTimestamp().size());
     }

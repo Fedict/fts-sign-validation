@@ -13,7 +13,6 @@ import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -99,7 +98,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
         Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(MAIN_XSLT_FILE_NAME))).thenReturn(new ByteArrayInputStream(MAIN_XSLT_FILE.getBytes()));
 
-        WSReportsDTO reportsDto = new WSReportsDTO();
+        SignatureFullValiationDTO reportsDto = new SignatureFullValiationDTO();
         Mockito.when(validationService.validateDocument(any(),any(), any(), any())).thenReturn(reportsDto);
         SignatureIndicationsDTO indications = new SignatureIndicationsDTO();
         indications.setIndication(Indication.TOTAL_PASSED);

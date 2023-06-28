@@ -25,7 +25,7 @@
         <jackson-jaxrs-json-provider.version>2.9.9</jackson-jaxrs-json-provider.version>
         <hikaricp.version>3.3.1</hikaricp.version>
         <hsqldb.version>2.5.0</hsqldb.version>
-        <springdoc.version>1.6.11</springdoc.version>
+        <springdoc.version>1.7.0</springdoc.version>
         <log4j2.version>2.12.3</log4j2.version>
 
         <!-- DSS5.12 imports - kept for reference

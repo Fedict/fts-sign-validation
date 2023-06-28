@@ -16,7 +16,6 @@ import eu.europa.esig.dss.simplecertificatereport.jaxb.XmlChainItem;
 import eu.europa.esig.dss.simplereport.jaxb.*;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -66,7 +65,7 @@ public class ReportsService implements ErrorStrings {
         return new CertificateIndicationsDTO(firstCommonName, PASSED, keyUsageCheckOk);
     }
 
-    public SignatureIndicationsDTO getSignatureIndicationsAndReportsDto(WSReportsDTO reportsDto) {
+    public SignatureIndicationsDTO getSignatureIndicationsAndReportsDto(SignatureFullValiationDTO reportsDto) {
         SignatureIndicationsDTO dto = getSignatureIndicationsDto(reportsDto);
 
         try {
@@ -96,7 +95,7 @@ public class ReportsService implements ErrorStrings {
         }
     }
 
-    public SignatureIndicationsDTO getSignatureIndicationsDto(WSReportsDTO reportsDto) {
+    public SignatureIndicationsDTO getSignatureIndicationsDto(SignatureFullValiationDTO reportsDto) {
         if (reportsDto.getSimpleReport().getSignaturesCount() == 0) {
             return new SignatureIndicationsDTO(INDETERMINATE, SIGNED_DATA_NOT_FOUND);
         }
@@ -111,7 +110,7 @@ public class ReportsService implements ErrorStrings {
 
     // This method is needed to allow signing the "unsignable PDF" that had a pre-existing, not "TOTAL_PASSED" Timestamp
     // This validation will locate the newly added signature and only check the indications for that signature
-    public SignatureIndicationsDTO getLatestSignatureIndicationsDto(WSReportsDTO reportsDto, Date after) {
+    public SignatureIndicationsDTO getLatestSignatureIndicationsDto(SignatureFullValiationDTO reportsDto, Date after) {
         XmlSignature xmlSignature = getLatestSignature(reportsDto.getSimpleReport(), after);
         if (xmlSignature == null) {
             return new SignatureIndicationsDTO(INDETERMINATE, SIGNED_DATA_NOT_FOUND);
@@ -169,7 +168,7 @@ public class ReportsService implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    public NormalizedReport getNormalizedReport(WSReportsDTO report) {
+    public NormalizedReport getNormalizedReport(SignatureFullValiationDTO report) {
         NormalizedReport result = new NormalizedReport();
         List<NormalizedSignatureInfo> signatures = result.getSignatures();
 
@@ -216,7 +215,7 @@ public class ReportsService implements ErrorStrings {
     private void getDiagnosticInfo(NormalizedSignatureInfo si, XmlDiagnosticData diagData, String id) {
         for (eu.europa.esig.dss.diagnostic.jaxb.XmlSignature diagSignature : diagData.getSignatures()) {
             if (diagSignature.getId().equals(id)) {
-                si.setSignatureFormat(diagSignature.getSignatureFormat().name());
+                si.setSignatureFormat(diagSignature.getSignatureFormat());
                 eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate signingCert = diagSignature.getSigningCertificate().getCertificate();
                 si.setSignerCommonName(signingCert.getCommonName());
                 if (!isNonRepudiationCert(signingCert)) si.setQualified(false);
@@ -238,7 +237,7 @@ public class ReportsService implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    public String createJSONReport(RemoteSignatureParameters parameters, WSReportsDTO reportsDto) throws IOException {
+    public String createJSONReport(RemoteSignatureParameters parameters, SignatureFullValiationDTO reportsDto) throws IOException {
         // Instead of saving the entire report, create our own report containing the simple/detailed/normalized reports and the signing cert
 
         ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(),

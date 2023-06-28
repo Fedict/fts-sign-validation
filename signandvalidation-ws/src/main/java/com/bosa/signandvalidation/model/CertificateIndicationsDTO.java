@@ -2,62 +2,31 @@ package com.bosa.signandvalidation.model;
 
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CertificateIndicationsDTO {
 
+    @Schema(name = "commonName", description = "The 'common name' of the certificate")
     private String commonName;
 
+    @Schema(name = "indication", description = "The main result of the validation.")
     private Indication indication;
 
+    @Schema(name = "subIndication", description = "In case the indication is not 'TOTAL_PASSED' the sub indication will contain extra information about the validation issue.")
     private SubIndication subIndication;
 
+    @Schema(name = "keyUsageCheckOk", description = "True if the validated certificate can sign the 'expectedKeyUsage' signature type")
     private boolean keyUsageCheckOk;
-
-    public CertificateIndicationsDTO() {
-    }
 
     public CertificateIndicationsDTO(String commonName, Indication indication, boolean keyUsageCheckOk) {
         this.commonName = commonName;
         this.indication = indication;
-        this.keyUsageCheckOk = keyUsageCheckOk;
-    }
-
-    public CertificateIndicationsDTO(String commonName, Indication indication, SubIndication subIndication, boolean keyUsageCheckOk) {
-        this.commonName = commonName;
-        this.indication = indication;
-        this.subIndication = subIndication;
-        this.keyUsageCheckOk = keyUsageCheckOk;
-    }
-
-    public String getCommonName() {
-        return commonName;
-    }
-
-    public void setCommonName(String commonName) {
-        this.commonName = commonName;
-    }
-
-    public Indication getIndication() {
-        return indication;
-    }
-
-    public void setIndication(Indication indication) {
-        this.indication = indication;
-    }
-
-    public SubIndication getSubIndication() {
-        return subIndication;
-    }
-
-    public void setSubIndication(SubIndication subIndication) {
-        this.subIndication = subIndication;
-    }
-
-    public boolean isKeyUsageCheckOk() {
-        return keyUsageCheckOk;
-    }
-
-    public void setKeyUsageCheckOk(boolean keyUsageCheckOk) {
         this.keyUsageCheckOk = keyUsageCheckOk;
     }
 }

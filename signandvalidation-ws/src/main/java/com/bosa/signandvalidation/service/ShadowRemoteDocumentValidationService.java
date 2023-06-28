@@ -35,6 +35,7 @@ package com.bosa.signandvalidation.service;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import eu.europa.esig.dss.exception.IllegalInputException;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.policy.ValidationPolicy;
@@ -89,7 +90,7 @@ public class ShadowRemoteDocumentValidationService {
      * @param dataToValidate {@link DataToValidateDTO} the request
      * @return {@link WSReportsDTO} response
      */
-    public WSReportsDTO validateDocument(DataToValidateDTO dataToValidate) {
+    public SignatureFullValiationDTO validateDocument(DataToValidateDTO dataToValidate) {
         LOG.info("ValidateDocument in process...");
         SignedDocumentValidator validator = initValidator(dataToValidate);
 
@@ -101,8 +102,8 @@ public class ShadowRemoteDocumentValidationService {
             reports = validator.validateDocument(getValidationPolicy(policy));
         }
 
-        WSReportsDTO reportsDTO = new WSReportsDTO(reports.getDiagnosticDataJaxb(), reports.getSimpleReportJaxb(),
-                reports.getDetailedReportJaxb(), reports.getEtsiValidationReportJaxb());
+        SignatureFullValiationDTO reportsDTO =
+                new SignatureFullValiationDTO(reports.getDiagnosticDataJaxb(), reports.getSimpleReportJaxb(), reports.getDetailedReportJaxb());
         LOG.info("ValidateDocument is finished");
         return reportsDTO;
     }

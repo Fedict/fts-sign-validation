@@ -6,6 +6,7 @@ import java.util.List;
 import java.io.Serializable;
 import java.util.logging.Logger;
 
+import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDistinguishedName;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
@@ -15,7 +16,6 @@ import eu.europa.esig.dss.simplereport.jaxb.*;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
@@ -39,14 +39,14 @@ public class BosaRemoteDocumentValidationService {
 		this.remoteDocumentValidationService = remoteDocumentValidationService;
 	}
 
-	public WSReportsDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy) {
+	public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy) {
 		return validateDocument(signedDocument, originalDocuments, policy, null);
 	}
 
-	public WSReportsDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, RemoteSignatureParameters parameters) {
+	public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, RemoteSignatureParameters parameters) {
 
 		// Let DSS do its normal validation
-		WSReportsDTO report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
+		SignatureFullValiationDTO report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
 		if (policy == null && hasBRCA3RevocationFreshnessError(report)) {
 			logger.warning("Document has BRCA3 signatures and no custom policy. Using custom BRCA3 policy to validate");
 			try {
@@ -99,7 +99,7 @@ public class BosaRemoteDocumentValidationService {
 		return report;
 	}
 
-	private static boolean hasBRCA3RevocationFreshnessError(WSReportsDTO report) {
+	private static boolean hasBRCA3RevocationFreshnessError(SignatureFullValiationDTO report) {
 		for(XmlToken sigOrTS : report.getSimpleReport().getSignatureOrTimestamp()) {
 			if (sigOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature &&
 					Indication.INDETERMINATE.equals(sigOrTS.getIndication()) &&
@@ -125,7 +125,7 @@ public class BosaRemoteDocumentValidationService {
 		return false;
 	}
 
-	private void modifyReports(WSReportsDTO report, String sigId, SubIndication subIndication, String errMesg) {
+	private void modifyReports(SignatureFullValiationDTO report, String sigId, SubIndication subIndication, String errMesg) {
 		// Modify the simple report
 		XmlSimpleReport simpleReport = report.getSimpleReport();
 		for (XmlToken token : simpleReport.getSignatureOrTimestamp()) {
