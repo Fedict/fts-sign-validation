@@ -50,7 +50,6 @@ import eu.europa.esig.dss.validation.reports.Reports;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +87,7 @@ public class ShadowRemoteDocumentValidationService {
      * Validates the document
      *
      * @param dataToValidate {@link DataToValidateDTO} the request
-     * @return {@link WSReportsDTO} response
+     * @return {@link SignatureFullValiationDTO} response
      */
     public SignatureFullValiationDTO validateDocument(DataToValidateDTO dataToValidate) {
         LOG.info("ValidateDocument in process...");

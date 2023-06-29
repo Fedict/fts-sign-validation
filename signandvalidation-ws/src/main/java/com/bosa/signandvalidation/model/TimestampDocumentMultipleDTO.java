@@ -1,35 +1,20 @@
 package com.bosa.signandvalidation.model;
 
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TimestampDocumentMultipleDTO {
 
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "A list of files to timestamp")
     private List<RemoteDocument> documents;
+    @Schema(example = "PROFILE_1", requiredMode = Schema.RequiredMode.REQUIRED, description = "The timestamping profile to reach for the file")
     private String profileId;
-
-    public TimestampDocumentMultipleDTO() {
-    }
-
-    public TimestampDocumentMultipleDTO(List<RemoteDocument> documents, String profileId) {
-        this.documents = documents;
-        this.profileId = profileId;
-    }
-
-    public List<RemoteDocument> getDocuments() {
-        return documents;
-    }
-
-    public void setDocuments(List<RemoteDocument> documents) {
-        this.documents = documents;
-    }
-
-    public String getProfileId() {
-        return profileId;
-    }
-
-    public void setProfileId(String profileId) {
-        this.profileId = profileId;
-    }
 }

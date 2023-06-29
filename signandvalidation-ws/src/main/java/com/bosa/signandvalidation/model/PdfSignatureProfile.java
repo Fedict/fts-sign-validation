@@ -1,6 +1,7 @@
 package com.bosa.signandvalidation.model;
 
 import eu.europa.esig.dss.enumerations.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
