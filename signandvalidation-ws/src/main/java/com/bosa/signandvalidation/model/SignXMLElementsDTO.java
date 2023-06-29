@@ -1,7 +1,6 @@
 package com.bosa.signandvalidation.model;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -21,9 +20,9 @@ public class SignXMLElementsDTO {
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Signature parameters")
     private ClientSignatureParameters clientSignatureParameters;
     @Schema(description = "A policy to include in the signed XML file")
-    private PolicyParameters policy;
-    @Schema(description = "The list of XML elements that must be signed")
-    private List<SignElement> elementsToSign;
+    private PolicyDTO policy;
+    @Schema(description = "The list of XML elements Ids that must be signed")
+    private List<String> elementIdsToSign;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The signed digest (from getDataToSign)")
     private byte[] signatureValue;

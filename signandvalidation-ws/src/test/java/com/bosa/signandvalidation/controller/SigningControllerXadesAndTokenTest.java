@@ -206,16 +206,16 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
 
         StringBuilder sb = new StringBuilder("<root>");
-        List<SignElement> targets = new ArrayList<>();
+        List<String> targets = new ArrayList<>();
         for(SigningControllerXadesAndTokenTest.FileDef fDef : SigningControllerXadesAndTokenTest.FileDef.values()) {
-            targets.add(new SignElement(fDef.id, fDef.type.toString()));
+            targets.add(fDef.id);
             sb.append("<file id=\"").append(fDef.id).append("\" name=\"").append(fDef.name).append("\">").append(fDef.data).append("</file>");
         }
         sb.append("</root>");
         System.out.println(sb);
         RemoteDocument fileToSign = new RemoteDocument(sb.toString().getBytes(), "aFile.xml");
 
-        PolicyParameters policy = new PolicyParameters("https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf", "policyDesc", DigestAlgorithm.SHA256);
+        PolicyDTO policy = new PolicyDTO("https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf", "policyDesc", DigestAlgorithm.SHA256);
 
         // get data to sign
         GetDataToSignXMLElementsDTO prepareSignDto = new GetDataToSignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets);

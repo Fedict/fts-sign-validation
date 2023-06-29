@@ -954,14 +954,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private List<String> getIdsToSign(List<SignElement> elementsToSign) {
-        List<String> list = new ArrayList<String>(elementsToSign.size());
-        for(SignElement elementToSign : elementsToSign) list.add(elementToSign.getId());
-        return list;
-    }
-
-    /*****************************************************************************************/
-
     private List<DSSReference> buildReferences(Date signingTime, List<String> xmlIds, DigestAlgorithm refDigestAlgo) {
         String timeRef = Long.toString(signingTime.getTime());
         List<DSSReference> references = new ArrayList<DSSReference>();
@@ -1275,9 +1267,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             Date signingDate = new Date();
             clientSigParams.setSigningDate(signingDate);
 
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(getDataToSignDto.getSigningProfileId(), clientSigParams, getDataToSignDto.getPolicy());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(getDataToSignDto.getSigningProfileId(),
+                                                            clientSigParams, policyDtoToPolicyParameters(getDataToSignDto.getPolicy()));
 
-            List<DSSReference> references = buildReferences(signingDate, getIdsToSign(getDataToSignDto.getElementsToSign()), parameters.getReferenceDigestAlgorithm());
+            List<DSSReference> references = buildReferences(signingDate, getDataToSignDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
             ToBeSignedDTO dataToSign = altSignatureService.getDataToSignWithReferences(getDataToSignDto.getToSignDocument(), parameters, references);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), signingDate);
@@ -1315,10 +1308,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         try {
             logger.info("Entering signDocumentXades()");
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDto.getSigningProfileId(), clientSigParams, signDto.getPolicy());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDto.getSigningProfileId(),
+                                                clientSigParams, policyDtoToPolicyParameters(signDto.getPolicy()));
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
-            List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), getIdsToSign(signDto.getElementsToSign()), parameters.getReferenceDigestAlgorithm());
+            List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), signDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
             RemoteDocument signedDoc = altSignatureService.signDocumentWithReferences(signDto.getToSignDocument(), parameters, signatureValueDto, references);
 
             signedDoc.setName(signDto.getToSignDocument().getName());
@@ -1335,7 +1329,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
         return null; // We won't get here
     }
-}
 
 /*****************************************************************************************/
 
+    private static PolicyParameters policyDtoToPolicyParameters(PolicyDTO dto) {
+        return new PolicyParameters(dto.getId(), dto.getDescription(), dto.getDigestAlgorithm());
+    }
+
+/*****************************************************************************************/
+}
