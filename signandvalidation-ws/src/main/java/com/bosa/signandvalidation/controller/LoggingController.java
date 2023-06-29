@@ -8,6 +8,7 @@ import com.bosa.signandvalidation.model.FrontEndErrorRespDTO;
 import com.bosa.signandvalidation.model.FrontEndLogReqDTO;
 import com.bosa.signandvalidation.model.FrontEndLogRespDTO;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
 
 import static com.bosa.signandvalidation.exceptions.Utils.getTokenFootprint;
@@ -19,11 +20,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping(value = "/logging")
 public class LoggingController extends ControllerBase {
 
+    @Operation(hidden = true)
     @GetMapping(value = "/ping", produces = TEXT_PLAIN_VALUE)
     public String ping() {
         return "pong";
     }
 
+    @Operation(hidden = true)
     @PostMapping(value = "/error", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public FrontEndErrorRespDTO errorMesg(@RequestBody FrontEndErrorReqDTO feError) {
         String ref = logDateTimeFormatter.format(Instant.now());
@@ -38,6 +41,7 @@ public class LoggingController extends ControllerBase {
 
         return new FrontEndErrorRespDTO(ref);
     }
+    @Operation(hidden = true)
     @PostMapping(value = "/log", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public FrontEndLogRespDTO logMessage(@RequestBody FrontEndLogReqDTO feLog) {
         String ref = logDateTimeFormatter.format(Instant.now());

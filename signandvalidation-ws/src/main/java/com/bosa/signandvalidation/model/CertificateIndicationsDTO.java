@@ -12,16 +12,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CertificateIndicationsDTO {
 
-    @Schema(name = "commonName", description = "The 'common name' of the certificate")
+    @Schema(description = "The 'common name' of the certificate")
     private String commonName;
 
-    @Schema(name = "indication", description = "The main result of the validation.")
+    @Schema(description = "The main result of the validation.")
     private Indication indication;
 
-    @Schema(name = "subIndication", description = "In case the indication is not 'TOTAL_PASSED' the sub indication will contain extra information about the validation issue.")
+    @Schema(description = "In case the indication is not 'TOTAL_PASSED' the sub indication will contain extra information about the validation issue.")
     private SubIndication subIndication;
 
-    @Schema(name = "keyUsageCheckOk", description = "True if the validated certificate can sign the 'expectedKeyUsage' signature type")
+    @Schema(description = "True if the validated certificate can sign the 'expectedKeyUsage' signature type")
     private boolean keyUsageCheckOk;
 
     public CertificateIndicationsDTO(String commonName, Indication indication, boolean keyUsageCheckOk) {

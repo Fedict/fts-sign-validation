@@ -1,7 +1,6 @@
 package com.bosa.signandvalidation.model;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +17,6 @@ public class GetDataToSignXMLElementsDTO {
     private String signingProfileId;
     private RemoteDocument toSignDocument;
     private ClientSignatureParameters clientSignatureParameters;
-    private PolicyParameters policy;
-    private List<SignElement> elementsToSign;
+    private PolicyDTO policy;
+    private List<String> elementIdsToSign;
 }

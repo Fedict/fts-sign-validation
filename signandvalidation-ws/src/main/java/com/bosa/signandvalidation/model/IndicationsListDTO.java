@@ -12,6 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 public class IndicationsListDTO {
 
-    @Schema(name = "indications", description = "The list of indications")
+    @Schema(description = "The list of indications")
     private List<CertificateIndicationsDTO> indications;
 }

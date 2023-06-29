@@ -13,12 +13,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CertificateFullValidationDTO {
 
-    @Schema(name = "diagnosticData", description = "The information set that was used as part of the validation process")
+    @Schema(description = "The information set that was used as part of the validation process")
     private XmlDiagnosticData diagnosticData;
 
-    @Schema(name = "simpleCertificateReport", description = "A 'general summary' validation report")
+    @Schema(description = "A 'general summary' validation report")
     private XmlSimpleCertificateReport simpleCertificateReport;
 
-    @Schema(name = "detailedReport", description = "A validation report with the full validation information")
+    @Schema(description = "A validation report with the full validation information")
     private XmlDetailedReport detailedReport;
 }
