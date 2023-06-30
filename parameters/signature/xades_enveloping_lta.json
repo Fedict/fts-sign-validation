@@ -1,0 +1,8 @@
+{
+  "profileId": "XADES_ENVELOPING_LTA",
+  "digestAlgorithm": "SHA256",
+  "isDefault": true,
+  "signatureLevel": "XAdES_BASELINE_LTA",
+  "signaturePackaging": "ENVELOPING",
+  "tspServer": "http://tss.eidpki.belgium.be/"
+}
