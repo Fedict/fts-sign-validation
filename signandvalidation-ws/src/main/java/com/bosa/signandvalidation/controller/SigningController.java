@@ -1228,7 +1228,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    @Operation(summary = "Timestamp a list of files<BR>Resulting file is of ASIC format")
+    @Operation(summary = "Timestamp a list of files and produce a file in ASIC format")
     @PostMapping(value = TIMESTAMP_DOCUMENT_MULTIPLE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampDocumentMultipleDTO timestampDocumentDto) {
         try {

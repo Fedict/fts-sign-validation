@@ -30,7 +30,9 @@ public class DataToValidateDTO {
     @Schema(example = "XAdES_BASELINE_B", description = "Expected signature level of every signature in the file." +
             "<BR>If a signature has a different level validation fails")
     private SignatureLevel level;
-    private KeystoreOrCerts trust;
+
+    @Schema(description = "Defines supplementary 'root trust' sources. They allow the validation of 'NON-EU LOTL rooted' signatures")
+    private TrustSources trust;
 
     public DataToValidateDTO(RemoteDocument signedDocument) {
         this.signedDocument = signedDocument;

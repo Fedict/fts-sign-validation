@@ -15,6 +15,6 @@ public class TimestampDocumentMultipleDTO {
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "A list of files to timestamp")
     private List<RemoteDocument> documents;
-    @Schema(example = "PROFILE_1", requiredMode = Schema.RequiredMode.REQUIRED, description = "The timestamping profile to reach for the file")
+    @Schema(example = "PROFILE_1", requiredMode = Schema.RequiredMode.REQUIRED, description = "The timestamping profile to use")
     private String profileId;
 }

@@ -36,12 +36,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -142,7 +136,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
     // This hardcoded password will of course trigger security review (sast or human)... although it should not since
     // the keystore is only held in memory (although not in "unswapaable" memory... but that is another topic)
     private static final String SILLY_PASSWORD = "123456";
-    private CertificateSource getCertificateSource(KeystoreOrCerts trust) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+    private CertificateSource getCertificateSource(TrustSources trust) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
 
         CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
         if (trust.getKeystore() != null) {

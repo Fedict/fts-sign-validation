@@ -2,7 +2,7 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.SignAndValidationTestBase;
 import com.bosa.signandvalidation.model.DataToValidateDTO;
-import com.bosa.signandvalidation.model.KeystoreOrCerts;
+import com.bosa.signandvalidation.model.TrustSources;
 import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -261,7 +261,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/Foreign_trust_signed.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
-        KeystoreOrCerts ksc = new KeystoreOrCerts();
+        TrustSources ksc = new TrustSources();
         toValidate.setTrust(ksc);
         ksc.setCerts(new ArrayList<>());
         ksc.getCerts().add(Files.readAllBytes(Paths.get("src/test/resources/extra_trust.der")));
