@@ -29,11 +29,14 @@ import eu.europa.esig.dss.xades.DSSXMLUtils;
 import eu.europa.esig.dss.xades.reference.CanonicalizationTransform;
 import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xades.reference.DSSTransform;
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.xml.security.transforms.Transforms;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +87,8 @@ import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+
+@Tag(name = "Electronic signature services", description = "See also https://github.com/Fedict/fts-documentation")
 @RestController
 @RequestMapping(value = SigningController.ENDPOINT)
 public class SigningController extends ControllerBase implements ErrorStrings {
@@ -195,8 +200,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             TokenObject token = new TokenObject(SigningType.Standard, tokenData.getName(), pdfProfile, xmlProfile, inputs, tokenData.getOut());
             if (tokenData.getPolicyId() != null) {
-                String policyAlgorithm = tokenData.getPolicyDigestAlgorithm();
-                token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), policyAlgorithm == null ? null : DigestAlgorithm.valueOf(policyAlgorithm)));
+                token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), tokenData.getPolicyDigestAlgorithm()));
             }
             token.setPreviewDocuments(true);
             token.setOutDownload(!tokenData.isNoDownload());
@@ -223,7 +227,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    @Operation(summary = "Get a 1 to N document signing flow token", description = "Create signing flow, validate it's parameters and create a unique identifier")
+    @Operation(summary = "Create a 'signing flow token' for 1 to N documents ", description = "Create signing flow, validate it's parameters and create a unique identifier (Token).<BR>" +
+            "This token must be provided in the redirection URL to the BOSA DSS front-end server" +
+            "This is the new operation for token creation, future evolutions of the service will only be done on this operation.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Token created and ready for use"),
             @ApiResponse(responseCode = "500", description = "Error while creating the token")
@@ -413,7 +419,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         String outPath = token.getOutFilePath();
         if (outPath != null && outPath.length() == 0) token.setOutFilePath(outPath = null);
 
-            if (prefix != null) {
+        if (prefix != null) {
             if (prefix.endsWith("/")) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' can't end with '/'", null);
             }

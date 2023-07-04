@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AllowedToSign {
 
-    @Schema(example = "55050533154", requiredMode = Schema.RequiredMode.REQUIRED, description = "A Belgian National Number that is allowed to sign")
+    @Schema(example = "55050533154", requiredMode = Schema.RequiredMode.REQUIRED, description = "The document may signed by an eID with this belgian national number")
     private String nn;
 }
