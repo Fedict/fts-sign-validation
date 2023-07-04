@@ -13,11 +13,14 @@ import eu.europa.esig.dss.diagnostic.jaxb.*;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +34,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+@Tag(name = "Electronic signature validation services", description = "See also https://github.com/Fedict/fts-documentation")
 @RestController
 @RequestMapping(value = "/validation")
 public class ValidationController extends ControllerBase implements ErrorStrings {

@@ -16,6 +16,6 @@ public class PolicyDTO {
     private String id;
     @Schema(example = "Belgium signing Policy")
     private String description;
-    @Schema(example = "SHA256", description = "The digest algorithm used to make the policy digest")
+    @Schema(example = "SHA256", description = "The digest algorithm used to make the policy digest. Default value is SHA256")
     private DigestAlgorithm digestAlgorithm;
 }
