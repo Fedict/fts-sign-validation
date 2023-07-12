@@ -30,12 +30,14 @@
         <root level="INFO">
             <appender-ref ref="STDOUT" />
         </root>
+        <!-- <logger name="org.apache.hc.client5.http" level="debug"/> -->
     </springProfile>
 
     <springProfile name="!local">
         <root level="INFO">
             <appender-ref ref="json" />
         </root>
+        <logger name="org.apache.hc.client5.http" level="debug"/>
     </springProfile>
 
 </configuration>
