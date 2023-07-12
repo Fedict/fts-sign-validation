@@ -37,7 +37,7 @@
         <root level="INFO">
             <appender-ref ref="json" />
         </root>
-        <!-- <logger name="org.apache.hc.client5.http" level="debug"/> -->
+        <logger name="org.apache.hc.client5.http" level="debug"/>
     </springProfile>
 
 </configuration>
