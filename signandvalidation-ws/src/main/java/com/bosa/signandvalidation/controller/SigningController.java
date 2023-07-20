@@ -555,8 +555,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
                 logger.info("Returning from getMetadataForToken()" + tokenFootprint);
                 return new DocumentMetadataDTO(token.getSigningType(), getPhoto, !token.isOutDownload(),
-                        token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isSelectDocuments(), token.isNoSkipErrors(), signedInputsMetadata);
-
+                        token.isSelectDocuments(), token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isNoSkipErrors(), signedInputsMetadata);
             } catch (RuntimeException e){
                     logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
             }
@@ -934,6 +933,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     // Get token from cache or storageService
     private TokenObject getToken(String tokenId) {
         try {
+
+
             TokenObject token = tokenCache.getIfPresent(tokenId);
             if (token == null) {
                 byte[] rawToken = storageService.getFileAsBytes(null, KEYS_FOLDER + tokenId + JSON_FILENAME_EXTENTION, false);
