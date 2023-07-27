@@ -555,8 +555,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
                 logger.info("Returning from getMetadataForToken()" + tokenFootprint);
                 return new DocumentMetadataDTO(token.getSigningType(), getPhoto, !token.isOutDownload(),
-                        token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isSelectDocuments(), token.isNoSkipErrors(), signedInputsMetadata);
-
+                        token.isSelectDocuments(), token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isNoSkipErrors(), signedInputsMetadata);
             } catch (RuntimeException e){
                     logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
             }
@@ -592,11 +591,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 singleFilePath = input.getDisplayXsltPath();
                 break;
             case OUT:
-                if (!token.isOutDownload()) {
-                    logAndThrowEx(tokenString, BAD_REQUEST, BLOCKED_DOWNLOAD, "Forging request attempt !");
+                if (token.isOutDownload()) {
+                    if (token.getSigningType().equals(XadesMultiFile) || inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
+                    break;
                 }
-                if (token.getSigningType().equals(XadesMultiFile) || inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
-                break;
+
+            default:
+                logAndThrowEx(tokenString, BAD_REQUEST, BLOCKED_DOWNLOAD, "Forging request attempt !");
         }
 
         ZipOutputStream out = null;
@@ -907,12 +908,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     // Save token object to storageService and return a tokenId
 
     String saveToken(TokenObject token)  {
+        String tokenId = null;
         try {
             token.setCreateTime(new Date().getTime());
 
             byte[] tokenBytes = new byte[12];
             new SecureRandom().nextBytes(tokenBytes);
-            String tokenId = Base64.getUrlEncoder().encodeToString(tokenBytes);
+            tokenId = Base64.getUrlEncoder().encodeToString(tokenBytes);
 
             // Store token in secret bucket
             ObjectMapper om = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -920,21 +922,22 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Cache token
             tokenCache.put(tokenId, token);
-
-            return tokenId;
         } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
-
-        return null;
+        return tokenId;
     }
 
     /*****************************************************************************************/
 
     // Get token from cache or storageService
     private TokenObject getToken(String tokenId) {
+        TokenObject token = null;
         try {
-            TokenObject token = tokenCache.getIfPresent(tokenId);
+            // Base64 validate token or throw IllegalArgumentException
+            Base64.getUrlDecoder().decode(tokenId);
+
+            token = tokenCache.getIfPresent(tokenId);
             if (token == null) {
                 byte[] rawToken = storageService.getFileAsBytes(null, KEYS_FOLDER + tokenId + JSON_FILENAME_EXTENTION, false);
                 token = new ObjectMapper().readValue(rawToken, TokenObject.class);
@@ -944,11 +947,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (new Date().getTime() > (token.getCreateTime() + token.getTokenTimeout() * 1000L)) {
                 logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, "Token is expired");
             }
-            return token;
-        } catch(IOException e) {
+        } catch(IOException | IllegalArgumentException e) {
             logAndThrowEx(BAD_REQUEST, INVALID_TOKEN, e);
         }
-        return  null;
+        return token;
     }
 
     /*****************************************************************************************/
