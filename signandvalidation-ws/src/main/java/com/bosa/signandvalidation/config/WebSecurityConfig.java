@@ -30,23 +30,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
 
         // javadoc uses frames
-        http.headers().addHeaderWriter(javadocHeaderWriter());
+        final AntPathRequestMatcher javadocAntPathRequestMatcher = new AntPathRequestMatcher("/apidocs/**");
+        final HeaderWriter hw = new XFrameOptionsHeaderWriter(XFrameOptionsMode.SAMEORIGIN);
+        final DelegatingRequestMatcherHeaderWriter javadocHdrWriter = new DelegatingRequestMatcherHeaderWriter(javadocAntPathRequestMatcher, hw);
+        http.headers().addHeaderWriter(javadocHdrWriter);
 
         // so does the GUI thing, from a different domain even.
         http.headers().xssProtection().and().contentSecurityPolicy("frame-ancestors " + frameAncestors);
+        // Since Firefox v115 does not apply its own rule of "CSP frame-ancestors overrides X-Frame-Options DENY" we remove the X-Frame-Options
+        http.headers().frameOptions().disable();
 
-        http.headers().addHeaderWriter(serverEsigDSS());
+        http.headers().addHeaderWriter(new StaticHeadersWriter("Server", "ESIG-DSS"));
         LOG.info("WebSecurityConfig configured");
     }
-
-    @Bean
-    public HeaderWriter javadocHeaderWriter() {
-        final AntPathRequestMatcher javadocAntPathRequestMatcher = new AntPathRequestMatcher("/apidocs/**");
-        final HeaderWriter hw = new XFrameOptionsHeaderWriter(XFrameOptionsMode.SAMEORIGIN);
-        return new DelegatingRequestMatcherHeaderWriter(javadocAntPathRequestMatcher, hw);
-    }
-
-    public HeaderWriter serverEsigDSS() {
-        return new StaticHeadersWriter("Server", "ESIG-DSS");
-    }
 }
+
+
+
