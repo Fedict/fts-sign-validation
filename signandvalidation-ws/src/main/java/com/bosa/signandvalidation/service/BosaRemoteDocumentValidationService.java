@@ -2,6 +2,7 @@ package com.bosa.signandvalidation.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.List;
 import java.io.Serializable;
 import java.util.logging.Logger;
@@ -22,13 +23,31 @@ import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlValidationProcessBasicSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * This validation service calls the DSS validation service and then applies some extra checks.
  */
+@Configuration
 public class BosaRemoteDocumentValidationService {
-	private static final String BRCA3_DN = "cn=belgium root ca3,c=be";
-	private static final String BRCA3_CONSTRAINT_FILE = "BRCA3_constraint.xml";
+
+	// "cn=belgium root ca,c=be"
+	private static final BigInteger BRCA = new BigInteger("580b056c5324dbb25057185ff9e5a650", 16);
+	// "cn=belgium root ca2,c=be"
+	private static final BigInteger BRCA2 = new BigInteger("2affbe9fa2f0e987", 16);
+	// "cn=belgium root ca3,c=be"
+	private static final BigInteger BRCA3 = new BigInteger("3b2102de965b1da9", 16);
+	// "cn=belgium root ca4,c=be"
+	private static final BigInteger BRCA4 = new BigInteger("4f33208cc594bf38", 16);
+	// "cn=belgium root caA6 ou=fps policy and support - bosa (ntrbe-0671516647) ou=fps home affairs - bik-gci (ntbre-0362475538) o=kingdom of belgium - federal government l=brussels  c=be"
+	private static final BigInteger BRCA6 = new BigInteger("718b57ff6b693e5a1c235ed887a3ef51f4010f26", 16);
+
+	@Value("${test.rootCertSN:#{null}}")
+	BigInteger testRootCertSN;
+
+
+	private static final String GENERIC_POLICY = "DSS_constraint.xml";
 	private static final Logger logger = Logger.getLogger(BosaRemoteDocumentValidationService.class.getName());
 	private ShadowRemoteDocumentValidationService remoteDocumentValidationService;
 
@@ -45,17 +64,17 @@ public class BosaRemoteDocumentValidationService {
 
 	public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, RemoteSignatureParameters parameters) {
 
-		// Let DSS do its normal validation
+		// Let DSS validate with provided or default (null => Belgian) validation policy
 		SignatureFullValiationDTO report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
-		if (policy == null && hasBRCA3RevocationFreshnessError(report)) {
-			logger.warning("Document has BRCA3 signatures and no custom policy. Using custom BRCA3 policy to validate");
+		if (policy == null && !documentHasBelgianSignature(report)) {
+			logger.warning("Validation with default policy of a document that does not contain Belgian signatures. Using generic policy to validate");
 			try {
-				InputStream brca3is = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + BRCA3_CONSTRAINT_FILE);
-				RemoteDocument brca3Policy = new RemoteDocument(Utils.toByteArray(brca3is), BRCA3_CONSTRAINT_FILE);
-				brca3is.close();
-				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, brca3Policy));
+				InputStream genericIs = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + GENERIC_POLICY);
+				RemoteDocument genericPolicy = new RemoteDocument(Utils.toByteArray(genericIs), GENERIC_POLICY);
+				genericIs.close();
+				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, genericPolicy));
 			} catch (IOException e) {
-				throw new RuntimeException(BRCA3_CONSTRAINT_FILE + " not found");
+				throw new RuntimeException(GENERIC_POLICY + " not found");
 			}
 		}
 
@@ -99,26 +118,26 @@ public class BosaRemoteDocumentValidationService {
 		return report;
 	}
 
-	private static boolean hasBRCA3RevocationFreshnessError(SignatureFullValiationDTO report) {
+	private boolean documentHasBelgianSignature(SignatureFullValiationDTO report) {
 		for(XmlToken sigOrTS : report.getSimpleReport().getSignatureOrTimestamp()) {
-			if (sigOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature &&
-					Indication.INDETERMINATE.equals(sigOrTS.getIndication()) &&
-					SubIndication.TRY_LATER.equals(sigOrTS.getSubIndication())) {
+			if (sigOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature) {
 				XmlCertificateChain certChain = sigOrTS.getCertificateChain();
 				if (certChain == null) continue;
 				List<XmlCertificate> certChain2 = certChain.getCertificate();
 				XmlCertificate rootCert = certChain2.get(certChain2.size() - 1);
-				if (isBRCA3Cert(report.getDiagnosticData().getUsedCertificates(), rootCert.getId())) return true;
+				if (isBelgianCertificate(report.getDiagnosticData().getUsedCertificates(), rootCert.getId())) return true;
 			}
 		}
 	return false;
 	}
 
-	private static boolean isBRCA3Cert(List<eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate> certs, String id) {
+	private boolean isBelgianCertificate(List<eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate> certs, String id) {
 		for (eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate cert : certs) {
 			if (id.equals(cert.getId())) {
-				for(XmlDistinguishedName formattedDn : cert.getSubjectDistinguishedName()) {
-					if ("CANONICAL".equals(formattedDn.getFormat()) && BRCA3_DN.equals(formattedDn.getValue())) return true;
+				BigInteger sn = cert.getSerialNumber();
+				if (BRCA6.equals(sn) || BRCA4.equals(sn) || BRCA3.equals(sn) || BRCA2.equals(sn) ||
+						BRCA.equals(sn) || (testRootCertSN != null && testRootCertSN.equals(sn))) {
+					return true;
 				}
 			}
 		}
