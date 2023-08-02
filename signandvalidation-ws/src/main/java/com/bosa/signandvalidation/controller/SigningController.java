@@ -145,7 +145,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private ReportsService reportsService;
     
     @Autowired
-    private RemoteXadesSignatureServiceImpl altSignatureService;
+    private RemoteAltSignatureServiceImpl altSignatureService;
 
     @Autowired
     private StorageService storageService;
@@ -155,6 +155,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Value("${signing.time}")
     private Long signingTime;
+
+    @Value("BOSA FTS v${application.version}")
+    private String applicationName;
 
     @GetMapping(value = PING, produces = TEXT_PLAIN_VALUE)
     public String ping() {
@@ -708,7 +711,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams);
             }
 
-            ToBeSignedDTO dataToSign = altSignatureService.getDataToSignWithReferences(fileToSign, parameters, references);
+            ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), clientSigParams.getSigningDate());
 
@@ -783,7 +786,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
-            RemoteDocument signedDoc = altSignatureService.signDocumentWithReferences(fileToSign, parameters, signatureValueDto, references);
+            RemoteDocument signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, applicationName);
 
             signedDoc.setName(getOutFilePath(token, inputToSign));
 
@@ -1006,8 +1009,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         logger.info("Entering getDataToSign()");
         try {
-            dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
             ClientSignatureParameters clientSigParams = dataToSignDto.getClientSignatureParameters();
+            clientSigParams.setSigningDate(new Date());
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), clientSigParams, null);
 
             checkDataToSign(parameters, null);
@@ -1284,7 +1287,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                                                             clientSigParams, policyDtoToPolicyParameters(getDataToSignDto.getPolicy()));
 
             List<DSSReference> references = buildReferences(signingDate, getDataToSignDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
-            ToBeSignedDTO dataToSign = altSignatureService.getDataToSignWithReferences(getDataToSignDto.getToSignDocument(), parameters, references);
+
+            ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(getDataToSignDto.getToSignDocument(), parameters, references, applicationName);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), signingDate);
             logger.info("Returning from getDataToSignXades()");
@@ -1326,7 +1330,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
             List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), signDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
-            RemoteDocument signedDoc = altSignatureService.signDocumentWithReferences(signDto.getToSignDocument(), parameters, signatureValueDto, references);
+            RemoteDocument signedDoc = altSignatureService.altSignDocument(signDto.getToSignDocument(), parameters, signatureValueDto, references, applicationName);
 
             signedDoc.setName(signDto.getToSignDocument().getName());
             logger.info("Returning from signDocumentXades()");
