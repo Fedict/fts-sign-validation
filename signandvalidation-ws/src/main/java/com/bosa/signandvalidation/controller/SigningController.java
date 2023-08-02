@@ -96,6 +96,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String ENDPOINT                         = "/signing";
 
     public static final String PING                             = "/ping";
+    public static final String VERSION                          = "/version";
+
     // Token operations
     public static final String GET_TOKEN_FOR_DOCUMENT           = "/getTokenForDocument";
     public static final String GET_TOKEN_FOR_DOCUMENTS          = "/getTokenForDocuments";
@@ -159,9 +161,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Value("BOSA FTS v${application.version}")
     private String applicationName;
 
+    @Value("${application.version}")
+    private String applicationVersion;
+
     @GetMapping(value = PING, produces = TEXT_PLAIN_VALUE)
     public String ping() {
         return "pong";
+    }
+
+    @GetMapping(value = VERSION, produces = TEXT_PLAIN_VALUE)
+    public String getVersion() {
+        return applicationVersion;
     }
 
     /*****************************************************************************************
