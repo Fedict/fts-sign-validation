@@ -6,8 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,4 +15,6 @@ public class TimestampDocumentDTO {
     private RemoteDocument document;
     @Schema(example = "PROFILE_1", requiredMode = Schema.RequiredMode.REQUIRED, description = "The timestamping profile to reach for the file")
     private String profileId;
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

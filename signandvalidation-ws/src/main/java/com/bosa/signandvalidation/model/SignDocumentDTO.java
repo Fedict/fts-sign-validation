@@ -5,8 +5,6 @@ import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,4 +20,6 @@ public class SignDocumentDTO {
     private byte[] signatureValue;
     @Schema(description = "A file that contains a 'policy.xml' validation policy used. Mainly used to accommodate non-prod certificates used in test cases")
     private RemoteDocument validatePolicy;
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

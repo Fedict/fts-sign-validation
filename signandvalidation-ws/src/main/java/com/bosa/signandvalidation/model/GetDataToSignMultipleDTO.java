@@ -20,4 +20,6 @@ public class GetDataToSignMultipleDTO {
     private String signingProfileId;
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Signature parameters")
     private ClientSignatureParameters clientSignatureParameters;
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

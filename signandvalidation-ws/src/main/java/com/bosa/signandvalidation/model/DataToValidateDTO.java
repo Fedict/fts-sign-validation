@@ -31,6 +31,9 @@ public class DataToValidateDTO {
             "<BR>If a signature has a different level validation fails")
     private SignatureLevel level;
 
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
+
     public DataToValidateDTO(RemoteDocument signedDocument) {
         this.signedDocument = signedDocument;
     }

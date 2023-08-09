@@ -2,6 +2,7 @@ package com.bosa.signandvalidation.controller;
 
 import java.time.Instant;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.bosa.signandvalidation.model.FrontEndErrorReqDTO;
 import com.bosa.signandvalidation.model.FrontEndErrorRespDTO;
@@ -19,6 +20,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 @RequestMapping(value = "/logging")
 public class LoggingController extends ControllerBase {
+
+    protected final Logger logger = Logger.getLogger(LoggingController.class.getName());
 
     @Operation(hidden = true)
     @GetMapping(value = "/ping", produces = TEXT_PLAIN_VALUE)

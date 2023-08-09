@@ -26,4 +26,6 @@ public class SignDocumentMultipleDTO {
     private byte[] signatureValue;
     @Schema(description = "A file that contains a 'policy.xml' validation policy used. Mainly used to accommodate non-prod certificates used in test cases")
     private RemoteDocument validatePolicy;
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

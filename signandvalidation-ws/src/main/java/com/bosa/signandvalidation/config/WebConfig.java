@@ -23,7 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
     private static final Logger LOG = LoggerFactory.getLogger(WebConfig.class);
 
     @Autowired
-    private ExceptionTraceCleaner customRequestInterceptor;
+    private ThreadDataCleaner customRequestInterceptor;
 
 
     @Value("${cors.allowedorigins}")
