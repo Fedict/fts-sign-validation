@@ -52,8 +52,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
 
-import static com.bosa.signandvalidation.exceptions.Utils.getTokenFootprint;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
 import static com.bosa.signandvalidation.model.SigningType.XadesMultiFile;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -232,7 +232,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkTokenAndSetDefaults(token);
 
             String tokenString = saveToken(token);
-            logger.info("Returning from getTokenForDocument()" + getTokenFootprint(tokenString) + " params: " + objectToString(tokenData));
+            checkAndRecordMDCToken(tokenString);
+            logger.info("Returning from getTokenForDocument() params: " + objectToString(tokenData));
             return tokenString;
         } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -299,7 +300,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         // Create Token
         String tokenString = saveToken(token);
-        logger.info("Returning from getTokenForDocuments()" + getTokenFootprint(tokenString) + " params: " + objectToString(gtfd));
+        checkAndRecordMDCToken(tokenString);
+        logger.info("Returning from getTokenForDocuments() params: " + objectToString(gtfd));
         return tokenString;
     }
 
@@ -553,10 +555,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Operation(hidden = true)
     @GetMapping(value = GET_METADATA_FOR_TOKEN)
     public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String tokenString) {
-        String tokenFootprint = getTokenFootprint(tokenString);
-        logger.info("Entering getMetadataForToken()" + tokenFootprint);
             try {
-                TokenObject token = getToken(tokenString);
+                checkAndRecordMDCToken(tokenString);
+                logger.info("Entering getMetadataForToken()");
+
+                TokenObject token = getTokenFromId(tokenString);
                 List<SignInputMetadata> signedInputsMetadata = new ArrayList<>();
                 for(TokenSignInput input : token.getInputs()) {
                     SignInputMetadata inputMetadata = new SignInputMetadata();
@@ -569,7 +572,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 boolean getPhoto = false;
                 for(TokenSignInput input : token.getInputs()) getPhoto |= input.isPsfP();
 
-                logger.info("Returning from getMetadataForToken()" + tokenFootprint);
+                logger.info("Returning from getMetadataForToken()");
                 return new DocumentMetadataDTO(token.getSigningType(), getPhoto, !token.isOutDownload(),
                         token.isSelectDocuments(), token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isNoSkipErrors(), signedInputsMetadata);
             } catch (RuntimeException e){
@@ -595,30 +598,33 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                                 @RequestParam(required = false)  String forceDownload,
                                 HttpServletResponse response) {
 
-        TokenObject token = getToken(tokenString);
-
-        String singleFilePath = null;
-        TokenSignInput input = token.getInputs().get(inputIndexes[0]);
-        switch (type) {
-            case DOC:
-                singleFilePath = input.getFilePath();
-                break;
-            case XSLT:
-                singleFilePath = input.getDisplayXsltPath();
-                break;
-            case OUT:
-                if (token.isOutDownload()) {
-                    if (token.getSigningType().equals(XadesMultiFile) || inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
-                    break;
-                }
-
-            default:
-                logAndThrowEx(tokenString, BAD_REQUEST, BLOCKED_DOWNLOAD, "Forging request attempt !");
-        }
-
         ZipOutputStream out = null;
         InputStream fileStream = null;
         try {
+            checkAndRecordMDCToken(tokenString);
+            logger.info("Entering getFileForToken()");
+
+            TokenObject token = getTokenFromId(tokenString);
+
+            String singleFilePath = null;
+            TokenSignInput input = token.getInputs().get(inputIndexes[0]);
+            switch (type) {
+                case DOC:
+                    singleFilePath = input.getFilePath();
+                    break;
+                case XSLT:
+                    singleFilePath = input.getDisplayXsltPath();
+                    break;
+                case OUT:
+                    if (token.isOutDownload()) {
+                        if (token.getSigningType().equals(XadesMultiFile) || inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
+                        break;
+                    }
+
+                default:
+                    logAndThrowEx(tokenString, BAD_REQUEST, BLOCKED_DOWNLOAD, "Forging request attempt !");
+            }
+
             MediaType contentType = null;
             String attachmentName = null;
             if (singleFilePath != null) {
@@ -653,6 +659,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 out.close();
             }
             fileStream.close();
+            logger.info("Returning from getFileForToken()");
         } catch (IOException e) {
             logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
@@ -674,11 +681,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Operation(hidden = true)
     @PostMapping(value = GET_DATA_TO_SIGN_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
-        String tokenString = dataToSignForTokenDto.getToken();
-        String tokenFootprint = getTokenFootprint(tokenString);
-        logger.info("Entering getDataToSignForToken()" + tokenFootprint);
         try {
-            TokenObject token = getToken(dataToSignForTokenDto.getToken());
+            checkAndRecordMDCToken(dataToSignForTokenDto.getToken());
+            logger.info("Entering getDataToSignForToken()");
+
+            TokenObject token = getTokenFromId(dataToSignForTokenDto.getToken());
             ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
 
             // Signer allowed to sign ?
@@ -728,7 +735,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), clientSigParams.getSigningDate());
 
-            logger.info("Returning from getDataToSignForToken()" + tokenFootprint);
+            logger.info("Returning from getDataToSignForToken()");
 
             return ret;
         } catch(NullParameterException e) {
@@ -756,10 +763,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
         try {
-            String tokenFootprint = getTokenFootprint(signDto.getToken());
-            logger.info("Entering signDocumentForToken()" + tokenFootprint);
+            checkAndRecordMDCToken(signDto.getToken());
+            logger.info("Entering signDocumentForToken()");
 
-            TokenObject token = getToken(signDto.getToken());
+            TokenObject token = getTokenFromId(signDto.getToken());
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
 
             // Signing within allowed time ?
@@ -803,7 +810,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             signedDoc.setName(getOutFilePath(token, inputToSign));
 
-            logger.info("signDocumentForToken(): validating the signed doc" + tokenFootprint);
+            logger.info("signDocumentForToken(): validating the signed doc");
 
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
             // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
@@ -823,6 +830,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             MDC.remove("bucket");
             MDC.remove("fileName");
 
+            logger.info("Returning from signDocumentForToken()");
         } catch (Exception e) {
             DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -947,11 +955,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     // Get token from cache or storageService
-    private TokenObject getToken(String tokenId) {
+    private TokenObject getTokenFromId(String tokenId) {
         TokenObject token = null;
         try {
-            // Base64 validate token or throw IllegalArgumentException
-            Base64.getUrlDecoder().decode(tokenId);
 
             token = tokenCache.getIfPresent(tokenId);
             if (token == null) {
@@ -1020,9 +1026,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = GET_DATA_TO_SIGN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
-        logger.info("Entering getDataToSign()");
         try {
-            MDC.put("token", dataToSignDto.getToken());
+            checkAndRecordMDCToken(dataToSignDto.getToken());
+            logger.info("Entering getDataToSign()");
+
             ClientSignatureParameters clientSigParams = dataToSignDto.getClientSignatureParameters();
             clientSigParams.setSigningDate(new Date());
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), clientSigParams, null);
@@ -1064,8 +1071,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
         try {
-            MDC.put("token", dataToSignDto.getToken());
+            checkAndRecordMDCToken(dataToSignDto.getToken());
             logger.info("Entering getDataToSignMultiple()");
+
             dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(dataToSignDto.getSigningProfileId(), dataToSignDto.getClientSignatureParameters(), null);
 
@@ -1100,8 +1108,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         try {
-            MDC.put("token", signDocumentDto.getToken());
+            checkAndRecordMDCToken(signDocumentDto.getToken());
             logger.info("Entering signDocument()");
+
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), clientSigParams, null);
 
@@ -1146,8 +1155,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
         try {
-            MDC.put("token", signDocumentDto.getToken());
+            checkAndRecordMDCToken(signDocumentDto.getToken());
             logger.info("Entering signDocumentMultiple()");
+
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDocumentDto.getSigningProfileId(), signDocumentDto.getClientSignatureParameters(), null);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
@@ -1183,8 +1193,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = EXTEND_DOCUMENT_MULTIPLE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         try {
-            MDC.put("token", extendDocumentDto.getToken());
+            checkAndRecordMDCToken(extendDocumentDto.getToken());
             logger.info("Entering extendDocumentMultiple()");
+
             RemoteSignatureParameters parameters = signingConfigService.getExtensionParams(extendDocumentDto.getExtendProfileId(), extendDocumentDto.getDetachedContents());
 
             RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
@@ -1215,8 +1226,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = EXTEND_DOCUMENT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         try {
-            MDC.put("token", extendDocumentDto.getToken());
+            checkAndRecordMDCToken(extendDocumentDto.getToken());
             logger.info("Entering extendDocument()");
+
             RemoteSignatureParameters parameters = signingConfigService.getExtensionParams(extendDocumentDto.getExtendProfileId(), extendDocumentDto.getDetachedContents());
 
             RemoteDocument extendedDoc = altSignatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
@@ -1247,8 +1259,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = TIMESTAMP_DOCUMENT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument timestampDocument(@RequestBody TimestampDocumentDTO timestampDocumentDto) {
         try {
-            MDC.put("token", timestampDocumentDto.getToken());
+            checkAndRecordMDCToken(timestampDocumentDto.getToken());
             logger.info("Entering timestampDocument()");
+
             RemoteTimestampParameters parameters = signingConfigService.getTimestampParams(timestampDocumentDto.getProfileId());
 
             RemoteDocument ret = altSignatureService.timestamp(timestampDocumentDto.getDocument(), parameters);
@@ -1268,8 +1281,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = TIMESTAMP_DOCUMENT_MULTIPLE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampDocumentMultipleDTO timestampDocumentDto) {
         try {
-            MDC.put("token", timestampDocumentDto.getToken());
+            checkAndRecordMDCToken(timestampDocumentDto.getToken());
             logger.info("Entering timestampDocumentMultiple()");
+
             RemoteTimestampParameters parameters = signingConfigService.getTimestampParams(timestampDocumentDto.getProfileId());
 
             RemoteDocument ret = signatureServiceMultiple.timestamp(timestampDocumentDto.getDocuments(), parameters);
@@ -1299,8 +1313,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = GET_DATA_TO_SIGN_XADES_MULTI_DOC, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignXMLElementsDTO getDataToSignDto) {
         try {
-            MDC.put("token", getDataToSignDto.getToken());
+            checkAndRecordMDCToken(getDataToSignDto.getToken());
             logger.info("Entering getDataToSignXades()");
+
             ClientSignatureParameters clientSigParams = getDataToSignDto.getClientSignatureParameters();
             Date signingDate = new Date();
             clientSigParams.setSigningDate(signingDate);
@@ -1345,8 +1360,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = SIGN_DOCUMENT_XADES_MULTI_DOC, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignXMLElementsDTO signDto) {
         try {
-            MDC.put("token", signDto.getToken());
+            checkAndRecordMDCToken(signDto.getToken());
             logger.info("Entering signDocumentXades()");
+
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signDto.getSigningProfileId(),
                                                 clientSigParams, policyDtoToPolicyParameters(signDto.getPolicy()));
