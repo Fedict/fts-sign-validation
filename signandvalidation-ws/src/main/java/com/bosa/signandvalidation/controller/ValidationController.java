@@ -10,10 +10,14 @@ import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 
+import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.diagnostic.jaxb.*;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
+import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
+import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
+import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,7 +27,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.PropertyException;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -143,9 +155,13 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 
         try {
-            CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(
-                new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
-			toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
+            // Use a custom validation constraint because Belgian eID (BRCA3/BRCA4) are still using SHA1 in the cert chain
+            RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/validateCertificateConstraint.xml"));
+            eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO dto = new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
+                    toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+            dto.setPolicy(policy);
+
+            CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(dto);
             CertificateIndicationsDTO rv = reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
             if(rv.getIndication() != PASSED) {
                 certificateReportsDTO.getSimpleCertificateReport().getChain().forEach(item -> {
