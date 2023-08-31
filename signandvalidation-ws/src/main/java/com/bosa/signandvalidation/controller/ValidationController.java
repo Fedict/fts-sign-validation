@@ -10,10 +10,10 @@ import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 
-import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.diagnostic.jaxb.*;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
@@ -27,15 +27,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.PropertyException;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -50,6 +43,8 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 @RestController
 @RequestMapping(value = "/validation")
 public class ValidationController extends ControllerBase implements ErrorStrings {
+
+    private static final String VALIDATION_CONSTRAINTS = "validateCertificateConstraint.xml";
 
     protected final Logger logger = Logger.getLogger(ValidationController.class.getName());
 
@@ -156,7 +151,8 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
         try {
             // Use a custom validation constraint because Belgian eID (BRCA3/BRCA4) are still using SHA1 in the cert chain
-            RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/validateCertificateConstraint.xml"));
+            InputStream genericIs = ValidationController.class.getResourceAsStream("/policy/" + VALIDATION_CONSTRAINTS);
+            RemoteDocument policy = new RemoteDocument(Utils.toByteArray(genericIs), VALIDATION_CONSTRAINTS);
             eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO dto = new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
                     toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
             dto.setPolicy(policy);
@@ -170,7 +166,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             }
             logger.info("ValidateCertificate is finished");
             return rv;
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
