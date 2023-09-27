@@ -1,6 +1,5 @@
 package com.bosa.signandvalidation.model;
 
-import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -20,4 +19,6 @@ public class ExtendDocumentDTO {
     private String extendProfileId;
     @Schema(description = "In case the signature is detached (and covers multiple documents) provides the original signed file data")
     private List<RemoteDocument> detachedContents;
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

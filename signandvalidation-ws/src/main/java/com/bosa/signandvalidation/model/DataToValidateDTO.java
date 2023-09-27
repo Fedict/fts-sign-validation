@@ -31,6 +31,9 @@ public class DataToValidateDTO {
             "<BR>If a signature has a different level validation fails")
     private SignatureLevel level;
 
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
+
     @Schema(description = "Defines supplementary 'root trust' sources. They allow the validation of 'NON-EU LOTL rooted' signatures")
     private TrustSources trust;
 

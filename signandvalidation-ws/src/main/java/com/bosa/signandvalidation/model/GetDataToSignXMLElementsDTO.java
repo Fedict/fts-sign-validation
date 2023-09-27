@@ -2,15 +2,12 @@ package com.bosa.signandvalidation.model;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class GetDataToSignXMLElementsDTO {
@@ -19,4 +16,6 @@ public class GetDataToSignXMLElementsDTO {
     private ClientSignatureParameters clientSignatureParameters;
     private PolicyDTO policy;
     private List<String> elementIdsToSign;
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

@@ -2,7 +2,6 @@ package com.bosa.signandvalidation.config;
 
 import com.bosa.signandvalidation.dataloaders.InterceptCommonsDataLoader;
 import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
-import com.bosa.signandvalidation.dataloaders.InterceptOCSPDataLoader;
 import com.bosa.signandvalidation.service.*;
 
 import com.bosa.signandvalidation.service.ShadowRemoteDocumentValidationService;
@@ -28,7 +27,6 @@ import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
 import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
-import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.tsl.function.OfficialJournalSchemeInformationURI;
 import eu.europa.esig.dss.tsl.job.TLValidationJob;
@@ -46,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
@@ -284,14 +283,22 @@ public class DSSBeanConfig {
     }
 
     @Bean
-    public RemoteXadesSignatureServiceImpl remoteSignatureService() throws Exception {
-        RemoteXadesSignatureServiceImpl service = new RemoteXadesSignatureServiceImpl();
+    public RemoteAltSignatureServiceImpl remoteSignatureService() throws Exception {
+        RemoteAltSignatureServiceImpl service = new RemoteAltSignatureServiceImpl();
         service.setAsicWithCAdESService(asicWithCadesService());
+
         service.setAsicWithXAdESService(asicWithXadesService());
+
         service.setCadesService(cadesService());
-        service.setXadesService(xadesService());
-        service.setXadesServiceWithReferences(xadesService());
-        service.setPadesService(padesService());
+
+        XAdESService xadesService = xadesService();
+        service.setXadesService(xadesService);
+        service.setAltXadesService(xadesService);
+
+        PAdESService padesService = padesService();
+        service.setPadesService(padesService);
+        service.setAltPadesService(padesService);
+
         service.setJadesService(jadesService());
         return service;
     }
@@ -314,6 +321,7 @@ public class DSSBeanConfig {
     }
 
     @Bean
+    @Primary
     public BosaRemoteDocumentValidationService bosaRemoteValidationService() throws Exception {
         BosaRemoteDocumentValidationService service = new BosaRemoteDocumentValidationService();
         service.setRemoteDocumentValidationService(remoteValidationService());

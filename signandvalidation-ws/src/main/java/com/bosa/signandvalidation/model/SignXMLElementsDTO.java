@@ -26,4 +26,6 @@ public class SignXMLElementsDTO {
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The signed digest (from getDataToSign)")
     private byte[] signatureValue;
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

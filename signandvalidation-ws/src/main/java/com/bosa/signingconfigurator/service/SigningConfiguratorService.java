@@ -148,6 +148,7 @@ public class SigningConfiguratorService {
         remoteSignatureParams.setArchiveTimestampParameters(profileParams.getArchiveTimestampParameters());
         remoteSignatureParams.setSignWithExpiredCertificate(profileParams.getSignWithExpiredCertificate());
         remoteSignatureParams.setGenerateTBSWithoutCertificate(profileParams.getGenerateTBSWithoutCertificate());
+        remoteSignatureParams.setEmbedXML(profileParams.getEmbedXML());
 
         remoteBLevelParams.setTrustAnchorBPPolicy(profileParams.getTrustAnchorBPPolicy());
         remoteBLevelParams.setPolicyId(profileParams.getPolicyId());

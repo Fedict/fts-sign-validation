@@ -7,8 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,4 +18,6 @@ public class GetDataToSignDTO {
     private String signingProfileId;
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Signature parameters")
     private ClientSignatureParameters clientSignatureParameters;
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

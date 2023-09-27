@@ -8,17 +8,20 @@ import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.config.ErrorStrings;
 
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 
 import eu.europa.esig.dss.diagnostic.jaxb.*;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
+import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.cert.validation.dto.CertificateReportsDTO;
-import io.swagger.v3.oas.annotations.ExternalDocumentation;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
+import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -42,6 +45,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -52,6 +56,10 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 @RestController
 @RequestMapping(value = "/validation")
 public class ValidationController extends ControllerBase implements ErrorStrings {
+
+    private static final String VALIDATION_CONSTRAINTS = "validateCertificateConstraint.xml";
+
+    protected final Logger logger = Logger.getLogger(ValidationController.class.getName());
 
     @Autowired
     private BosaRemoteDocumentValidationService remoteDocumentValidationService;
@@ -85,6 +93,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
+        checkAndRecordMDCToken(toValidate.getToken());
         SignatureFullValiationDTO report = validateSignatureFull(toValidate);
         SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsAndReportsDto(report);
         logger.info("ValidateSignature is finished");
@@ -108,6 +117,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureFullValiationDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
+        checkAndRecordMDCToken(toValidate.getToken());
         if (toValidate.getSignedDocument() == null)
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
 
@@ -202,13 +212,19 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
+        checkAndRecordMDCToken(toValidate.getToken());
         if (toValidate.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 
         try {
-            CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(
-                    new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
-                            toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
+            // Use a custom validation constraint because Belgian eID (BRCA3/BRCA4) are still using SHA1 in the cert chain
+            InputStream genericIs = ValidationController.class.getResourceAsStream("/policy/" + VALIDATION_CONSTRAINTS);
+            RemoteDocument policy = new RemoteDocument(Utils.toByteArray(genericIs), VALIDATION_CONSTRAINTS);
+            eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO dto = new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
+                    toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+            dto.setPolicy(policy);
+
+            CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(dto);
             CertificateIndicationsDTO rv = reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
             if(rv.getIndication() != PASSED) {
                 certificateReportsDTO.getSimpleCertificateReport().getChain().forEach(item -> {
@@ -217,7 +233,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
             }
             logger.info("ValidateCertificate is finished");
             return rv;
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -233,6 +249,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateCertificateFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateFullValidationDTO validateCertificateFull(@RequestBody CertificateToValidateDTO toValidate) {
+        checkAndRecordMDCToken(toValidate.getToken());
         if (toValidate.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 

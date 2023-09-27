@@ -17,4 +17,6 @@ public class TimestampDocumentMultipleDTO {
     private List<RemoteDocument> documents;
     @Schema(example = "PROFILE_1", requiredMode = Schema.RequiredMode.REQUIRED, description = "The timestamping profile to use")
     private String profileId;
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }
