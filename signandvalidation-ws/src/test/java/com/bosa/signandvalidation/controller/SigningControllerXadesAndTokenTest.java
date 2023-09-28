@@ -5,7 +5,6 @@ import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signandvalidation.service.StorageService;
-import com.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.model.Digest;
@@ -99,7 +98,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(MAIN_XSLT_FILE_NAME))).thenReturn(new ByteArrayInputStream(MAIN_XSLT_FILE.getBytes()));
 
         SignatureFullValiationDTO reportsDto = new SignatureFullValiationDTO();
-        Mockito.when(validationService.validateDocument(any(),any(), any(), any())).thenReturn(reportsDto);
+        Mockito.when(validationService.validateDocument(any(),any(), any(), any(), any())).thenReturn(reportsDto);
         SignatureIndicationsDTO indications = new SignatureIndicationsDTO();
         indications.setIndication(Indication.TOTAL_PASSED);
         Mockito.when(reportsService.getLatestSignatureIndicationsDto(eq(reportsDto), any())).thenReturn(indications);

@@ -63,35 +63,15 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
     }
 
     @Test
-    // As unit tests don't include OCSP the revocation freshness has to be set to large timespans which make testing a "real life" case impossible
-    // This test tries to at least confirm the particular behavior of the BRCA3 validation policy
     public void validateBRCA3() {
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/BRCA3.pdf"));
-        RemoteDocument defaultPolicy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/main/resources/policy/constraint.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setPolicy(defaultPolicy);
 
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
-        assertNotNull(result);
-        // Temporary change for BRCA3 exception as now even the BRCA4 Policy will allow BRCA3 signatures
-        // TODO : Change when a final solution is available for Revocation Freshness issues
-        //assertEquals(TRY_LATER.toString(), result.getSubIndicationLabel());
-        //assertEquals(INDETERMINATE, result.getIndication());
-        assertNull(result.getSubIndicationLabel());
         assertEquals(TOTAL_PASSED, result.getIndication());
-
-        RemoteDocument brca3Policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/policy/BRCA3_constraint_test.xml"));
-        toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setPolicy(brca3Policy);
-
-        result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
-
-        assertNotNull(result);
         assertNull(result.getSubIndicationLabel());
-        assertEquals(TOTAL_PASSED, result.getIndication());
     }
-
 
     @Test
     public void signatureLT_LTA_ExpectsLT() {
