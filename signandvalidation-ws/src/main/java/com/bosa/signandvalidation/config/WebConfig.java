@@ -33,7 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         LOG.info("Adding CORS allowed origins: {}", allowedOrigins);
         CorsRegistration reg = registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins.split(","));
+                .allowedOriginPatterns(allowedOrigins.split(","));
     }
 
     @Bean
