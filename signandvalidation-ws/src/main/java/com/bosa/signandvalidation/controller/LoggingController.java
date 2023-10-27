@@ -4,12 +4,10 @@ import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.bosa.signandvalidation.model.FrontEndErrorReqDTO;
-import com.bosa.signandvalidation.model.FrontEndErrorRespDTO;
-import com.bosa.signandvalidation.model.FrontEndLogReqDTO;
-import com.bosa.signandvalidation.model.FrontEndLogRespDTO;
+import com.bosa.signandvalidation.model.*;
 
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import static com.bosa.signandvalidation.exceptions.Utils.logDateTimeFormatter;
@@ -20,6 +18,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 @RequestMapping(value = "/logging")
 public class LoggingController extends ControllerBase {
+
+    @Value("${application.version}")
+    private String applicationVersion;
 
     protected final Logger logger = Logger.getLogger(LoggingController.class.getName());
 
@@ -51,9 +52,24 @@ public class LoggingController extends ControllerBase {
         checkAndRecordMDCToken(feLog.getToken());
 
         StringBuilder sb = new StringBuilder();
-        sb.append(ref).append("||").append("message: ").append(feLog.getMessage());
+        String msg = feLog.getMessage();
+        if (msg.startsWith("Version")) msg += "Coucou";
+        sb.append(ref).append("||").append("message: ").append(msg);
         logger.log(feLog.getLevelEnum(), sb.toString());
-        
+
         return new FrontEndLogRespDTO(ref);
+    }
+
+    @Operation(hidden = true)
+    @PostMapping(value = "/versions", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public String logVersion(@RequestBody VersionLogReqDTO versionLog) {
+        checkAndRecordMDCToken(versionLog.getToken());
+        logger.warning("Versions -> Backend:" + applicationVersion +
+                " - FrontEndType: " + versionLog.getFrontEndType() +
+                " - FrontEnd: " + versionLog.getFrontEnd() +
+                " - BEID: " + versionLog.getBeID() +
+                " - Browser extension : " + versionLog.getBrowserExt() +
+                " - Browser store: " + versionLog.getBrowserStore());
+        return applicationVersion;
     }
 }
