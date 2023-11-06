@@ -17,6 +17,11 @@ COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
 
 USER root
 
+## Make docker timezone to Brussels
+ENV TZ=Europe/Brussels
+RUN apk add --no-cache tzdata
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 ## Remove the below line from Dockerfile & remove "Certigna.crt" file from source tree when the below line fails (probably after switching to a Java 20 docker image)
 ## It was added because Certigna CA cert is needed to access "https://www.ssi.gouv.fr/uploads/tl-fr.xml", Certigna CA cert is included in Java 20.
 ## The line below will fail if the cert already is present in cacert
