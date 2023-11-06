@@ -229,7 +229,7 @@ public class PdfVisibleSignatureService {
                 if (-1 == endIdx)
                     break;
                 String dateFormat = text.substring(idx + 3, endIdx);
-                SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, new Locale(lang));
+                SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, new Locale(lang, "be"));
                 String dateStr = sdf.format(signingDate);
                 text = text.substring(0, idx) + dateStr + text.substring(endIdx + 2);
 
