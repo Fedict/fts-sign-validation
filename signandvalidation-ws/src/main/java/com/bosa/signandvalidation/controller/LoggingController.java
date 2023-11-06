@@ -52,9 +52,7 @@ public class LoggingController extends ControllerBase {
         checkAndRecordMDCToken(feLog.getToken());
 
         StringBuilder sb = new StringBuilder();
-        String msg = feLog.getMessage();
-        if (msg.startsWith("Version")) msg += "Coucou";
-        sb.append(ref).append("||").append("message: ").append(msg);
+        sb.append(ref).append("||").append("message: ").append(feLog.getMessage());
         logger.log(feLog.getLevelEnum(), sb.toString());
 
         return new FrontEndLogRespDTO(ref);
