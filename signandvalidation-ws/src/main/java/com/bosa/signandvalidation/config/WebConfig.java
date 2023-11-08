@@ -23,7 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
     private static final Logger LOG = LoggerFactory.getLogger(WebConfig.class);
 
     @Autowired
-    private ExceptionTraceCleaner customRequestInterceptor;
+    private ThreadDataCleaner customRequestInterceptor;
 
 
     @Value("${cors.allowedorigins}")
@@ -33,7 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         LOG.info("Adding CORS allowed origins: {}", allowedOrigins);
         CorsRegistration reg = registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins.split(","));
+                .allowedOriginPatterns(allowedOrigins.split(","));
     }
 
     @Bean

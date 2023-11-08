@@ -23,24 +23,31 @@ import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 
 public class SigningControllerBaseTest extends SignAndValidationTestBase implements ErrorStrings {
 
+    public enum SignProfiles {
+        XADES_B,XADES_T,CADES_B,PADES_B,XADES_LTA,JADES_B,MDOC_XADES_LTA, XADES_B_DETACHED
+    }
+
     @BeforeAll
     public static void fillDB(ApplicationContext applicationContext) {
         ProfileSignatureParametersDao profileSigParamDao = applicationContext.getBean(ProfileSignatureParametersDao.class);
         profileSigParamDao.deleteAll();
-        saveProfileSignatureParameters(profileSigParamDao, "XADES_B", null, SignatureLevel.XAdES_BASELINE_B,
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_B.name(), null, SignatureLevel.XAdES_BASELINE_B,
                 SignaturePackaging.ENVELOPED, null, SHA256, null);
-        saveProfileSignatureParameters(profileSigParamDao, "XADES_T", null, SignatureLevel.XAdES_BASELINE_T,
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_T.name(), null, SignatureLevel.XAdES_BASELINE_T,
                 SignaturePackaging.ENVELOPED, null, SHA256, null);
-        saveProfileSignatureParameters(profileSigParamDao, "CADES_B", ASiCContainerType.ASiC_S, SignatureLevel.CAdES_BASELINE_B,
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.CADES_B.name(), ASiCContainerType.ASiC_S, SignatureLevel.CAdES_BASELINE_B,
                 SignaturePackaging.DETACHED, null, SHA256, null);
-        saveProfileSignatureParameters(profileSigParamDao, "PADES_B", null, SignatureLevel.PAdES_BASELINE_B,
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.PADES_B.name(), null, SignatureLevel.PAdES_BASELINE_B,
                 SignaturePackaging.ENVELOPED, null, SHA256, null);
-        saveProfileSignatureParameters(profileSigParamDao, "XADES_LTA", null, SignatureLevel.XAdES_BASELINE_LTA,
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_LTA.name(), null, SignatureLevel.XAdES_BASELINE_LTA,
                 SignaturePackaging.ENVELOPED, SHA256, SHA256, null);
-        saveProfileSignatureParameters(profileSigParamDao, "JADES_B", null, SignatureLevel.JAdES_BASELINE_B,
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.JADES_B.name(), null, SignatureLevel.JAdES_BASELINE_B,
                 SignaturePackaging.ENVELOPING, SHA384, SHA384, null);
-        saveProfileSignatureParameters(profileSigParamDao, "MDOC_XADES_LTA", null, SignatureLevel.XAdES_BASELINE_LTA,
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.MDOC_XADES_LTA.name(), null, SignatureLevel.XAdES_BASELINE_LTA,
                 SignaturePackaging.ENVELOPED, SHA512, SHA256, null);
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_B_DETACHED.name(), null, SignatureLevel.XAdES_BASELINE_B,
+                SignaturePackaging.DETACHED, null, SHA256, null);
+
 
         ProfileTimestampParametersDao timestampParamDao = applicationContext.getBean(ProfileTimestampParametersDao.class);
         timestampParamDao.deleteAll();

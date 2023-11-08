@@ -1,19 +1,31 @@
 package com.bosa.signandvalidation.service;
 
+import com.bosa.signandvalidation.model.NormalizedReport;
+import com.bosa.signandvalidation.model.NormalizedSignatureInfo;
+import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.SignatureIndicationsDTO;
+import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
+import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
+import eu.europa.esig.dss.detailedreport.jaxb.XmlValidationProcessBasicSignature;
+import eu.europa.esig.dss.detailedreport.jaxb.XmlValidationSignatureQualification;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlKeyUsages;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlSigningCertificate;
+import eu.europa.esig.dss.enumerations.KeyUsageBit;
+import eu.europa.esig.dss.enumerations.SignatureQualification;
 import eu.europa.esig.dss.simplereport.jaxb.*;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.CERT_REVOKED;
 import static eu.europa.esig.dss.enumerations.Indication.*;
+import static eu.europa.esig.dss.enumerations.SignatureLevel.PAdES_BASELINE_LTA;
 import static eu.europa.esig.dss.enumerations.SubIndication.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ReportServiceTest {
 
@@ -23,7 +35,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoNoSignatureTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(0);
@@ -35,7 +47,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoOneSignatureTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -51,7 +63,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoOnePassedSignatureTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -68,7 +80,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoRevokedAdesCertTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -91,7 +103,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoRevokedQualifCertTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -114,7 +126,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoNoRevokedCertTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
@@ -137,7 +149,7 @@ public class ReportServiceTest {
 
     @Test
     public void getSignatureIndicationsDtoTwoSignTest() throws Exception {
-        WSReportsDTO report = new WSReportsDTO();
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(2);
@@ -157,4 +169,61 @@ public class ReportServiceTest {
 
         assertEquals(TOTAL_PASSED, dto.getIndication());
     }
+    @Test
+    public void normalizedReportTest() throws Exception {
+        SignatureFullValiationDTO report = new SignatureFullValiationDTO();
+
+        String theID = "ID1";
+        String theCommonName = "TheSigner";
+
+        XmlSimpleReport simple = new XmlSimpleReport();
+        report.setSimpleReport(simple);
+
+        XmlDiagnosticData diagData = new XmlDiagnosticData();
+        report.setDiagnosticData(diagData);
+        List<eu.europa.esig.dss.diagnostic.jaxb.XmlSignature> diagSignatures = new ArrayList<>();
+        diagData.setSignatures(diagSignatures);
+        eu.europa.esig.dss.diagnostic.jaxb.XmlSignature diagSignature = new eu.europa.esig.dss.diagnostic.jaxb.XmlSignature();
+        diagSignatures.add(diagSignature);
+        diagSignature.setId(theID);
+        diagSignature.setSignatureFormat(PAdES_BASELINE_LTA);
+        XmlSigningCertificate signingCert = new XmlSigningCertificate();
+        eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate theCert = new eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate();
+        XmlKeyUsages usages = new XmlKeyUsages();
+        usages.getKeyUsageBit().add(KeyUsageBit.NON_REPUDIATION);
+        theCert.getCertificateExtensions().add(usages);
+
+        theCert.setCommonName(theCommonName);
+        signingCert.setCertificate(theCert);
+        diagSignature.setSigningCertificate(signingCert);
+
+        XmlDetailedReport detailedReport = new XmlDetailedReport();
+        report.setDetailedReport(detailedReport);
+        List<Serializable> sigList = detailedReport.getSignatureOrTimestampOrCertificate();
+        eu.europa.esig.dss.detailedreport.jaxb.XmlSignature sig = new eu.europa.esig.dss.detailedreport.jaxb.XmlSignature();
+        sigList.add(sig);
+        sig.setId(theID);
+        XmlValidationSignatureQualification sigValQual= new XmlValidationSignatureQualification();
+        sig.setValidationSignatureQualification(sigValQual);
+        sigValQual.setSignatureQualification(SignatureQualification.QESIG);
+        XmlConclusion conclusion = new XmlConclusion();
+        sig.setConclusion(conclusion);
+        conclusion.setIndication(TOTAL_PASSED);
+        XmlValidationProcessBasicSignature validationBasic = new XmlValidationProcessBasicSignature();
+        sig.setValidationProcessBasicSignature(validationBasic);
+        XmlConclusion basicConclusion = new XmlConclusion();
+        validationBasic.setConclusion(basicConclusion);
+        basicConclusion.getWarnings();
+
+        NormalizedReport dto = srv.getNormalizedReport(report);
+
+        assertEquals(1, dto.getSignatures().size());
+        NormalizedSignatureInfo theSignature = dto.getSignatures().get(0);
+        assertTrue(theSignature.isValid());
+        assertTrue(theSignature.isQualified());
+        assertFalse(theSignature.isMissingSigningCert());
+        assertEquals(PAdES_BASELINE_LTA, theSignature.getSignatureFormat());
+        assertEquals(theCommonName, theSignature.getSignerCommonName());
+    }
+
 }

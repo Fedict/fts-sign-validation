@@ -1,0 +1,7 @@
+{
+  "profileId": "PADES_LTA_TST_TSS",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "PAdES_BASELINE_LTA",
+  "signaturePackaging":"ENVELOPED",
+  "tspServer": "http://tss.pkiacc.tsp.zetes.com"
+}

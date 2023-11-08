@@ -35,6 +35,13 @@ public class CorsTest extends SignAndValidationTestBase {
         respEntity = restTemplate.exchange(LOCALHOST + port + "/signing/ping", HttpMethod.GET, entityReq, String.class);
 
         assertEquals("pong", respEntity.getBody());
+
+        headers = new HttpHeaders();
+        headers.set("Origin", "subdomain.domain");
+        entityReq = new HttpEntity(headers);
+        respEntity = restTemplate.exchange(LOCALHOST + port + "/signing/ping", HttpMethod.GET, entityReq, String.class);
+
+        assertEquals("pong", respEntity.getBody());
     }
 
     @Test

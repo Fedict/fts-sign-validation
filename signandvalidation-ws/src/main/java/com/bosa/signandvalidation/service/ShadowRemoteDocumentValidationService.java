@@ -35,6 +35,7 @@ package com.bosa.signandvalidation.service;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import eu.europa.esig.dss.exception.IllegalInputException;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.policy.ValidationPolicy;
@@ -49,7 +50,6 @@ import eu.europa.esig.dss.validation.reports.Reports;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,9 +87,9 @@ public class ShadowRemoteDocumentValidationService {
      * Validates the document
      *
      * @param dataToValidate {@link DataToValidateDTO} the request
-     * @return {@link WSReportsDTO} response
+     * @return {@link SignatureFullValiationDTO} response
      */
-    public WSReportsDTO validateDocument(DataToValidateDTO dataToValidate) {
+    public SignatureFullValiationDTO validateDocument(DataToValidateDTO dataToValidate) {
         LOG.info("ValidateDocument in process...");
         SignedDocumentValidator validator = initValidator(dataToValidate);
 
@@ -101,8 +101,8 @@ public class ShadowRemoteDocumentValidationService {
             reports = validator.validateDocument(getValidationPolicy(policy));
         }
 
-        WSReportsDTO reportsDTO = new WSReportsDTO(reports.getDiagnosticDataJaxb(), reports.getSimpleReportJaxb(),
-                reports.getDetailedReportJaxb(), reports.getEtsiValidationReportJaxb());
+        SignatureFullValiationDTO reportsDTO =
+                new SignatureFullValiationDTO(reports.getDiagnosticDataJaxb(), reports.getSimpleReportJaxb(), reports.getDetailedReportJaxb());
         LOG.info("ValidateDocument is finished");
         return reportsDTO;
     }

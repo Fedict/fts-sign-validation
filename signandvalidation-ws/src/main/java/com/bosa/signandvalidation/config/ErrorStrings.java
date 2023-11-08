@@ -65,4 +65,7 @@ public interface ErrorStrings {
 	// Internal (sign-validation to gui-sin) errors
 	/** Not allowed downloading signed files */
 	String BLOCKED_DOWNLOAD = "BLOCKED_DOWNLOAD";
+
+	// The Visible signature of pdf signature does not fit entirely on the page
+	String SIGNATURE_OUT_OF_BOUNDS = "SIGNATURE_OUT_OF_BOUNDS";
 }

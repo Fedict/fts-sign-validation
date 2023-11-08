@@ -128,7 +128,7 @@ public class DoubleCheckSignatureLevelTest extends SignAndValidationTestBase imp
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
 
         // get data to sign
-        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, profileId, params);
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, profileId, params, "ID");
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
@@ -137,7 +137,7 @@ public class DoubleCheckSignatureLevelTest extends SignAndValidationTestBase imp
 
         // sign document
         params.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, profileId, params, signatureValue.getValue(), null);
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, profileId, params, signatureValue.getValue(), null, "ID");
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 

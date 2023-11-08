@@ -75,7 +75,7 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
         toSignDocuments.add(new RemoteDocument("Hello world!".getBytes(), "test.bin"));
 
         // get data to sign
-        GetDataToSignMultipleDTO dataToSignDTO = new GetDataToSignMultipleDTO(toSignDocuments, "XADES_B", clientSignatureParameters);
+        GetDataToSignMultipleDTO dataToSignDTO = new GetDataToSignMultipleDTO(toSignDocuments, "XADES_B", clientSignatureParameters, "ID");
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + GETDATATOSIGN_ENDPOINT, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
@@ -83,13 +83,13 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
 
         // sign document
-        SignDocumentMultipleDTO signDocumentDTO = new SignDocumentMultipleDTO(toSignDocuments, "XADES_B", clientSignatureParameters, signatureValue.getValue());
+        SignDocumentMultipleDTO signDocumentDTO = new SignDocumentMultipleDTO(toSignDocuments, "XADES_B", clientSignatureParameters, signatureValue.getValue(), null, "ID");
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SIGNDOCUMENT_ENDPOINT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
         // extend document
-        ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, "XADES_T", toSignDocuments);
+        ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, "XADES_T", toSignDocuments, "ID");
         RemoteDocument extendedDocument = this.restTemplate.postForObject(LOCALHOST + port + EXTENDDOCUMENT_ENDPOINT, extendDocumentDTO, RemoteDocument.class);
         assertNotNull(extendedDocument);
 
@@ -103,7 +103,7 @@ public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase
                 new FileDocument(new File("src/test/resources/sample.xml")), new FileDocument(new File("src/test/resources/sample.pdf"))));
         List<RemoteDocument> remoteDocuments = RemoteDocumentConverter.toRemoteDocuments(documentsToSign);
 
-        TimestampDocumentMultipleDTO timestampMultipleDocumentDTO = new TimestampDocumentMultipleDTO(remoteDocuments, "PROFILE_1");
+        TimestampDocumentMultipleDTO timestampMultipleDocumentDTO = new TimestampDocumentMultipleDTO(remoteDocuments, "PROFILE_1", "ID");
         RemoteDocument timestampedDocument = this.restTemplate.postForObject(LOCALHOST + port + TIMESTAMP_ENDPOINT, timestampMultipleDocumentDTO, RemoteDocument.class);
 
         assertNotNull(timestampedDocument);

@@ -1,46 +1,24 @@
 package com.bosa.signandvalidation.model;
 
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExtendDocumentDTO {
 
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "A signed file")
     private RemoteDocument toExtendDocument;
+    @Schema(example = "XADES_LTA", requiredMode = Schema.RequiredMode.REQUIRED, description = "The signing profile to reach for the file")
     private String extendProfileId;
+    @Schema(description = "In case the signature is detached (and covers multiple documents) provides the original signed file data")
     private List<RemoteDocument> detachedContents;
-
-    public ExtendDocumentDTO() {
-    }
-
-    public ExtendDocumentDTO(RemoteDocument toExtendDocument, String extendProfileId, List<RemoteDocument> detachedContents) {
-        this.toExtendDocument = toExtendDocument;
-        this.extendProfileId = extendProfileId;
-        this.detachedContents = detachedContents;
-    }
-
-    public RemoteDocument getToExtendDocument() {
-        return toExtendDocument;
-    }
-
-    public void setToExtendDocument(RemoteDocument toExtendDocument) {
-        this.toExtendDocument = toExtendDocument;
-    }
-
-    public String getExtendProfileId() {
-        return extendProfileId;
-    }
-
-    public void setExtendProfileId(String extendProfileId) {
-        this.extendProfileId = extendProfileId;
-    }
-
-    public List<RemoteDocument> getDetachedContents() {
-        return detachedContents;
-    }
-
-    public void setDetachedContents(List<RemoteDocument> detachedContents) {
-        this.detachedContents = detachedContents;
-    }
-
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

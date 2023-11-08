@@ -2,12 +2,18 @@ package com.bosa.signingconfigurator.model;
 
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import java.util.ArrayList;
 import java.util.List;
 
 // parameters which are retrieved from the database based on the profile id
+@Getter
+@Setter
+@NoArgsConstructor
 public class ProfileSignatureParameters extends JsonObject {
 
     /**
@@ -76,57 +82,28 @@ public class ProfileSignatureParameters extends JsonObject {
     private TimestampContainerForm archiveTimestampContainerForm;
 
     private String tspServer;
-    
+
     private Boolean devOnlyProfile;
 
-    public ProfileSignatureParameters() {
-    }
+    private Boolean embedXML;
 
     /*
      * The values unrelated to signature parameters.
      */
-    @Override
-    public String getProfileId() {
-        return profileId;
-    }
-
-    public void setProfileId(String profileId) {
-        this.profileId = profileId;
-    }
 
     @Override
     public Boolean getIsDefault() {
         return isDefault != null && isDefault;
     }
 
-    public void setIsDefault(Boolean isDefault) {
-        this.isDefault = isDefault;
-    }
-
     /*
      * The values related to signature parameters.
      */
-    public ASiCContainerType getAsicContainerType() {
-        return asicContainerType;
-    }
-
-    public void setAsicContainerType(ASiCContainerType asicContainerType) {
-        this.asicContainerType = asicContainerType;
-    }
-
-    public SignatureLevel getSignatureLevel() {
-        return signatureLevel;
-    }
-
     public void setSignatureLevel(final SignatureLevel signatureLevel) {
         if (signatureLevel == null) {
             throw new NullPointerException("signatureLevel");
         }
         this.signatureLevel = signatureLevel;
-    }
-
-    public JWSSerializationType getJadesSerializationType() {
-        return jadesSerializationType;
     }
 
     public void setJadesSerializationType(final JWSSerializationType jadesSerializationType) {
@@ -136,140 +113,24 @@ public class ProfileSignatureParameters extends JsonObject {
         this.jadesSerializationType = jadesSerializationType;
     }
 
-    public DigestAlgorithm getReferenceDigestAlgorithm() {
-        return referenceDigestAlgorithm;
-    }
-
-    public void setReferenceDigestAlgorithm(DigestAlgorithm referenceDigestAlgorithm) {
-        this.referenceDigestAlgorithm = referenceDigestAlgorithm;
-    }
-
-    public SignaturePackaging getSignaturePackaging() {
-        return signaturePackaging;
-    }
-
-    public void setSignaturePackaging(final SignaturePackaging signaturePackaging) {
-        this.signaturePackaging = signaturePackaging;
-    }
-
-    public DigestAlgorithm getDigestAlgorithm() {
-        return digestAlgorithm;
-    }
-
-    public void setDigestAlgorithm(DigestAlgorithm digestAlgorithm) {
-        this.digestAlgorithm = digestAlgorithm;
-    }
-
-    public MaskGenerationFunction getMaskGenerationFunction() {
-        return maskGenerationFunction;
-    }
-
-    public void setMaskGenerationFunction(MaskGenerationFunction maskGenerationFunction) {
-        this.maskGenerationFunction = maskGenerationFunction;
-    }
-
     public Boolean getTrustAnchorBPPolicy() {
         return trustAnchorBPPolicy != null ? trustAnchorBPPolicy : true;
-    }
-
-    public void setTrustAnchorBPPolicy(Boolean trustAnchorBPPolicy) {
-        this.trustAnchorBPPolicy = trustAnchorBPPolicy;
-    }
-
-    public String getPolicyId() {
-        return policyId;
-    }
-
-    public void setPolicyId(String policyId) {
-        this.policyId = policyId;
-    }
-
-    public ObjectIdentifierQualifier getPolicyQualifier() {
-        return policyQualifier;
-    }
-
-    public void setPolicyQualifier(ObjectIdentifierQualifier policyQualifier) {
-        this.policyQualifier = policyQualifier;
-    }
-
-    public String getPolicyDescription() {
-        return policyDescription;
-    }
-
-    public void setPolicyDescription(String policyDescription) {
-        this.policyDescription = policyDescription;
-    }
-
-    public DigestAlgorithm getPolicyDigestAlgorithm() {
-        return policyDigestAlgorithm;
-    }
-
-    public void setPolicyDigestAlgorithm(DigestAlgorithm policyDigestAlgorithm) {
-        this.policyDigestAlgorithm = policyDigestAlgorithm;
-    }
-
-    public byte[] getPolicyDigestValue() {
-        return policyDigestValue;
-    }
-
-    public void setPolicyDigestValue(byte[] policyDigestValue) {
-        this.policyDigestValue = policyDigestValue;
-    }
-
-    public String getPolicySpuri() {
-        return policySpuri;
-    }
-
-    public void setPolicySpuri(String policySpuri) {
-        this.policySpuri = policySpuri;
-    }
-
-    public List<CommitmentTypeEnum> getCommitmentTypeIndications() {
-        return commitmentTypeIndications;
-    }
-
-    public void setCommitmentTypeIndications(List<CommitmentTypeEnum> commitmentTypeIndications) {
-        this.commitmentTypeIndications = commitmentTypeIndications;
     }
 
     public Boolean getSignWithExpiredCertificate() {
         return signWithExpiredCertificate != null ? signWithExpiredCertificate : false;
     }
 
-    public void setSignWithExpiredCertificate(Boolean signWithExpiredCertificate) {
-        this.signWithExpiredCertificate = signWithExpiredCertificate;
-    }
-
     public Boolean getGenerateTBSWithoutCertificate() {
         return generateTBSWithoutCertificate != null ? generateTBSWithoutCertificate : false;
-    }
-
-    public void setGenerateTBSWithoutCertificate(Boolean generateTBSWithoutCertificate) {
-        this.generateTBSWithoutCertificate = generateTBSWithoutCertificate;
     }
 
     public DigestAlgorithm getContentTimestampDigestAlgorithm() {
         return contentTimestampDigestAlgorithm != null ? contentTimestampDigestAlgorithm : DigestAlgorithm.SHA256;
     }
 
-    public void setContentTimestampDigestAlgorithm(DigestAlgorithm contentTimestampDigestAlgorithm) {
-        this.contentTimestampDigestAlgorithm = contentTimestampDigestAlgorithm;
-    }
-
     public String getContentTimestampCanonicalizationMethod() {
         return contentTimestampCanonicalizationMethod != null ? contentTimestampCanonicalizationMethod : CanonicalizationMethod.EXCLUSIVE;
-    }
-
-    public void setContentTimestampCanonicalizationMethod(String contentTimestampCanonicalizationMethod) {
-        this.contentTimestampCanonicalizationMethod = contentTimestampCanonicalizationMethod;
-    }
-
-    public TimestampContainerForm getContentTimestampContainerForm() {
-        return contentTimestampContainerForm;
-    }
-
-    public void setContentTimestampContainerForm(TimestampContainerForm contentTimestampContainerForm) {
-        this.contentTimestampContainerForm = contentTimestampContainerForm;
     }
 
     // combine ContentTimestampParameters
@@ -281,24 +142,8 @@ public class ProfileSignatureParameters extends JsonObject {
         return signatureTimestampDigestAlgorithm != null ? signatureTimestampDigestAlgorithm : DigestAlgorithm.SHA256;
     }
 
-    public void setSignatureTimestampDigestAlgorithm(DigestAlgorithm signatureTimestampDigestAlgorithm) {
-        this.signatureTimestampDigestAlgorithm = signatureTimestampDigestAlgorithm;
-    }
-
     public String getSignatureTimestampCanonicalizationMethod() {
         return signatureTimestampCanonicalizationMethod != null ? signatureTimestampCanonicalizationMethod : CanonicalizationMethod.EXCLUSIVE;
-    }
-
-    public void setSignatureTimestampCanonicalizationMethod(String signatureTimestampCanonicalizationMethod) {
-        this.signatureTimestampCanonicalizationMethod = signatureTimestampCanonicalizationMethod;
-    }
-
-    public TimestampContainerForm getSignatureTimestampContainerForm() {
-        return signatureTimestampContainerForm;
-    }
-
-    public void setSignatureTimestampContainerForm(TimestampContainerForm signatureTimestampContainerForm) {
-        this.signatureTimestampContainerForm = signatureTimestampContainerForm;
     }
 
     // combine SignatureTimestampParameters
@@ -310,45 +155,20 @@ public class ProfileSignatureParameters extends JsonObject {
         return archiveTimestampDigestAlgorithm != null ? archiveTimestampDigestAlgorithm : DigestAlgorithm.SHA256;
     }
 
-    public void setArchiveTimestampDigestAlgorithm(DigestAlgorithm archiveTimestampDigestAlgorithm) {
-        this.archiveTimestampDigestAlgorithm = archiveTimestampDigestAlgorithm;
-    }
-
     public String getArchiveTimestampCanonicalizationMethod() {
         return archiveTimestampCanonicalizationMethod != null ? archiveTimestampCanonicalizationMethod : CanonicalizationMethod.EXCLUSIVE;
     }
-
-    public void setArchiveTimestampCanonicalizationMethod(String archiveTimestampCanonicalizationMethod) {
-        this.archiveTimestampCanonicalizationMethod = archiveTimestampCanonicalizationMethod;
-    }
-
-    public TimestampContainerForm getArchiveTimestampContainerForm() {
-        return archiveTimestampContainerForm;
-    }
-
-    public void setArchiveTimestampContainerForm(TimestampContainerForm archiveTimestampContainerForm) {
-        this.archiveTimestampContainerForm = archiveTimestampContainerForm;
-    }
-
     // combine ArchiveTimestampParameters
     public RemoteTimestampParameters getArchiveTimestampParameters() {
         return new RemoteTimestampParameters(getArchiveTimestampContainerForm(), getArchiveTimestampDigestAlgorithm(), getArchiveTimestampCanonicalizationMethod());
     }
 
-    public String getTspServer() {
-        return tspServer;
-    }
-
-    public void setTspServer(String tspServer) {
-        this.tspServer = tspServer;
-    }
-    
     @Override
     public Boolean getDevOnlyProfile() {
         return devOnlyProfile != null && devOnlyProfile;
     }
-    
-    public void setDevOnlyProfile(Boolean devOnlyProfile) {
-        this.devOnlyProfile = devOnlyProfile;
+
+    public Boolean getEmbedXML() {
+        return embedXML != null && embedXML;
     }
 }

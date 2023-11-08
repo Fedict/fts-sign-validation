@@ -237,7 +237,6 @@ public class PdfVisibleSignatureService {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
             throw new NullParameterException("Bad date format for PDF visible signature: " + e.getMessage());
         }
 
@@ -462,7 +461,7 @@ public class PdfVisibleSignatureService {
             return buf;
         }
         catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Exception trying to read font: " + fontName + ". " + e.getMessage());
             return null;
         }
     }

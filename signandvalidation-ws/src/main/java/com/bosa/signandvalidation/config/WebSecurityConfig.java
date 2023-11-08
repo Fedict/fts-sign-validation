@@ -19,8 +19,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${cors.allowedorigins")
-    private String allowedOrigins;
+    @Value("${frame-ancestors}")
+    private String frameAncestors;
 
     private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
 
@@ -30,21 +30,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
 
         // javadoc uses frames
-        http.headers().addHeaderWriter(javadocHeaderWriter());
-        // so does the GUI thing, from a different domain even.
-        http.antMatcher("/signing/getDocumentForToken").headers().frameOptions().disable();
-        http.headers().addHeaderWriter(serverEsigDSS());
-        LOG.info("WebSecurityConfig configured");
-    }
-
-    @Bean
-    public HeaderWriter javadocHeaderWriter() {
         final AntPathRequestMatcher javadocAntPathRequestMatcher = new AntPathRequestMatcher("/apidocs/**");
         final HeaderWriter hw = new XFrameOptionsHeaderWriter(XFrameOptionsMode.SAMEORIGIN);
-        return new DelegatingRequestMatcherHeaderWriter(javadocAntPathRequestMatcher, hw);
-    }
+        final DelegatingRequestMatcherHeaderWriter javadocHdrWriter = new DelegatingRequestMatcherHeaderWriter(javadocAntPathRequestMatcher, hw);
+        http.headers().addHeaderWriter(javadocHdrWriter);
 
-    public HeaderWriter serverEsigDSS() {
-        return new StaticHeadersWriter("Server", "ESIG-DSS");
+        // so does the GUI thing, from a different domain even.
+        http.headers().xssProtection().and().contentSecurityPolicy("frame-ancestors " + frameAncestors);
+        // Since Firefox v115 does not apply its own rule of "CSP frame-ancestors overrides X-Frame-Options DENY" we remove the X-Frame-Options
+        http.headers().frameOptions().disable();
+
+        http.headers().addHeaderWriter(new StaticHeadersWriter("Server", "ESIG-DSS"));
+        LOG.info("WebSecurityConfig configured");
     }
 }
+
+
+
