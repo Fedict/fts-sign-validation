@@ -7,6 +7,7 @@ import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.config.ErrorStrings;
 
+import static com.bosa.signandvalidation.controller.SigningController.authorizeCall;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -57,6 +59,12 @@ public class ValidationController extends ControllerBase implements ErrorStrings
     @Autowired
     private ReportsService reportsService;
 
+    @Value("${token.services}")
+    private Boolean hasTokenServices;
+
+    @Value("${signbox.services}")
+    private Boolean hasSignBoxServices;
+
     @GetMapping(value = "/ping", produces = TEXT_PLAIN_VALUE)
     public String ping() {
         return "pong";
@@ -80,6 +88,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
+        authorizeCall(hasSignBoxServices);
         checkAndRecordMDCToken(toValidate.getToken());
         SignatureFullValiationDTO report = validateSignatureFull(toValidate);
         SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsAndReportsDto(report);
@@ -104,6 +113,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public SignatureFullValiationDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
+        authorizeCall(hasSignBoxServices);
         checkAndRecordMDCToken(toValidate.getToken());
         if (toValidate.getSignedDocument() == null)
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
@@ -144,6 +154,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
+        authorizeCall(hasSignBoxServices || hasTokenServices);
         checkAndRecordMDCToken(toValidate.getToken());
         if (toValidate.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
@@ -181,6 +192,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateCertificateFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CertificateFullValidationDTO validateCertificateFull(@RequestBody CertificateToValidateDTO toValidate) {
+        authorizeCall(hasSignBoxServices);
         checkAndRecordMDCToken(toValidate.getToken());
         if (toValidate.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
@@ -208,6 +220,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
 
     @PostMapping(value = "/validateCertificates", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public IndicationsListDTO validateCertificates(@RequestBody List<CertificateToValidateDTO> toValidateList) {
+        authorizeCall(hasSignBoxServices || hasTokenServices);
         try {
             List<CertificateIndicationsDTO> indications = new ArrayList<>();
 
