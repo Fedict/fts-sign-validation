@@ -68,4 +68,7 @@ public interface ErrorStrings {
 
 	// The Visible signature of pdf signature does not fit entirely on the page
 	String SIGNATURE_OUT_OF_BOUNDS = "SIGNATURE_OUT_OF_BOUNDS";
+
+	// One of the certificates used for signing is expired
+	String EXPIRED_CERTIFICATE = "EXPIRED_CERTIFICATE";
 }
