@@ -837,7 +837,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             logger.info("Returning from signDocumentForToken()");
         } catch (Exception e) {
-            handleExpiredCertificate(e);
+            handleRevokedCertificates(e);
             DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -1142,7 +1142,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException | IOException e) {
-            handleExpiredCertificate(e);
+            handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -1184,7 +1184,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException | IOException e) {
-            handleExpiredCertificate(e);
+            handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -1219,7 +1219,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (RuntimeException e) {
-            handleExpiredCertificate(e);
+            handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -1254,7 +1254,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (RuntimeException e) {
-            handleExpiredCertificate(e);
+            handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -1401,7 +1401,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (RuntimeException | IOException e) {
-            handleExpiredCertificate(e);
+            handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
@@ -1421,9 +1421,9 @@ public static void authorizeCall(Boolean authorize) {
 
 /*****************************************************************************************/
 
-private static void handleExpiredCertificate(Exception e) {
+private static void handleRevokedCertificates(Exception e) {
     if (e instanceof AlertException && e.getMessage().startsWith("Revoked/Suspended certificate")) {
-        logAndThrowEx(BAD_REQUEST, EXPIRED_CERTIFICATE, e);
+        logAndThrowEx(BAD_REQUEST, CERT_REVOKED, e);
     }
 }
 
