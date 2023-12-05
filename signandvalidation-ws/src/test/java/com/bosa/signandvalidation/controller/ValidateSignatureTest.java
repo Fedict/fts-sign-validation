@@ -8,6 +8,7 @@ import com.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -21,6 +22,7 @@ import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.Indication.*;
 import static eu.europa.esig.dss.enumerations.SubIndication.*;
+import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import com.bosa.signandvalidation.config.ErrorStrings;
@@ -252,6 +254,37 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         // then
         assertNotNull(result);
         assertEquals(TOTAL_PASSED, result.getIndication());
+    }
+
+    @Test
+    public void detailedReportRegressionTest() throws Exception {
+        // given
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/pades-lta.pdf"));
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
+        toValidate.setLevel(SignatureLevel.PAdES_BASELINE_LTA);
+
+        // when
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
+
+        // then
+        assertNotNull(result);
+        assertEquals(TOTAL_PASSED, result.getIndication());
+        String report = result.getReport();
+        String expectedReport = new String(RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/expectedReport.xml")).getBytes());
+        report = replace("report ValidationTime=\"", "\"", expectedReport, report);
+        report = replace("<ns2:AdditionalInfo>Best-signature-time : ", "</ns2:AdditionalInfo>", expectedReport, report);
+        report = replace("<ns2:CRS LatestAcceptableRevocationId=", "\"", expectedReport, report);
+
+        assertXMLEqual(expectedReport, report);
+    }
+
+    private static String replace(String start, String end, String src, String dst) {
+        int pos = src.indexOf(start) + start.length();
+        int endPos = src.indexOf(end, pos + 1);
+        String value = src.substring(pos, endPos);
+        pos = dst.indexOf(start) + start.length();
+        endPos = dst.indexOf(end, pos + 1);
+        return dst.replaceAll(dst.substring(pos, endPos), value);
     }
 
 }

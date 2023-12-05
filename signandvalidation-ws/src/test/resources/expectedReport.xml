@@ -1,0 +1,2026 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xmlReportRoot xmlns:ns2="http://dss.esig.europa.eu/validation/detailed-report">
+    <report ValidationTime="2023-12-05T09:57:12Z">
+        <ns2:Signature Id="S-01235BE7995005EBB0B8DB10643B4859981AA20A37E5D0362B9A2156D3C73EDB">
+            <ns2:ValidationProcessBasicSignature Title="Validation Process for Basic Signatures">
+                <ns2:Constraint Id="S-01235BE7995005EBB0B8DB10643B4859981AA20A37E5D0362B9A2156D3C73EDB-FC">
+                    <ns2:Name Key="BSV_IFCRC">Is the result of the 'Format Checking' building block conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="S-01235BE7995005EBB0B8DB10643B4859981AA20A37E5D0362B9A2156D3C73EDB-ISC">
+                    <ns2:Name Key="BSV_IISCRC">Is the result of the 'Identification of Signing Certificate' building block conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="S-01235BE7995005EBB0B8DB10643B4859981AA20A37E5D0362B9A2156D3C73EDB-VCI">
+                    <ns2:Name Key="BSV_IVCIRC">Is the result of the 'Validation Context Initialization' building block conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="S-01235BE7995005EBB0B8DB10643B4859981AA20A37E5D0362B9A2156D3C73EDB-XCV">
+                    <ns2:Name Key="BSV_IXCVRC">Is the result of the 'X.509 Certificate Validation' building block conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="S-01235BE7995005EBB0B8DB10643B4859981AA20A37E5D0362B9A2156D3C73EDB-CV">
+                    <ns2:Name Key="BSV_ICVRC">Is the result of the 'Cryptographic Verification' building block conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="S-01235BE7995005EBB0B8DB10643B4859981AA20A37E5D0362B9A2156D3C73EDB-SAV">
+                    <ns2:Name Key="BSV_ISAVRC">Is the result of the 'Signature Acceptance Validation' building block conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:ProofOfExistence>
+                    <ns2:Time>2023-12-05T09:57:12Z</ns2:Time>
+                </ns2:ProofOfExistence>
+            </ns2:ValidationProcessBasicSignature>
+            <ns2:Timestamp Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07">
+                <ns2:ValidationProcessTimestamp Type="SIGNATURE_TIMESTAMP" ProductionTime="2022-01-24T16:12:10Z" Title="Validation Process for Time-stamps">
+                    <ns2:Constraint Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07-ISC">
+                        <ns2:Name Key="BSV_IISCRC">Is the result of the 'Identification of Signing Certificate' building block conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07-XCV">
+                        <ns2:Name Key="BSV_IXCVRC">Is the result of the 'X.509 Certificate Validation' building block conclusive?</ns2:Name>
+                        <ns2:Status>WARNING</ns2:Status>
+                        <ns2:Warning Key="BSV_IXCVRC_ANS">The result of the 'X.509 Certificate Validation' building block is not conclusive!</ns2:Warning>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07-XCV">
+                        <ns2:Name Key="BSV_ISCRAVTC">Is the signing certificate not revoked at validation time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07-XCV">
+                        <ns2:Name Key="BSV_IVTAVRSC">Is the validation time in the validity range of the signing certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07-CV">
+                        <ns2:Name Key="BSV_ICVRC">Is the result of the 'Cryptographic Verification' building block conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07">
+                        <ns2:Name Key="ADEST_ROBVPIIC">Is the result of the Basic Validation Process conclusive?</ns2:Name>
+                        <ns2:Status>NOT OK</ns2:Status>
+                        <ns2:Error Key="ADEST_ROBVPIIC_ANS">The result of the Basic validation process is not conclusive!</ns2:Error>
+                        <ns2:AdditionalInfo>Basic Signature Validation process failed with INDETERMINATE/NO_CERTIFICATE_CHAIN_FOUND indication</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>INDETERMINATE</ns2:Indication>
+                        <ns2:SubIndication>NO_CERTIFICATE_CHAIN_FOUND</ns2:SubIndication>
+                        <ns2:Errors Key="BBB_XCV_CCCBB_TSP_ANS">The certificate chain for time-stamp is not trusted, it does not contain a trust anchor.</ns2:Errors>
+                    </ns2:Conclusion>
+                </ns2:ValidationProcessTimestamp>
+                <ns2:ValidationTimestampQualification TimestampQualification="N/A" Title="Time-stamp Qualification">
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_CERT_TRUSTED_LIST_REACHED">Has a trusted list been reached for the certificate chain?</ns2:Name>
+                        <ns2:Status>NOT OK</ns2:Status>
+                        <ns2:Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</ns2:Error>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>FAILED</ns2:Indication>
+                        <ns2:Errors Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</ns2:Errors>
+                    </ns2:Conclusion>
+                </ns2:ValidationTimestampQualification>
+            </ns2:Timestamp>
+            <ns2:Timestamp Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E">
+                <ns2:ValidationProcessTimestamp Type="DOCUMENT_TIMESTAMP" ProductionTime="2022-01-24T16:12:10Z" Title="Validation Process for Time-stamps">
+                    <ns2:Constraint Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E-ISC">
+                        <ns2:Name Key="BSV_IISCRC">Is the result of the 'Identification of Signing Certificate' building block conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E-XCV">
+                        <ns2:Name Key="BSV_IXCVRC">Is the result of the 'X.509 Certificate Validation' building block conclusive?</ns2:Name>
+                        <ns2:Status>WARNING</ns2:Status>
+                        <ns2:Warning Key="BSV_IXCVRC_ANS">The result of the 'X.509 Certificate Validation' building block is not conclusive!</ns2:Warning>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E-XCV">
+                        <ns2:Name Key="BSV_ISCRAVTC">Is the signing certificate not revoked at validation time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E-XCV">
+                        <ns2:Name Key="BSV_IVTAVRSC">Is the validation time in the validity range of the signing certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E-CV">
+                        <ns2:Name Key="BSV_ICVRC">Is the result of the 'Cryptographic Verification' building block conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E">
+                        <ns2:Name Key="ADEST_ROBVPIIC">Is the result of the Basic Validation Process conclusive?</ns2:Name>
+                        <ns2:Status>NOT OK</ns2:Status>
+                        <ns2:Error Key="ADEST_ROBVPIIC_ANS">The result of the Basic validation process is not conclusive!</ns2:Error>
+                        <ns2:AdditionalInfo>Basic Signature Validation process failed with INDETERMINATE/NO_CERTIFICATE_CHAIN_FOUND indication</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>INDETERMINATE</ns2:Indication>
+                        <ns2:SubIndication>NO_CERTIFICATE_CHAIN_FOUND</ns2:SubIndication>
+                        <ns2:Errors Key="BBB_XCV_CCCBB_TSP_ANS">The certificate chain for time-stamp is not trusted, it does not contain a trust anchor.</ns2:Errors>
+                    </ns2:Conclusion>
+                </ns2:ValidationProcessTimestamp>
+                <ns2:ValidationTimestampQualification TimestampQualification="N/A" Title="Time-stamp Qualification">
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_CERT_TRUSTED_LIST_REACHED">Has a trusted list been reached for the certificate chain?</ns2:Name>
+                        <ns2:Status>NOT OK</ns2:Status>
+                        <ns2:Error Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</ns2:Error>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>FAILED</ns2:Indication>
+                        <ns2:Errors Key="QUAL_CERT_TRUSTED_LIST_REACHED_ANS">Unable to build a certificate chain up to a trusted list!</ns2:Errors>
+                    </ns2:Conclusion>
+                </ns2:ValidationTimestampQualification>
+            </ns2:Timestamp>
+            <ns2:ValidationProcessLongTermData Title="Validation Process for Signatures with Time and Signatures with Long-Term Validation Data">
+                <ns2:Constraint>
+                    <ns2:Name Key="LTV_ABSV">Is the result of the Basic Validation Process acceptable?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17">
+                    <ns2:Name Key="BBB_XCV_IRDPFC">Is the revocation data present for the certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED">
+                    <ns2:Name Key="BBB_XCV_IRDPFC">Is the revocation data present for the certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07">
+                    <ns2:Name Key="BBB_SAV_DMICTSTMCMI">Does the message-imprint match the computed value?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Signature Timestamp with Id = T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07" BlockType="TST_BBB">
+                    <ns2:Name Key="ADEST_IBSVPTC">Is the result of basic time-stamp validation process conclusive?</ns2:Name>
+                    <ns2:Status>WARNING</ns2:Status>
+                    <ns2:Warning Key="ADEST_IBSVPTC_ANS">The result of basic time-stamp validation process is not conclusive! Past time-stamp validation is required.</ns2:Warning>
+                    <ns2:AdditionalInfo>Signature Timestamp with Id = T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E">
+                    <ns2:Name Key="BBB_SAV_DMICTSTMCMI">Does the message-imprint match the computed value?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Document Timestamp with Id = T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E" BlockType="TST_BBB">
+                    <ns2:Name Key="ADEST_IBSVPTC">Is the result of basic time-stamp validation process conclusive?</ns2:Name>
+                    <ns2:Status>WARNING</ns2:Status>
+                    <ns2:Warning Key="ADEST_IBSVPTC_ANS">The result of basic time-stamp validation process is not conclusive! Past time-stamp validation is required.</ns2:Warning>
+                    <ns2:AdditionalInfo>Document Timestamp with Id = T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="TSV_IBSTAIDOSC">Is the best-signature-time not before the issuance date of the signing certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Best-signature-time : 2023-12-05 09:57, certificate notBefore : 2018-04-05 12:35</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_SAV_ISVA">Is the signature acceptable?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:ProofOfExistence>
+                    <ns2:Time>2023-12-05T09:57:12Z</ns2:Time>
+                </ns2:ProofOfExistence>
+                <ns2:CRS Id="C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17" LatestAcceptableRevocationId="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" Title="Certificate Revocation Data Selector">
+                    <ns2:Constraint Id="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" BlockType="REV_BBB">
+                        <ns2:Name Key="ADEST_RORPIIC">Is the result of the revocation data basic validation process acceptable?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" BlockType="RAC">
+                        <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061, thisUpdate = 2023-12-05 09:57, production time = 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA" BlockType="REV_BBB">
+                        <ns2:Name Key="ADEST_RORPIIC">Is the result of the revocation data basic validation process acceptable?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA" BlockType="RAC">
+                        <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA, thisUpdate = 2022-01-24 16:12, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Latest acceptable revocation : R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                </ns2:CRS>
+                <ns2:CRS Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" LatestAcceptableRevocationId="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Certificate Revocation Data Selector">
+                    <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="REV_BBB">
+                        <ns2:Name Key="ADEST_RORPIIC">Is the result of the revocation data basic validation process acceptable?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="RAC">
+                        <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7, thisUpdate = 2023-12-05 09:57, production time = 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="REV_BBB">
+                        <ns2:Name Key="ADEST_RORPIIC">Is the result of the revocation data basic validation process acceptable?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="RAC">
+                        <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A, thisUpdate = 2022-01-24 16:12, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Latest acceptable revocation : R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                </ns2:CRS>
+            </ns2:ValidationProcessLongTermData>
+            <ns2:ValidationProcessArchivalData Title="Validation Process for Signatures with Archival Data">
+                <ns2:Constraint>
+                    <ns2:Name Key="ARCH_LTVV">Is the result of the LTV validation process acceptable?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07" BlockType="TST_BBB">
+                    <ns2:Name Key="ARCH_IRTVBBA">Is the result of the Time-stamp Validation Building Block acceptable?</ns2:Name>
+                    <ns2:Status>WARNING</ns2:Status>
+                    <ns2:Warning Key="ARCH_IRTVBBA_ANS">The result of the Time-stamp Validation Building Block is not acceptable to continue the process!</ns2:Warning>
+                    <ns2:AdditionalInfo>Signature Timestamp with Id = T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E" BlockType="TST_BBB">
+                    <ns2:Name Key="ARCH_IRTVBBA">Is the result of the Time-stamp Validation Building Block acceptable?</ns2:Name>
+                    <ns2:Status>WARNING</ns2:Status>
+                    <ns2:Warning Key="ARCH_IRTVBBA_ANS">The result of the Time-stamp Validation Building Block is not acceptable to continue the process!</ns2:Warning>
+                    <ns2:AdditionalInfo>Document Timestamp with Id = T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:ProofOfExistence>
+                    <ns2:Time>2023-12-05T09:57:12Z</ns2:Time>
+                </ns2:ProofOfExistence>
+            </ns2:ValidationProcessArchivalData>
+            <ns2:ValidationSignatureQualification SignatureQualification="QESig" Title="Signature Qualification">
+                <ns2:Constraint>
+                    <ns2:Name Key="QUAL_IS_ADES">Is the signature/seal an acceptable AdES digital signature (ETSI EN 319 102-1)?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="QUAL_CERT_TRUSTED_LIST_REACHED">Has a trusted list been reached for the certificate chain?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="LOTL-EC2AE37FE9A43B48B1CFE2A57EBEE2BD6373EDFF36537EB1BC905747ACBF4C3B">
+                    <ns2:Name Key="QUAL_LIST_OF_TRUSTED_LISTS_ACCEPT">Is the list of trusted lists acceptable?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Trusted List : https://ec.europa.eu/tools/lotl/eu-lotl.xml</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint Id="TL-61C0487109BE27255C19CFF26D8F56BEA621E7F381A7B4CBE7FB4750BD477BF9">
+                    <ns2:Name Key="QUAL_TRUSTED_LIST_ACCEPT">Is the trusted list acceptable?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Trusted List : https://tsl.belgium.be/tsl-be.xml</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="QUAL_VALID_TRUSTED_LIST_PRESENT">Has been an acceptable trusted list found?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="QUAL_QC_AT_ST">Is the certificate qualified at (best) signing time?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="QUAL_CERT_TYPE_AT_ST">Is the certificate type unambiguously identified at (best) signing time?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="QUAL_QC_AT_CC">Is the certificate qualified at issuance time?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="QUAL_QSCD_AT_ST">Does the private key reside in a QSCD at (best) signing time?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>INDETERMINATE</ns2:Indication>
+                    <ns2:Warnings Key="QUAL_IS_TRUST_CERT_MATCH_SERVICE_ANS1">The organization name is missing in the trusted certificate!</ns2:Warnings>
+                    <ns2:Warnings Key="QUAL_IS_TRUST_CERT_MATCH_SERVICE_ANS1">The organization name is missing in the trusted certificate!</ns2:Warnings>
+                </ns2:Conclusion>
+                <ns2:ValidationCertificateQualification Id="C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17" DateTime="2018-04-05T12:35:28Z" ValidationTime="CERTIFICATE_ISSUANCE_TIME" CertificateQualification="QC for eSig with QSCD" Title="Certificate Qualification at certificate issuance time">
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_ATTIME">Is the certificate related to a trust service at certificate issuance time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_CAQC">Is the certificate related to a CA/QC?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_TS_CERT_TYPE">May a related trust service issue certificates of a suitable type?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_TL_SERV_CONS">Is the trust service consistent?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Trust service name : CN=Belgium Root CA4, C=BE</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_GRANTED">Is the certificate related to a trust service with a granted status?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_IS_TRUST_CERT_MATCH_SERVICE">Does the trusted certificate match the trust service?</ns2:Name>
+                        <ns2:Status>WARNING</ns2:Status>
+                        <ns2:Warning Key="QUAL_IS_TRUST_CERT_MATCH_SERVICE_ANS1">The organization name is missing in the trusted certificate!</ns2:Warning>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_VALID_CAQC">Is the certificate related to a qualified certificate issuing trust service with valid status?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_CONSISTENT_BY_QC">Is the certificate related to a consistent by QC trust service declaration?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_QC_AT_CC">Is the certificate qualified at issuance time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_CERT_TYPE_COVERAGE">Can the certificate type be issued by a found trust service?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_CERT_TYPE_AT_CC">Is the certificate type unambiguously identified at issuance time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Certificate type is for eSig</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_CONSISTENT_BY_QSCD">Is the certificate related to a consistent by QSCD trust service declaration?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_QSCD_AT_CC">Does the private key reside in a QSCD at issuance time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                        <ns2:Warnings Key="QUAL_IS_TRUST_CERT_MATCH_SERVICE_ANS1">The organization name is missing in the trusted certificate!</ns2:Warnings>
+                    </ns2:Conclusion>
+                </ns2:ValidationCertificateQualification>
+                <ns2:ValidationCertificateQualification Id="C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17" DateTime="2023-12-05T09:57:12Z" ValidationTime="BEST_SIGNATURE_TIME" CertificateQualification="QC for eSig with QSCD" Title="Certificate Qualification at best signature time">
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_ATTIME">Is the certificate related to a trust service at best signature time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_CAQC">Is the certificate related to a CA/QC?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_TS_CERT_TYPE">May a related trust service issue certificates of a suitable type?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_TL_SERV_CONS">Is the trust service consistent?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Trust service name : CN=Belgium Root CA4, C=BE</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_GRANTED">Is the certificate related to a trust service with a granted status?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_IS_TRUST_CERT_MATCH_SERVICE">Does the trusted certificate match the trust service?</ns2:Name>
+                        <ns2:Status>WARNING</ns2:Status>
+                        <ns2:Warning Key="QUAL_IS_TRUST_CERT_MATCH_SERVICE_ANS1">The organization name is missing in the trusted certificate!</ns2:Warning>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_VALID_CAQC">Is the certificate related to a qualified certificate issuing trust service with valid status?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_CONSISTENT_BY_QC">Is the certificate related to a consistent by QC trust service declaration?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_QC_AT_ST">Is the certificate qualified at (best) signing time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_CERT_TYPE_COVERAGE">Can the certificate type be issued by a found trust service?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_CERT_TYPE_AT_ST">Is the certificate type unambiguously identified at (best) signing time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Certificate type is for eSig</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_HAS_CONSISTENT_BY_QSCD">Is the certificate related to a consistent by QSCD trust service declaration?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_QSCD_AT_ST">Does the private key reside in a QSCD at (best) signing time?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                        <ns2:Warnings Key="QUAL_IS_TRUST_CERT_MATCH_SERVICE_ANS1">The organization name is missing in the trusted certificate!</ns2:Warnings>
+                    </ns2:Conclusion>
+                </ns2:ValidationCertificateQualification>
+            </ns2:ValidationSignatureQualification>
+            <ns2:Conclusion>
+                <ns2:Indication>TOTAL_PASSED</ns2:Indication>
+            </ns2:Conclusion>
+        </ns2:Signature>
+        <ns2:BasicBuildingBlocks Id="R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA" Type="REVOCATION">
+            <ns2:ISC Title="Identification of the Signing Certificate">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISCI">Is there an identified candidate for the signing certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CertificateChain>
+                    <ns2:ChainItem Id="C-4BA505CA9D7A1A5F2497D2DB908641252E7AD861BB70FE1811497C6075CF095B">
+                        <ns2:Source>SIGNATURE</ns2:Source>
+                    </ns2:ChainItem>
+                    <ns2:ChainItem Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED">
+                        <ns2:Source>SIGNATURE</ns2:Source>
+                    </ns2:ChainItem>
+                    <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                        <ns2:Source>TRUSTED_LIST</ns2:Source>
+                    </ns2:ChainItem>
+                </ns2:CertificateChain>
+            </ns2:ISC>
+            <ns2:XCV Title="X509 Certificate Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-4BA505CA9D7A1A5F2497D2DB908641252E7AD861BB70FE1811497C6075CF095B" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>NOT OK</ns2:Status>
+                    <ns2:Error Key="BBB_XCV_SUB_ANS">The certificate validation is not conclusive!</ns2:Error>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>INDETERMINATE</ns2:Indication>
+                    <ns2:SubIndication>OUT_OF_BOUNDS_NO_POE</ns2:SubIndication>
+                    <ns2:Errors Key="BBB_XCV_SUB_ANS">The certificate validation is not conclusive!</ns2:Errors>
+                    <ns2:Errors Key="BBB_XCV_ICTIVRSC_ANS">The current time is not in the validity range of the signer's certificate!</ns2:Errors>
+                </ns2:Conclusion>
+                <ns2:SubXCV Id="C-4BA505CA9D7A1A5F2497D2DB908641252E7AD861BB70FE1811497C6075CF095B" TrustAnchor="false" SelfSigned="false" Title="Certificate">
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICSI">Is the certificate signature intact?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data's certificate chain?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICTIVRSC">Is the current time in the validity range of the signer's certificate?</ns2:Name>
+                        <ns2:Status>NOT OK</ns2:Status>
+                        <ns2:Error Key="BBB_XCV_ICTIVRSC_ANS">The current time is not in the validity range of the signer's certificate!</ns2:Error>
+                        <ns2:AdditionalInfo>Validation time : 2023-12-05 09:57, certificate validity : 2021-12-31 11:00 - 2023-01-29 11:00</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>INDETERMINATE</ns2:Indication>
+                        <ns2:SubIndication>OUT_OF_BOUNDS_NO_POE</ns2:SubIndication>
+                        <ns2:Errors Key="BBB_XCV_ICTIVRSC_ANS">The current time is not in the validity range of the signer's certificate!</ns2:Errors>
+                    </ns2:Conclusion>
+                    <ns2:CrossCertificate>C-F4CF2DBFDACEE338A4E5B734EF5251BDD31B521C3361C532FE5DE266C7F4A29A</ns2:CrossCertificate>
+                </ns2:SubXCV>
+                <ns2:SubXCV Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" TrustAnchor="false" SelfSigned="false" Title="Certificate">
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICSI">Is the certificate signature intact?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_IRDPFC">Is the revocation data present for the certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" BlockType="CRS">
+                        <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Latest acceptable revocation : R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISCR">Is the certificate not revoked?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISCOH">Is the certificate not on hold?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="RFC">
+                        <ns2:Name Key="BBB_XCV_RFC">Is the revocation freshness check conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data's certificate chain?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                    <ns2:CRS Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" LatestAcceptableRevocationId="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Certificate Revocation Data Selector">
+                        <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="RAC">
+                            <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Id = R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7, thisUpdate = 2023-12-05 09:57, production time = 2023-12-05 09:57</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="RAC">
+                            <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Id = R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A, thisUpdate = 2022-01-24 16:12, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint>
+                            <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Latest acceptable revocation : R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Conclusion>
+                            <ns2:Indication>PASSED</ns2:Indication>
+                        </ns2:Conclusion>
+                        <ns2:RAC Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Revocation Acceptance Checker">
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="REV_CC">
+                                <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Revocation thisUpdate 2023-12-05 09:57 is in the certificate validity range : 2017-11-17 10:00 - 2029-07-17 10:00</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Id = C-EBCAB420D3EACF019822FBF263E074B606B9D633A6245C1ADD53185D886D55F5</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Conclusion>
+                                <ns2:Indication>PASSED</ns2:Indication>
+                            </ns2:Conclusion>
+                            <ns2:RevocationThisUpdate>2023-12-05T09:57:11Z</ns2:RevocationThisUpdate>
+                            <ns2:RevocationProductionDate>2023-12-05T09:57:11Z</ns2:RevocationProductionDate>
+                        </ns2:RAC>
+                        <ns2:RAC Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" Title="Revocation Acceptance Checker">
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="REV_CC">
+                                <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Revocation thisUpdate 2022-01-24 16:12 is in the certificate validity range : 2017-11-17 10:00 - 2029-07-17 10:00</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Id = C-F4CF2DBFDACEE338A4E5B734EF5251BDD31B521C3361C532FE5DE266C7F4A29A</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Conclusion>
+                                <ns2:Indication>PASSED</ns2:Indication>
+                            </ns2:Conclusion>
+                            <ns2:RevocationThisUpdate>2022-01-24T16:12:10Z</ns2:RevocationThisUpdate>
+                            <ns2:RevocationProductionDate>2022-01-24T16:12:10Z</ns2:RevocationProductionDate>
+                        </ns2:RAC>
+                    </ns2:CRS>
+                    <ns2:RFC Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Revocation Freshness Checker">
+                        <ns2:Constraint>
+                            <ns2:Name Key="BBB_RFC_IRIF">Is the revocation information fresh for the certificate?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Validation time : 2023-12-05 09:57; thisUpdate time : 2023-12-05 09:57; nextUpdate time : 2023-12-05 09:58</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint>
+                            <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data signature?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Conclusion>
+                            <ns2:Indication>PASSED</ns2:Indication>
+                        </ns2:Conclusion>
+                    </ns2:RFC>
+                </ns2:SubXCV>
+                <ns2:SubXCV Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F" TrustAnchor="true" SelfSigned="true" Title="Certificate">
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                </ns2:SubXCV>
+            </ns2:XCV>
+            <ns2:CV Title="Cryptographic Verification">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+            </ns2:CV>
+            <ns2:SAV Title="Signature Acceptance Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data signature?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CryptographicValidation secure="true">
+                    <ns2:Algorithm>
+                        <ns2:Name>RSA with SHA256</ns2:Name>
+                        <ns2:Uri>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</ns2:Uri>
+                        <ns2:KeyLength>2048</ns2:KeyLength>
+                    </ns2:Algorithm>
+                    <ns2:NotAfter>2025-12-31T23:00:00Z</ns2:NotAfter>
+                    <ns2:ValidationTime>2023-12-05T09:57:12Z</ns2:ValidationTime>
+                    <ns2:ConcernedMaterial>R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA</ns2:ConcernedMaterial>
+                </ns2:CryptographicValidation>
+            </ns2:SAV>
+            <ns2:CertificateChain>
+                <ns2:ChainItem Id="C-4BA505CA9D7A1A5F2497D2DB908641252E7AD861BB70FE1811497C6075CF095B">
+                    <ns2:Source>SIGNATURE</ns2:Source>
+                </ns2:ChainItem>
+                <ns2:ChainItem Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED">
+                    <ns2:Source>SIGNATURE</ns2:Source>
+                </ns2:ChainItem>
+                <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                    <ns2:Source>TRUSTED_LIST</ns2:Source>
+                </ns2:ChainItem>
+            </ns2:CertificateChain>
+            <ns2:Conclusion>
+                <ns2:Indication>INDETERMINATE</ns2:Indication>
+                <ns2:SubIndication>OUT_OF_BOUNDS_NO_POE</ns2:SubIndication>
+                <ns2:Errors Key="BBB_XCV_SUB_ANS">The certificate validation is not conclusive!</ns2:Errors>
+                <ns2:Errors Key="BBB_XCV_ICTIVRSC_ANS">The current time is not in the validity range of the signer's certificate!</ns2:Errors>
+            </ns2:Conclusion>
+        </ns2:BasicBuildingBlocks>
+        <ns2:BasicBuildingBlocks Id="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" Type="REVOCATION">
+            <ns2:ISC Title="Identification of the Signing Certificate">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISCI">Is there an identified candidate for the signing certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CertificateChain>
+                    <ns2:ChainItem Id="C-27ABE86CD3C66DBC74CCAF31FBF53D14FA60E043548E2430A7C1F342C59DE41E">
+                        <ns2:Source>OCSP_RESPONSE</ns2:Source>
+                    </ns2:ChainItem>
+                    <ns2:ChainItem Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED">
+                        <ns2:Source>SIGNATURE</ns2:Source>
+                    </ns2:ChainItem>
+                    <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                        <ns2:Source>TRUSTED_LIST</ns2:Source>
+                    </ns2:ChainItem>
+                </ns2:CertificateChain>
+            </ns2:ISC>
+            <ns2:XCV Title="X509 Certificate Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-27ABE86CD3C66DBC74CCAF31FBF53D14FA60E043548E2430A7C1F342C59DE41E" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:SubXCV Id="C-27ABE86CD3C66DBC74CCAF31FBF53D14FA60E043548E2430A7C1F342C59DE41E" TrustAnchor="false" SelfSigned="false" Title="Certificate">
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICSI">Is the certificate signature intact?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data's certificate chain?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICTIVRSC">Is the current time in the validity range of the signer's certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Validation time : 2023-12-05 09:57, certificate validity : 2022-11-14 11:00 - 2024-01-31 11:00</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                    <ns2:CrossCertificate>C-EBCAB420D3EACF019822FBF263E074B606B9D633A6245C1ADD53185D886D55F5</ns2:CrossCertificate>
+                </ns2:SubXCV>
+                <ns2:SubXCV Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" TrustAnchor="false" SelfSigned="false" Title="Certificate">
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICSI">Is the certificate signature intact?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_IRDPFC">Is the revocation data present for the certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" BlockType="CRS">
+                        <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Latest acceptable revocation : R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISCR">Is the certificate not revoked?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISCOH">Is the certificate not on hold?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="RFC">
+                        <ns2:Name Key="BBB_XCV_RFC">Is the revocation freshness check conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data's certificate chain?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                    <ns2:CRS Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" LatestAcceptableRevocationId="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Certificate Revocation Data Selector">
+                        <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="RAC">
+                            <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Id = R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7, thisUpdate = 2023-12-05 09:57, production time = 2023-12-05 09:57</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="RAC">
+                            <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Id = R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A, thisUpdate = 2022-01-24 16:12, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint>
+                            <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Latest acceptable revocation : R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Conclusion>
+                            <ns2:Indication>PASSED</ns2:Indication>
+                        </ns2:Conclusion>
+                        <ns2:RAC Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Revocation Acceptance Checker">
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="REV_CC">
+                                <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Revocation thisUpdate 2023-12-05 09:57 is in the certificate validity range : 2017-11-17 10:00 - 2029-07-17 10:00</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Id = C-EBCAB420D3EACF019822FBF263E074B606B9D633A6245C1ADD53185D886D55F5</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Conclusion>
+                                <ns2:Indication>PASSED</ns2:Indication>
+                            </ns2:Conclusion>
+                            <ns2:RevocationThisUpdate>2023-12-05T09:57:11Z</ns2:RevocationThisUpdate>
+                            <ns2:RevocationProductionDate>2023-12-05T09:57:11Z</ns2:RevocationProductionDate>
+                        </ns2:RAC>
+                        <ns2:RAC Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" Title="Revocation Acceptance Checker">
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="REV_CC">
+                                <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Revocation thisUpdate 2022-01-24 16:12 is in the certificate validity range : 2017-11-17 10:00 - 2029-07-17 10:00</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Id = C-F4CF2DBFDACEE338A4E5B734EF5251BDD31B521C3361C532FE5DE266C7F4A29A</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Conclusion>
+                                <ns2:Indication>PASSED</ns2:Indication>
+                            </ns2:Conclusion>
+                            <ns2:RevocationThisUpdate>2022-01-24T16:12:10Z</ns2:RevocationThisUpdate>
+                            <ns2:RevocationProductionDate>2022-01-24T16:12:10Z</ns2:RevocationProductionDate>
+                        </ns2:RAC>
+                    </ns2:CRS>
+                    <ns2:RFC Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Revocation Freshness Checker">
+                        <ns2:Constraint>
+                            <ns2:Name Key="BBB_RFC_IRIF">Is the revocation information fresh for the certificate?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Validation time : 2023-12-05 09:57; thisUpdate time : 2023-12-05 09:57; nextUpdate time : 2023-12-05 09:58</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint>
+                            <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data signature?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Conclusion>
+                            <ns2:Indication>PASSED</ns2:Indication>
+                        </ns2:Conclusion>
+                    </ns2:RFC>
+                </ns2:SubXCV>
+                <ns2:SubXCV Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F" TrustAnchor="true" SelfSigned="true" Title="Certificate">
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                </ns2:SubXCV>
+            </ns2:XCV>
+            <ns2:CV Title="Cryptographic Verification">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+            </ns2:CV>
+            <ns2:SAV Title="Signature Acceptance Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data signature?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CryptographicValidation secure="true">
+                    <ns2:Algorithm>
+                        <ns2:Name>RSA with SHA256</ns2:Name>
+                        <ns2:Uri>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</ns2:Uri>
+                        <ns2:KeyLength>2048</ns2:KeyLength>
+                    </ns2:Algorithm>
+                    <ns2:NotAfter>2025-12-31T23:00:00Z</ns2:NotAfter>
+                    <ns2:ValidationTime>2023-12-05T09:57:12Z</ns2:ValidationTime>
+                    <ns2:ConcernedMaterial>R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061</ns2:ConcernedMaterial>
+                </ns2:CryptographicValidation>
+            </ns2:SAV>
+            <ns2:CertificateChain>
+                <ns2:ChainItem Id="C-27ABE86CD3C66DBC74CCAF31FBF53D14FA60E043548E2430A7C1F342C59DE41E">
+                    <ns2:Source>OCSP_RESPONSE</ns2:Source>
+                </ns2:ChainItem>
+                <ns2:ChainItem Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED">
+                    <ns2:Source>SIGNATURE</ns2:Source>
+                </ns2:ChainItem>
+                <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                    <ns2:Source>TRUSTED_LIST</ns2:Source>
+                </ns2:ChainItem>
+            </ns2:CertificateChain>
+            <ns2:Conclusion>
+                <ns2:Indication>PASSED</ns2:Indication>
+            </ns2:Conclusion>
+        </ns2:BasicBuildingBlocks>
+        <ns2:BasicBuildingBlocks Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" Type="REVOCATION">
+            <ns2:ISC Title="Identification of the Signing Certificate">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISCI">Is there an identified candidate for the signing certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CertificateChain>
+                    <ns2:ChainItem Id="C-F4CF2DBFDACEE338A4E5B734EF5251BDD31B521C3361C532FE5DE266C7F4A29A">
+                        <ns2:Source>SIGNATURE</ns2:Source>
+                    </ns2:ChainItem>
+                    <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                        <ns2:Source>TRUSTED_LIST</ns2:Source>
+                    </ns2:ChainItem>
+                </ns2:CertificateChain>
+            </ns2:ISC>
+            <ns2:XCV Title="X509 Certificate Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-F4CF2DBFDACEE338A4E5B734EF5251BDD31B521C3361C532FE5DE266C7F4A29A" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>NOT OK</ns2:Status>
+                    <ns2:Error Key="BBB_XCV_SUB_ANS">The certificate validation is not conclusive!</ns2:Error>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>INDETERMINATE</ns2:Indication>
+                    <ns2:SubIndication>OUT_OF_BOUNDS_NO_POE</ns2:SubIndication>
+                    <ns2:Errors Key="BBB_XCV_SUB_ANS">The certificate validation is not conclusive!</ns2:Errors>
+                    <ns2:Errors Key="BBB_XCV_ICTIVRSC_ANS">The current time is not in the validity range of the signer's certificate!</ns2:Errors>
+                </ns2:Conclusion>
+                <ns2:SubXCV Id="C-F4CF2DBFDACEE338A4E5B734EF5251BDD31B521C3361C532FE5DE266C7F4A29A" TrustAnchor="false" SelfSigned="false" Title="Certificate">
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICSI">Is the certificate signature intact?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data's certificate chain?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICTIVRSC">Is the current time in the validity range of the signer's certificate?</ns2:Name>
+                        <ns2:Status>NOT OK</ns2:Status>
+                        <ns2:Error Key="BBB_XCV_ICTIVRSC_ANS">The current time is not in the validity range of the signer's certificate!</ns2:Error>
+                        <ns2:AdditionalInfo>Validation time : 2023-12-05 09:57, certificate validity : 2021-12-08 11:00 - 2023-01-31 11:00</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>INDETERMINATE</ns2:Indication>
+                        <ns2:SubIndication>OUT_OF_BOUNDS_NO_POE</ns2:SubIndication>
+                        <ns2:Errors Key="BBB_XCV_ICTIVRSC_ANS">The current time is not in the validity range of the signer's certificate!</ns2:Errors>
+                    </ns2:Conclusion>
+                    <ns2:CrossCertificate>C-4BA505CA9D7A1A5F2497D2DB908641252E7AD861BB70FE1811497C6075CF095B</ns2:CrossCertificate>
+                </ns2:SubXCV>
+                <ns2:SubXCV Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F" TrustAnchor="true" SelfSigned="true" Title="Certificate">
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                </ns2:SubXCV>
+            </ns2:XCV>
+            <ns2:CV Title="Cryptographic Verification">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+            </ns2:CV>
+            <ns2:SAV Title="Signature Acceptance Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data signature?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CryptographicValidation secure="true">
+                    <ns2:Algorithm>
+                        <ns2:Name>RSA with SHA256</ns2:Name>
+                        <ns2:Uri>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</ns2:Uri>
+                        <ns2:KeyLength>2048</ns2:KeyLength>
+                    </ns2:Algorithm>
+                    <ns2:NotAfter>2025-12-31T23:00:00Z</ns2:NotAfter>
+                    <ns2:ValidationTime>2023-12-05T09:57:12Z</ns2:ValidationTime>
+                    <ns2:ConcernedMaterial>R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A</ns2:ConcernedMaterial>
+                </ns2:CryptographicValidation>
+            </ns2:SAV>
+            <ns2:CertificateChain>
+                <ns2:ChainItem Id="C-F4CF2DBFDACEE338A4E5B734EF5251BDD31B521C3361C532FE5DE266C7F4A29A">
+                    <ns2:Source>SIGNATURE</ns2:Source>
+                </ns2:ChainItem>
+                <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                    <ns2:Source>TRUSTED_LIST</ns2:Source>
+                </ns2:ChainItem>
+            </ns2:CertificateChain>
+            <ns2:Conclusion>
+                <ns2:Indication>INDETERMINATE</ns2:Indication>
+                <ns2:SubIndication>OUT_OF_BOUNDS_NO_POE</ns2:SubIndication>
+                <ns2:Errors Key="BBB_XCV_SUB_ANS">The certificate validation is not conclusive!</ns2:Errors>
+                <ns2:Errors Key="BBB_XCV_ICTIVRSC_ANS">The current time is not in the validity range of the signer's certificate!</ns2:Errors>
+            </ns2:Conclusion>
+        </ns2:BasicBuildingBlocks>
+        <ns2:BasicBuildingBlocks Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Type="REVOCATION">
+            <ns2:ISC Title="Identification of the Signing Certificate">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISCI">Is there an identified candidate for the signing certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CertificateChain>
+                    <ns2:ChainItem Id="C-EBCAB420D3EACF019822FBF263E074B606B9D633A6245C1ADD53185D886D55F5">
+                        <ns2:Source>OCSP_RESPONSE</ns2:Source>
+                    </ns2:ChainItem>
+                    <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                        <ns2:Source>TRUSTED_LIST</ns2:Source>
+                    </ns2:ChainItem>
+                </ns2:CertificateChain>
+            </ns2:ISC>
+            <ns2:XCV Title="X509 Certificate Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-EBCAB420D3EACF019822FBF263E074B606B9D633A6245C1ADD53185D886D55F5" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:SubXCV Id="C-EBCAB420D3EACF019822FBF263E074B606B9D633A6245C1ADD53185D886D55F5" TrustAnchor="false" SelfSigned="false" Title="Certificate">
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICSI">Is the certificate signature intact?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data's certificate chain?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICTIVRSC">Is the current time in the validity range of the signer's certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Validation time : 2023-12-05 09:57, certificate validity : 2022-11-25 11:00 - 2024-01-25 11:00</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                    <ns2:CrossCertificate>C-27ABE86CD3C66DBC74CCAF31FBF53D14FA60E043548E2430A7C1F342C59DE41E</ns2:CrossCertificate>
+                </ns2:SubXCV>
+                <ns2:SubXCV Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F" TrustAnchor="true" SelfSigned="true" Title="Certificate">
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                </ns2:SubXCV>
+            </ns2:XCV>
+            <ns2:CV Title="Cryptographic Verification">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+            </ns2:CV>
+            <ns2:SAV Title="Signature Acceptance Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data signature?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CryptographicValidation secure="true">
+                    <ns2:Algorithm>
+                        <ns2:Name>RSA with SHA256</ns2:Name>
+                        <ns2:Uri>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</ns2:Uri>
+                        <ns2:KeyLength>2048</ns2:KeyLength>
+                    </ns2:Algorithm>
+                    <ns2:NotAfter>2025-12-31T23:00:00Z</ns2:NotAfter>
+                    <ns2:ValidationTime>2023-12-05T09:57:12Z</ns2:ValidationTime>
+                    <ns2:ConcernedMaterial>R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:ConcernedMaterial>
+                </ns2:CryptographicValidation>
+            </ns2:SAV>
+            <ns2:CertificateChain>
+                <ns2:ChainItem Id="C-EBCAB420D3EACF019822FBF263E074B606B9D633A6245C1ADD53185D886D55F5">
+                    <ns2:Source>OCSP_RESPONSE</ns2:Source>
+                </ns2:ChainItem>
+                <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                    <ns2:Source>TRUSTED_LIST</ns2:Source>
+                </ns2:ChainItem>
+            </ns2:CertificateChain>
+            <ns2:Conclusion>
+                <ns2:Indication>PASSED</ns2:Indication>
+            </ns2:Conclusion>
+        </ns2:BasicBuildingBlocks>
+        <ns2:BasicBuildingBlocks Id="T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07" Type="TIMESTAMP">
+            <ns2:ISC Title="Identification of the Signing Certificate">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISCI">Is there an identified candidate for the signing certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISACDP">Is the signed attribute: 'cert-digest' of the certificate present?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ICDVV">Does the certificate digest value match a digest value found in the certificate reference(s)?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CertificateChain>
+                    <ns2:ChainItem Id="C-368D2FAF51AF6B1504DE7967746B84D2F3944156FBF9EEABCA9BDB258168805E">
+                        <ns2:Source>TIMESTAMP</ns2:Source>
+                    </ns2:ChainItem>
+                </ns2:CertificateChain>
+            </ns2:ISC>
+            <ns2:XCV Title="X509 Certificate Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                    <ns2:Status>NOT OK</ns2:Status>
+                    <ns2:Error Key="BBB_XCV_CCCBB_TSP_ANS">The certificate chain for time-stamp is not trusted, it does not contain a trust anchor.</ns2:Error>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>INDETERMINATE</ns2:Indication>
+                    <ns2:SubIndication>NO_CERTIFICATE_CHAIN_FOUND</ns2:SubIndication>
+                    <ns2:Errors Key="BBB_XCV_CCCBB_TSP_ANS">The certificate chain for time-stamp is not trusted, it does not contain a trust anchor.</ns2:Errors>
+                </ns2:Conclusion>
+            </ns2:XCV>
+            <ns2:CV Title="Cryptographic Verification">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_TSP_IRDOF">Has the message imprint data been found?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_TSP_IRDOI">Is the message imprint data intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_ISIT">Is time-stamp's signature intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+            </ns2:CV>
+            <ns2:SAV Title="Signature Acceptance Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISASCP">Is the signed attribute: 'signing-certificate' present?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_SAV_DSCACRCC">Does the 'Signing Certificate' attribute contain references only to the certificate chain?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the time-stamp signature?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the time-stamp message imprint?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Digest algorithm SHA256 at validation time : 2023-12-05 09:57 for time-stamp message imprint</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CryptographicValidation secure="true">
+                    <ns2:Algorithm>
+                        <ns2:Name>RSA with SHA256</ns2:Name>
+                        <ns2:Uri>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</ns2:Uri>
+                        <ns2:KeyLength>4096</ns2:KeyLength>
+                    </ns2:Algorithm>
+                    <ns2:NotAfter>2028-12-31T23:00:00Z</ns2:NotAfter>
+                    <ns2:ValidationTime>2023-12-05T09:57:12Z</ns2:ValidationTime>
+                    <ns2:ConcernedMaterial>T-9C1384DBCD82D4EADA22311061F0CD371EE6437DC375C73A16B59133BA429F07</ns2:ConcernedMaterial>
+                </ns2:CryptographicValidation>
+            </ns2:SAV>
+            <ns2:CertificateChain>
+                <ns2:ChainItem Id="C-368D2FAF51AF6B1504DE7967746B84D2F3944156FBF9EEABCA9BDB258168805E">
+                    <ns2:Source>TIMESTAMP</ns2:Source>
+                </ns2:ChainItem>
+            </ns2:CertificateChain>
+            <ns2:Conclusion>
+                <ns2:Indication>INDETERMINATE</ns2:Indication>
+                <ns2:SubIndication>NO_CERTIFICATE_CHAIN_FOUND</ns2:SubIndication>
+                <ns2:Errors Key="BBB_XCV_CCCBB_TSP_ANS">The certificate chain for time-stamp is not trusted, it does not contain a trust anchor.</ns2:Errors>
+            </ns2:Conclusion>
+        </ns2:BasicBuildingBlocks>
+        <ns2:BasicBuildingBlocks Id="T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E" Type="TIMESTAMP">
+            <ns2:ISC Title="Identification of the Signing Certificate">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISCI">Is there an identified candidate for the signing certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISACDP">Is the signed attribute: 'cert-digest' of the certificate present?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ICDVV">Does the certificate digest value match a digest value found in the certificate reference(s)?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CertificateChain>
+                    <ns2:ChainItem Id="C-368D2FAF51AF6B1504DE7967746B84D2F3944156FBF9EEABCA9BDB258168805E">
+                        <ns2:Source>TIMESTAMP</ns2:Source>
+                    </ns2:ChainItem>
+                </ns2:CertificateChain>
+            </ns2:ISC>
+            <ns2:XCV Title="X509 Certificate Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                    <ns2:Status>NOT OK</ns2:Status>
+                    <ns2:Error Key="BBB_XCV_CCCBB_TSP_ANS">The certificate chain for time-stamp is not trusted, it does not contain a trust anchor.</ns2:Error>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>INDETERMINATE</ns2:Indication>
+                    <ns2:SubIndication>NO_CERTIFICATE_CHAIN_FOUND</ns2:SubIndication>
+                    <ns2:Errors Key="BBB_XCV_CCCBB_TSP_ANS">The certificate chain for time-stamp is not trusted, it does not contain a trust anchor.</ns2:Errors>
+                </ns2:Conclusion>
+            </ns2:XCV>
+            <ns2:CV Title="Cryptographic Verification">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_TSP_IRDOF">Has the message imprint data been found?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_TSP_IRDOI">Is the message imprint data intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_ISIT">Is time-stamp's signature intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+            </ns2:CV>
+            <ns2:SAV Title="Signature Acceptance Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISASCP">Is the signed attribute: 'signing-certificate' present?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_SAV_DSCACRCC">Does the 'Signing Certificate' attribute contain references only to the certificate chain?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the time-stamp signature?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the time-stamp message imprint?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Digest algorithm SHA256 at validation time : 2023-12-05 09:57 for time-stamp message imprint</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CryptographicValidation secure="true">
+                    <ns2:Algorithm>
+                        <ns2:Name>RSA with SHA256</ns2:Name>
+                        <ns2:Uri>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</ns2:Uri>
+                        <ns2:KeyLength>4096</ns2:KeyLength>
+                    </ns2:Algorithm>
+                    <ns2:NotAfter>2028-12-31T23:00:00Z</ns2:NotAfter>
+                    <ns2:ValidationTime>2023-12-05T09:57:12Z</ns2:ValidationTime>
+                    <ns2:ConcernedMaterial>T-1271097FA369F41CABF15D146851A97C7940F014EE8366E811BED3BF73A7E24E</ns2:ConcernedMaterial>
+                </ns2:CryptographicValidation>
+            </ns2:SAV>
+            <ns2:CertificateChain>
+                <ns2:ChainItem Id="C-368D2FAF51AF6B1504DE7967746B84D2F3944156FBF9EEABCA9BDB258168805E">
+                    <ns2:Source>TIMESTAMP</ns2:Source>
+                </ns2:ChainItem>
+            </ns2:CertificateChain>
+            <ns2:Conclusion>
+                <ns2:Indication>INDETERMINATE</ns2:Indication>
+                <ns2:SubIndication>NO_CERTIFICATE_CHAIN_FOUND</ns2:SubIndication>
+                <ns2:Errors Key="BBB_XCV_CCCBB_TSP_ANS">The certificate chain for time-stamp is not trusted, it does not contain a trust anchor.</ns2:Errors>
+            </ns2:Conclusion>
+        </ns2:BasicBuildingBlocks>
+        <ns2:BasicBuildingBlocks Id="S-01235BE7995005EBB0B8DB10643B4859981AA20A37E5D0362B9A2156D3C73EDB" Type="SIGNATURE">
+            <ns2:FC Title="Format Checking">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_FC_IEFF">Does the signature format correspond to an expected format?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_FC_ISD">Is the signature identification not ambiguous?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_FC_ISRIA">Is the signed references identification not ambiguous?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_FC_IOSIP">Is only one SignerInfo present?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_FC_DSFREAP">Do signed and final revisions contain equal amount of pages?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_FC_IAOD">Is no element overlapping detected in the PDF?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_FC_IVDBSFR">Is there no visual difference between signed and final revisions in the PDF?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_FC_DSCNUOM">Does the document contain none of the undefined object modifications?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+            </ns2:FC>
+            <ns2:ISC Title="Identification of the Signing Certificate">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISCI">Is there an identified candidate for the signing certificate?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISACDP">Is the signed attribute: 'cert-digest' of the certificate present?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ICDVV">Does the certificate digest value match a digest value found in the certificate reference(s)?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_AIDNASNE">Are the issuer distinguished name and the serial number equal?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CertificateChain>
+                    <ns2:ChainItem Id="C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17">
+                        <ns2:Source>SIGNATURE</ns2:Source>
+                    </ns2:ChainItem>
+                    <ns2:ChainItem Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED">
+                        <ns2:Source>SIGNATURE</ns2:Source>
+                    </ns2:ChainItem>
+                    <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                        <ns2:Source>TRUSTED_LIST</ns2:Source>
+                    </ns2:ChainItem>
+                </ns2:CertificateChain>
+            </ns2:ISC>
+            <ns2:VCI Title="Validation Context Initialization">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_VCI_ISPK">Is the signature policy known?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+            </ns2:VCI>
+            <ns2:XCV Title="X509 Certificate Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F" BlockType="SUB_XCV">
+                    <ns2:Name Key="BBB_XCV_SUB">Is the certificate validation conclusive?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:SubXCV Id="C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17" TrustAnchor="false" SelfSigned="false" Title="Certificate">
+                    <ns2:Constraint>
+                        <ns2:Name Key="QUAL_UNIQUE_CERT">Is the certificate unique?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_PSEUDO_USE">Is a pseudonym used?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISNSSC">Is certificate not self-signed?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICSI">Is the certificate signature intact?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISCGKU">Does the certificate have an expected key-usage?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Key usage : [NON_REPUDIATION]</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_AIA_PRES">Is the authority info access present?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_REVOC_PRES">Is the revocation info access present?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_IRDPFC">Is the revocation data present for the certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISCR">Is the certificate not revoked?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISCOH">Is the certificate not on hold?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" BlockType="RFC">
+                        <ns2:Name Key="BBB_XCV_RFC">Is the revocation freshness check conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="ACCM">Are cryptographic constraints met for the signature's certificate chain?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICTIVRSC">Is the current time in the validity range of the signer's certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Validation time : 2023-12-05 09:57, certificate validity : 2018-04-05 12:35 - 2028-03-30 23:59</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICTIVRCIRI">Is the current time in the validity range of the certificate of the issuer of the revocation information?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Issuer certificate C-27ABE86CD3C66DBC74CCAF31FBF53D14FA60E043548E2430A7C1F342C59DE41E of revocation data R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061 with validity range : 2022-11-14 11:00 - 2024-01-31 11:00 and validation time 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                    <ns2:CRS Id="C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17" LatestAcceptableRevocationId="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" Title="Certificate Revocation Data Selector">
+                        <ns2:Constraint Id="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" BlockType="RAC">
+                            <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Id = R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061, thisUpdate = 2023-12-05 09:57, production time = 2023-12-05 09:57</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint Id="R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA" BlockType="RAC">
+                            <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Id = R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA, thisUpdate = 2022-01-24 16:12, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint>
+                            <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Latest acceptable revocation : R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Conclusion>
+                            <ns2:Indication>PASSED</ns2:Indication>
+                        </ns2:Conclusion>
+                        <ns2:RAC Id="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" Title="Revocation Acceptance Checker">
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint Id="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" BlockType="REV_CC">
+                                <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Revocation thisUpdate 2023-12-05 09:57 is in the certificate validity range : 2018-04-05 12:35 - 2028-03-30 23:59</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Id = C-27ABE86CD3C66DBC74CCAF31FBF53D14FA60E043548E2430A7C1F342C59DE41E</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Id = C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_IRDPFRC">Is the revocation data present for the revocation issuer?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" BlockType="CRS">
+                                <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Latest acceptable revocation : R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Conclusion>
+                                <ns2:Indication>PASSED</ns2:Indication>
+                            </ns2:Conclusion>
+                            <ns2:RevocationThisUpdate>2023-12-05T09:57:12Z</ns2:RevocationThisUpdate>
+                            <ns2:RevocationProductionDate>2023-12-05T09:57:12Z</ns2:RevocationProductionDate>
+                            <ns2:CRS Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" LatestAcceptableRevocationId="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Certificate Revocation Data Selector">
+                                <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="RAC">
+                                    <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                                    <ns2:Status>OK</ns2:Status>
+                                    <ns2:AdditionalInfo>Id = R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7, thisUpdate = 2023-12-05 09:57, production time = 2023-12-05 09:57</ns2:AdditionalInfo>
+                                </ns2:Constraint>
+                                <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="RAC">
+                                    <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                                    <ns2:Status>OK</ns2:Status>
+                                    <ns2:AdditionalInfo>Id = R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A, thisUpdate = 2022-01-24 16:12, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                                </ns2:Constraint>
+                                <ns2:Constraint>
+                                    <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                                    <ns2:Status>OK</ns2:Status>
+                                    <ns2:AdditionalInfo>Latest acceptable revocation : R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                                </ns2:Constraint>
+                                <ns2:Conclusion>
+                                    <ns2:Indication>PASSED</ns2:Indication>
+                                </ns2:Conclusion>
+                                <ns2:RAC Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Revocation Acceptance Checker">
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="REV_CC">
+                                        <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                        <ns2:AdditionalInfo>Revocation thisUpdate 2023-12-05 09:57 is in the certificate validity range : 2017-11-17 10:00 - 2029-07-17 10:00</ns2:AdditionalInfo>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                        <ns2:AdditionalInfo>Id = C-EBCAB420D3EACF019822FBF263E074B606B9D633A6245C1ADD53185D886D55F5</ns2:AdditionalInfo>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Conclusion>
+                                        <ns2:Indication>PASSED</ns2:Indication>
+                                    </ns2:Conclusion>
+                                    <ns2:RevocationThisUpdate>2023-12-05T09:57:11Z</ns2:RevocationThisUpdate>
+                                    <ns2:RevocationProductionDate>2023-12-05T09:57:11Z</ns2:RevocationProductionDate>
+                                </ns2:RAC>
+                                <ns2:RAC Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" Title="Revocation Acceptance Checker">
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="REV_CC">
+                                        <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                        <ns2:AdditionalInfo>Revocation thisUpdate 2022-01-24 16:12 is in the certificate validity range : 2017-11-17 10:00 - 2029-07-17 10:00</ns2:AdditionalInfo>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                        <ns2:AdditionalInfo>Id = C-F4CF2DBFDACEE338A4E5B734EF5251BDD31B521C3361C532FE5DE266C7F4A29A</ns2:AdditionalInfo>
+                                    </ns2:Constraint>
+                                    <ns2:Constraint>
+                                        <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                        <ns2:Status>OK</ns2:Status>
+                                    </ns2:Constraint>
+                                    <ns2:Conclusion>
+                                        <ns2:Indication>PASSED</ns2:Indication>
+                                    </ns2:Conclusion>
+                                    <ns2:RevocationThisUpdate>2022-01-24T16:12:10Z</ns2:RevocationThisUpdate>
+                                    <ns2:RevocationProductionDate>2022-01-24T16:12:10Z</ns2:RevocationProductionDate>
+                                </ns2:RAC>
+                            </ns2:CRS>
+                        </ns2:RAC>
+                        <ns2:RAC Id="R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA" Title="Revocation Acceptance Checker">
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint Id="R-A8C2725D1BC247107C5AE3DFCD6B3936567AFFB828AE8D3DFF918A57ECAA79FA" BlockType="REV_CC">
+                                <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Revocation thisUpdate 2022-01-24 16:12 is in the certificate validity range : 2018-04-05 12:35 - 2028-03-30 23:59</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Id = C-4BA505CA9D7A1A5F2497D2DB908641252E7AD861BB70FE1811497C6075CF095B</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Conclusion>
+                                <ns2:Indication>PASSED</ns2:Indication>
+                            </ns2:Conclusion>
+                            <ns2:RevocationThisUpdate>2022-01-24T16:12:10Z</ns2:RevocationThisUpdate>
+                            <ns2:RevocationProductionDate>2022-01-24T16:12:10Z</ns2:RevocationProductionDate>
+                        </ns2:RAC>
+                    </ns2:CRS>
+                    <ns2:RFC Id="R-6D8E980D7513F57CE560ECE693BF3C5B099792488D893AA3D821CD101E87A061" Title="Revocation Freshness Checker">
+                        <ns2:Constraint>
+                            <ns2:Name Key="BBB_RFC_IRIF">Is the revocation information fresh for the certificate?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Validation time : 2023-12-05 09:57; thisUpdate time : 2023-12-05 09:57; nextUpdate time : 2023-12-05 09:58</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint>
+                            <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data signature?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Conclusion>
+                            <ns2:Indication>PASSED</ns2:Indication>
+                        </ns2:Conclusion>
+                    </ns2:RFC>
+                </ns2:SubXCV>
+                <ns2:SubXCV Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" TrustAnchor="false" SelfSigned="false" Title="Certificate">
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ICSI">Is the certificate signature intact?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_IRDPFC">Is the revocation data present for the certificate?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISCR">Is the certificate not revoked?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="BBB_XCV_ISCOH">Is the certificate not on hold?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                    </ns2:Constraint>
+                    <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="RFC">
+                        <ns2:Name Key="BBB_XCV_RFC">Is the revocation freshness check conclusive?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Id = R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Constraint>
+                        <ns2:Name Key="ACCM">Are cryptographic constraints met for the signature's certificate chain?</ns2:Name>
+                        <ns2:Status>OK</ns2:Status>
+                        <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                    </ns2:Constraint>
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                    <ns2:CRS Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED" LatestAcceptableRevocationId="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Certificate Revocation Data Selector">
+                        <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="RAC">
+                            <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Id = R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7, thisUpdate = 2023-12-05 09:57, production time = 2023-12-05 09:57</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="RAC">
+                            <ns2:Name Key="BBB_XCV_RAC">Is the revocation acceptance check conclusive?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Id = R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A, thisUpdate = 2022-01-24 16:12, production time = 2022-01-24 16:12</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint>
+                            <ns2:Name Key="BBB_XCV_IARDPFC">Is an acceptable revocation data present for the certificate?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Latest acceptable revocation : R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Conclusion>
+                            <ns2:Indication>PASSED</ns2:Indication>
+                        </ns2:Conclusion>
+                        <ns2:RAC Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Revocation Acceptance Checker">
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" BlockType="REV_CC">
+                                <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Revocation thisUpdate 2023-12-05 09:57 is in the certificate validity range : 2017-11-17 10:00 - 2029-07-17 10:00</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Id = C-EBCAB420D3EACF019822FBF263E074B606B9D633A6245C1ADD53185D886D55F5</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Conclusion>
+                                <ns2:Indication>PASSED</ns2:Indication>
+                            </ns2:Conclusion>
+                            <ns2:RevocationThisUpdate>2023-12-05T09:57:11Z</ns2:RevocationThisUpdate>
+                            <ns2:RevocationProductionDate>2023-12-05T09:57:11Z</ns2:RevocationProductionDate>
+                        </ns2:RAC>
+                        <ns2:RAC Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" Title="Revocation Acceptance Checker">
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_ISCUKN">Is the revocation status known?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_REVOC_SELF_ISSUED_OCSP">Is it not self issued OCSP Response?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint Id="R-308E5BD76E3D1DFCAA90AB6AE207DC015D040F6CBBF2ABA33C4FD460A9903E0A" BlockType="REV_CC">
+                                <ns2:Name Key="BBB_XCV_IRDC">Is the revocation data consistent?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Revocation thisUpdate 2022-01-24 16:12 is in the certificate validity range : 2017-11-17 10:00 - 2029-07-17 10:00</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIR">Is revocation's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_CCCBB">Can the certificate chain be built till a trust anchor?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_CV_ISIC">Is certificate's signature intact?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                                <ns2:AdditionalInfo>Id = C-F4CF2DBFDACEE338A4E5B734EF5251BDD31B521C3361C532FE5DE266C7F4A29A</ns2:AdditionalInfo>
+                            </ns2:Constraint>
+                            <ns2:Constraint>
+                                <ns2:Name Key="BBB_XCV_OCSP_NO_CHECK">Has the issuer certificate id-pkix-ocsp-nocheck extension?</ns2:Name>
+                                <ns2:Status>OK</ns2:Status>
+                            </ns2:Constraint>
+                            <ns2:Conclusion>
+                                <ns2:Indication>PASSED</ns2:Indication>
+                            </ns2:Conclusion>
+                            <ns2:RevocationThisUpdate>2022-01-24T16:12:10Z</ns2:RevocationThisUpdate>
+                            <ns2:RevocationProductionDate>2022-01-24T16:12:10Z</ns2:RevocationProductionDate>
+                        </ns2:RAC>
+                    </ns2:CRS>
+                    <ns2:RFC Id="R-A81EF1DE26A31FDEEC8105A2017B45BD7809A215414AEE48E386724ED59070B7" Title="Revocation Freshness Checker">
+                        <ns2:Constraint>
+                            <ns2:Name Key="BBB_RFC_IRIF">Is the revocation information fresh for the certificate?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Validation time : 2023-12-05 09:57; thisUpdate time : 2023-12-05 09:57; nextUpdate time : 2023-12-05 09:58</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Constraint>
+                            <ns2:Name Key="ACCM">Are cryptographic constraints met for the revocation data signature?</ns2:Name>
+                            <ns2:Status>OK</ns2:Status>
+                            <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                        </ns2:Constraint>
+                        <ns2:Conclusion>
+                            <ns2:Indication>PASSED</ns2:Indication>
+                        </ns2:Conclusion>
+                    </ns2:RFC>
+                </ns2:SubXCV>
+                <ns2:SubXCV Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F" TrustAnchor="true" SelfSigned="true" Title="Certificate">
+                    <ns2:Conclusion>
+                        <ns2:Indication>PASSED</ns2:Indication>
+                    </ns2:Conclusion>
+                </ns2:SubXCV>
+            </ns2:XCV>
+            <ns2:CV Title="Cryptographic Verification">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_IRDOF">Has the reference data object been found?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Reference : MESSAGE_DIGEST</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_IRDOI">Is the reference data object intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Reference : MESSAGE_DIGEST</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_CV_ISI">Is the signature intact?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+            </ns2:CV>
+            <ns2:SAV Title="Signature Acceptance Validation">
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_SAV_ISSV">Is the structure of the signature valid?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISASCP">Is the signed attribute: 'signing-certificate' present?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_ICS_ISASCPU">Is the signed attribute: 'signing-certificate' present only once?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_SAV_DSCACRCC">Does the 'Signing Certificate' attribute contain references only to the certificate chain?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_SAV_ISQPSTP">Is the signed qualifying property: 'signing-time' present?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="BBB_SAV_ISQPMDOSPP">Is the signed qualifying property: 'message-digest' or 'SignedProperties' present?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the signature creation?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2023-12-05 09:57</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the message digest?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Digest algorithm SHA256 at validation time : 2023-12-05 09:57 for message digest</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Constraint>
+                    <ns2:Name Key="ACCM">Are cryptographic constraints met for the signing-certificate reference?</ns2:Name>
+                    <ns2:Status>OK</ns2:Status>
+                    <ns2:AdditionalInfo>Digest algorithm SHA256 at validation time : 2023-12-05 09:57 for signing-certificate reference with Id : C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17</ns2:AdditionalInfo>
+                </ns2:Constraint>
+                <ns2:Conclusion>
+                    <ns2:Indication>PASSED</ns2:Indication>
+                </ns2:Conclusion>
+                <ns2:CryptographicValidation secure="true">
+                    <ns2:Algorithm>
+                        <ns2:Name>RSA with SHA256</ns2:Name>
+                        <ns2:Uri>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</ns2:Uri>
+                        <ns2:KeyLength>2048</ns2:KeyLength>
+                    </ns2:Algorithm>
+                    <ns2:NotAfter>2025-12-31T23:00:00Z</ns2:NotAfter>
+                    <ns2:ValidationTime>2023-12-05T09:57:12Z</ns2:ValidationTime>
+                    <ns2:ConcernedMaterial>S-01235BE7995005EBB0B8DB10643B4859981AA20A37E5D0362B9A2156D3C73EDB</ns2:ConcernedMaterial>
+                </ns2:CryptographicValidation>
+            </ns2:SAV>
+            <ns2:CertificateChain>
+                <ns2:ChainItem Id="C-EAB905129DF249889A16D456B246C74D47D66D04951803D102959B770E314A17">
+                    <ns2:Source>SIGNATURE</ns2:Source>
+                </ns2:ChainItem>
+                <ns2:ChainItem Id="C-7F01291F68BA2491D4B93DC0F983F3DBB6A143C3007AAB3E4A12043CAB5D39ED">
+                    <ns2:Source>SIGNATURE</ns2:Source>
+                </ns2:ChainItem>
+                <ns2:ChainItem Id="C-702DD5C1A093CF0A9D71FADD9BF9A7C5857D89FB73B716E867228B3C2BEB968F">
+                    <ns2:Source>TRUSTED_LIST</ns2:Source>
+                </ns2:ChainItem>
+            </ns2:CertificateChain>
+            <ns2:Conclusion>
+                <ns2:Indication>PASSED</ns2:Indication>
+            </ns2:Conclusion>
+        </ns2:BasicBuildingBlocks>
+        <ns2:TLAnalysis CountryCode="EU" URL="https://ec.europa.eu/tools/lotl/eu-lotl.xml" Id="LOTL-EC2AE37FE9A43B48B1CFE2A57EBEE2BD6373EDFF36537EB1BC905747ACBF4C3B" Title="List Of Trusted Lists EU">
+            <ns2:Constraint>
+                <ns2:Name Key="QUAL_TL_FRESH">Is the trusted list fresh?</ns2:Name>
+                <ns2:Status>OK</ns2:Status>
+            </ns2:Constraint>
+            <ns2:Constraint>
+                <ns2:Name Key="QUAL_TL_EXP">Is the trusted list not expired?</ns2:Name>
+                <ns2:Status>OK</ns2:Status>
+            </ns2:Constraint>
+            <ns2:Constraint>
+                <ns2:Name Key="QUAL_TL_VERSION">Does the trusted list have the expected version?</ns2:Name>
+                <ns2:Status>OK</ns2:Status>
+            </ns2:Constraint>
+            <ns2:Constraint>
+                <ns2:Name Key="QUAL_TL_WS">Is the trusted list well signed?</ns2:Name>
+                <ns2:Status>OK</ns2:Status>
+            </ns2:Constraint>
+            <ns2:Conclusion>
+                <ns2:Indication>PASSED</ns2:Indication>
+            </ns2:Conclusion>
+        </ns2:TLAnalysis>
+        <ns2:TLAnalysis CountryCode="BE" URL="https://tsl.belgium.be/tsl-be.xml" Id="TL-61C0487109BE27255C19CFF26D8F56BEA621E7F381A7B4CBE7FB4750BD477BF9" Title="Trusted List BE">
+            <ns2:Constraint>
+                <ns2:Name Key="QUAL_TL_FRESH">Is the trusted list fresh?</ns2:Name>
+                <ns2:Status>OK</ns2:Status>
+            </ns2:Constraint>
+            <ns2:Constraint>
+                <ns2:Name Key="QUAL_TL_EXP">Is the trusted list not expired?</ns2:Name>
+                <ns2:Status>OK</ns2:Status>
+            </ns2:Constraint>
+            <ns2:Constraint>
+                <ns2:Name Key="QUAL_TL_VERSION">Does the trusted list have the expected version?</ns2:Name>
+                <ns2:Status>OK</ns2:Status>
+            </ns2:Constraint>
+            <ns2:Constraint>
+                <ns2:Name Key="QUAL_TL_WS">Is the trusted list well signed?</ns2:Name>
+                <ns2:Status>OK</ns2:Status>
+            </ns2:Constraint>
+            <ns2:Conclusion>
+                <ns2:Indication>PASSED</ns2:Indication>
+            </ns2:Conclusion>
+        </ns2:TLAnalysis>
+    </report>
+</xmlReportRoot>
