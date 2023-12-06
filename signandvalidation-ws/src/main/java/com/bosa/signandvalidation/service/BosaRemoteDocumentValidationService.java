@@ -115,17 +115,16 @@ public class BosaRemoteDocumentValidationService {
 				if (maxSig == null || sig.getClaimedSigningTime().after(maxSig.getClaimedSigningTime())) {
 					maxSig = sig;
 				}
-
-				if (parameters != null && maxSig != null) {
-					// Check if the signature level (of the sig we just made) corresponds with the requested level
-					SignatureLevel expSigLevel = parameters.getSignatureLevel();
-					SignatureLevel sigLevel = maxSig.getSignatureFormat();
-					if (!sigLevel.equals(expSigLevel)) {
-						modifyReports(report, maxSig.getId(), SubIndication.FORMAT_FAILURE, "expected level " + expSigLevel + " but was: " + sigLevel);
-					}
-				}
 			}
 
+			if (parameters != null && maxSig != null) {
+				// Check if the signature level (of the sig we just made) corresponds with the requested level
+				SignatureLevel expSigLevel = parameters.getSignatureLevel();
+				SignatureLevel sigLevel = maxSig.getSignatureFormat();
+				if (!sigLevel.equals(expSigLevel)) {
+					modifyReports(report, maxSig.getId(), SubIndication.FORMAT_FAILURE, "expected level " + expSigLevel + " but was: " + sigLevel);
+				}
+			}
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException e) {
 			// Exceptions linked to getCertificateSource keystore manipulation
 			logAndThrowEx(BAD_REQUEST, INVALID_PARAM, e);
