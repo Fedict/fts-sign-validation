@@ -203,11 +203,6 @@
             <artifactId>Saxon-HE</artifactId>
             <version>10.3</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.xmlunit</groupId>
-            <artifactId>xmlunit-legacy</artifactId>
-        </dependency>
     </dependencies>
 
 </project>
