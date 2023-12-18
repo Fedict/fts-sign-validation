@@ -1,6 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
-import com.bosa.signandvalidation.SignAndValidationTestBase;
+import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import com.bosa.signandvalidation.model.FrontEndErrorReqDTO;
 import com.bosa.signandvalidation.model.FrontEndErrorRespDTO;
 
@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class LoggingControllerTest extends SignAndValidationTestBase {
+public class LoggingControllerTest extends SignAndValidationBaseTest {
 
     @Autowired
     ObjectMapper mapper;

@@ -1,6 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
-import com.bosa.signandvalidation.SignAndValidationTestBase;
+import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
@@ -34,7 +34,7 @@ import static eu.europa.esig.dss.enumerations.TimestampContainerForm.ASiC_E;
 import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class SigningControllerMultipleDocsTest extends SignAndValidationTestBase {
+public class SigningTestControllerMultipleDocs extends SignAndValidationBaseTest {
 
     @Autowired
     ObjectMapper mapper;

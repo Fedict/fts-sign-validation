@@ -29,7 +29,7 @@ import static com.bosa.signandvalidation.service.PdfVisibleSignatureServiceTest.
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doAnswer;
 
-public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
+public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest {
 
     private static final String DEFAULT_COORDINATES = "1,0,0,200,150";
     private static final String THE_BUCKET = "THE_BUCKET";

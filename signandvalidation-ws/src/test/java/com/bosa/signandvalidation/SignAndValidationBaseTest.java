@@ -15,13 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class SignAndValidationTestBase {
+public class SignAndValidationBaseTest {
 
     public static final String LOCALHOST = "http://localhost:";
 
@@ -61,7 +61,7 @@ public class SignAndValidationTestBase {
             XmlTimestampedObject timestampedObject = new XmlTimestampedObject();
             timestampedObject.setCategory(category);
 
-            XmlAbstractToken token = null;
+            XmlAbstractToken token;
             switch (category.toString()) {
                 case "SIGNATURE":
                     token = new XmlSignature();
@@ -78,9 +78,6 @@ public class SignAndValidationTestBase {
                 case "SIGNED_DATA":
                     token = new XmlSignerData();
                     break;
-                //case "ORPHAN":
-                //    token = new XmlOrphanToken();
-                //    break;
                 default:
                     throw new InvalidFormatException(jp, "Unsupported category value " + category, category, TimestampedObjectType.class);
             }

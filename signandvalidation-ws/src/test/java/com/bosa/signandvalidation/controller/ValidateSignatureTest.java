@@ -1,6 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
-import com.bosa.signandvalidation.SignAndValidationTestBase;
+import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import com.bosa.signandvalidation.model.DataToValidateDTO;
 import com.bosa.signandvalidation.model.TrustSources;
 import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
@@ -8,7 +8,6 @@ import com.bosa.signandvalidation.model.SignatureIndicationsDTO;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.FileDocument;
-import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -34,7 +33,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-public class ValidateSignatureTest extends SignAndValidationTestBase implements ErrorStrings {
+public class ValidateSignatureTest extends SignAndValidationBaseTest implements ErrorStrings {
 
     public static final String SIGNATURE_ENDPOINT = "/validation/validateSignature";
     public static final String SIGNATUREFULL_ENDPOINT = "/validation/validateSignatureFull";

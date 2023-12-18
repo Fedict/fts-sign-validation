@@ -3,7 +3,7 @@ package com.bosa.signandvalidation.controller;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileTimestampParameters;
-import com.bosa.signandvalidation.SignAndValidationTestBase;
+import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import com.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
@@ -21,7 +21,7 @@ import static eu.europa.esig.dss.enumerations.DigestAlgorithm.*;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
 import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 
-public class SigningControllerBaseTest extends SignAndValidationTestBase implements ErrorStrings {
+public class SigningControllerBaseTest extends SignAndValidationBaseTest implements ErrorStrings {
 
     public enum SignProfiles {
         XADES_B,XADES_T,CADES_B,PADES_B,XADES_LTA,JADES_B,MDOC_XADES_LTA, XADES_B_DETACHED
