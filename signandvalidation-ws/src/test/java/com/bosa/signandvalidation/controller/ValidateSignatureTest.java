@@ -24,7 +24,6 @@ import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.Indication.*;
 import static eu.europa.esig.dss.enumerations.SubIndication.*;
-import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import com.bosa.signandvalidation.config.ErrorStrings;
