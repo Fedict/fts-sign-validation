@@ -29,6 +29,8 @@ public class PdfSignatureProfile {
 	public VisualSignatureAlignmentHorizontal horizAlignment;
 	public VisualSignatureAlignmentVertical vertAlignment;
 	public String bodyBgColor;
+
+	// Deprecated starting with DSS 5.13RC1
 	public VisualSignatureRotation rotation;
 	public Integer zoom;
 }

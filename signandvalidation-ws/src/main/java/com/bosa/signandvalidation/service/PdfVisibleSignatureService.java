@@ -271,9 +271,6 @@ public class PdfVisibleSignatureService {
         // Alignment of the signature relative to page borders
         sigImgParams.setAlignmentHorizontal(psp.horizAlignment);
         sigImgParams.setAlignmentVertical(psp.vertAlignment);
-
-        // Adapt signature rotation
-        sigImgParams.setRotation(psp.rotation);
     }
 
     ///////////////////////////////////////////////////////////////////////////

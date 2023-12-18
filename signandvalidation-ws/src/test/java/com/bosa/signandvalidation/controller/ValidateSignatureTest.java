@@ -226,7 +226,7 @@ public class ValidateSignatureTest extends SignAndValidationTestBase implements 
         assertNotNull(result.getDetailedReport());
         assertNotNull(result.getSimpleReport());
 
-        assertEquals(1, result.getSimpleReport().getSignatureOrTimestamp().size());
+        assertEquals(1, result.getSimpleReport().getSignatureOrTimestampOrEvidenceRecord().size());
     }
 
     @Test

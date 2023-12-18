@@ -51,7 +51,7 @@ public class ReportServiceTest {
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
-        List<XmlToken> signatures = simple.getSignatureOrTimestamp();
+        List<XmlToken> signatures = simple.getSignatureOrTimestampOrEvidenceRecord();
         XmlSignature signature = new XmlSignature();
         signature.setBestSignatureTime(now);
         signature.setIndication(TOTAL_PASSED);
@@ -67,7 +67,7 @@ public class ReportServiceTest {
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
-        List<XmlToken> signatures = simple.getSignatureOrTimestamp();
+        List<XmlToken> signatures = simple.getSignatureOrTimestampOrEvidenceRecord();
         XmlSignature signature = new XmlSignature();
         signature.setBestSignatureTime(now);
         signature.setIndication(PASSED);
@@ -84,7 +84,7 @@ public class ReportServiceTest {
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
-        List<XmlToken> signatures = simple.getSignatureOrTimestamp();
+        List<XmlToken> signatures = simple.getSignatureOrTimestampOrEvidenceRecord();
         XmlSignature signature = new XmlSignature();
         signature.setBestSignatureTime(now);
         signature.setIndication(PASSED);
@@ -107,7 +107,7 @@ public class ReportServiceTest {
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
-        List<XmlToken> signatures = simple.getSignatureOrTimestamp();
+        List<XmlToken> signatures = simple.getSignatureOrTimestampOrEvidenceRecord();
         XmlSignature signature = new XmlSignature();
         signature.setBestSignatureTime(now);
         signature.setIndication(PASSED);
@@ -130,7 +130,7 @@ public class ReportServiceTest {
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(1);
-        List<XmlToken> signatures = simple.getSignatureOrTimestamp();
+        List<XmlToken> signatures = simple.getSignatureOrTimestampOrEvidenceRecord();
         XmlSignature signature = new XmlSignature();
         signature.setBestSignatureTime(now);
         signature.setIndication(PASSED);
@@ -153,7 +153,7 @@ public class ReportServiceTest {
         XmlSimpleReport simple = new XmlSimpleReport();
         report.setSimpleReport(simple);
         simple.setSignaturesCount(2);
-        List<XmlToken> signatures = simple.getSignatureOrTimestamp();
+        List<XmlToken> signatures = simple.getSignatureOrTimestampOrEvidenceRecord();
         XmlSignature signature = new XmlSignature();
         signature.setIndication(PASSED);
         signature.setSubIndication(HASH_FAILURE);
@@ -199,7 +199,7 @@ public class ReportServiceTest {
 
         XmlDetailedReport detailedReport = new XmlDetailedReport();
         report.setDetailedReport(detailedReport);
-        List<Serializable> sigList = detailedReport.getSignatureOrTimestampOrCertificate();
+        List<Serializable> sigList = detailedReport.getSignatureOrTimestampOrEvidenceRecord();
         eu.europa.esig.dss.detailedreport.jaxb.XmlSignature sig = new eu.europa.esig.dss.detailedreport.jaxb.XmlSignature();
         sigList.add(sig);
         sig.setId(theID);
