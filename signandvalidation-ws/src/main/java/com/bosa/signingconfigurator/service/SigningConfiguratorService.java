@@ -190,7 +190,7 @@ public class SigningConfiguratorService {
         remoteBLevelParams.setSignerLocationStreet(clientParams.getSignerLocationStreet());
     }
 
-    private ProfileSignatureParameters findProfileParamsById(String profileId) throws ProfileNotFoundException {
+    public ProfileSignatureParameters findProfileParamsById(String profileId) throws ProfileNotFoundException {
         return signatureDao.findById(profileId);
     }
 

@@ -87,6 +87,8 @@ public class ProfileSignatureParameters extends JsonObject {
 
     private Boolean embedXML;
 
+    private RevocationStrategy revocationStrategy;
+
     /*
      * The values unrelated to signature parameters.
      */
@@ -170,5 +172,9 @@ public class ProfileSignatureParameters extends JsonObject {
 
     public Boolean getEmbedXML() {
         return embedXML != null && embedXML;
+    }
+
+    public RevocationStrategy getRevocationStrategy() {
+        return revocationStrategy == null ? RevocationStrategy.DEFAULT : revocationStrategy;
     }
 }
