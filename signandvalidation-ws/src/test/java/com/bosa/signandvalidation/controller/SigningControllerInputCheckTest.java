@@ -2,7 +2,9 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.PolicyParameters;
+import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -162,7 +164,7 @@ public class SigningControllerInputCheckTest {
         });
         boolean verified = exception.getMessage().contains("||" + error + "||" + s);
         if (!verified) {
-            System.out.println("Expection :" + exception.getMessage() + " does not contain :" + s);
+            System.out.println("Exception :" + exception.getMessage() + " does not contain :" + s);
         }
         assertTrue(verified);
     }
