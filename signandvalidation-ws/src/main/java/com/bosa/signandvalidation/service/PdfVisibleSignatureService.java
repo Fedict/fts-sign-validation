@@ -143,7 +143,7 @@ public class PdfVisibleSignatureService {
         if (psp.version == 1) {
             fillParamsForV1(sigImgParams, document, psp, text, image);
         } else {
-            fillParamsForV2(sigImgParams, psp, text, image);
+            fillParamsForV2(sigImgParams, fieldParams, psp, text, image);
         }
     }
 
@@ -245,7 +245,7 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    public void fillParamsForV2(RemoteSignatureImageParameters sigImgParams, PdfSignatureProfile psp, String text, byte[] image) throws IOException {
+    public void fillParamsForV2(RemoteSignatureImageParameters sigImgParams, RemoteSignatureFieldParameters fieldParams, PdfSignatureProfile psp, String text, byte[] image) throws IOException {
         RemoteSignatureImageTextParameters textParams = new RemoteSignatureImageTextParameters();
         sigImgParams.setTextParameters(textParams);
 
@@ -271,6 +271,9 @@ public class PdfVisibleSignatureService {
         // Alignment of the signature relative to page borders
         sigImgParams.setAlignmentHorizontal(psp.horizAlignment);
         sigImgParams.setAlignmentVertical(psp.vertAlignment);
+
+        // Adapt signature rotation
+        fieldParams.setRotation(psp.rotation);
     }
 
     ///////////////////////////////////////////////////////////////////////////
