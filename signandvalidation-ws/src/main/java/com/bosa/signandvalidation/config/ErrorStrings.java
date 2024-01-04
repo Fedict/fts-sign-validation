@@ -68,4 +68,7 @@ public interface ErrorStrings {
 
 	// The Visible signature of pdf signature does not fit entirely on the page
 	String SIGNATURE_OUT_OF_BOUNDS = "SIGNATURE_OUT_OF_BOUNDS";
+
+	// This document can't be signed because, for example, the PDF attributes forbid it
+	String SIGNATURE_FORBIDDEN = "SIGNATURE_FORBIDDEN";
 }

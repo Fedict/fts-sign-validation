@@ -16,6 +16,7 @@ import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.alert.exception.AlertException;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.pades.exception.ProtectedDocumentException;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
@@ -758,6 +759,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (PdfVisibleSignatureService.PdfVisibleSignatureException e) {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
+        } catch(ProtectedDocumentException e) {
+            logAndThrowEx(UNAUTHORIZED, SIGNATURE_FORBIDDEN, e.getMessage());
         } catch (AlertException e) {
             String message = e.getMessage();
             if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
@@ -1066,6 +1069,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch(ProtectedDocumentException e) {
+            logAndThrowEx(UNAUTHORIZED, SIGNATURE_FORBIDDEN, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -1104,6 +1109,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch(ProtectedDocumentException e) {
+            logAndThrowEx(UNAUTHORIZED, SIGNATURE_FORBIDDEN, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -1365,9 +1372,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
-        } catch (RuntimeException e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } catch (IOException e) {
+        } catch(ProtectedDocumentException e) {
+            logAndThrowEx(UNAUTHORIZED, SIGNATURE_FORBIDDEN, e.getMessage());
+        } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
