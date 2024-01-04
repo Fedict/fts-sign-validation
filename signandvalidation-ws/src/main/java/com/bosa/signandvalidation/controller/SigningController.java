@@ -760,7 +760,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (PdfVisibleSignatureService.PdfVisibleSignatureException e) {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(ProtectedDocumentException e) {
-            logAndThrowEx(UNAUTHORIZED, SIGNATURE_FORBIDDEN, e.getMessage());
+            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
         } catch (AlertException e) {
             String message = e.getMessage();
             if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
@@ -1070,7 +1070,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch(ProtectedDocumentException e) {
-            logAndThrowEx(UNAUTHORIZED, SIGNATURE_FORBIDDEN, e.getMessage());
+            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -1110,7 +1110,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch(ProtectedDocumentException e) {
-            logAndThrowEx(UNAUTHORIZED, SIGNATURE_FORBIDDEN, e.getMessage());
+            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -1373,7 +1373,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch(ProtectedDocumentException e) {
-            logAndThrowEx(UNAUTHORIZED, SIGNATURE_FORBIDDEN, e.getMessage());
+            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
