@@ -7,5 +7,6 @@
   "referenceDigestAlgorithm": "SHA512",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
+  "addRootCertToKeyinfo": true,
   "revocationStrategy": "OCSP_ONLY"
 }
