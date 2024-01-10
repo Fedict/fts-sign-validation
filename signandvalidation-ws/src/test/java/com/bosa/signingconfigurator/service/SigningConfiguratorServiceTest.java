@@ -60,10 +60,10 @@ public class SigningConfiguratorServiceTest {
         // then
         ProfileNotFoundException exception = assertThrows(
                 ProfileNotFoundException.class,
-                () -> service.getSignatureParams("NOTFOUND", clientParams, null)
+                () -> service.getSignatureParams(null, clientParams, null)
         );
 
-        assertEquals("NOTFOUND not found", exception.getMessage());
+        assertEquals("Default profile not found", exception.getMessage());
     }
 
     @Test
@@ -91,11 +91,11 @@ public class SigningConfiguratorServiceTest {
         ProfileNotFoundException exception = assertThrows(
                 ProfileNotFoundException.class,
                 () -> {
-                    service.getExtensionParams("NOTFOUND", detachedContents);
+                    service.getExtensionParams(null, detachedContents);
                 }
         );
 
-        assertEquals("NOTFOUND not found", exception.getMessage());
+        assertEquals("Default profile not found", exception.getMessage());
     }
 
     @Test
@@ -124,7 +124,8 @@ public class SigningConfiguratorServiceTest {
         clientParams.setSigningDate(new Date());
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams, null);
+
+        RemoteSignatureParameters result = service.getSignatureParams(service.findProfileParamsById("XADES_B"), clientParams, null);
 
         // then
         assertNull(result.getAsicContainerType());
@@ -192,7 +193,7 @@ public class SigningConfiguratorServiceTest {
         clientParams.setSigningDate(new Date());
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams, null);
+        RemoteSignatureParameters result = service.getSignatureParams(service.findProfileParamsById("XADES_B"), clientParams, null);
 
         // then
         assertEquals(DigestAlgorithm.SHA256, result.getContentTimestampParameters().getDigestAlgorithm());
@@ -229,7 +230,7 @@ public class SigningConfiguratorServiceTest {
         clientParams.setSigningDate(new Date());
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams, null);
+        RemoteSignatureParameters result = service.getSignatureParams(service.findProfileParamsById("XADES_B"), clientParams, null);
 
         // then
         assertEquals(SHA1, result.getContentTimestampParameters().getDigestAlgorithm());
@@ -277,7 +278,7 @@ public class SigningConfiguratorServiceTest {
         clientParams.setSignerLocationStreet("street");
 
         // when
-        RemoteSignatureParameters result = service.getSignatureParams("XADES_B", clientParams, null);
+        RemoteSignatureParameters result = service.getSignatureParams(service.findProfileParamsById("XADES_B"), clientParams, null);
 
         // then
         assertNotNull(result.getSigningCertificate());
@@ -304,7 +305,7 @@ public class SigningConfiguratorServiceTest {
         List<RemoteDocument> detachedContents = new ArrayList<>();
 
         // when
-        RemoteSignatureParameters result = service.getExtensionParams("XADES_B", detachedContents);
+        RemoteSignatureParameters result = service.getExtensionParams(service.findProfileParamsById("XADES_B"), detachedContents);
 
         // then
         assertNull(result.getAsicContainerType());
@@ -348,7 +349,7 @@ public class SigningConfiguratorServiceTest {
         List<RemoteDocument> detachedContents = new ArrayList<>();
 
         // when
-        RemoteSignatureParameters result = service.getExtensionParams("XADES_B", detachedContents);
+        RemoteSignatureParameters result = service.getExtensionParams(service.findProfileParamsById("XADES_B"), detachedContents);
 
         // then
         assertEquals(DigestAlgorithm.SHA256, result.getContentTimestampParameters().getDigestAlgorithm());
