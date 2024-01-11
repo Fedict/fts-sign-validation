@@ -45,7 +45,7 @@ public class ProfileSignatureParameters extends JsonObject {
      */
     private Boolean trustAnchorBPPolicy;
 
-    private Boolean addRootCertToKeyinfo;
+    private Boolean addCertPathToKeyinfo;
 
     private String policyId;
 
@@ -121,8 +121,8 @@ public class ProfileSignatureParameters extends JsonObject {
         return trustAnchorBPPolicy != null ? trustAnchorBPPolicy : true;
     }
 
-    public Boolean getAddRootCertToKeyinfo() {
-        return addRootCertToKeyinfo != null ? addRootCertToKeyinfo : false;
+    public Boolean getAddCertPathToKeyinfo() {
+        return addCertPathToKeyinfo != null ? addCertPathToKeyinfo : false;
     }
 
     public Boolean getSignWithExpiredCertificate() {

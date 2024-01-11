@@ -829,7 +829,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, applicationName);
 
-            if (signProfile.getAddRootCertToKeyinfo()) addRootCertToKeyinfo(signedDoc, clientSigParams);
+            if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
 
             signedDoc.setName(getOutFilePath(token, inputToSign));
 
@@ -867,7 +867,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private void addRootCertToKeyinfo(RemoteDocument signedDoc, ClientSignatureParameters clientSigParams) throws ParserConfigurationException, TransformerException, IOException, SAXException {
+    // For the Justice dept the signature must contain the Full cert path in the KeyInfo element even for all XADES signatures
+    // For LT/LTA signatures, EIDAS states that the certs must be present in "CertificateValues/EncapsulatedX509Certificate" but can
+    // also be present in the KeyInfo element. DSS does not put the Root cert in the KeyInfo for LT/LTA
+
+    private void addCertPathToKeyinfo(RemoteDocument signedDoc, ClientSignatureParameters clientSigParams) throws ParserConfigurationException, TransformerException, IOException, SAXException {
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
@@ -899,6 +903,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 x509Cert = x509Cert.getNextSibling();
             }
         }
+
+        if (certsToAdd.isEmpty()) return;
 
         for(String certToAdd : certsToAdd) {
             Node x509Cert = doc.createElementNS( "http://www.w3.org/2000/09/xmldsig#", "ds:X509Certificate");
@@ -1216,6 +1222,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);
 
+            if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
+
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
             // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
             List<RemoteDocument> detachedDocuments = clientSigParams.getDetachedContents();
@@ -1229,7 +1237,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
-        } catch (RuntimeException | IOException e) {
+        } catch (RuntimeException | IOException | ParserConfigurationException | TransformerException | SAXException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
@@ -1259,12 +1267,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkAndRecordMDCToken(signDocumentDto.getToken());
             logger.info("Entering signDocumentMultiple()");
 
+            ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDocumentDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, signDocumentDto.getClientSignatureParameters(), null);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
+
+            if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
 
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
             // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
@@ -1275,7 +1286,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
-        } catch (RuntimeException | IOException e) {
+        } catch (RuntimeException | IOException | ParserConfigurationException | TransformerException | SAXException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
@@ -1492,6 +1503,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), signDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDto.getToSignDocument(), parameters, signatureValueDto, references, null);
 
+            if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
+
             signedDoc.setName(signDto.getToSignDocument().getName());
             logger.info("Returning from signDocumentXades()");
             return signedDoc;
@@ -1501,7 +1514,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
-        } catch (RuntimeException | IOException e) {
+        } catch (RuntimeException | IOException | ParserConfigurationException | TransformerException | SAXException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
