@@ -43,7 +43,7 @@ public interface ErrorStrings {
 	/** Invalid signature level for document */
 	String INVALID_SIGNATURE_LEVEL = "INVALID_SIGNATURE_LEVEL";
 
-	/** NN of the certificate is not in the allowed to sign list */
+	/** NN of the certificate is not in the "allowed to sign" list or a PDF attribute forbids signature **/
 	String NOT_ALLOWED_TO_SIGN = "NOT_ALLOWED_TO_SIGN";
 
 	/** PDF signature field problem: not specified when needed or invalid value */

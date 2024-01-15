@@ -18,6 +18,7 @@ import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.alert.exception.AlertException;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.pades.exception.ProtectedDocumentException;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
@@ -39,6 +40,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.xml.security.transforms.Transforms;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -137,7 +139,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String SIGN_DOCUMENT_XADES_MULTI_DOC    = "/signDocumentXades";
 
     private static final String KEYS_FOLDER                     = "keys/";
-    private static final String JSON_FILENAME_EXTENTION         = ".json";
+    private static final String JSON_FILENAME_EXTENSION         = ".json";
 
     private static final SimpleDateFormat logDateTimeFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
     // Secret key cache
@@ -270,22 +272,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         SigningType signingType = gtfd.getSignType();
          if (signingType == null) signingType = SigningType.XadesMultiFile;
-        List<TokenSignInput> tokenInputs = new ArrayList<>();
-        for(SignInput input : gtfd.getInputs()) {
-            TokenSignInput ti = new TokenSignInput();
-            ti.setFilePath(input.getFilePath());
-            ti.setXmlEltId(input.getXmlEltId());
-            ti.setDisplayXsltPath(input.getDisplayXsltPath());
-            ti.setPspFilePath(input.getPspFilePath());
-            ti.setSignLanguage(input.getSignLanguage());
-            ti.setPsfC(input.getPsfC());
-            ti.setPsfN(input.getPsfN());
-            ti.setPsfP(input.isPsfP());
-            tokenInputs.add(ti);
-        }
+        List<TokenSignInput> tokenInputs = getTokenSignInputs(gtfd);
 
-         String pdfProfile = searchProfile("PADES", gtfd);
-         String xmlProfile = searchProfile("XADES", gtfd);
+        String pdfProfile = searchProfile("PADES", gtfd);
+        String xmlProfile = searchProfile("XADES", gtfd);
         TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
         token.setSignTimeout(gtfd.getSignTimeout() );
         token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
@@ -316,6 +306,26 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
+    @NotNull
+    private static List<TokenSignInput> getTokenSignInputs(GetTokenForDocumentsDTO gtfd) {
+        List<TokenSignInput> tokenInputs = new ArrayList<>();
+        for(SignInput input : gtfd.getInputs()) {
+            TokenSignInput ti = new TokenSignInput();
+            ti.setFilePath(input.getFilePath());
+            ti.setXmlEltId(input.getXmlEltId());
+            ti.setDisplayXsltPath(input.getDisplayXsltPath());
+            ti.setPspFilePath(input.getPspFilePath());
+            ti.setSignLanguage(input.getSignLanguage());
+            ti.setPsfC(input.getPsfC());
+            ti.setPsfN(input.getPsfN());
+            ti.setPsfP(input.isPsfP());
+            tokenInputs.add(ti);
+        }
+        return tokenInputs;
+    }
+
+    /*****************************************************************************************/
+
     private String searchProfile(String profileSearch, GetTokenForDocumentsDTO gtfd) {
         String profile = gtfd.getSignProfile();
         if (profile != null && profile.contains(profileSearch)) return profile;
@@ -338,8 +348,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     void checkTokenAndSetDefaults(TokenObject token) {
 
-        if (token.getPdfSignProfile() == null && token.getXmlSignProfile() == null) {
-            //TODO Validate signProfile further
+        String pdfProfileId = token.getPdfSignProfile();
+        String xmlProfileId = token.getXmlSignProfile();
+        if (pdfProfileId == null && xmlProfileId == null) {
             logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile is null." , null);
         }
 
@@ -375,7 +386,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         List<TokenSignInput> inputs = token.getInputs();
-        if (inputs == null || inputs.size() == 0) {
+        if (inputs == null || inputs.isEmpty()) {
             logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'inputs' field is empty" , null);
         }
         List<String> filenamesList = new ArrayList<String>();
@@ -443,7 +454,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         String outPath = token.getOutFilePath();
-        if (outPath != null && outPath.length() == 0) token.setOutFilePath(outPath = null);
+        if (outPath != null && outPath.isEmpty()) token.setOutFilePath(outPath = null);
 
         if (prefix != null) {
             if (prefix.endsWith("/")) {
@@ -759,6 +770,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch (PdfVisibleSignatureService.PdfVisibleSignatureException e) {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
+        } catch(ProtectedDocumentException e) {
+            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
         } catch (AlertException e) {
             String message = e.getMessage();
             if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
@@ -1034,7 +1047,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Store token in secret bucket
             ObjectMapper om = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            storageService.storeFile(null, KEYS_FOLDER + tokenId + JSON_FILENAME_EXTENTION, om.writeValueAsBytes(token));
+            storageService.storeFile(null, KEYS_FOLDER + tokenId + JSON_FILENAME_EXTENSION, om.writeValueAsBytes(token));
 
             // Cache token
             tokenCache.put(tokenId, token);
@@ -1053,7 +1066,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             token = tokenCache.getIfPresent(tokenId);
             if (token == null) {
-                byte[] rawToken = storageService.getFileAsBytes(null, KEYS_FOLDER + tokenId + JSON_FILENAME_EXTENTION, false);
+                byte[] rawToken = storageService.getFileAsBytes(null, KEYS_FOLDER + tokenId + JSON_FILENAME_EXTENSION, false);
                 token = new ObjectMapper().readValue(rawToken, TokenObject.class);
                 tokenCache.put(tokenId, token);
             }
@@ -1145,6 +1158,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch(ProtectedDocumentException e) {
+            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
@@ -1186,6 +1201,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch(ProtectedDocumentException e) {
+            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -1468,6 +1485,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch(ProtectedDocumentException e) {
+            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
