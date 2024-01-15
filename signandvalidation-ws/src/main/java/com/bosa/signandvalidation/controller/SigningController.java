@@ -215,6 +215,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setPsfC(tokenData.getPsfC());
             input.setPsfN(tokenData.getPsfN());
             input.setDisplayXsltPath(tokenData.getXslt());
+            input.setDrawSignature(false);
             inputs.add(input);
 
             String pdfProfile = tokenData.getProf();
@@ -288,8 +289,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setOutPathPrefix(gtfd.getOutPathPrefix());
         token.setRequestDocumentReadConfirm(gtfd.isRequestDocumentReadConfirm());
         token.setPreviewDocuments(gtfd.isPreviewDocuments());
-         token.setSelectDocuments(gtfd.isSelectDocuments());
-         token.setNoSkipErrors(gtfd.isNoSkipErrors());
+        token.setSelectDocuments(gtfd.isSelectDocuments());
+        token.setNoSkipErrors(gtfd.isNoSkipErrors());
 
         checkTokenAndSetDefaults(token);
 
@@ -319,6 +320,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ti.setPsfC(input.getPsfC());
             ti.setPsfN(input.getPsfN());
             ti.setPsfP(input.isPsfP());
+            ti.setDrawSignature(input.isDrawSignature());
             tokenInputs.add(ti);
         }
         return tokenInputs;
@@ -587,7 +589,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 inputMetadata.setFileName(getNameFromPath(input.getFilePath()));
                 inputMetadata.setMimeType(MediaTypeUtil.getMediaTypeFromFilename(input.getFilePath()).toString());
                 inputMetadata.setHasDisplayXslt(input.getDisplayXsltPath() != null);
-                inputMetadata.setPsfN(input.getPsfN());
+                inputMetadata.setDrawSignature(input.getPsfN() == null && input.isDrawSignature());
                 signedInputsMetadata.add(inputMetadata);
             }
 

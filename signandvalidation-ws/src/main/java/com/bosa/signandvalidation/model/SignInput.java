@@ -56,4 +56,6 @@ public class SignInput {
     private String psfC;
     @Schema(example = "true", description = "A boolean, if true it means the visible signature of a PDF to sign will include hte picture of the EID")
     private boolean psfP;
+    @Schema(example = "true", description = "A boolean, if true it that the user can draw a rectangle on the PDF where a visible signature will display the signature details")
+    private boolean drawSignature;
 }
