@@ -20,6 +20,8 @@ import lombok.NoArgsConstructor;
 public class SignDocumentForTokenDTO {
     private String token;
     private int fileIdToSign;
+    private String psfN;
+    private String psfC;
     private ClientSignatureParameters clientSignatureParameters;
     private byte[] signatureValue;
 }
