@@ -12,6 +12,7 @@ import lombok.Setter;
 public class SignInputMetadata {
     private String fileName; // Name of the file in the bucket to Sign (XML/PDF/Other)
     private String mimeType;
+    private String psfN;
 
     // If "filename" file is of type : XML
     private boolean hasDisplayXslt; // If true an XSLT was provided to display the file
