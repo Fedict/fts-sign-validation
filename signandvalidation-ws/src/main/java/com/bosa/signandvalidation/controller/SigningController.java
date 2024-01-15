@@ -215,7 +215,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setPsfC(tokenData.getPsfC());
             input.setPsfN(tokenData.getPsfN());
             input.setDisplayXsltPath(tokenData.getXslt());
-            input.setDrawSignature(false);
+            input.setInvisible(false);
             inputs.add(input);
 
             String pdfProfile = tokenData.getProf();
@@ -320,7 +320,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ti.setPsfC(input.getPsfC());
             ti.setPsfN(input.getPsfN());
             ti.setPsfP(input.isPsfP());
-            ti.setDrawSignature(input.isDrawSignature());
+            Boolean invisible = input.getInvisible();
+            ti.setInvisible(invisible != null && invisible);
             tokenInputs.add(ti);
         }
         return tokenInputs;
@@ -589,7 +590,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 inputMetadata.setFileName(getNameFromPath(input.getFilePath()));
                 inputMetadata.setMimeType(MediaTypeUtil.getMediaTypeFromFilename(input.getFilePath()).toString());
                 inputMetadata.setHasDisplayXslt(input.getDisplayXsltPath() != null);
-                inputMetadata.setDrawSignature(input.getPsfN() == null && input.isDrawSignature());
+                inputMetadata.setDrawSignature(input.getPsfN() == null && !input.isInvisible());
                 signedInputsMetadata.add(inputMetadata);
             }
 
