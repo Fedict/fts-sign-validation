@@ -175,7 +175,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         // Get hash & algo that must be signed
         ClientSignatureParameters csp = getClientSignatureParameters(sigToken.getKeys().get(0));
-        GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, 0, null, null, csp);
+        GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, 0, csp);
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dto, DataToSignDTO.class);
 
         // Sign hash
@@ -183,7 +183,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         // Sign file & return its content
         csp.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, 0, null, null, csp, signatureValue.getValue());
+        SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, 0, csp, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, sdto, RemoteDocument.class);
 
         assertNull(signedDocument);

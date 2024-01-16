@@ -112,7 +112,7 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
             String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
 
             // get data to sign
-            GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, null, null, clientSignatureParameters);
+            GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
             DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dataToSignDTO, DataToSignDTO.class);
 
             // sign
@@ -143,7 +143,7 @@ public class PdfVisibleSignatureTokenTest extends SigningControllerBaseTest {
 
             // sign document
             clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-            SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, null, null, clientSignatureParameters, signatureValue.getValue());
+            SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
             RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
     }
 }

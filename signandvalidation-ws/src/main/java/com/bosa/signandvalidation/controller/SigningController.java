@@ -758,11 +758,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
 
             if (APPLICATION_PDF.equals(mediaType)) {
-                String psfC = dataToSignForTokenDto.getPsfC();
-                if (psfC != null) inputToSign.setPsfC(psfC);
-                String psfN = dataToSignForTokenDto.getPsfN();
-                if (psfN != null) inputToSign.setPsfN(psfN);
-                inputToSign = token.getInputs().get(dataToSignForTokenDto.getFileIdToSign());
                 pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams);
             }
 
@@ -843,10 +838,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
             if (APPLICATION_PDF.equals(mediaType)) {
-                String psfC = signDto.getPsfC();
-                if (psfC != null) inputToSign.setPsfC(psfC);
-                String psfN = signDto.getPsfN();
-                if (psfN != null) inputToSign.setPsfN(psfN);
                 pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams);
             }
 
