@@ -21,7 +21,6 @@ import java.util.List;
 @AllArgsConstructor
 public class DocumentMetadataDTO {
     private SigningType signingType;
-    private boolean readPhoto;
     private boolean noSignedDownloads;
     private boolean selectDocuments;
     private boolean requestDocumentReadConfirm;

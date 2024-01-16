@@ -591,14 +591,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 inputMetadata.setMimeType(MediaTypeUtil.getMediaTypeFromFilename(input.getFilePath()).toString());
                 inputMetadata.setHasDisplayXslt(input.getDisplayXsltPath() != null);
                 inputMetadata.setDrawSignature(input.getPsfN() == null && input.getPsfC() == null && !input.isInvisible());
+                inputMetadata.setPsfP(input.isPsfP());
                 signedInputsMetadata.add(inputMetadata);
             }
 
-            boolean getPhoto = false;
-            for(TokenSignInput input : token.getInputs()) getPhoto |= input.isPsfP();
-
             logger.info("Returning from getMetadataForToken()");
-            return new DocumentMetadataDTO(token.getSigningType(), getPhoto, !token.isOutDownload(),
+            return new DocumentMetadataDTO(token.getSigningType(), !token.isOutDownload(),
                     token.isSelectDocuments(), token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isNoSkipErrors(), signedInputsMetadata);
         } catch (RuntimeException e){
                 logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
