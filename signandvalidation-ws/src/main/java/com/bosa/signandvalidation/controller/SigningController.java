@@ -590,7 +590,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 inputMetadata.setFileName(getNameFromPath(input.getFilePath()));
                 inputMetadata.setMimeType(MediaTypeUtil.getMediaTypeFromFilename(input.getFilePath()).toString());
                 inputMetadata.setHasDisplayXslt(input.getDisplayXsltPath() != null);
-                inputMetadata.setDrawSignature(input.getPsfN() == null && !input.isInvisible());
+                inputMetadata.setDrawSignature(input.getPsfN() == null && input.getPsfC() == null && !input.isInvisible());
                 signedInputsMetadata.add(inputMetadata);
             }
 
