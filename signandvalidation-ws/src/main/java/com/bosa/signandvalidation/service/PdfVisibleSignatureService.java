@@ -113,7 +113,8 @@ public class PdfVisibleSignatureService {
         if (psfN != null) clientSigParams.setPsfN(psfN);
         String psfC = input.getPsfC();
         if (psfC != null) clientSigParams.setPsfC(psfC);
-        clientSigParams.setSignLanguage(input.getSignLanguage());
+        String signLanguage = input.getSignLanguage();
+        if (signLanguage != null) clientSigParams.setSignLanguage(signLanguage);
         checkAndFillParams(remoteSigParams, document, clientSigParams);
     }
 
