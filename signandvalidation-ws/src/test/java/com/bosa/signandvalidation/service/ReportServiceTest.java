@@ -22,8 +22,8 @@ import java.util.Date;
 import java.util.List;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.CERT_REVOKED;
+import static com.bosa.signandvalidation.model.SignatureLevel.PAdES_BASELINE_LTA;
 import static eu.europa.esig.dss.enumerations.Indication.*;
-import static eu.europa.esig.dss.enumerations.SignatureLevel.PAdES_BASELINE_LTA;
 import static eu.europa.esig.dss.enumerations.SubIndication.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -186,7 +186,7 @@ public class ReportServiceTest {
         eu.europa.esig.dss.diagnostic.jaxb.XmlSignature diagSignature = new eu.europa.esig.dss.diagnostic.jaxb.XmlSignature();
         diagSignatures.add(diagSignature);
         diagSignature.setId(theID);
-        diagSignature.setSignatureFormat(PAdES_BASELINE_LTA);
+        diagSignature.setSignatureFormat(PAdES_BASELINE_LTA.toDSS());
         XmlSigningCertificate signingCert = new XmlSigningCertificate();
         eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate theCert = new eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate();
         XmlKeyUsages usages = new XmlKeyUsages();
