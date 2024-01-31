@@ -1,6 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
-import com.bosa.signandvalidation.SignAndValidationTestBase;
+import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import com.bosa.signandvalidation.model.CertificateIndicationsDTO;
 import com.bosa.signandvalidation.model.CertificateToValidateDTO;
@@ -31,7 +31,7 @@ import static eu.europa.esig.dss.enumerations.KeyUsageBit.NON_REPUDIATION;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-public class ValidateCertificatesTest extends SignAndValidationTestBase implements ErrorStrings {
+public class ValidateCertificatesTest extends SignAndValidationBaseTest implements ErrorStrings {
 
     public static final String CERTIFICATE_ENDPOINT = "/validation/validateCertificate";
     public static final String CERTIFICATEFULL_ENDPOINT = "/validation/validateCertificateFull";

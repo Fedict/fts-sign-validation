@@ -100,7 +100,7 @@ public class ReportsService implements ErrorStrings {
             return new SignatureIndicationsDTO(INDETERMINATE, SIGNED_DATA_NOT_FOUND);
         }
 
-        for (XmlToken xmlToken : reportsDto.getSimpleReport().getSignatureOrTimestamp()) {
+        for (XmlToken xmlToken : reportsDto.getSimpleReport().getSignatureOrTimestampOrEvidenceRecord()) {
             SignatureIndicationsDTO dto = getRevokedIndication(xmlToken);
             if (dto != null) return dto;
         }
@@ -126,7 +126,7 @@ public class ReportsService implements ErrorStrings {
     // If none is found return null
     private static XmlSignature getLatestSignature(XmlSimpleReport simpleReport, Date minTime) {
         XmlSignature latestSignature =  null;
-        for(XmlToken signatureOrTimestamp : simpleReport.getSignatureOrTimestamp()) {
+        for(XmlToken signatureOrTimestamp : simpleReport.getSignatureOrTimestampOrEvidenceRecord()) {
             if (signatureOrTimestamp instanceof XmlSignature) {
                 XmlSignature signature = (XmlSignature)signatureOrTimestamp;
                 Date bestSignatureTime = signature.getBestSignatureTime();
@@ -172,7 +172,7 @@ public class ReportsService implements ErrorStrings {
         NormalizedReport result = new NormalizedReport();
         List<NormalizedSignatureInfo> signatures = result.getSignatures();
 
-        for(Serializable signOrTsOrCert : report.getDetailedReport().getSignatureOrTimestampOrCertificate()) {
+        for(Serializable signOrTsOrCert : report.getDetailedReport().getSignatureOrTimestampOrEvidenceRecord()) {
             if (!(signOrTsOrCert instanceof eu.europa.esig.dss.detailedreport.jaxb.XmlSignature)) continue;
             eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signature = (eu.europa.esig.dss.detailedreport.jaxb.XmlSignature) signOrTsOrCert;
 
@@ -200,7 +200,7 @@ public class ReportsService implements ErrorStrings {
     }
 
     private void getSimpleReportInfo(NormalizedSignatureInfo si, XmlSimpleReport simpleReport, String id) {
-        for (XmlToken signatureOrTS : simpleReport.getSignatureOrTimestamp()) {
+        for (XmlToken signatureOrTS : simpleReport.getSignatureOrTimestampOrEvidenceRecord()) {
             if (!(signatureOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature)) continue;
             eu.europa.esig.dss.simplereport.jaxb.XmlSignature simpleSignature = (eu.europa.esig.dss.simplereport.jaxb.XmlSignature) signatureOrTS;
 
@@ -215,7 +215,7 @@ public class ReportsService implements ErrorStrings {
     private void getDiagnosticInfo(NormalizedSignatureInfo si, XmlDiagnosticData diagData, String id) {
         for (eu.europa.esig.dss.diagnostic.jaxb.XmlSignature diagSignature : diagData.getSignatures()) {
             if (diagSignature.getId().equals(id)) {
-                si.setSignatureFormat(diagSignature.getSignatureFormat());
+                si.setSignatureFormat(SignatureLevel.fromDss(diagSignature.getSignatureFormat()));
                 eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate signingCert = diagSignature.getSigningCertificate().getCertificate();
                 si.setSignerCommonName(signingCert.getCommonName());
                 if (!isNonRepudiationCert(signingCert)) si.setQualified(false);

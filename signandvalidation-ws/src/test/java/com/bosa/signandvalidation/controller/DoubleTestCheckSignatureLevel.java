@@ -1,12 +1,13 @@
 package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
+import com.bosa.signandvalidation.model.SignatureLevel;
 import com.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileTimestampParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.bosa.signandvalidation.SignAndValidationTestBase;
+import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import com.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import eu.europa.esig.dss.enumerations.*;
@@ -36,7 +37,7 @@ import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
 import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DoubleCheckSignatureLevelTest extends SignAndValidationTestBase implements ErrorStrings {
+public class DoubleTestCheckSignatureLevel extends SignAndValidationBaseTest implements ErrorStrings {
 
     @Autowired
     ObjectMapper mapper;
@@ -183,7 +184,7 @@ public class DoubleCheckSignatureLevelTest extends SignAndValidationTestBase imp
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setAsicContainerType(containerType);
-        profileParams.setSignatureLevel(signatureLevel);
+        profileParams.setSignatureLevel(signatureLevel.toDSS());
         profileParams.setSignaturePackaging(signaturePackaging);
         profileParams.setDigestAlgorithm(digestAlgorithm);
         profileParams.setMaskGenerationFunction(maskGenerationFunction);

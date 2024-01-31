@@ -188,7 +188,7 @@ public class BosaRemoteDocumentValidationService {
 	}
 
 	private boolean documentHasBelgianSignature(SignatureFullValiationDTO report) {
-		for(XmlToken sigOrTS : report.getSimpleReport().getSignatureOrTimestamp()) {
+		for(XmlToken sigOrTS : report.getSimpleReport().getSignatureOrTimestampOrEvidenceRecord()) {
 			if (sigOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature) {
 				XmlCertificateChain certChain = sigOrTS.getCertificateChain();
 				if (certChain == null) continue;
@@ -216,7 +216,7 @@ public class BosaRemoteDocumentValidationService {
 	private void modifyReports(SignatureFullValiationDTO report, String sigId, SubIndication subIndication, String errMesg) {
 		// Modify the simple report
 		XmlSimpleReport simpleReport = report.getSimpleReport();
-		for (XmlToken token : simpleReport.getSignatureOrTimestamp()) {
+		for (XmlToken token : simpleReport.getSignatureOrTimestampOrEvidenceRecord()) {
 			if (token.getId().equals(sigId)) {
 				if (!Indication.TOTAL_FAILED.equals(token.getIndication())) {
 					token.setIndication(Indication.TOTAL_FAILED);
@@ -239,7 +239,7 @@ public class BosaRemoteDocumentValidationService {
 			}
 		}
 		// Modify the detailed report
-		for (Serializable sigTsOrCert : report.getDetailedReport().getSignatureOrTimestampOrCertificate()) {
+		for (Serializable sigTsOrCert : report.getDetailedReport().getSignatureOrTimestampOrEvidenceRecord()) {
 			eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signat = (eu.europa.esig.dss.detailedreport.jaxb.XmlSignature)sigTsOrCert;
 			if (signat.getId().equals(sigId)) {
 				XmlValidationProcessBasicSignature validation = signat.getValidationProcessBasicSignature();

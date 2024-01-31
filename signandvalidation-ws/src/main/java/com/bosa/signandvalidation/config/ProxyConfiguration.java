@@ -48,7 +48,7 @@ public class ProxyConfiguration {
             httpProperties.setHost(httpHost);
             httpProperties.setPort(httpPort);
             httpProperties.setUser(httpUser);
-            httpProperties.setPassword(httpPassword);
+            httpProperties.setPassword(httpPassword.toCharArray());
             httpProperties.setExcludedHosts(httpExcludedHosts);
             config.setHttpProperties(httpProperties);
         }
@@ -57,7 +57,7 @@ public class ProxyConfiguration {
             httpsProperties.setHost(httpsHost);
             httpsProperties.setPort(httpsPort);
             httpsProperties.setUser(httpsUser);
-            httpsProperties.setPassword(httpsPassword);
+            httpsProperties.setPassword(httpsPassword.toCharArray());
             httpsProperties.setExcludedHosts(httpsExcludedHosts);
             config.setHttpsProperties(httpsProperties);
         }

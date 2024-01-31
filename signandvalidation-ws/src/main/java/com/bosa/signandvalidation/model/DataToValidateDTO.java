@@ -1,6 +1,5 @@
 package com.bosa.signandvalidation.model;
 
-import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

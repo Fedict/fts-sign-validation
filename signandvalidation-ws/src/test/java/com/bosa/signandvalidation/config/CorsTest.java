@@ -1,6 +1,6 @@
 package com.bosa.signandvalidation.config;
 
-import com.bosa.signandvalidation.SignAndValidationTestBase;
+import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CorsTest extends SignAndValidationTestBase {
+public class CorsTest extends SignAndValidationBaseTest {
 
     @Test
     public void signingPingShouldReturnPong() {

@@ -3,7 +3,6 @@ package com.bosa.signandvalidation.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -44,6 +43,3 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         LOG.info("WebSecurityConfig configured");
     }
 }
-
-
-
