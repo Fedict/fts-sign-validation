@@ -1,6 +1,5 @@
 package com.bosa.signandvalidation.controller;
 
-import com.bosa.signandvalidation.config.ThreadedCertificateVerifier;
 import com.bosa.signandvalidation.exceptions.IllegalSignatureFormatException;
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.ReportsService;
@@ -123,7 +122,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
         try {
             SignatureFullValiationDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy(), toValidate.getTrust());
             if (toValidate.getLevel() != null && reportsDto.getDiagnosticData() != null) {
-                checkSignatures(toValidate.getLevel(), reportsDto);
+                checkSignatures(toValidate.getLevel().toDSS(), reportsDto);
             }
             logger.info("ValidateSignatureFull is finished");
             return reportsDto;

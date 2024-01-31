@@ -1,6 +1,7 @@
 package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
+import com.bosa.signandvalidation.model.SignatureLevel;
 import com.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
@@ -183,7 +184,7 @@ public class DoubleTestCheckSignatureLevel extends SignAndValidationBaseTest imp
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setAsicContainerType(containerType);
-        profileParams.setSignatureLevel(signatureLevel);
+        profileParams.setSignatureLevel(signatureLevel.toDSS());
         profileParams.setSignaturePackaging(signaturePackaging);
         profileParams.setDigestAlgorithm(digestAlgorithm);
         profileParams.setMaskGenerationFunction(maskGenerationFunction);

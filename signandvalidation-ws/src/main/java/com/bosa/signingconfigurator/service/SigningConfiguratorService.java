@@ -46,17 +46,12 @@ public class SigningConfiguratorService {
     @Autowired
     FileCacheDataLoader fileCacheDataLoader;
 
-    public RemoteSignatureParameters getSignatureParams(String profileId, ClientSignatureParameters clientParams, PolicyParameters policyParameters) throws ProfileNotFoundException, NullParameterException, IOException {
+    public RemoteSignatureParameters getSignatureParams(ProfileSignatureParameters signProfile, ClientSignatureParameters clientParams, PolicyParameters policyParameters) throws ProfileNotFoundException, NullParameterException, IOException {
         if (clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
 
-        ProfileSignatureParameters profileParams;
-        if (profileId == null) {
-            profileParams = findDefaultProfileParams();
-        } else {
-            profileParams = findProfileParamsById(profileId);
-        }
+        if (signProfile == null) signProfile = findDefaultProfileParams();
 
         // check to add policy (EPES)
         if (policyParameters != null && policyParameters.isPolicyValid()) {
@@ -78,30 +73,24 @@ public class SigningConfiguratorService {
             DSSDocument policyContent = new InMemoryDocument(bytes);
             byte[] digestedBytes = DSSUtils.digest(policyParameters.getPolicyDigestAlgorithm(), policyContent);
             // Fill policy entries
-            profileParams.setPolicyId(policyParameters.getPolicyId());
-            profileParams.setPolicySpuri(policyParameters.getPolicyId());
+            signProfile.setPolicyId(policyParameters.getPolicyId());
+            signProfile.setPolicySpuri(policyParameters.getPolicyId());
             if(policyParameters.getPolicyDescription()!=null)
             {
-                profileParams.setPolicyDescription(policyParameters.getPolicyDescription());
+                signProfile.setPolicyDescription(policyParameters.getPolicyDescription());
             }
-            profileParams.setPolicyQualifier(ObjectIdentifierQualifier.OID_AS_URI);
-            profileParams.setPolicyDigestAlgorithm(policyParameters.getPolicyDigestAlgorithm());
-            profileParams.setPolicyDigestValue(digestedBytes);
+            signProfile.setPolicyQualifier(ObjectIdentifierQualifier.OID_AS_URI);
+            signProfile.setPolicyDigestAlgorithm(policyParameters.getPolicyDigestAlgorithm());
+            signProfile.setPolicyDigestValue(digestedBytes);
         }
-        tspSource.setTspServer(profileParams.getTspServer());
-        return fillRemoteSignatureParams(clientParams, profileParams);
+        tspSource.setTspServer(signProfile.getTspServer());
+        return fillRemoteSignatureParams(clientParams, signProfile);
     }
 
-    public RemoteSignatureParameters getExtensionParams(String profileId, List<RemoteDocument> detachedContents) throws ProfileNotFoundException {
-        ProfileSignatureParameters profileParams;
-        if (profileId == null) {
-            profileParams = findDefaultProfileParams();
-        } else {
-            profileParams = findProfileParamsById(profileId);
-        }
-
-        tspSource.setTspServer(profileParams.getTspServer());
-        return fillExtensionParams(detachedContents, profileParams);
+    public RemoteSignatureParameters getExtensionParams(ProfileSignatureParameters profile, List<RemoteDocument> detachedContents) throws ProfileNotFoundException {
+        if (profile == null) profile = findDefaultProfileParams();
+        tspSource.setTspServer(profile.getTspServer());
+        return fillExtensionParams(detachedContents, profile);
     }
 
     public RemoteTimestampParameters getTimestampParams(String profileId) throws ProfileNotFoundException {
@@ -190,7 +179,7 @@ public class SigningConfiguratorService {
         remoteBLevelParams.setSignerLocationStreet(clientParams.getSignerLocationStreet());
     }
 
-    private ProfileSignatureParameters findProfileParamsById(String profileId) throws ProfileNotFoundException {
+    public ProfileSignatureParameters findProfileParamsById(String profileId) throws ProfileNotFoundException {
         return signatureDao.findById(profileId);
     }
 

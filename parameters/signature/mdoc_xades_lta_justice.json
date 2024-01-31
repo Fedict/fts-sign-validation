@@ -1,0 +1,12 @@
+{
+  "profileId": "MDOC_XADES_LTA_JUSTICE",
+  "digestAlgorithm": "SHA384",
+  "referenceDigestAlgorithm": "SHA512",
+  "signatureLevel": "XAdES_BASELINE_LTA",
+  "signaturePackaging": "ENVELOPED",
+  "referenceDigestAlgorithm": "SHA512",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "trustAnchorBPPolicy": false,
+  "addCertPathToKeyinfo": true,
+  "revocationStrategy": "OCSP_ONLY"
+}

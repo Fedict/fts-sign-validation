@@ -215,7 +215,7 @@ public class ReportsService implements ErrorStrings {
     private void getDiagnosticInfo(NormalizedSignatureInfo si, XmlDiagnosticData diagData, String id) {
         for (eu.europa.esig.dss.diagnostic.jaxb.XmlSignature diagSignature : diagData.getSignatures()) {
             if (diagSignature.getId().equals(id)) {
-                si.setSignatureFormat(diagSignature.getSignatureFormat());
+                si.setSignatureFormat(SignatureLevel.fromDss(diagSignature.getSignatureFormat()));
                 eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate signingCert = diagSignature.getSigningCertificate().getCertificate();
                 si.setSignerCommonName(signingCert.getCommonName());
                 if (!isNonRepudiationCert(signingCert)) si.setQualified(false);

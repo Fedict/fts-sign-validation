@@ -2,7 +2,6 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.*;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
