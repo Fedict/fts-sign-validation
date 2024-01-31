@@ -21,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 public class TokenObject {
     private long createTime;
-    private SigningType signingType;
+    private SigningType signingTypex;
     private String bucket;
     private Integer signTimeout;
     private Integer tokenTimeout;

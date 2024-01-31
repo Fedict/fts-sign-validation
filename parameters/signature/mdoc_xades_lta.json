@@ -6,5 +6,6 @@
   "signaturePackaging": "ENVELOPED",
   "referenceDigestAlgorithm": "SHA512",
   "tspServer": "http://tss.eidpki.belgium.be/",
-  "trustAnchorBPPolicy": false
+  "trustAnchorBPPolicy": false,
+  "signType": "XadesMultiFile"
 }

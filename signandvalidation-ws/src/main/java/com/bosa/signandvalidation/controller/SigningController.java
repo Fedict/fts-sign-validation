@@ -288,8 +288,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setOutPathPrefix(gtfd.getOutPathPrefix());
         token.setRequestDocumentReadConfirm(gtfd.isRequestDocumentReadConfirm());
         token.setPreviewDocuments(gtfd.isPreviewDocuments());
-         token.setSelectDocuments(gtfd.isSelectDocuments());
-         token.setNoSkipErrors(gtfd.isNoSkipErrors());
+        token.setSelectDocuments(gtfd.isSelectDocuments());
+        token.setNoSkipErrors(gtfd.isNoSkipErrors());
 
         checkTokenAndSetDefaults(token);
 

@@ -1,5 +1,6 @@
 package com.bosa.signingconfigurator.model;
 
+import com.bosa.signandvalidation.model.SigningType;
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import lombok.Getter;
@@ -90,6 +91,8 @@ public class ProfileSignatureParameters extends JsonObject {
     private Boolean embedXML;
 
     private RevocationStrategy revocationStrategy;
+
+    private SigningType signType;
 
     /*
      * The values unrelated to signature parameters.
@@ -182,5 +185,9 @@ public class ProfileSignatureParameters extends JsonObject {
 
     public RevocationStrategy getRevocationStrategy() {
         return revocationStrategy == null ? RevocationStrategy.DEFAULT : revocationStrategy;
+    }
+
+    public SigningType getSigningtype() {
+        return signType == null ? SigningType.Standard : signType;
     }
 }

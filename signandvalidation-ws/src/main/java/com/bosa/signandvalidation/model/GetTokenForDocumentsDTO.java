@@ -21,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 public class GetTokenForDocumentsDTO {
     @Schema(description = "The type of signature.<UL>" +
-            "<LI>'XadesMultiFile' is a XADES internally detached. It is creating by passing a list of files and the ID of the target XML element where the files will be stored as Base 64." +
+            "<LI>'XadesMultiFile' is a XADES internally detached. It is created by passing a list of files and the ID of the target XML element where the files will be stored as Base 64." +
             "<BR>Only “MDOC_XADES_LTA” signProfile is compatible with XadesMultiFile</LI>" +
             "<LI>'Standard' is for XADES, PADES with all their variations</LI></UL>")
     private SigningType signType;
