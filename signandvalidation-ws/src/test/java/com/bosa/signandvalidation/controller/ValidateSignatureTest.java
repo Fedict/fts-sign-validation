@@ -1,10 +1,7 @@
 package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.SignAndValidationBaseTest;
-import com.bosa.signandvalidation.model.DataToValidateDTO;
-import com.bosa.signandvalidation.model.TrustSources;
-import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
-import com.bosa.signandvalidation.model.SignatureIndicationsDTO;
+import com.bosa.signandvalidation.model.*;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.spi.DSSUtils;
