@@ -420,7 +420,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         String prefix = token.getOutPathPrefix();
         if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
             String profileId = token.getXmlSignProfile();
-            if (!profileId.startsWith("MDOC_XADES_LTA")) {
+            if (profileId == null || !profileId.startsWith("MDOC_XADES_LTA")) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'Xades Multifile' with an invalid signProfile :" + token.getXmlSignProfile(), null);
             }
 
