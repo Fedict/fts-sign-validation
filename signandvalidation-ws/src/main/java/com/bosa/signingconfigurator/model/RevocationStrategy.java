@@ -4,5 +4,6 @@ package com.bosa.signingconfigurator.model;
 // Default is OCSPFirstRevocationDataLoadingStrategy, but there is also CRLFirstRevocationDataLoadingStrategy
 public enum RevocationStrategy {
     DEFAULT,
-    OCSP_ONLY
+    OCSP_ONLY,
+    OCSP_ONLY_FOR_LEAF
 }

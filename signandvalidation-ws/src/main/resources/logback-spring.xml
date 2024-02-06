@@ -30,7 +30,8 @@
         <root level="INFO">
             <appender-ref ref="STDOUT" />
         </root>
-        <!-- <logger name="org.apache.hc.client5.http" level="debug"/> -->
+        <!-- <logger name="eu.europa" level="TRACE" />
+        <logger name="org.apache.hc.client5.http" level="debug"/> -->
     </springProfile>
 
     <springProfile name="!local">
