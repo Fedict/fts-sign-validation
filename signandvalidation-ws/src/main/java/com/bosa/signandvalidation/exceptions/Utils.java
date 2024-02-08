@@ -54,23 +54,22 @@ public class Utils {
 
         // To be logged
         String logMesg = mesg;
-        if (null == e) {
-            // No exception to be logged -> add the start of the stack trace to the log
-            StringBuilder sb = new StringBuilder();
-            sb.append(logMesg);
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            boolean first = true;
-            for (StackTraceElement el : stackTrace) {
-                if (first) { // Skip the 1st element = the 'getStackTrace()' call
-                    first = false;
-                    continue;
-                }
-                if (el.getClassName().contains("springframework"))
-                    break; // we're not interested in the Spring calls, and higher
-                sb.append("\n  ").append(el.toString());
+
+        int nbEntries = e == null ? 20 : 10;
+        StringBuilder sb = new StringBuilder(logMesg);
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        boolean first = true;
+        for (StackTraceElement el : stackTrace) {
+            if (first) { // Skip the 1st element = the 'getStackTrace()' call
+                first = false;
+                continue;
             }
-            logMesg = sb.toString();
+            if (--nbEntries == 0 || el.getClassName().contains("springframework"))
+                break; // we're not interested in the Spring calls, and higher
+            sb.append("\n  ").append(el.toString());
         }
+        logMesg = sb.toString();
+
         logger.log(Level.SEVERE, logMesg, e);
 
         throw new ResponseStatusException(httpStatus, mesg);
