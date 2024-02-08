@@ -5,6 +5,7 @@ import com.bosa.signandvalidation.service.*;
 import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.bosa.signandvalidation.utils.OCSPOnlyRevocationDataLoadingStrategy;
+import com.bosa.signandvalidation.utils.OCSPOnlyForLeafRevocationDataLoadingStrategy;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -941,6 +942,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             case OCSP_ONLY:
                 setOverrideRevocationDataLoadingStrategyFactory(OCSPOnlyRevocationDataLoadingStrategy::new);
                 break;
+            case OCSP_ONLY_FOR_LEAF:
+                setOverrideRevocationDataLoadingStrategyFactory(OCSPOnlyForLeafRevocationDataLoadingStrategy::new);
+
             case DEFAULT:
                 break;
         }
