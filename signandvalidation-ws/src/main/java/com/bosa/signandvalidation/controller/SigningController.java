@@ -216,7 +216,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setPsfC(tokenData.getPsfC());
             input.setPsfN(tokenData.getPsfN());
             input.setDisplayXsltPath(tokenData.getXslt());
-            input.setInvisible(false);
+            input.setInvisible(true);
             inputs.add(input);
 
             String pdfProfile = tokenData.getProf();
@@ -321,8 +321,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ti.setPsfC(input.getPsfC());
             ti.setPsfN(input.getPsfN());
             ti.setPsfP(input.isPsfP());
-            Boolean invisible = input.getInvisible();
-            ti.setInvisible(invisible != null && invisible);
+            Boolean drawable = input.getDrawable();
+            ti.setInvisible(drawable == null || !drawable);
             tokenInputs.add(ti);
         }
         return tokenInputs;
