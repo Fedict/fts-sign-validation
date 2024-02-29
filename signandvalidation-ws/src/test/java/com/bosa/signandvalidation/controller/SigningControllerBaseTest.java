@@ -1,5 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
+import com.bosa.signandvalidation.model.SigningType;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileTimestampParameters;
@@ -32,21 +33,21 @@ public class SigningControllerBaseTest extends SignAndValidationBaseTest impleme
         ProfileSignatureParametersDao profileSigParamDao = applicationContext.getBean(ProfileSignatureParametersDao.class);
         profileSigParamDao.deleteAll();
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_B.name(), null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256, null, null);
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_T.name(), null, SignatureLevel.XAdES_BASELINE_T,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256, null, null);
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.CADES_B.name(), ASiCContainerType.ASiC_S, SignatureLevel.CAdES_BASELINE_B,
-                SignaturePackaging.DETACHED, null, SHA256, null);
+                SignaturePackaging.DETACHED, null, SHA256, null, null);
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.PADES_B.name(), null, SignatureLevel.PAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256, null, null);
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_LTA.name(), null, SignatureLevel.XAdES_BASELINE_LTA,
-                SignaturePackaging.ENVELOPED, SHA256, SHA256, null);
+                SignaturePackaging.ENVELOPED, SHA256, SHA256, null, null);
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.JADES_B.name(), null, SignatureLevel.JAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPING, SHA384, SHA384, null);
+                SignaturePackaging.ENVELOPING, SHA384, SHA384, null, null);
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.MDOC_XADES_LTA.name(), null, SignatureLevel.XAdES_BASELINE_LTA,
-                SignaturePackaging.ENVELOPED, SHA512, SHA256, null);
+                SignaturePackaging.ENVELOPED, SHA512, SHA256, null, SigningType.XadesMultiFile);
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_B_DETACHED.name(), null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.DETACHED, null, SHA256, null);
+                SignaturePackaging.DETACHED, null, SHA256, null, null);
 
 
         ProfileTimestampParametersDao timestampParamDao = applicationContext.getBean(ProfileTimestampParametersDao.class);
@@ -67,13 +68,14 @@ public class SigningControllerBaseTest extends SignAndValidationBaseTest impleme
     }
 
     protected static void saveProfileSignatureParameters(ProfileSignatureParametersDao dao,
-                                                       String profileId,
-                                                       ASiCContainerType containerType,
-                                                       SignatureLevel signatureLevel,
-                                                       SignaturePackaging signaturePackaging,
-                                                       DigestAlgorithm referenceDigestAlgorithm,
-                                                       DigestAlgorithm digestAlgorithm,
-                                                       MaskGenerationFunction maskGenerationFunction) {
+                                                         String profileId,
+                                                         ASiCContainerType containerType,
+                                                         SignatureLevel signatureLevel,
+                                                         SignaturePackaging signaturePackaging,
+                                                         DigestAlgorithm referenceDigestAlgorithm,
+                                                         DigestAlgorithm digestAlgorithm,
+                                                         MaskGenerationFunction maskGenerationFunction,
+                                                         SigningType signType) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setAsicContainerType(containerType);
@@ -83,6 +85,7 @@ public class SigningControllerBaseTest extends SignAndValidationBaseTest impleme
         profileParams.setMaskGenerationFunction(maskGenerationFunction);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
         profileParams.setTspServer("http://tsa.belgium.be/connect");
+        profileParams.setSignType(signType);
 
         dao.save(profileParams);
     }

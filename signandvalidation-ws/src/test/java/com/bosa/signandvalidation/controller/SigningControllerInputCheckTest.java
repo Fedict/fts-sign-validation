@@ -20,7 +20,7 @@ public class SigningControllerInputCheckTest {
     @Test
     public void testNoSignProfile() throws Exception {
         TokenObject token = new TokenObject();
-        testToken(token, EMPTY_PARAM, "signProfile is null");
+        testToken(token, EMPTY_PARAM, "signProfile(s) is(are) null.");
     }
 
     @Test
@@ -141,8 +141,9 @@ public class SigningControllerInputCheckTest {
         input2.setDisplayXsltPath("xslt");
 
         // finish with general params
-        testToken(token, INVALID_PARAM, "'Xades Multifile' with an invalid signProfile :null");
         token.setXmlSignProfile("MDOC_XADES_LTA");
+        testToken(token, INVALID_PARAM, "'Xades Multifile' must be used only for XML files");
+        token.setPdfSignProfile(null);
 
         testToken(token, INVALID_PARAM, "'OutXslt' (file2.xml) is not unique");
         token.setOutXsltPath("OutXSLT.xml");

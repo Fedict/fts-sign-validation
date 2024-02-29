@@ -270,12 +270,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         // Password not needed anymore
         gtfd.setPassword(null);
 
-        SigningType signingType = gtfd.getSignType();
-         if (signingType == null) signingType = SigningType.XadesMultiFile;
         List<TokenSignInput> tokenInputs = getTokenSignInputs(gtfd);
 
         String pdfProfile = searchProfile("PADES", gtfd);
         String xmlProfile = searchProfile("XADES", gtfd);
+        ProfileSignatureParameters xmlSignProfile = null;
+        if (xmlProfile != null) {
+            xmlSignProfile = signingConfigService.findProfileParamsById(xmlProfile);
+        }
+        SigningType signingType = xmlSignProfile == null ? SigningType.Standard : xmlSignProfile.getSignType();
         TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
         token.setSignTimeout(gtfd.getSignTimeout() );
         token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
@@ -351,7 +354,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         String pdfProfileId = token.getPdfSignProfile();
         String xmlProfileId = token.getXmlSignProfile();
         if (pdfProfileId == null && xmlProfileId == null) {
-            logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile is null." , null);
+            logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile(s) is(are) null." , null);
         }
 
         PolicyParameters policy = token.getPolicy();
@@ -411,8 +414,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'XmlEltId' must be null for 'non Xades Multifile'", null);
                 }
 
-                if ((isPDF && token.getPdfSignProfile() == null) || (isXML && token.getXmlSignProfile() == null)) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "No signProfile for file type provided (" + inputFileType.toString() + " => " + token.getPdfSignProfile() + "/" + token.getXmlSignProfile() + ")", null);
+                if ((isPDF && pdfProfileId == null) || (isXML && xmlProfileId == null)) {
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "No signProfile for file type provided (" + inputFileType.toString() + " => " + pdfProfileId + "/" + xmlProfileId + ")", null);
                 }
 
                 if (isPDF) {
@@ -430,9 +433,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         String prefix = token.getOutPathPrefix();
         if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
-            String profileId = token.getXmlSignProfile();
-            if (profileId == null || !profileId.startsWith("MDOC_XADES_LTA")) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'Xades Multifile' with an invalid signProfile :" + token.getXmlSignProfile(), null);
+            if (pdfProfileId != null) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'Xades Multifile' must be used only for XML files", null);
             }
 
             if (prefix != null) {
@@ -892,6 +894,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document doc = db.parse(new ByteArrayInputStream(signedDoc.getBytes()));
 
+        // It is supposed to be extremely rare so we log the file
         logger.info(xmlDocToString(doc));
 
         NodeList elements = doc.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "X509Data");

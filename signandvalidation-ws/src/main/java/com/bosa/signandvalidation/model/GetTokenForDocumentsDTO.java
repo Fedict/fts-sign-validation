@@ -20,11 +20,6 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class GetTokenForDocumentsDTO {
-    @Schema(description = "The type of signature.<UL>" +
-            "<LI>'XadesMultiFile' is a XADES internally detached. It is created by passing a list of files and the ID of the target XML element where the files will be stored as Base 64." +
-            "<BR>Only “MDOC_XADES_LTA” signProfile is compatible with XadesMultiFile</LI>" +
-            "<LI>'Standard' is for XADES, PADES with all their variations</LI></UL>")
-    private SigningType signType;
     @Schema(example = "0qtp70go8n3gcxosz88z", requiredMode = Schema.RequiredMode.REQUIRED, description = "The name of the bucket where the files (pdf/xml/xlst/psp) are stored, also the username to authenticate on the S3 server")
     private String bucket;
     @Schema(example = "S3cr3t!PAsSv0rd", requiredMode = Schema.RequiredMode.REQUIRED, description = "The password to authenticate on the bucket")
