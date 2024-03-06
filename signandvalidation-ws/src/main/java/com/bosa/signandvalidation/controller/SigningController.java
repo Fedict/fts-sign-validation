@@ -225,6 +225,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             else pdfProfile = null;
 
             TokenObject token = new TokenObject(SigningType.Standard, tokenData.getName(), pdfProfile, xmlProfile, inputs, tokenData.getOut());
+            token.setNoSkipErrors(true);
             if (tokenData.getPolicyId() != null) {
                 token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), tokenData.getPolicyDigestAlgorithm()));
             }
@@ -290,8 +291,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setOutPathPrefix(gtfd.getOutPathPrefix());
         token.setRequestDocumentReadConfirm(gtfd.isRequestDocumentReadConfirm());
         token.setPreviewDocuments(gtfd.isPreviewDocuments());
-         token.setSelectDocuments(gtfd.isSelectDocuments());
-         token.setNoSkipErrors(gtfd.isNoSkipErrors());
+        token.setSelectDocuments(gtfd.isSelectDocuments());
+        token.setNoSkipErrors(gtfd.isNoSkipErrors());
 
         checkTokenAndSetDefaults(token);
 
