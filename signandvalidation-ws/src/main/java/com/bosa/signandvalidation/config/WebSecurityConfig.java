@@ -13,6 +13,7 @@ import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter.XFrameOptionsMode;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -40,6 +41,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.headers().frameOptions().disable();
 
         http.headers().addHeaderWriter(new StaticHeadersWriter("Server", "ESIG-DSS"));
+
+        // Force adding “strict-transport-security” to HTTP headers
+        http.headers().httpStrictTransportSecurity().requestMatcher(AnyRequestMatcher.INSTANCE);
+
         LOG.info("WebSecurityConfig configured");
     }
 }
