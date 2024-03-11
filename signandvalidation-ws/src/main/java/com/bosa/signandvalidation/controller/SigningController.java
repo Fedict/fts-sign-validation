@@ -872,8 +872,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("Returning from signDocumentForToken().");
             MDC.remove("bucket");
             MDC.remove("fileName");
-
-            logger.info("Returning from signDocumentForToken()");
         } catch (Exception e) {
             handleRevokedCertificates(e);
             DataLoadersExceptionLogger.logAndThrow(e);
