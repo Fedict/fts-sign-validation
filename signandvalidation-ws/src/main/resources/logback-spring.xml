@@ -38,6 +38,9 @@
         <root level="INFO">
             <appender-ref ref="json" />
         </root>
+        <!-- EST-592 Disable logging of large number of "CRL Signature cannot be validated : ..." -->
+        <logger name="eu.europa.esig.dss.crl.stream.impl.CRLUtilsStreamImpl" level="error"/>
+
         <!-- <logger name="org.apache.hc.client5.http" level="debug"/> -->
     </springProfile>
 
