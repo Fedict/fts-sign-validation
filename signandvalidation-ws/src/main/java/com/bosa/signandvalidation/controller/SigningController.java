@@ -19,6 +19,7 @@ import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.alert.exception.AlertException;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.enumerations.SignatureForm;
 import eu.europa.esig.dss.pades.exception.ProtectedDocumentException;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.utils.Utils;
@@ -208,6 +209,16 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             // Password not needed anymore
             tokenData.setPwd(null);
 
+            TokenObject token = new TokenObject();
+            token.setSigningType(SigningType.Standard);
+            token.setBucket(tokenData.getName());
+            token.setOutFilePath(tokenData.getOut());
+            String profileId = tokenData.getProf();
+            ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
+            if (signProfile != null) {
+                if (SignatureForm.XAdES.equals(signProfile.getSignatureForm())) token.setXmlSignProfile(profileId);
+                else if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) token.setPdfSignProfile(profileId);
+            }
             List<TokenSignInput> inputs = new ArrayList<>();
             TokenSignInput input = new TokenSignInput();
             input.setFilePath(tokenData.getIn());
@@ -219,13 +230,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setDisplayXsltPath(tokenData.getXslt());
             input.setInvisible(true);
             inputs.add(input);
-
-            String pdfProfile = tokenData.getProf();
-            String xmlProfile = pdfProfile;
-            if (pdfProfile != null && pdfProfile.startsWith("PADES")) xmlProfile = null;
-            else pdfProfile = null;
-
-            TokenObject token = new TokenObject(SigningType.Standard, tokenData.getName(), pdfProfile, xmlProfile, inputs, tokenData.getOut());
+            token.setInputs(inputs);
             token.setNoSkipErrors(true);
             if (tokenData.getPolicyId() != null) {
                 token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), tokenData.getPolicyDigestAlgorithm()));
@@ -274,16 +279,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         // Password not needed anymore
         gtfd.setPassword(null);
 
-        List<TokenSignInput> tokenInputs = getTokenSignInputs(gtfd);
-
-        String pdfProfile = searchProfile("PADES", gtfd);
-        String xmlProfile = searchProfile("XADES", gtfd);
-        ProfileSignatureParameters xmlSignProfile = null;
-        if (xmlProfile != null) {
-            xmlSignProfile = signingConfigService.findProfileParamsById(xmlProfile);
-        }
-        SigningType signingType = xmlSignProfile == null ? SigningType.Standard : xmlSignProfile.getSignType();
-        TokenObject token = new TokenObject(signingType, gtfd.getBucket(), pdfProfile, xmlProfile, tokenInputs, gtfd.getOutFilePath());
+        TokenObject token = new TokenObject();
+        token.setBucket(gtfd.getBucket());
+        token.setInputs(getTokenSignInputs(gtfd));
+        token.setOutFilePath(gtfd.getOutFilePath());
+        setProfileInfo(token, gtfd.getSignProfile());
+        setProfileInfo(token, gtfd.getAltSignProfile());
         token.setSignTimeout(gtfd.getSignTimeout() );
         token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
         PolicyDTO policy = gtfd.getPolicy();
@@ -335,11 +336,30 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private String searchProfile(String profileSearch, GetTokenForDocumentsDTO gtfd) {
-        String profile = gtfd.getSignProfile();
-        if (profile != null && profile.contains(profileSearch)) return profile;
-        profile = gtfd.getAltSignProfile();
-        return profile != null && profile.contains(profileSearch) ? profile : null;
+    // Convoluted logic to identify if we have one or two profiles, for xml files and/or pdf files
+    private void setProfileInfo(TokenObject token, String profileId) {
+        if (profileId == null) return;
+        ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
+        if (signProfile == null) return;
+        if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
+            if (token.getPdfSignProfile() != null) {
+                // SignType must be the same ***********************************************************************************************************************************
+            }
+            token.setPdfSignProfile(profileId);
+        }
+        else if (SignatureForm.XAdES.equals(signProfile.getSignatureForm())) {
+            if (token.getXmlSignProfile() != null) {
+                // SignType must be the same ***********************************************************************************************************************************
+            }
+            token.setXmlSignProfile(profileId);
+        }
+
+        SigningType signingType = token.getSigningType();
+        if (signingType != null) {
+            if (signingType != signProfile.getSigningType()) {
+                // SignType must be the same ***********************************************************************************************************************************
+            }
+        } else token.setSigningType(signProfile.getSigningType());
     }
 
     /*****************************************************************************************/

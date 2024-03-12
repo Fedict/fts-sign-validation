@@ -4,10 +4,10 @@
   "referenceDigestAlgorithm": "SHA512",
   "signatureLevel": "XAdES_BASELINE_LTA",
   "signaturePackaging": "ENVELOPED",
-  "referenceDigestAlgorithm": "SHA512",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
   "addCertPathToKeyinfo": true,
+  "signatureForm": "XAdES",
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
-  "signType": "XadesMultiFile"
+  "signingType": "XadesMultiFile"
 }

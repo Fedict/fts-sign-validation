@@ -92,7 +92,9 @@ public class ProfileSignatureParameters extends JsonObject {
 
     private RevocationStrategy revocationStrategy;
 
-    private SigningType signType;
+    private SigningType signingType;
+
+    private SignatureForm signatureForm;
 
     /*
      * The values unrelated to signature parameters.
@@ -183,11 +185,9 @@ public class ProfileSignatureParameters extends JsonObject {
         return embedXML != null && embedXML;
     }
 
-    public RevocationStrategy getRevocationStrategy() {
-        return revocationStrategy == null ? RevocationStrategy.DEFAULT : revocationStrategy;
-    }
+    public RevocationStrategy getRevocationStrategy() { return revocationStrategy == null ? RevocationStrategy.DEFAULT : revocationStrategy; }
 
-    public SigningType getSigningtype() {
-        return signType == null ? SigningType.Standard : signType;
-    }
+    public SignatureForm getSignatureForm() { return signatureForm == null ? SignatureForm.PAdES : signatureForm; }
+
+    public SigningType getSigningType() { return signingType == null ? SigningType.Standard : signingType; }
 }

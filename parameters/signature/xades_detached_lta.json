@@ -4,5 +4,6 @@
   "isDefault": true,
   "signatureLevel": "XAdES_BASELINE_LTA",
   "signaturePackaging": "DETACHED",
+  "signatureForm": "XAdES",
   "tspServer": "http://tss.eidpki.belgium.be/"
 }

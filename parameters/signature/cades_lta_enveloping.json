@@ -3,5 +3,6 @@
   "digestAlgorithm": "SHA256",
   "signatureLevel": "CAdES_BASELINE_LTA",
   "signaturePackaging": "ENVELOPING",
+  "signatureForm": "CAdES",
   "tspServer":"http://tss.eidpki.belgium.be/"
 }

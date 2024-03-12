@@ -4,5 +4,6 @@
   "signatureLevel": "CAdES_BASELINE_LTA",
   "signaturePackaging": "DETACHED",
   "signatureTimestampCanonicalizationMethod": "ASiC_E",
+  "signatureForm": "CAdES",
   "tspServer": "http://tss.eidpki.belgium.be/"
 }

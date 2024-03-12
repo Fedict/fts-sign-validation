@@ -20,6 +20,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class GetTokenForDocumentsDTO {
+    @Schema(description = "Deprecated : Before 'The type of signature', now this field is ignored and derived from the signProfile OR altSignProfile")
+    private SigningType signType;
     @Schema(example = "0qtp70go8n3gcxosz88z", requiredMode = Schema.RequiredMode.REQUIRED, description = "The name of the bucket where the files (pdf/xml/xlst/psp) are stored, also the username to authenticate on the S3 server")
     private String bucket;
     @Schema(example = "S3cr3t!PAsSv0rd", requiredMode = Schema.RequiredMode.REQUIRED, description = "The password to authenticate on the bucket")

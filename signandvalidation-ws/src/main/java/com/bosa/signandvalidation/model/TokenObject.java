@@ -42,14 +42,4 @@ public class TokenObject {
     private String outFilePath;
     private String OutPathPrefix;
     private boolean outDownload;
-
-    // Mandatory parameters
-    public TokenObject(SigningType signingType, String bucket, String pdfSignProfile, String xmlSignProfile, List<TokenSignInput> inputs, String outFilePath) {
-        this.signingType = signingType;
-        this.inputs = inputs;
-        this.bucket = bucket;
-        this.outFilePath = outFilePath;
-        this.pdfSignProfile = pdfSignProfile;
-        this.xmlSignProfile = xmlSignProfile;
-    }
 }

@@ -3,6 +3,7 @@
   "digestAlgorithm": "SHA256",
   "signatureLevel": "XAdES_BASELINE_LTA",
   "signaturePackaging": "ENVELOPED",
+  "signatureForm": "XAdES",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "signWithExpiredCertificate": true,
   "devOnlyProfile": true
