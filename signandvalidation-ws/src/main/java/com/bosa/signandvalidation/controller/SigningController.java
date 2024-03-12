@@ -5,6 +5,7 @@ import com.bosa.signandvalidation.service.*;
 import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.bosa.signandvalidation.utils.OCSPOnlyRevocationDataLoadingStrategy;
+import com.bosa.signandvalidation.utils.OCSPOnlyForLeafRevocationDataLoadingStrategy;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,6 +34,7 @@ import eu.europa.esig.dss.xades.DSSXMLUtils;
 import eu.europa.esig.dss.xades.reference.CanonicalizationTransform;
 import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xades.reference.DSSTransform;
+import eu.europa.esig.dss.xml.common.DocumentBuilderFactoryBuilder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -215,6 +217,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             input.setPsfC(tokenData.getPsfC());
             input.setPsfN(tokenData.getPsfN());
             input.setDisplayXsltPath(tokenData.getXslt());
+            input.setInvisible(true);
             inputs.add(input);
 
             String pdfProfile = tokenData.getProf();
@@ -223,6 +226,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             else pdfProfile = null;
 
             TokenObject token = new TokenObject(SigningType.Standard, tokenData.getName(), pdfProfile, xmlProfile, inputs, tokenData.getOut());
+            token.setNoSkipErrors(true);
             if (tokenData.getPolicyId() != null) {
                 token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), tokenData.getPolicyDigestAlgorithm()));
             }
@@ -322,6 +326,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ti.setPsfC(input.getPsfC());
             ti.setPsfN(input.getPsfN());
             ti.setPsfP(input.isPsfP());
+            Boolean drawable = input.getDrawable();
+            ti.setInvisible(drawable == null || !drawable);
             tokenInputs.add(ti);
         }
         return tokenInputs;
@@ -510,7 +516,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 file.setSize(storageService.getFileInfo(token.getBucket(), input.getFilePath()).getSize());
                 root.getFiles().add(file);
             }
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();   // No risk for XXE as we're building this XML from scratch
             dbf.setNamespaceAware(true);
             JAXBContext context = JAXBContext.newInstance(XadesFileRoot.class);
 
@@ -590,14 +597,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 inputMetadata.setFileName(getNameFromPath(input.getFilePath()));
                 inputMetadata.setMimeType(MediaTypeUtil.getMediaTypeFromFilename(input.getFilePath()).toString());
                 inputMetadata.setHasDisplayXslt(input.getDisplayXsltPath() != null);
+                inputMetadata.setDrawSignature(input.getPsfN() == null && input.getPsfC() == null && !input.isInvisible());
+                inputMetadata.setPsfP(input.isPsfP());
                 signedInputsMetadata.add(inputMetadata);
             }
 
-            boolean getPhoto = false;
-            for(TokenSignInput input : token.getInputs()) getPhoto |= input.isPsfP();
-
             logger.info("Returning from getMetadataForToken()");
-            return new DocumentMetadataDTO(token.getSigningType(), getPhoto, !token.isOutDownload(),
+            return new DocumentMetadataDTO(token.getSigningType(), !token.isOutDownload(),
                     token.isSelectDocuments(), token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isNoSkipErrors(), signedInputsMetadata);
         } catch (RuntimeException e){
                 logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -868,8 +874,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("Returning from signDocumentForToken().");
             MDC.remove("bucket");
             MDC.remove("fileName");
-
-            logger.info("Returning from signDocumentForToken()");
         } catch (Exception e) {
             handleRevokedCertificates(e);
             DataLoadersExceptionLogger.logAndThrow(e);
@@ -889,7 +893,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     private void addCertPathToKeyinfo(RemoteDocument signedDoc, ClientSignatureParameters clientSigParams) throws ParserConfigurationException, TransformerException, IOException, SAXException {
 
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory dbf = DocumentBuilderFactoryBuilder.getSecureDocumentBuilderFactoryBuilder().build(); // XXE blocked by DSS factory
         dbf.setNamespaceAware(true);
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document doc = db.parse(new ByteArrayInputStream(signedDoc.getBytes()));
@@ -944,6 +948,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             case OCSP_ONLY:
                 setOverrideRevocationDataLoadingStrategyFactory(OCSPOnlyRevocationDataLoadingStrategy::new);
                 break;
+            case OCSP_ONLY_FOR_LEAF:
+                setOverrideRevocationDataLoadingStrategyFactory(OCSPOnlyForLeafRevocationDataLoadingStrategy::new);
+
             case DEFAULT:
                 break;
         }
@@ -981,14 +988,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         Indication indication = indications.getIndication();
         if (indication != TOTAL_PASSED) {
-            // When running in a "local" profile dump the signing report
-            for(String profile : this.environment.getActiveProfiles()) {
-                if ("local".equals(profile)) {
-                    try {
-                        logger.severe(reportsService.createJSONReport(parameters, reportsDto));
-                    } catch (IOException e) {
-                        logger.severe("Can't log report !!!!!!!!");
-                    }
+            String logReport = System.getProperty("log.validation.report");
+            if ("true".equals(logReport)) {
+                try {
+                    logger.severe(reportsService.createJSONReport(parameters, reportsDto));
+                } catch (IOException e) {
+                    logger.severe("Can't log report !!!!!!!!");
                 }
             }
             if (!parameters.isSignWithExpiredCertificate()) {

@@ -22,4 +22,5 @@ public class TokenSignInput {
     private String psfN;  // PDF signature field name
     private String psfC;  // PDF signature field coordinates
     private boolean psfP;  // Include eID photo as icon in the PDF signature field
+    private boolean invisible;
 }

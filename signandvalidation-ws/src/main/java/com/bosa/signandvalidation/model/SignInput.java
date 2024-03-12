@@ -50,10 +50,12 @@ public class SignInput {
     private String pspFilePath;
     @Schema(example = "en", description = "The language in which the visible signature text of a PDF will be rendered")
     private String signLanguage;
-    @Schema(example = "FleetManagerSignature", description = "The name of an existing Acroform of the PDF to sign where the signature must be rendered.")
+    @Schema(example = "FleetManagerSignature", description = "The name of an existing Acroform of the PDF to sign where the signature must be rendered. If set, overrides 'drawable' field.")
     private String psfN;
-    @Schema(example = "1,200,200,300,100", description = "The position where the visible signature signature in a PDF to sign will be placed. Format : 'Page Number,X,Y,Width,Height'. Example : '1,20,20,200,100'")
+    @Schema(example = "1,200,200,300,100", description = "The position where the visible signature signature in a PDF to sign will be placed. Format : 'Page Number,X,Y,Width,Height'. Example : '1,20,20,200,100'. If set, overrides 'drawable' field.")
     private String psfC;
     @Schema(example = "true", description = "A boolean, if true it means the visible signature of a PDF to sign will include hte picture of the EID")
     private boolean psfP;
+    @Schema(example = "true", description = "A boolean, if false it that the PDF signature will be invisible. If true it means the user can draw a signature form on the PDF, or select an existing signature form, where a visible signature will display the signature details, unless a psfC or psfN has been specified")
+    private Boolean drawable;
 }
