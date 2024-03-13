@@ -20,7 +20,7 @@ public class SigningControllerInputCheckTest {
     @Test
     public void testNoSignProfile() throws Exception {
         TokenObject token = new TokenObject();
-        testToken(token, EMPTY_PARAM, "signProfile(s) is(are) null.");
+        testToken(token, EMPTY_PARAM, "signProfile and altSignProfile can't both be null.");
     }
 
     @Test
