@@ -6,7 +6,6 @@ import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.bosa.signandvalidation.utils.OCSPOnlyRevocationDataLoadingStrategy;
 import com.bosa.signandvalidation.utils.OCSPOnlyForLeafRevocationDataLoadingStrategy;
-import com.bosa.signandvalidation.utils.SupportUtils;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.cache.Cache;
@@ -344,13 +343,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         if (signProfile == null) return;
         if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
             if (token.getPdfSignProfile() != null) {
-                // SignType must be the same ***********************************************************************************************************************************
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be for different file types." , null);
             }
             token.setPdfSignProfile(profileId);
         }
         else if (SignatureForm.XAdES.equals(signProfile.getSignatureForm())) {
             if (token.getXmlSignProfile() != null) {
-                // SignType must be the same ***********************************************************************************************************************************
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be for different file types." , null);
             }
             token.setXmlSignProfile(profileId);
         }
@@ -358,7 +357,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         SigningType signingType = token.getSigningType();
         if (signingType != null) {
             if (signingType != signProfile.getSigningType()) {
-                // SignType must be the same ***********************************************************************************************************************************
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be of the same signingType." , null);
             }
         } else token.setSigningType(signProfile.getSigningType());
     }
@@ -370,7 +369,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         String pdfProfileId = token.getPdfSignProfile();
         String xmlProfileId = token.getXmlSignProfile();
         if (pdfProfileId == null && xmlProfileId == null) {
-            logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile(s) is(are) null." , null);
+            logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile and altSignProfile can't both be null." , null);
         }
 
         PolicyParameters policy = token.getPolicy();
