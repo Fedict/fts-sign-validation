@@ -6,9 +6,9 @@ import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.bosa.signandvalidation.utils.OCSPOnlyRevocationDataLoadingStrategy;
 import com.bosa.signandvalidation.utils.OCSPOnlyForLeafRevocationDataLoadingStrategy;
+import com.bosa.signandvalidation.utils.SupportUtils;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
@@ -65,7 +65,8 @@ import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setO
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
 import static com.bosa.signandvalidation.model.SigningType.XadesMultiFile;
-import static com.bosa.signandvalidation.utils.XmlUtil.xmlDocToString;
+import static com.bosa.signandvalidation.utils.SupportUtils.objectToString;
+import static com.bosa.signandvalidation.utils.SupportUtils.xmlDocToString;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
 
@@ -364,17 +365,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private static String objectToString(Object input) {
-        try {
-            return new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValueAsString(input);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return e.toString();
-        }
-    }
-
-    /*****************************************************************************************/
-
     void checkTokenAndSetDefaults(TokenObject token) {
 
         String pdfProfileId = token.getPdfSignProfile();
@@ -544,7 +534,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             Document doc = dbf.newDocumentBuilder().newDocument();
             context.createMarshaller().marshal(root, doc);
 
-            //logger.info(XmlUtil.xmlDocToString(doc));
+            //logger.info(xmlDocToString(doc));
 
             TransformerFactory tf = new net.sf.saxon.BasicTransformerFactory();
             tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -559,12 +549,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 tf.newTransformer(new StreamSource(xsltStream)).transform(new DOMSource(doc), xsltDom);
                 doc = (Document)xsltDom.getNode();
 
-                //logger.info(XmlUtil.xmlDocToString(doc));
+                //logger.info(xmlDocToString(doc));
             }
 
             putFilesContent(doc.getFirstChild(), token);
 
-            //logger.info(XmlUtil.xmlDocToString(doc));
+            //logger.info(xmlDocToString(doc));
 
             // Save target XML to bucket
             ByteArrayOutputStream outStream = new ByteArrayOutputStream(32768);
