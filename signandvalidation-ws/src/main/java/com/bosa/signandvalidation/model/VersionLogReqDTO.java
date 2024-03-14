@@ -22,4 +22,5 @@ public class VersionLogReqDTO {
     private String browserExt;
     private String browserStore;
     private String token;
+    private String userAgent;
 }

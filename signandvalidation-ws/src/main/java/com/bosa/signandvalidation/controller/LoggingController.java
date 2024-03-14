@@ -63,11 +63,12 @@ public class LoggingController extends ControllerBase {
     public String logVersion(@RequestBody VersionLogReqDTO versionLog) {
         checkAndRecordMDCToken(versionLog.getToken());
         logger.warning("Versions -> Backend:" + applicationVersion +
-                " - FrontEndType: " + versionLog.getFrontEndType() +
-                " - FrontEnd: " + versionLog.getFrontEnd() +
-                " - BEID: " + versionLog.getBeID() +
-                " - Browser extension : " + versionLog.getBrowserExt() +
-                " - Browser store: " + versionLog.getBrowserStore());
+                " - FrontEndType:" + versionLog.getFrontEndType() +
+                " - FrontEnd:" + versionLog.getFrontEnd() +
+                " - BEID:" + versionLog.getBeID() +
+                " - Browser extension:" + versionLog.getBrowserExt() +
+                " - Browser store:" + versionLog.getBrowserStore() +
+                " - User Agent:" + versionLog.getUserAgent());
         return applicationVersion;
     }
 }
