@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.bosa.signandvalidation.exceptions.Utils.logDateTimeFormatter;
 import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
+import static com.bosa.signandvalidation.utils.SupportUtils.objectToString;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -62,13 +63,8 @@ public class LoggingController extends ControllerBase {
     @PostMapping(value = "/versions", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String logVersion(@RequestBody VersionLogReqDTO versionLog) {
         checkAndRecordMDCToken(versionLog.getToken());
-        logger.warning("Versions -> Backend:" + applicationVersion +
-                " - FrontEndType:" + versionLog.getFrontEndType() +
-                " - FrontEnd:" + versionLog.getFrontEnd() +
-                " - BEID:" + versionLog.getBeID() +
-                " - Browser extension:" + versionLog.getBrowserExt() +
-                " - Browser store:" + versionLog.getBrowserStore() +
-                " - User Agent:" + versionLog.getUserAgent());
+        versionLog.setToken(null);
+        logger.warning("Versions -> " + objectToString(versionLog));
         return applicationVersion;
     }
 }
