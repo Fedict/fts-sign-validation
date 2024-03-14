@@ -40,6 +40,8 @@
         </root>
         <!-- EST-592 Disable logging of large number of "CRL Signature cannot be validated : ..." -->
         <logger name="eu.europa.esig.dss.crl.stream.impl.CRLUtilsStreamImpl" level="error"/>
+        <!-- ETS-592 Disable logging Font substitution -->
+        <logger name="org.apache.pdfbox.pdmodel.font.PDType1Font" level="error"/>
 
         <!-- <logger name="org.apache.hc.client5.http" level="debug"/> -->
     </springProfile>
