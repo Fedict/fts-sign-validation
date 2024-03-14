@@ -5,6 +5,7 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -93,5 +94,16 @@ public class Utils {
     // Clear the token in the MDC to avoid polluting non-token logs with leftover token value
     public static void clearMDCToken() {
         MDC.remove("token");
+    }
+
+    public static void objectToMDC(Object o, boolean set) throws IllegalAccessException {
+        for(Field f : o.getClass().getDeclaredFields()) {
+            f.setAccessible(true);
+            Object value = f.get(o);
+            if (value instanceof String) {
+                if (set) MDC.put(f.getName(), (String) value);
+                else MDC.remove(f.getName());
+            }
+        }
     }
 }

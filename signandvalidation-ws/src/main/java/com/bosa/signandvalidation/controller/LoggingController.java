@@ -1,18 +1,20 @@
 package com.bosa.signandvalidation.controller;
 
+import java.lang.reflect.Field;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.bosa.signandvalidation.model.*;
 
 import io.swagger.v3.oas.annotations.Operation;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import static com.bosa.signandvalidation.exceptions.Utils.logDateTimeFormatter;
-import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
-import static com.bosa.signandvalidation.utils.SupportUtils.objectToString;
+import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -61,10 +63,12 @@ public class LoggingController extends ControllerBase {
 
     @Operation(hidden = true)
     @PostMapping(value = "/versions", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public String logVersion(@RequestBody VersionLogReqDTO versionLog) {
+    public String logVersion(@RequestBody VersionLogReqDTO versionLog) throws IllegalAccessException {
         checkAndRecordMDCToken(versionLog.getToken());
         versionLog.setToken(null);
-        logger.warning("Versions -> " + objectToString(versionLog));
+        objectToMDC(versionLog, true);
+        logger.warning("Versions");
+        objectToMDC(versionLog, false);
         return applicationVersion;
     }
 }

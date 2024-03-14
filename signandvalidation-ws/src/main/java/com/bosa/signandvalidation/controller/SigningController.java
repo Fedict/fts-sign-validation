@@ -61,10 +61,8 @@ import java.text.SimpleDateFormat;
 
 import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.clearOverrideRevocationDataLoadingStrategyFactory;
 import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setOverrideRevocationDataLoadingStrategyFactory;
-import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
-import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
+import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static com.bosa.signandvalidation.model.SigningType.XadesMultiFile;
-import static com.bosa.signandvalidation.utils.SupportUtils.objectToString;
 import static com.bosa.signandvalidation.utils.SupportUtils.xmlDocToString;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -251,7 +249,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             String tokenString = saveToken(token);
             checkAndRecordMDCToken(tokenString);
-            logger.info("Returning from getTokenForDocument() params: " + objectToString(tokenData));
+            objectToMDC(tokenData, true);
+            logger.info("Returning from getTokenForDocument()");
+            objectToMDC(tokenData, false);
             return tokenString;
         } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -269,47 +269,54 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             @ApiResponse(responseCode = "500", description = "Error while creating the token")
     })
     @PostMapping(value = GET_TOKEN_FOR_DOCUMENTS, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public String getTokenForDocuments(@RequestBody GetTokenForDocumentsDTO gtfd) {
-        authorizeCall(hasTokenServices);
+    public String getTokenForDocuments(@RequestBody GetTokenForDocumentsDTO gtfd) throws IllegalAccessException {
+        try {
+            authorizeCall(hasTokenServices);
 
-        // Validate input
-        if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
-            logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
+            // Validate input
+            if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
+                logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
+            }
+            // Password not needed anymore
+            gtfd.setPassword(null);
+
+            TokenObject token = new TokenObject();
+            token.setBucket(gtfd.getBucket());
+            token.setInputs(getTokenSignInputs(gtfd));
+            token.setOutFilePath(gtfd.getOutFilePath());
+            setProfileInfo(token, gtfd.getSignProfile());
+            setProfileInfo(token, gtfd.getAltSignProfile());
+            token.setSignTimeout(gtfd.getSignTimeout() );
+            token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
+            PolicyDTO policy = gtfd.getPolicy();
+            if (policy != null) {
+                token.setPolicy(new PolicyParameters(policy.getId(), policy.getDescription(), policy.getDigestAlgorithm()));
+            }
+            token.setOutXsltPath(gtfd.getOutXsltPath());
+            token.setOutDownload(gtfd.isOutDownload());
+            token.setOutPathPrefix(gtfd.getOutPathPrefix());
+            token.setRequestDocumentReadConfirm(gtfd.isRequestDocumentReadConfirm());
+            token.setPreviewDocuments(gtfd.isPreviewDocuments());
+            token.setSelectDocuments(gtfd.isSelectDocuments());
+            token.setNoSkipErrors(gtfd.isNoSkipErrors());
+
+            checkTokenAndSetDefaults(token);
+
+            if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
+                createXadesMultifileToBeSigned(token);
+            }
+
+            // Create Token
+            String tokenString = saveToken(token);
+            checkAndRecordMDCToken(tokenString);
+            objectToMDC(gtfd, true);
+            logger.info("Returning from getTokenForDocuments()");
+            objectToMDC(gtfd, true);
+            return tokenString;
+        } catch (Exception e) {
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
-        // Password not needed anymore
-        gtfd.setPassword(null);
-
-        TokenObject token = new TokenObject();
-        token.setBucket(gtfd.getBucket());
-        token.setInputs(getTokenSignInputs(gtfd));
-        token.setOutFilePath(gtfd.getOutFilePath());
-        setProfileInfo(token, gtfd.getSignProfile());
-        setProfileInfo(token, gtfd.getAltSignProfile());
-        token.setSignTimeout(gtfd.getSignTimeout() );
-        token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
-        PolicyDTO policy = gtfd.getPolicy();
-        if (policy != null) {
-            token.setPolicy(new PolicyParameters(policy.getId(), policy.getDescription(), policy.getDigestAlgorithm()));
-        }
-        token.setOutXsltPath(gtfd.getOutXsltPath());
-        token.setOutDownload(gtfd.isOutDownload());
-        token.setOutPathPrefix(gtfd.getOutPathPrefix());
-        token.setRequestDocumentReadConfirm(gtfd.isRequestDocumentReadConfirm());
-        token.setPreviewDocuments(gtfd.isPreviewDocuments());
-        token.setSelectDocuments(gtfd.isSelectDocuments());
-        token.setNoSkipErrors(gtfd.isNoSkipErrors());
-
-        checkTokenAndSetDefaults(token);
-
-        if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
-            createXadesMultifileToBeSigned(token);
-        }
-
-        // Create Token
-        String tokenString = saveToken(token);
-        checkAndRecordMDCToken(tokenString);
-        logger.info("Returning from getTokenForDocuments() params: " + objectToString(gtfd));
-        return tokenString;
+        return null;
     }
 
     /*****************************************************************************************/
