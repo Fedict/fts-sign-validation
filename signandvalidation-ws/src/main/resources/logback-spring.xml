@@ -38,7 +38,6 @@
         <root level="INFO">
             <appender-ref ref="json" />
         </root>
-        <logger name="eu.europa" level="error"/>
         <!-- EST-592 Disable logging of large number of "CRL Signature cannot be validated : ..." -->
         <logger name="eu.europa.esig.dss.crl.stream.impl.CRLUtilsStreamImpl" level="error"/>
         <!-- ETS-592 Disable logging Font substitution -->
