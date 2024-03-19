@@ -47,6 +47,7 @@ public class PdfVisibleSignatureService {
     private static final byte[] DEFAULT_BYTES       = DEFAULT_STRING.getBytes();
     private static final String SURNAME_TOKEN       = "%sn%";
     private static final String GIVENNAME_TOKEN     = "%gn%";
+    private static final String COMMONNAME_TOKEN    = "%cn%";
     private static final String NN_TOKEN            = "%nn%";       // Placeholder for National number
     private static final String LEGACY_NN_TOKEN     = "%rrn%";      // Old Placeholder for National number - to delete some day ;-)
 
@@ -218,10 +219,11 @@ public class PdfVisibleSignatureService {
 
         CertInfo certInfo = new CertInfo(signingCert);
 
-        text = text.replace(SURNAME_TOKEN, certInfo.getSurname())
-                .replace(GIVENNAME_TOKEN, certInfo.getGivenName())
-                .replace(LEGACY_NN_TOKEN, certInfo.getSerialNumber())
-                .replace(NN_TOKEN, certInfo.getSerialNumber());
+        text = text.replace(SURNAME_TOKEN, certInfo.getField(CertInfo.Field.surname))
+                .replace(GIVENNAME_TOKEN, certInfo.getField(CertInfo.Field.givenName))
+                .replace(COMMONNAME_TOKEN, certInfo.getField(CertInfo.Field.commonName))
+                .replace(LEGACY_NN_TOKEN, certInfo.getField(CertInfo.Field.serialNumber))
+                .replace(NN_TOKEN, certInfo.getField(CertInfo.Field.serialNumber));
 
         if (null == lang)
             lang = "en";

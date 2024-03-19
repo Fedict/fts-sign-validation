@@ -15,6 +15,8 @@ public class CertInfo {
         try {
             X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X509")
                     .generateCertificate(new ByteArrayInputStream(signingCert.getEncodedCertificate()));
+
+            // countryName=BE,surname=TestLongNames,givenName=Christian,serialNumber=73040102750,commonName=Christian TestLongNames
             subjectName = cert.getSubjectX500Principal().getName(X500Principal.RFC2253, X520Attributes.getOidDescriptions());
         }
         catch (Exception e) {
@@ -22,24 +24,16 @@ public class CertInfo {
         }
     }
 
-    String getSurname() {
-        return getDnField("surname");
-    }
-
-    String getGivenName() {
-        return getDnField("givenName");
-    }
-
-    public String getSerialNumber() {
-        return getDnField("serialNumber");
-    }
-
-    private String getDnField(String name) {
-        int idx = subjectName.indexOf(name + "=");
+    public String getField(Field field) {
+        int idx = subjectName.indexOf(field.name() + "=");
         if (-1 == idx)
             return "?";
-        idx += name.length() + 1;
+        idx += field.name().length() + 1;
         int end = subjectName.indexOf(",", idx);
         return -1 == end ? subjectName.substring(idx) : subjectName.substring(idx, end);
+    }
+
+    public enum Field {
+        surname, givenName, serialNumber, commonName, countryName
     }
 }
