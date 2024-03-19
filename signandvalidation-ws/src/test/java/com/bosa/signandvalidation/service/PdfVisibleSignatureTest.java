@@ -24,6 +24,28 @@ public class PdfVisibleSignatureTest {
     }
 
     @Test
+    public void testMissingPSP() throws Exception {
+        try {
+            RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
+            PdfVisibleSignatureService.convertFieldCoords("default", null, sigFieldParams);
+            fail(); // we shouldn't get here
+        } catch (NullParameterException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testFillPSPCoordinates() throws Exception {
+        RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
+        PdfVisibleSignatureService.convertFieldCoords("default", "1,2,3,4,5", sigFieldParams);
+        assertEquals(1, sigFieldParams.getPage());
+        assertEquals((float) 2.0, sigFieldParams.getOriginX());
+        assertEquals((float) 3.0, sigFieldParams.getOriginY());
+        assertEquals((float) 4.0, sigFieldParams.getWidth());
+        assertEquals((float) 5.0, sigFieldParams.getHeight());
+    }
+
+    @Test
     public void testMakeText() throws Exception {
         LinkedHashMap<String,String> texts = new LinkedHashMap<String,String>();
         texts.put("en", "Signed by %gn% %sn% (%nn%=%rrn%)\non %d(MMM d YYYY)%");
