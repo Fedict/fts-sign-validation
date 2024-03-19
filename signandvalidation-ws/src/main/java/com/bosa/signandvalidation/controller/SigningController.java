@@ -126,6 +126,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
+    private static final Pattern psfCPattern                   = Pattern.compile("\\d,\\d,\\d,\\d,\\d|default");
 
     private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en");
 
@@ -445,6 +446,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     if (signLanguage != null && !allowedLanguages.contains(signLanguage)) {
                         logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'SignLanguage' (" + signLanguage + ") must be one of " + String.join(", ", allowedLanguages), null);
                     }
+                    checkValue("psfC", input.getPsfC(), true, psfCPattern, null);
+
                     // TODO Validate  PSFxxx, psp, ... fields
                 }
             }
@@ -494,6 +497,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkValue("outFilePath", outPath, false, null, filenamesList);
         }
     }
+
 
     /*****************************************************************************************/
 
@@ -966,7 +970,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 break;
             case OCSP_ONLY_FOR_LEAF:
                 setOverrideRevocationDataLoadingStrategyFactory(OCSPOnlyForLeafRevocationDataLoadingStrategy::new);
-
             case DEFAULT:
                 break;
         }
@@ -1110,7 +1113,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private void checkNNAllowedToSign(List<String> nnAllowedToSign, RemoteCertificate signingCertificate) {
         if (nnAllowedToSign != null) {
             CertInfo certInfo = new CertInfo(signingCertificate);
-            String nn = certInfo.getSerialNumber();
+            String nn = certInfo.getField(CertInfo.Field.serialNumber);
             if (!nnAllowedToSign.contains(nn)) {
                 logAndThrowEx(INTERNAL_SERVER_ERROR, NOT_ALLOWED_TO_SIGN, "NN not allowed to sign");
             }
@@ -1271,6 +1274,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             List<RemoteDocument> detachedDocuments = clientSigParams.getDetachedContents();
             if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
             detachedDocuments.add(signDocumentDto.getToSignDocument());
+
+            /*
+            OutputStream fos = new FileOutputStream(new File("XXX.pdf"));
+            fos.write(signedDoc.getBytes());
+            fos.close();
+             */
 
             RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, signDocumentDto.getValidatePolicy());
             logger.info("Returning from signDocument()");
