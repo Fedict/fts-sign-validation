@@ -28,10 +28,7 @@ import static org.mockito.ArgumentMatchers.eq;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -39,10 +36,9 @@ import java.util.zip.ZipOutputStream;
 @ExtendWith(MockitoExtension.class)
 public class PdfVisibleSignatureServiceTest {
 
-    private static boolean isWindows = System.getProperty("os.name").startsWith("Windows");
-    private static List<File> newFiles = new ArrayList<File>();
-    private static int PIXEL_TO_IGNORE = 0xFFFFAEC9;
-    private static int INVALID_PIXEL = 0xFFFF0000;
+    private static final boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+    private static ByteArrayOutputStream newFilesBytes;
+    private static ZipOutputStream newFilesZip;
     private static final String THE_BUCKET = "THE_BUCKET";
 
     @Mock
@@ -63,6 +59,7 @@ public class PdfVisibleSignatureServiceTest {
         photoBytes = Utils.toByteArray(new FileInputStream(RESOURCE_PATH + "photo.png"));
         pdfFileBytes = Utils.toByteArray(new FileInputStream(pdfFile));
         System.setProperty(PdfVisibleSignatureService.FONTS_PATH_PROPERTY, RESOURCE_PATH + "fonts");
+        clearList();
     }
     @AfterAll
     public static void out() throws IOException {
@@ -70,28 +67,19 @@ public class PdfVisibleSignatureServiceTest {
     }
 
     public static void clearList() {
-        newFiles.clear();
+        if (isWindows) return;
+
+        newFilesBytes = new ByteArrayOutputStream();
+        newFilesZip = new ZipOutputStream(newFilesBytes);
     }
 
     public static void printNewPdfSignatureFiles() throws IOException {
-        if (isWindows || newFiles.size() == 0) return;
+        if (isWindows) return;
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ZipOutputStream out = new ZipOutputStream(baos);
-        for(File file : newFiles) {
-            out.putNextEntry(new ZipEntry(file.getName()));
-            InputStream fileStream = Files.newInputStream(file.toPath());
-            Utils.copy(fileStream, out);
-            out.closeEntry();
-            fileStream.close();
-        }
-        out.close();
-
-        String outString = Base64.encode(baos.toByteArray());
-
+        newFilesZip.close();
         Logger logger = Logger.getLogger(PdfVisibleSignatureServiceTest.class.getName());
         logger.severe("Listing Base 64 Zip file of all new PDF signature Images");
-        logger.severe(outString);
+        logger.severe(Base64.encode(newFilesBytes.toByteArray()));
     }
 
     @Test
@@ -147,10 +135,15 @@ public class PdfVisibleSignatureServiceTest {
 
         System.out.println("Expected image file : " + imageFile.getPath());
 
-        // If expected image not yet generated, create it in the resource folder
+        // If expected image not yet generated, create it in the resource folder or print it in a stream that will be logged (On servers)
         if (!imageFile.exists()) {
-            newFiles.add(imageFile);
-            new InMemoryDocument(actualBytes).save(imageFile.getPath());
+            if (!isWindows) {
+                newFilesZip.putNextEntry(new ZipEntry(imageFile.getName()));
+                Utils.copy(new ByteArrayInputStream((actualBytes)), newFilesZip);
+                return;
+            } else {
+                new InMemoryDocument(actualBytes).save(imageFile.getPath());
+            }
         }
 
         BufferedImage expectedImage = ImageIO.read(imageFile);
@@ -191,7 +184,9 @@ public class PdfVisibleSignatureServiceTest {
             for (int x = 0; x < expectedImageWidth; x++) {
                 int actualRGB = actualImage.getRGB(x, y);
                 int expectedRGB = expectedImage.getRGB(x, y);
+                int PIXEL_TO_IGNORE = 0xFFFFAEC9;
                 if (expectedRGB != PIXEL_TO_IGNORE && actualRGB != expectedRGB) {
+                    int INVALID_PIXEL = 0xFFFF0000;
                     expectedImage.setRGB(x, y, INVALID_PIXEL);
                     mismatchedPixels++;
                 }
