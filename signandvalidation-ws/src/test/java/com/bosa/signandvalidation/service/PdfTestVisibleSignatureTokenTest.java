@@ -13,6 +13,7 @@ import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -44,6 +45,11 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
     static void init() throws IOException {
         photoBytes = Utils.toByteArray(new FileInputStream(RESOURCE_PATH + "photo.png"));
         System.setProperty(PdfVisibleSignatureService.FONTS_PATH_PROPERTY, RESOURCE_PATH + "fonts");
+        PdfVisibleSignatureServiceTest.clearList();
+    }
+    @AfterAll
+    public static void out() throws IOException {
+        PdfVisibleSignatureServiceTest.printNewPdfSignatureFiles();
     }
 
     @Test

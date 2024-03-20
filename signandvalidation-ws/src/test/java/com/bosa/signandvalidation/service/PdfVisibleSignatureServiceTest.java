@@ -11,6 +11,8 @@ import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
+import org.jose4j.base64url.Base64;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,11 +28,19 @@ import static org.mockito.ArgumentMatchers.eq;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @ExtendWith(MockitoExtension.class)
 public class PdfVisibleSignatureServiceTest {
 
+    private static boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+    private static List<File> newFiles = new ArrayList<File>();
     private static int PIXEL_TO_IGNORE = 0xFFFFAEC9;
     private static int INVALID_PIXEL = 0xFFFF0000;
     private static final String THE_BUCKET = "THE_BUCKET";
@@ -49,10 +59,39 @@ public class PdfVisibleSignatureServiceTest {
     private static byte pdfFileBytes[];
 
     @BeforeAll
-    private static void init() throws IOException {
+    public static void init() throws IOException {
         photoBytes = Utils.toByteArray(new FileInputStream(RESOURCE_PATH + "photo.png"));
         pdfFileBytes = Utils.toByteArray(new FileInputStream(pdfFile));
         System.setProperty(PdfVisibleSignatureService.FONTS_PATH_PROPERTY, RESOURCE_PATH + "fonts");
+    }
+    @AfterAll
+    public static void out() throws IOException {
+        printNewPdfSignatureFiles();
+    }
+
+    public static void clearList() {
+        newFiles.clear();
+    }
+
+    public static void printNewPdfSignatureFiles() throws IOException {
+        if (isWindows || newFiles.size() == 0) return;
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ZipOutputStream out = new ZipOutputStream(baos);
+        for(File file : newFiles) {
+            out.putNextEntry(new ZipEntry(file.getName()));
+            InputStream fileStream = Files.newInputStream(file.toPath());
+            Utils.copy(fileStream, out);
+            out.closeEntry();
+            fileStream.close();
+        }
+        out.close();
+
+        String outString = Base64.encode(baos.toByteArray());
+
+        Logger logger = Logger.getLogger(PdfVisibleSignatureServiceTest.class.getName());
+        logger.severe("Listing Base 64 Zip file of all new PDF signature Images");
+        logger.severe(outString);
     }
 
     @Test
@@ -101,7 +140,7 @@ public class PdfVisibleSignatureServiceTest {
     public static void compareImages(byte[] actualBytes, String expectedFileName) throws IOException {
 
         File imageFile = new File(pspImagesFolder, expectedFileName + ".png");
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (isWindows) {
             File windowsImageFile = new File(pspImagesFolderWindows, imageFile.getName());
             if (windowsImageFile.exists()) imageFile = windowsImageFile;
         }
@@ -109,7 +148,10 @@ public class PdfVisibleSignatureServiceTest {
         System.out.println("Expected image file : " + imageFile.getPath());
 
         // If expected image not yet generated, create it in the resource folder
-        if (!imageFile.exists()) new InMemoryDocument(actualBytes).save(imageFile.getPath());
+        if (!imageFile.exists()) {
+            newFiles.add(imageFile);
+            new InMemoryDocument(actualBytes).save(imageFile.getPath());
+        }
 
         BufferedImage expectedImage = ImageIO.read(imageFile);
         BufferedImage actualImage = ImageIO.read(new ByteArrayInputStream(actualBytes));

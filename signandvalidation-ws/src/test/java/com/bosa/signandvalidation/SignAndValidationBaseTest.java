@@ -1,5 +1,6 @@
 package com.bosa.signandvalidation;
 
+import com.bosa.signandvalidation.service.PdfVisibleSignatureServiceTest;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,8 +11,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.europa.esig.dss.diagnostic.jaxb.*;
 import eu.europa.esig.dss.enumerations.TimestampedObjectType;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -36,10 +37,12 @@ public class SignAndValidationBaseTest {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(XmlTimestampedObject.class, new XmlTimestampedObjectDeserializer());
         applicationContext.getBean(ObjectMapper.class).registerModule(module);
+        PdfVisibleSignatureServiceTest.clearList();
     }
 
-    @Test
-    void contextLoads() {
+    @AfterAll
+    public static void out() throws IOException {
+        PdfVisibleSignatureServiceTest.printNewPdfSignatureFiles();
     }
 
     private static class XmlTimestampedObjectDeserializer extends StdDeserializer<XmlTimestampedObject> {

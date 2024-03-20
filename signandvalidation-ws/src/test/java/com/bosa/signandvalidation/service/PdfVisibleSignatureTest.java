@@ -3,8 +3,11 @@ package com.bosa.signandvalidation.service;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
@@ -12,6 +15,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class PdfVisibleSignatureTest {
+    @BeforeAll
+    public static void init() throws IOException {
+        PdfVisibleSignatureServiceTest.clearList();
+    }
+    @AfterAll
+    public static void out() throws IOException {
+        PdfVisibleSignatureServiceTest.printNewPdfSignatureFiles();
+    }
     @Test
     public void testFillCoordinates() throws Exception {
         RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
