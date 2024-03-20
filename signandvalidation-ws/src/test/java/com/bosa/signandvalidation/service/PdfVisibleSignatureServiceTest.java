@@ -122,7 +122,7 @@ public class PdfVisibleSignatureServiceTest {
         //System.out.println(Base64.getEncoder().encodeToString(actualBytes));
 
         // In case of image size or pixel mismatch, save actual image for quicker analysis
-        imageFile = new File(pspImagesFolder, expectedFileName + "_ACTUAL.png");
+        imageFile = new File(imageFile.getParent(), expectedFileName + "_ACTUAL.png");
 
         new InMemoryDocument(actualBytes).save(imageFile.getPath());
 
@@ -132,7 +132,7 @@ public class PdfVisibleSignatureServiceTest {
         }
 
         // In case of pixel mismatch, save red painted image for quicker analysis
-        imageFile = new File(pspImagesFolder, expectedFileName + "_INV_PIXELS.png");
+        imageFile = new File(imageFile.getParent(), expectedFileName + "_INV_PIXELS.png");
         ImageIO.write(expectedImage, "png", imageFile);
         fail("Difference between expected image and rendered image. Image with red painted invalid pixels is here : " + imageFile.getPath());
     }

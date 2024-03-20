@@ -256,8 +256,8 @@ public class PdfVisibleSignatureService {
 
         textParams.setSize(psp.textSize);
         textParams.setTextWrapping(psp.textWrapping);
-        textParams.setTextColor(makeColor(psp.textColor));
-        textParams.setBackgroundColor(makeColor(psp.bgColor));
+        textParams.setTextColor(makeColor(psp.textColor, false));
+        textParams.setBackgroundColor(makeColor(psp.bgColor, true));
         textParams.setText(text);
         textParams.setPadding(psp.textPadding.floatValue());
         textParams.setSignerTextPosition(psp.textPos);
@@ -270,7 +270,7 @@ public class PdfVisibleSignatureService {
         sigImgParams.setDpi(psp.imageDpi);
 
         sigImgParams.setImageScaling(psp.imageScaling);
-        sigImgParams.setBackgroundColor(makeColor(psp.bodyBgColor));
+        sigImgParams.setBackgroundColor(makeColor(psp.bodyBgColor, true));
         sigImgParams.setZoom(psp.zoom);
 
         // Alignment of the signature relative to page borders
@@ -283,12 +283,13 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    private RemoteColor makeColor(String color) {
+    private RemoteColor makeColor(String color, boolean transparent) {
         if (color.length() != 7) throw new IllegalArgumentException("Invalid color code specified: " + color);
 
         return new RemoteColor(Integer.parseInt(color.substring(1, 3), 16),
                 Integer.parseInt(color.substring(3, 5), 16),
-                Integer.parseInt(color.substring(5, 7), 16));
+                Integer.parseInt(color.substring(5, 7), 16),
+                transparent ? 160 : 255);
     }
 
     ///////////////////////////////////////////////////////////////////////////
