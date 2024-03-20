@@ -348,7 +348,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private void setProfileInfo(TokenObject token, String profileId) {
         if (profileId == null) return;
         ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
-        if (signProfile == null) return;
+        if (signProfile == null) {
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile is invalid." , null);
+        }
         if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
             if (token.getPdfSignProfile() != null) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be for different file types." , null);
