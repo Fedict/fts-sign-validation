@@ -126,7 +126,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
-    private static final Pattern psfCPattern                   = Pattern.compile("\\d,\\d,\\d,\\d,\\d|default");
+    private static final Pattern psfCPattern                   = Pattern.compile("\\d+,\\d+,\\d+,\\d+,\\d+|default");
 
     private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en");
 
