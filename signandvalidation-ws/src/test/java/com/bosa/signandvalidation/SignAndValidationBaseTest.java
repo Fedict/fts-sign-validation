@@ -37,12 +37,6 @@ public class SignAndValidationBaseTest {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(XmlTimestampedObject.class, new XmlTimestampedObjectDeserializer());
         applicationContext.getBean(ObjectMapper.class).registerModule(module);
-        PdfVisibleSignatureServiceTest.clearList();
-    }
-
-    @AfterAll
-    public static void out() throws IOException {
-        PdfVisibleSignatureServiceTest.printNewPdfSignatureFiles();
     }
 
     private static class XmlTimestampedObjectDeserializer extends StdDeserializer<XmlTimestampedObject> {
