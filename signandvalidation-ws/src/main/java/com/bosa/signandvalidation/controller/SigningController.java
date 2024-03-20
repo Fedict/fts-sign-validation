@@ -448,6 +448,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     }
                     checkValue("psfC", input.getPsfC(), true, psfCPattern, null);
 
+                    try {
+                        checkPDF(token, input);
+                    } catch (NullParameterException e) {
+                        throw new RuntimeException(e);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     // TODO Validate  PSFxxx, psp, ... fields
                 }
             }
@@ -498,6 +506,44 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
+
+    /*****************************************************************************************/
+
+    private void checkPDF(TokenObject token, TokenSignInput input) throws NullParameterException, IOException {
+
+        //byte[] file = storageService.getFileAsBytes(token.getBucket(), input.getFilePath(), true);
+
+        //pdfVisibleSignatureService.checkAndFillParams(null, new RemoteDocument(file, null), input, token.getBucket(), new ClientSignatureParameters());
+
+        /*
+
+
+        try {
+            if (input.getPspFilePath() != null) {
+                PdfSignatureProfile psp = pdfVisibleSignatureService.getInputPspFromBucket(input, token.getBucket());
+            }
+
+
+            InputStream fileStream = storageService.getFileAsStream(token.getBucket(), input.getFilePath());
+            PDDocument doc = PDDocument.load(fileStream);
+            int count = doc.getNumberOfPages();
+            String psfC = input.getPsfC();
+            if (psfC != null) {
+                if (DEFAULT_STRING.equals(psfC)) {
+
+                }
+            }
+            } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        input.getPsfN() != null || input.getPspFilePath() != null) {
+
+            } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+         */
+    }
 
     /*****************************************************************************************/
 
