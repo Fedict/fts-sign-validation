@@ -126,7 +126,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
-    private static final Pattern psfCPattern                   = Pattern.compile("\\d,\\d,\\d,\\d,\\d|default");
+    private static final Pattern psfCPattern                   = Pattern.compile("\\d+,\\d+,\\d+,\\d+,\\d+|default");
 
     private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en");
 
@@ -348,7 +348,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private void setProfileInfo(TokenObject token, String profileId) {
         if (profileId == null) return;
         ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
-        if (signProfile == null) return;
+        if (signProfile == null) {
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile is invalid." , null);
+        }
         if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
             if (token.getPdfSignProfile() != null) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be for different file types." , null);
