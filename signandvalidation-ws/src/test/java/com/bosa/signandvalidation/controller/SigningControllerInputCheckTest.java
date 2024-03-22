@@ -2,9 +2,7 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.PolicyParameters;
-import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -161,7 +159,7 @@ public class SigningControllerInputCheckTest {
 
     private void testToken(TokenObject token, String error, String s) {
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
-            ctrl.checkTokenAndSetDefaults(token);
+            ctrl.validateTokenValues(token);
         });
         boolean verified = exception.getMessage().contains("||" + error + "||" + s);
         if (!verified) {

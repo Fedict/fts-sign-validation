@@ -20,6 +20,8 @@ public class TokenSignInput {
     private String pspFilePath;  // A file with graphical description of the signature to create the acroform signature
     private String signLanguage;  //  The language of the signature to create
     private String psfN;  // PDF signature field name
+    private float psfNWidth;
+    private float psfNHeight;
     private String psfC;  // PDF signature field coordinates
     private boolean psfP;  // Include eID photo as icon in the PDF signature field
     private boolean invisible;

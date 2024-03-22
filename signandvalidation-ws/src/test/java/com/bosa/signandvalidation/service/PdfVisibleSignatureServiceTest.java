@@ -17,17 +17,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.imageio.ImageIO;
 
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -52,12 +52,10 @@ public class PdfVisibleSignatureServiceTest {
     private static final File pspImagesFolder = new File(RESOURCE_PATH, "PSPImages");
     private static final File pspImagesFolderWindows = new File(pspImagesFolder, "Windows");
     private static byte photoBytes[];
-    private static byte pdfFileBytes[];
 
     @BeforeAll
     public static void init() throws IOException {
-        photoBytes = Utils.toByteArray(new FileInputStream(RESOURCE_PATH + "photo.png"));
-        pdfFileBytes = Utils.toByteArray(new FileInputStream(pdfFile));
+        photoBytes = Utils.toByteArray(Files.newInputStream(Paths.get(RESOURCE_PATH + "photo.png")));
         System.setProperty(PdfVisibleSignatureService.FONTS_PATH_PROPERTY, RESOURCE_PATH + "fonts");
         clearList();
     }
@@ -87,23 +85,19 @@ public class PdfVisibleSignatureServiceTest {
         for (File f : pspTestFolder.listFiles()) {
             int posExt = f.getName().lastIndexOf("V1.psp");
             if (posExt >= 1) {
-                byte[] pspFileBytes = Utils.toByteArray(new FileInputStream(f));
+                byte[] pspFileBytes = Utils.toByteArray(Files.newInputStream(f.toPath()));
                 String fileNameNoExt = f.getName().substring(0, posExt);
 
                 RemoteSignatureParameters params = new RemoteSignatureParameters();
                 params.getBLevelParams().setSigningDate(new Date(1657185646000L));
                 params.setSigningCertificate(cert);
-                RemoteDocument doc = new RemoteDocument(pdfFileBytes, "A.pdf");
-                TokenSignInput input = new TokenSignInput();
-                input.setPspFilePath(f.getPath());
-                Mockito.reset(storageService);
-                Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(f.getPath()), eq(false))).thenReturn(pspFileBytes);
-                input.setSignLanguage(fileNameNoExt.substring(0, 2));
-                String defaultCoordinates = (new ObjectMapper()).readValue(new String(pspFileBytes), PdfSignatureProfile.class).defaultCoordinates;
-                input.setPsfC(defaultCoordinates == null ? "1,10,10,200,150" : DEFAULT_STRING);
                 ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
+                PdfSignatureProfile psp = (new ObjectMapper()).readValue(new String(pspFileBytes), PdfSignatureProfile.class);
+                clientSigParams.setPsp(psp);
+                clientSigParams.setPsfC(psp.defaultCoordinates == null ? "1,10,10,200,150" : DEFAULT_STRING);
+                clientSigParams.setSignLanguage(fileNameNoExt.substring(0, 2));
                 if (fileNameNoExt.charAt(2) == 'T') clientSigParams.setPhoto(photoBytes);
-                new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, clientSigParams);
+                new PdfVisibleSignatureService(storageService).checkAndFillParams(params, 0, 0, clientSigParams);
 
                 compareImages(params.getImageParameters().getImage().getBytes(), fileNameNoExt);
             }
@@ -114,13 +108,11 @@ public class PdfVisibleSignatureServiceTest {
     public void testV1RenderSignature() throws Exception {
         RemoteSignatureParameters params = new RemoteSignatureParameters();
         params.setSigningCertificate(cert);
-        RemoteDocument doc = new RemoteDocument(pdfFileBytes, "A.pdf");
-        TokenSignInput input = new TokenSignInput();
-        input.setSignLanguage("fr");
-        input.setPsfC("2,20,20,300,150");
         ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
+        clientSigParams.setSignLanguage("fr");
+        clientSigParams.setPsfC("2,20,20,300,150");
         clientSigParams.setPhoto(photoBytes);
-        new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, clientSigParams);
+        new PdfVisibleSignatureService(storageService).checkAndFillParams(params, 0, 0, clientSigParams);
 
         compareImages(params.getImageParameters().getImage().getBytes(), "noPSP1");
     }
@@ -135,6 +127,7 @@ public class PdfVisibleSignatureServiceTest {
 
         System.out.println("Expected image file : " + imageFile.getPath());
 
+        // On CI/CD the platform differences create different images, in order to get a copy of them we print the B64
         // If expected image not yet generated, create it in the resource folder or print it in a stream that will be logged (On servers)
         if (!imageFile.exists()) {
             if (!isWindows) {
@@ -151,10 +144,6 @@ public class PdfVisibleSignatureServiceTest {
 
         int differentPixelsCount = countMismatchedPixels(actualImage, expectedImage);
         if (differentPixelsCount == 0) return;
-
-        // On CI/CD the platform differences create different images, in order to get a copy of them we print the B64
-        //System.out.println(imageFile.getPath());
-        //System.out.println(Base64.getEncoder().encodeToString(actualBytes));
 
         // In case of image size or pixel mismatch, save actual image for quicker analysis
         imageFile = new File(imageFile.getParent(), expectedFileName + "_ACTUAL.png");

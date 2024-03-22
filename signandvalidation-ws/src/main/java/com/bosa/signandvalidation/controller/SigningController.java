@@ -17,8 +17,7 @@ import com.bosa.signingconfigurator.model.PolicyParameters;
 import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.alert.exception.AlertException;
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import eu.europa.esig.dss.enumerations.SignatureForm;
+import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.pades.exception.ProtectedDocumentException;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.utils.Utils;
@@ -41,6 +40,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.apache.xml.security.transforms.Transforms;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
@@ -63,9 +66,9 @@ import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.clea
 import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setOverrideRevocationDataLoadingStrategyFactory;
 import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static com.bosa.signandvalidation.model.SigningType.XadesMultiFile;
+import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
 import static com.bosa.signandvalidation.utils.SupportUtils.xmlDocToString;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
-import eu.europa.esig.dss.enumerations.Indication;
 
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -126,7 +129,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
-    private static final Pattern psfCPattern                   = Pattern.compile("\\d+,\\d+,\\d+,\\d+,\\d+|default");
+    private static final Pattern pspColorPattern                = Pattern.compile("#[0-9a-fA-F]{6}");
+    private static final Pattern pspFontPattern                = Pattern.compile(".*(/b|/i|/bi|/ib)?"); // <FontName>/<b><i>. Sample : "Serif/bi"
 
     private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en");
 
@@ -374,7 +378,114 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    void checkTokenAndSetDefaults(TokenObject token) {
+    private void checkTokenAndSetDefaults(TokenObject token) throws Exception {
+
+        // Validate token input values
+        validateTokenValues(token);
+
+        if (XadesMultiFile.equals(token.getSigningType())) return;
+
+        // Validate visible signature parameters
+        for(TokenSignInput input : token.getInputs()) {
+            MediaType inputFileType = MediaTypeUtil.getMediaTypeFromFilename(input.getFilePath());
+            if (!APPLICATION_PDF.equals(inputFileType)) continue;
+
+            byte[] file = storageService.getFileAsBytes(token.getBucket(), input.getFilePath(), true);
+            PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(file), (String) null);
+
+            if (input.getPsfN() == null) {
+                String psfC = input.getPsfC();
+                if (psfC == null) continue;
+                PdfSignatureProfile psp = getPspFile(input, token.getBucket());
+                if (DEFAULT_STRING.equals(psfC) && psp != null) psfC = psp.defaultCoordinates;
+                if (psfC == null) logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Default PDF signature coordinates requested, but these were not specified in the psp (or no psp)", null);
+                checkPsfC(pdfDoc, psfC);
+                if (psp != null) checkPsp(psp);
+            } else {
+                PDRectangle rect = checkPsfNAndGetDimensions(pdfDoc, input.getPsfN());
+                input.setPsfNHeight(rect.getHeight());
+                input.setPsfNWidth(rect.getWidth());
+            }
+        }
+    }
+
+    /*****************************************************************************************/
+
+    private void checkPsp(PdfSignatureProfile psp) {
+
+
+
+        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Bad date format for PDF visible signature: " , null);
+
+
+
+        checkPspColor(psp.bgColor, "bgColor");
+        if (psp.font != null && !pspFontPattern.matcher(psp.font).matches()) {
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP font '" + psp.font + "' does not match Regex (" + pspFontPattern.pattern() + ")" , null);
+        }
+        checkPspColor(psp.textColor, "textColor");
+        if (psp.version != null && psp.version != 1 && psp.version != 2) {
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP version invalid : " + psp.version, null);
+        }
+        checkPspColor(psp.bodyBgColor, "bodyBgColor");
+    }
+
+    /*****************************************************************************************/
+
+    private void checkPspColor(String color, String name) {
+        if (color != null && !pspColorPattern.matcher(color).matches()) {
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'" + name + "' (" + color + ") does not match Regex (" + pspColorPattern.pattern() + ")" , null);
+        }
+    }
+
+    /*****************************************************************************************/
+
+    static void checkPsfC(PDDocument pdfDoc, String psfC) {
+        int fieldNb = 5;
+        String[] coords = psfC.split(",");
+        if (coords.length == fieldNb) {
+            int[] intCoords = new int[fieldNb];
+            try {
+                while (fieldNb != 0) intCoords[--fieldNb] = Integer.parseInt(coords[fieldNb]);
+                try {
+                    PDPage page = pdfDoc.getPage(intCoords[0] - 1);
+                    PDRectangle box = page.getBBox();
+                    if (!box.contains(intCoords[1], intCoords[2]) || !box.contains(intCoords[1] + intCoords[3], intCoords[2] + intCoords[4])) {
+                        logAndThrowEx(FORBIDDEN, SIGNATURE_OUT_OF_BOUNDS, "The new signature field position is outside the page dimensions: '" + psfC + "'", null);
+                    }
+                    return;
+                } catch (IndexOutOfBoundsException e) {
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Invalid PDF signature page: '" + psfC + "'", null);
+                }
+            } catch(NumberFormatException e) {}
+        }
+        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Invalid PDF signature coordinates: '" + psfC + "'", null);
+    }
+
+    /*****************************************************************************************/
+
+    static PDRectangle checkPsfNAndGetDimensions(PDDocument pdfDoc, String psfN) {
+        try {
+            List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
+            for (PDSignatureField sigField : sigFields) {
+                String name = sigField.getPartialName();
+                if (psfN.equals(name)) {
+                    if (sigField.getSignature() != null) {
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature." , null);
+                    }
+                    return sigField.getWidget().getRectangle();
+                }
+            }
+        } catch (IOException e) {
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Error reading PDF file." , null);
+        }
+        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The PDF signature field does exist : " + psfN, null);
+        return null;
+    }
+
+    /*****************************************************************************************/
+
+    void validateTokenValues(TokenObject token) {
 
         String pdfProfileId = token.getPdfSignProfile();
         String xmlProfileId = token.getXmlSignProfile();
@@ -448,17 +559,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     if (signLanguage != null && !allowedLanguages.contains(signLanguage)) {
                         logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'SignLanguage' (" + signLanguage + ") must be one of " + String.join(", ", allowedLanguages), null);
                     }
-                    checkValue("psfC", input.getPsfC(), true, psfCPattern, null);
-
-                    try {
-                        checkPDF(token, input);
-                    } catch (NullParameterException e) {
-                        throw new RuntimeException(e);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    // TODO Validate  PSFxxx, psp, ... fields
                 }
             }
             if (!isXML && input.getDisplayXsltPath() != null) {
@@ -508,44 +608,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-
-    /*****************************************************************************************/
-
-    private void checkPDF(TokenObject token, TokenSignInput input) throws NullParameterException, IOException {
-
-        //byte[] file = storageService.getFileAsBytes(token.getBucket(), input.getFilePath(), true);
-
-        //pdfVisibleSignatureService.checkAndFillParams(null, new RemoteDocument(file, null), input, token.getBucket(), new ClientSignatureParameters());
-
-        /*
-
-
-        try {
-            if (input.getPspFilePath() != null) {
-                PdfSignatureProfile psp = pdfVisibleSignatureService.getInputPspFromBucket(input, token.getBucket());
-            }
-
-
-            InputStream fileStream = storageService.getFileAsStream(token.getBucket(), input.getFilePath());
-            PDDocument doc = PDDocument.load(fileStream);
-            int count = doc.getNumberOfPages();
-            String psfC = input.getPsfC();
-            if (psfC != null) {
-                if (DEFAULT_STRING.equals(psfC)) {
-
-                }
-            }
-            } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        input.getPsfN() != null || input.getPspFilePath() != null) {
-
-            } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-         */
-    }
 
     /*****************************************************************************************/
 
@@ -831,7 +893,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
 
             if (APPLICATION_PDF.equals(mediaType)) {
-                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams);
+                prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
             }
 
             ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
@@ -860,6 +922,38 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
+    }
+
+    /*****************************************************************************************/
+
+    public void prepareVisibleSignatureForToken(RemoteSignatureParameters remoteSigParams, TokenSignInput input, String bucket, ClientSignatureParameters clientSigParams)
+            throws NullParameterException, IOException {
+
+        PdfSignatureProfile psp = getPspFile(input, bucket);
+        clientSigParams.setPsp(psp);
+        String psfN = input.getPsfN();
+        if (psfN != null) clientSigParams.setPsfN(psfN);
+        String psfC = input.getPsfC();
+        if (psfC != null) clientSigParams.setPsfC(psfC);
+        String signLanguage = input.getSignLanguage();
+        if (signLanguage != null) clientSigParams.setSignLanguage(signLanguage);
+        pdfVisibleSignatureService.checkAndFillParams(remoteSigParams, input.getPsfNHeight(), input.getPsfNWidth(), clientSigParams);
+    }
+
+    /*****************************************************************************************/
+
+    public PdfSignatureProfile getPspFile(TokenSignInput input, String bucket) {
+        PdfSignatureProfile psp = null;
+        String pspPath = input.getPspFilePath();
+        if (pspPath != null) {
+            try {
+                byte[] json = storageService.getFileAsBytes(bucket, pspPath, false);
+                psp = (new ObjectMapper()).readValue(new String(json), PdfSignatureProfile.class);
+            } catch (Exception e) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Error reading or parsing PDF Signature Profile file: ", e);
+            }
+        }
+        return psp;
     }
 
     /*****************************************************************************************/
@@ -911,7 +1005,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
             if (APPLICATION_PDF.equals(mediaType)) {
-                pdfVisibleSignatureService.checkAndFillParams(parameters, fileToSign, inputToSign, token.getBucket(), clientSigParams);
+                prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
             }
 
             setOverrideRevocationStrategy(signProfile);
@@ -1221,7 +1315,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             checkDataToSign(parameters, null);
 
-            pdfVisibleSignatureService.checkAndFillParams(parameters, dataToSignDto.getToSignDocument(), clientSigParams);
+            prepareVisibleSignature(parameters, dataToSignDto.getToSignDocument(), clientSigParams);
 
             ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(dataToSignDto.getToSignDocument(), parameters, null, applicationName);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -1242,6 +1336,22 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             clearOverrideRevocationDataLoadingStrategyFactory();
         }
         return null; // We won't get here
+    }
+
+    /*****************************************************************************************/
+
+    private void prepareVisibleSignature(RemoteSignatureParameters parameters, RemoteDocument pdf, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
+        float psfNWidth = 0;
+        float psfNHeight = 0;
+        String psfN = clientSigParams.getPsfN();
+        if (psfN != null) {
+            PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(pdf.getBytes()), (String) null);
+            PDRectangle rect = checkPsfNAndGetDimensions(pdfDoc, psfN);
+            psfNWidth = rect.getWidth();
+            psfNHeight = rect.getHeight();
+        }
+        if (clientSigParams.getPsp() != null) checkPsp(clientSigParams.getPsp());
+        pdfVisibleSignatureService.checkAndFillParams(parameters, psfNHeight, psfNWidth, clientSigParams);
     }
 
     /*****************************************************************************************/
@@ -1310,7 +1420,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
-            pdfVisibleSignatureService.checkAndFillParams(parameters, signDocumentDto.getToSignDocument(), clientSigParams);
+            prepareVisibleSignature(parameters, signDocumentDto.getToSignDocument(), clientSigParams);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);

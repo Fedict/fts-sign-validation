@@ -23,38 +23,6 @@ public class PdfVisibleSignatureTest {
     public static void out() throws IOException {
         PdfVisibleSignatureServiceTest.printNewPdfSignatureFiles();
     }
-    @Test
-    public void testFillCoordinates() throws Exception {
-        RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
-        PdfVisibleSignatureService.convertFieldCoords("1,2,3,4,5", null, sigFieldParams);
-        assertEquals(1, sigFieldParams.getPage());
-        assertEquals((float) 2.0, sigFieldParams.getOriginX());
-        assertEquals((float) 3.0, sigFieldParams.getOriginY());
-        assertEquals((float) 4.0, sigFieldParams.getWidth());
-        assertEquals((float) 5.0, sigFieldParams.getHeight());
-    }
-
-    @Test
-    public void testMissingPSP() throws Exception {
-        try {
-            RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
-            PdfVisibleSignatureService.convertFieldCoords("default", null, sigFieldParams);
-            fail(); // we shouldn't get here
-        } catch (NullParameterException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    @Test
-    public void testFillPSPCoordinates() throws Exception {
-        RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
-        PdfVisibleSignatureService.convertFieldCoords("default", "1,2,3,4,5", sigFieldParams);
-        assertEquals(1, sigFieldParams.getPage());
-        assertEquals((float) 2.0, sigFieldParams.getOriginX());
-        assertEquals((float) 3.0, sigFieldParams.getOriginY());
-        assertEquals((float) 4.0, sigFieldParams.getWidth());
-        assertEquals((float) 5.0, sigFieldParams.getHeight());
-    }
 
     @Test
     public void testMakeText() throws Exception {

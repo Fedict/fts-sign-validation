@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 
 /** Contents of the PDF Signature Profile, a JSON file that is sent by the FPS to the S3 server */
 public class PdfSignatureProfile {
+	// V1 & V2 properties
 	public String bgColor;			// in V1 = BG color of both the text and the signature
 									// in V2 = BG color of the text
 	public HashMap<String, String> texts = new LinkedHashMap<>();

@@ -21,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,8 +85,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
                 String fdName = fd.name;
                 int pos = fdName.lastIndexOf('/');
                 fdName = pos == -1 ? fdName : fdName.substring(pos + 1);
-                if (name.compareTo(fdName) == 0 || name.compareTo(fdName) == 0)
-                    return fd;
+                if (name.compareTo(fdName) == 0) return fd;
             }
             return null;
         }
@@ -169,7 +170,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         }
 
         Pkcs12SignatureToken sigToken = new Pkcs12SignatureToken(
-                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
 
@@ -197,7 +198,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
     @Test
     public void testSignXadesMultiDocument() throws Exception {
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
-                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
         List<DSSPrivateKeyEntry> keys = token.getKeys();
