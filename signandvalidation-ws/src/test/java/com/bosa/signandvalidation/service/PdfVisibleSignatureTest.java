@@ -1,11 +1,10 @@
 package com.bosa.signandvalidation.service;
 
-import com.bosa.signingconfigurator.exception.NullParameterException;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -56,8 +55,8 @@ public class PdfVisibleSignatureTest {
         try {
             PdfVisibleSignatureService.makeText(texts, "xx", signingDate, signingCert);
             fail(); // we shouldn't get here
-        } catch (NullParameterException e) {
-            System.out.println(e.getMessage());
+        } catch (ResponseStatusException e) {
+            assertEquals("403 FORBIDDEN \"NOW||INVALID_PARAM||language 'xx' not specified in the psp file\"", e.getMessage().replaceAll("\\d{17}", "NOW"));
         }
 
         texts = new LinkedHashMap<String,String>();

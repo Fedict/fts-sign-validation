@@ -25,6 +25,10 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
 
+import static com.bosa.signandvalidation.config.ErrorStrings.INVALID_PARAM;
+import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+
 /**
  * The current DSS lib has problems in creating a consistent PDF visible signature,
  * so what we do is call PdfImageBuilder to create an image (containing the text and optionally an input image)
@@ -162,14 +166,12 @@ public class PdfVisibleSignatureService {
 
     static String makeText(HashMap<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
         String text = DEFAULT_TEXT;
-        if (null != texts && texts.size() != 0) {
-            if (null != lang) {
+        if (texts != null && !texts.isEmpty()) {
+            if (lang != null) {
                 text = texts.get(lang);
-                if (null == text)
-                    throw new NullParameterException("language '" + lang + "' not specified in the psp file");
-            }
-            else
-                text = texts.values().iterator().next(); // get the 1st text
+                if (text == null) logAndThrowEx(FORBIDDEN, INVALID_PARAM, "language '" + lang + "' not specified in the psp file", null);
+
+            } else text = texts.values().iterator().next(); // get the 1st text
         }
 
         CertInfo certInfo = new CertInfo(signingCert);
@@ -181,6 +183,12 @@ public class PdfVisibleSignatureService {
 
         if (lang == null) lang = "en";
 
+        return injectDate(text, signingDate, lang);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    public static String injectDate(String text, Date signingDate, String lang) {
         try {
             int idx = text.indexOf("%d(");
             while (-1 != idx) {
@@ -196,9 +204,8 @@ public class PdfVisibleSignatureService {
             }
         }
         catch (Exception e) {
-            throw new NullParameterException("Bad date format for PDF visible signature: " + e.getMessage());
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Bad date format for PDF visible signature: " , null);
         }
-
         return text;
     }
 

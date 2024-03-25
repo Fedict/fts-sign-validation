@@ -413,11 +413,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     private void checkPsp(PdfSignatureProfile psp) {
 
-
-
-        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Bad date format for PDF visible signature: " , null);
-
-
+        // Check if all date formats are accepted
+        Date now = new Date();
+        for(String text : psp.texts.values()) PdfVisibleSignatureService.injectDate(text, now, "en");
 
         checkPspColor(psp.bgColor, "bgColor");
         if (psp.font != null && !pspFontPattern.matcher(psp.font).matches()) {
