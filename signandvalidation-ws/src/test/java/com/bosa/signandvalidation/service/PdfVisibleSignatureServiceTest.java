@@ -1,14 +1,12 @@
 package com.bosa.signandvalidation.service;
 
 import com.bosa.signandvalidation.model.PdfSignatureProfile;
-import com.bosa.signandvalidation.model.TokenSignInput;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
-import eu.europa.esig.dss.ws.dto.RemoteDocument;
 
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import org.jose4j.base64url.Base64;
@@ -97,7 +95,7 @@ public class PdfVisibleSignatureServiceTest {
                 clientSigParams.setPsfC(psp.defaultCoordinates == null ? "1,10,10,200,150" : DEFAULT_STRING);
                 clientSigParams.setSignLanguage(fileNameNoExt.substring(0, 2));
                 if (fileNameNoExt.charAt(2) == 'T') clientSigParams.setPhoto(photoBytes);
-                new PdfVisibleSignatureService(storageService).checkAndFillParams(params, 0, 0, clientSigParams);
+                new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
 
                 compareImages(params.getImageParameters().getImage().getBytes(), fileNameNoExt);
             }
@@ -112,7 +110,7 @@ public class PdfVisibleSignatureServiceTest {
         clientSigParams.setSignLanguage("fr");
         clientSigParams.setPsfC("2,20,20,300,150");
         clientSigParams.setPhoto(photoBytes);
-        new PdfVisibleSignatureService(storageService).checkAndFillParams(params, 0, 0, clientSigParams);
+        new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
 
         compareImages(params.getImageParameters().getImage().getBytes(), "noPSP1");
     }

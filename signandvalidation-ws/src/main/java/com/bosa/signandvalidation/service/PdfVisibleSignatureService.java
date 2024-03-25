@@ -90,7 +90,7 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, float psfNHeight, float psfNWidth, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
+    public void prepareVisibleSignature(RemoteSignatureParameters remoteSigParams, float psfNHeight, float psfNWidth, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
 
         PdfSignatureProfile psp = clientSigParams.getPsp();
         if (psp == null) psp = new PdfSignatureProfile();

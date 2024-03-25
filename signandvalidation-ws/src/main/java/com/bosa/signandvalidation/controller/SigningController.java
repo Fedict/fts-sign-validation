@@ -935,7 +935,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         if (psfC != null) clientSigParams.setPsfC(psfC);
         String signLanguage = input.getSignLanguage();
         if (signLanguage != null) clientSigParams.setSignLanguage(signLanguage);
-        pdfVisibleSignatureService.checkAndFillParams(remoteSigParams, input.getPsfNHeight(), input.getPsfNWidth(), clientSigParams);
+        pdfVisibleSignatureService.prepareVisibleSignature(remoteSigParams, input.getPsfNHeight(), input.getPsfNWidth(), clientSigParams);
     }
 
     /*****************************************************************************************/
@@ -1349,7 +1349,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             psfNHeight = rect.getHeight();
         }
         if (clientSigParams.getPsp() != null) checkPsp(clientSigParams.getPsp());
-        pdfVisibleSignatureService.checkAndFillParams(parameters, psfNHeight, psfNWidth, clientSigParams);
+        pdfVisibleSignatureService.prepareVisibleSignature(parameters, psfNHeight, psfNWidth, clientSigParams);
     }
 
     /*****************************************************************************************/
