@@ -390,19 +390,16 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             MediaType inputFileType = MediaTypeUtil.getMediaTypeFromFilename(input.getFilePath());
             if (!APPLICATION_PDF.equals(inputFileType)) continue;
 
+            String psfC = input.getPsfC();
+            String psfN = input.getPsfN();
+            if (psfN == null && psfC == null) continue;
+
             byte[] file = storageService.getFileAsBytes(token.getBucket(), input.getFilePath(), true);
             PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(file), (String) null);
-
-            if (input.getPsfN() == null) {
-                String psfC = input.getPsfC();
-                if (psfC == null) continue;
-                PdfSignatureProfile psp = getPspFile(input, token.getBucket());
-                if (DEFAULT_STRING.equals(psfC) && psp != null) psfC = psp.defaultCoordinates;
-                if (psfC == null) logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Default PDF signature coordinates requested, but these were not specified in the psp (or no psp)", null);
-                checkPsfC(pdfDoc, psfC);
-                if (psp != null) checkPsp(psp);
-            } else {
-                PDRectangle rect = checkPsfNAndGetDimensions(pdfDoc, input.getPsfN());
+            PdfSignatureProfile psp = getPspFile(input, token.getBucket());
+            PDRectangle rect = checkVisibleSignatureParameters(psfC, psfN, psp, pdfDoc);
+            if (rect != null) {
+                // Save for later phases to avoid re-loading the PDF
                 input.setPsfNHeight(rect.getHeight());
                 input.setPsfNWidth(rect.getWidth());
             }
@@ -411,26 +408,54 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private void checkPsp(PdfSignatureProfile psp) {
-
-        // Check if all date formats are accepted
-        Date now = new Date();
-        for(String text : psp.texts.values()) PdfVisibleSignatureService.injectDate(text, now, "en");
-
-        checkPspColor(psp.bgColor, "bgColor");
-        if (psp.font != null && !pspFontPattern.matcher(psp.font).matches()) {
-            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP font '" + psp.font + "' does not match Regex (" + pspFontPattern.pattern() + ")" , null);
+    // In order to keep coherence between token and non-toke operations the validation code is the same
+    static PDRectangle checkVisibleSignatureParameters(String psfC, String psfN, PdfSignatureProfile psp, PDDocument pdfDoc) {
+        // Check psfN
+        if (psfN != null) {
+            try {
+                List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
+                for (PDSignatureField sigField : sigFields) {
+                    String name = sigField.getPartialName();
+                    if (psfN.equals(name)) {
+                        if (sigField.getSignature() != null) {
+                            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature.", null);
+                        }
+                        return sigField.getWidget().getRectangle();
+                    }
+                }
+            } catch (IOException e) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Error reading PDF file.", null);
+            }
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The PDF signature field does exist : " + psfN, null);
         }
-        checkPspColor(psp.textColor, "textColor");
-        if (psp.version != null && psp.version != 1 && psp.version != 2) {
-            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP version invalid : " + psp.version, null);
+
+        // Check psfC
+        if (DEFAULT_STRING.equals(psfC) && psp != null) psfC = psp.defaultCoordinates;
+        if (psfC == null) logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Default PDF signature coordinates requested, but these were not specified in the psp (or no psp)", null);
+        checkPsfC(pdfDoc, psfC);
+
+        if (psp != null) {
+            // Check if all date formats are accepted
+            Date now = new Date();
+            for(String text : psp.texts.values()) PdfVisibleSignatureService.injectDate(text, now, "en");
+
+            checkPspColor(psp.bgColor, "bgColor");
+            if (psp.font != null && !pspFontPattern.matcher(psp.font).matches()) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP font '" + psp.font + "' does not match Regex (" + pspFontPattern.pattern() + ")" , null);
+            }
+            checkPspColor(psp.textColor, "textColor");
+            if (psp.version != null && psp.version != 1 && psp.version != 2) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP version invalid : " + psp.version, null);
+            }
+            checkPspColor(psp.bodyBgColor, "bodyBgColor");
         }
-        checkPspColor(psp.bodyBgColor, "bodyBgColor");
+
+        return null;
     }
 
     /*****************************************************************************************/
 
-    private void checkPspColor(String color, String name) {
+    private static void checkPspColor(String color, String name) {
         if (color != null && !pspColorPattern.matcher(color).matches()) {
             logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'" + name + "' (" + color + ") does not match Regex (" + pspColorPattern.pattern() + ")" , null);
         }
@@ -458,27 +483,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             } catch(NumberFormatException e) {}
         }
         logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Invalid PDF signature coordinates: '" + psfC + "'", null);
-    }
-
-    /*****************************************************************************************/
-
-    static PDRectangle checkPsfNAndGetDimensions(PDDocument pdfDoc, String psfN) {
-        try {
-            List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
-            for (PDSignatureField sigField : sigFields) {
-                String name = sigField.getPartialName();
-                if (psfN.equals(name)) {
-                    if (sigField.getSignature() != null) {
-                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature." , null);
-                    }
-                    return sigField.getWidget().getRectangle();
-                }
-            }
-        } catch (IOException e) {
-            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Error reading PDF file." , null);
-        }
-        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The PDF signature field does exist : " + psfN, null);
-        return null;
     }
 
     /*****************************************************************************************/
@@ -1339,17 +1343,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     private void prepareVisibleSignature(RemoteSignatureParameters parameters, RemoteDocument pdf, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
-        float psfNWidth = 0;
-        float psfNHeight = 0;
+        PDRectangle rect = null;
         String psfN = clientSigParams.getPsfN();
-        if (psfN != null) {
+        String psfC = clientSigParams.getPsfC();
+        if (psfN != null || psfC != null) {
             PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(pdf.getBytes()), (String) null);
-            PDRectangle rect = checkPsfNAndGetDimensions(pdfDoc, psfN);
-            psfNWidth = rect.getWidth();
-            psfNHeight = rect.getHeight();
+            rect = checkVisibleSignatureParameters(psfC, psfN, clientSigParams.getPsp(), pdfDoc);
         }
-        if (clientSigParams.getPsp() != null) checkPsp(clientSigParams.getPsp());
-        pdfVisibleSignatureService.prepareVisibleSignature(parameters, psfNHeight, psfNWidth, clientSigParams);
+        pdfVisibleSignatureService.prepareVisibleSignature(parameters, rect == null ? 0 : rect.getHeight(), rect == null ? 0 : rect.getWidth(), clientSigParams);
     }
 
     /*****************************************************************************************/

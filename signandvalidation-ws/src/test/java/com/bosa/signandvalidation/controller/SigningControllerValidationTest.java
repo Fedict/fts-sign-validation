@@ -1,13 +1,12 @@
 package com.bosa.signandvalidation.controller;
 
-import com.bosa.signandvalidation.model.TokenSignInput;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -56,7 +55,7 @@ public class SigningControllerValidationTest {
     @Test
     public void testInvalidPageAndBoundaries() throws Exception {
 
-        PDDocument pdfDoc = PDDocument.load(new FileInputStream(new File("src/test/resources/sample.pdf")), (String) null);
+        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/sample.pdf").toPath()), (String) null);
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
             SigningController.checkPsfC(pdfDoc, "20,1,1,2,2");
         });
@@ -75,26 +74,26 @@ public class SigningControllerValidationTest {
 
     @Test
     public void testMissingPsfN() throws Exception {
-        PDDocument pdfDoc = PDDocument.load(new FileInputStream(new File("src/test/resources/sample.pdf")), (String) null);
+        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/sample.pdf").toPath()), (String) null);
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
-            SigningController.checkPsfNAndGetDimensions(pdfDoc, "Invalid");
+            SigningController.checkVisibleSignatureParameters(null, "Invalid", null, pdfDoc);
         });
         assertTrue(exception.getMessage().contains("INVALID_PARAM||The PDF signature field does exist : Invalid"));
     }
 
     @Test
     public void testPsfNAlreadySigned() throws Exception {
-        PDDocument pdfDoc = PDDocument.load(new FileInputStream(new File("src/test/resources/signed_visible_sigfields.pdf")), (String) null);
+        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/signed_visible_sigfields.pdf").toPath()), (String) null);
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
-            SigningController.checkPsfNAndGetDimensions(pdfDoc, "signature_1");
+            SigningController.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
         });
         assertTrue(exception.getMessage().contains("INVALID_PARAM||The specified PDF signature field already contains a signature."));
     }
 
     @Test
     public void testValidPsfN() throws Exception {
-        PDDocument pdfDoc = PDDocument.load(new FileInputStream(new File("src/test/resources/visible_sigfields.pdf")), (String) null);
-        PDRectangle dim = SigningController.checkPsfNAndGetDimensions(pdfDoc, "signature_1");
+        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/visible_sigfields.pdf").toPath()), (String) null);
+        PDRectangle dim = SigningController.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
 
         assertEquals(112, (int)dim.getHeight());
         assertEquals(221, (int)dim.getWidth());
