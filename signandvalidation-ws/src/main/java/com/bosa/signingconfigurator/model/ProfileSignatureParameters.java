@@ -91,6 +91,8 @@ public class ProfileSignatureParameters extends JsonObject {
 
     private RevocationStrategy revocationStrategy;
 
+    private Boolean returnDigest;
+
     /*
      * The values unrelated to signature parameters.
      */
@@ -183,4 +185,9 @@ public class ProfileSignatureParameters extends JsonObject {
     public RevocationStrategy getRevocationStrategy() {
         return revocationStrategy == null ? RevocationStrategy.DEFAULT : revocationStrategy;
     }
+
+    public Boolean isReturnDigest() {
+        return returnDigest != null && returnDigest;
+    }
+
 }
