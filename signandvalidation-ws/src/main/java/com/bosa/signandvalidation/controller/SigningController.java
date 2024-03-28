@@ -1320,8 +1320,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             prepareVisibleSignature(parameters, dataToSignDto.getToSignDocument(), clientSigParams);
 
             ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(dataToSignDto.getToSignDocument(), parameters, null, applicationName);
+
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), dataToSignDto.getClientSignatureParameters().getSigningDate());
+            byte [] bytesToSign = dataToSign.getBytes();
+            if (!signProfile.isReturnDigest()) bytesToSign = DSSUtils.digest(digestAlgorithm, bytesToSign);
+            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, bytesToSign, dataToSignDto.getClientSignatureParameters().getSigningDate());
             logger.info("Returning from getDataToSign()");
             return ret;
         } catch (ProfileNotFoundException e) {
