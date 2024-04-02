@@ -193,8 +193,6 @@ public class ProfileSignatureParameters extends JsonObject {
 
     public SigningType getSigningType() { return signingType == null ? SigningType.Standard : signingType; }
 
-    public Boolean isReturnDigest() {
-        return returnDigest != null && returnDigest;
-    }
+    public Boolean isReturnDigest() { return returnDigest == null || returnDigest; }
 
 }
