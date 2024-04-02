@@ -1144,7 +1144,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             byte [] bytesToSign = dataToSign.getBytes();
-            if (!signProfile.isReturnDigest()) bytesToSign = DSSUtils.digest(digestAlgorithm, bytesToSign);
+            if (signProfile.isReturnDigest()) bytesToSign = DSSUtils.digest(digestAlgorithm, bytesToSign);
             DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, bytesToSign, dataToSignDto.getClientSignatureParameters().getSigningDate());
             logger.info("Returning from getDataToSign()");
             return ret;

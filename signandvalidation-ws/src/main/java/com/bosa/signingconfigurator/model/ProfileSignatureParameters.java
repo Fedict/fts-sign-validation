@@ -186,8 +186,6 @@ public class ProfileSignatureParameters extends JsonObject {
         return revocationStrategy == null ? RevocationStrategy.DEFAULT : revocationStrategy;
     }
 
-    public Boolean isReturnDigest() {
-        return returnDigest != null && returnDigest;
-    }
+    public Boolean isReturnDigest() { return returnDigest == null || returnDigest; }
 
 }
