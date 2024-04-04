@@ -1,5 +1,5 @@
 {
-  "profileId": "XADES_EDEPOT_SEPIA_LTA",
+  "profileId": "XADES_JUSTICE_SEPIA_LTA",
   "digestAlgorithm": "SHA256",
   "signatureLevel": "XAdES_BASELINE_LTA",
   "signaturePackaging": "ENVELOPED",
