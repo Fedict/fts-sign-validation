@@ -2,7 +2,7 @@
   "profileId": "XADES_JUSTICE_SEPIA_LTA",
   "digestAlgorithm": "SHA256",
   "signatureLevel": "XAdES_BASELINE_LTA",
-  "signaturePackaging": "ENVELOPING",
+  "signaturePackaging": "INTERNALLY_DETACHED",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "returnDigest": false
 }
