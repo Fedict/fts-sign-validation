@@ -174,11 +174,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Value("BOSA FTS v${application.version}")
     private String applicationName;
 
-    @Value("${token.services}")
-    private Boolean hasTokenServices;
-
-    @Value("${signbox.services}")
-    private Boolean hasSignBoxServices;
+    @Value("${features}")
+    private String features;
 
     @GetMapping(value = PING, produces = TEXT_PLAIN_VALUE)
     public String ping() {
@@ -199,6 +196,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = GET_TOKEN_FOR_DOCUMENT, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocument(@RequestBody GetTokenForDocumentDTO tokenData) {
         try {
+            authorizeCall(features, Features.token);
             if(!(storageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
@@ -261,7 +259,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
     @PostMapping(value = GET_TOKEN_FOR_DOCUMENTS, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocuments(@RequestBody GetTokenForDocumentsDTO gtfd) {
-        authorizeCall(hasTokenServices);
+        authorizeCall(features, Features.token);
 
         // Validate input
         if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
@@ -377,7 +375,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         List<TokenSignInput> inputs = token.getInputs();
-        if (inputs == null || inputs.size() == 0) {
+        if (inputs == null || inputs.isEmpty()) {
             logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "'inputs' field is empty" , null);
         }
         List<String> filenamesList = new ArrayList<String>();
@@ -567,7 +565,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Operation(hidden = true)
     @GetMapping(value = GET_METADATA_FOR_TOKEN)
     public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String tokenString) {
-        authorizeCall(hasTokenServices);
+        authorizeCall(features, Features.token);
+
         try {
             checkAndRecordMDCToken(tokenString);
             logger.info("Entering getMetadataForToken()");
@@ -611,7 +610,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                                 @RequestParam(required = false)  String forceDownload,
                                 HttpServletResponse response) {
 
-        authorizeCall(hasTokenServices);
+        authorizeCall(features, Features.token);
+
         ZipOutputStream out = null;
         InputStream fileStream = null;
         try {
@@ -695,7 +695,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Operation(hidden = true)
     @PostMapping(value = GET_DATA_TO_SIGN_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
-        authorizeCall(hasTokenServices);
+        authorizeCall(features, Features.token);
+
         try {
             checkAndRecordMDCToken(dataToSignForTokenDto.getToken());
             logger.info("Entering getDataToSignForToken()");
@@ -780,7 +781,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Operation(hidden = true)
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
-        authorizeCall(hasTokenServices);
+        authorizeCall(features, Features.token);
+
         try {
             checkAndRecordMDCToken(signDto.getToken());
             logger.info("Entering signDocumentForToken()");
@@ -1124,7 +1126,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = GET_DATA_TO_SIGN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(dataToSignDto.getToken());
             logger.info("Entering getDataToSign()");
@@ -1177,7 +1180,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(dataToSignDto.getToken());
             logger.info("Entering getDataToSignMultiple()");
@@ -1216,7 +1220,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(signDocumentDto.getToken());
             logger.info("Entering signDocument()");
@@ -1271,7 +1276,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(signDocumentDto.getToken());
             logger.info("Entering signDocumentMultiple()");
@@ -1318,7 +1324,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = EXTEND_DOCUMENT_MULTIPLE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO extendDocumentDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(extendDocumentDto.getToken());
             logger.info("Entering extendDocumentMultiple()");
@@ -1357,7 +1364,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = EXTEND_DOCUMENT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO extendDocumentDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(extendDocumentDto.getToken());
             logger.info("Entering extendDocument()");
@@ -1396,7 +1404,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = TIMESTAMP_DOCUMENT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument timestampDocument(@RequestBody TimestampDocumentDTO timestampDocumentDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(timestampDocumentDto.getToken());
             logger.info("Entering timestampDocument()");
@@ -1419,7 +1428,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Operation(summary = "Timestamp a list of files and produce a file in ASIC format")
     @PostMapping(value = TIMESTAMP_DOCUMENT_MULTIPLE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampDocumentMultipleDTO timestampDocumentDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(timestampDocumentDto.getToken());
             logger.info("Entering timestampDocumentMultiple()");
@@ -1452,7 +1462,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = GET_DATA_TO_SIGN_XADES_MULTI_DOC, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignXMLElementsDTO getDataToSignDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(getDataToSignDto.getToken());
             logger.info("Entering getDataToSignXades()");
@@ -1498,7 +1509,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @PostMapping(value = SIGN_DOCUMENT_XADES_MULTI_DOC, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignXMLElementsDTO signDto) {
-        authorizeCall(hasSignBoxServices);
+        authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(signDto.getToken());
             logger.info("Entering signDocumentXades()");
@@ -1540,16 +1552,22 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
 /*****************************************************************************************/
 
-public static void authorizeCall(Boolean authorize) {
-    if (!authorize) throw new InvalidParameterException("Unknown Operation");
-}
-
-/*****************************************************************************************/
-
 private static void handleRevokedCertificates(Exception e) {
     if (e instanceof AlertException && e.getMessage().startsWith("Revoked/Suspended certificate")) {
         logAndThrowEx(BAD_REQUEST, CERT_REVOKED, e);
     }
+}
+
+/*****************************************************************************************/
+
+public enum Features {
+    validation,token,signbox
+}
+
+/*****************************************************************************************/
+
+public static void authorizeCall(String features, Features feature) {
+    if (features != null && !features.contains(feature.name())) throw new InvalidParameterException("Unknown Operation");
 }
 
 /*****************************************************************************************/

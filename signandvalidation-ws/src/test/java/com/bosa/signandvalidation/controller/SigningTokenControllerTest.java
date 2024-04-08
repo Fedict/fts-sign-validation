@@ -16,6 +16,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,11 +45,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
 
         File inFile = new File("src/test/resources/sample.pdf");
-        byte[] fileBytes = Utils.toByteArray(new FileInputStream(inFile));
+        byte[] fileBytes = Utils.toByteArray(Files.newInputStream(inFile.toPath()));
         Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(inFile.getName()), eq(true))).thenReturn(fileBytes);
 
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
-                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
         List<DSSPrivateKeyEntry> keys = token.getKeys();
@@ -90,11 +92,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
 
         File inFile = new File("src/test/resources/sample.pdf");
-        byte[] fileBytes = Utils.toByteArray(new FileInputStream(inFile));
+        byte[] fileBytes = Utils.toByteArray(Files.newInputStream(inFile.toPath()));
         Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(inFile.getName()), eq(true))).thenReturn(fileBytes);
 
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
-                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
         List<DSSPrivateKeyEntry> keys = token.getKeys();
@@ -127,11 +129,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         Mockito.when(storageService.isValidAuth(any(), any())).thenReturn(true);
 
         File inFile = new File("src/test/resources/sample.xml");
-        byte[] fileBytes = Utils.toByteArray(new FileInputStream(inFile));
+        byte[] fileBytes = Utils.toByteArray(Files.newInputStream(inFile.toPath()));
         Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(inFile.getName()), eq(true))).thenReturn(fileBytes);
 
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
-                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
         List<DSSPrivateKeyEntry> keys = token.getKeys();
@@ -168,11 +170,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         Mockito.when(storageService.isValidAuth(any(), any())).thenReturn(true);
 
         File inFile = new File("src/test/resources/sample.xml");
-        byte[] fileBytes = Utils.toByteArray(new FileInputStream(inFile));
+        byte[] fileBytes = Utils.toByteArray(Files.newInputStream(inFile.toPath()));
         Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(inFile.getName()), eq(true))).thenReturn(fileBytes);
 
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
-                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
         List<DSSPrivateKeyEntry> keys = token.getKeys();
