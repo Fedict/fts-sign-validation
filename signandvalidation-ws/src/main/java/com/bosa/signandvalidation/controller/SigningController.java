@@ -182,7 +182,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private String applicationName;
     @Value("${features}")
     private String features;
-    
+
     @GetMapping(value = PING, produces = TEXT_PLAIN_VALUE)
     public String ping() {
         return "pong";
@@ -1700,6 +1700,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = SIGN_DOCUMENT_XADES_MULTI_DOC, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignXMLElementsDTO signDto) {
         authorizeCall(features, Features.signbox);
+
         try {
             checkAndRecordMDCToken(signDto.getToken());
             logger.info("Entering signDocumentXades()");
@@ -1739,24 +1740,24 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return new PolicyParameters(dto.getId(), dto.getDescription(), dto.getDigestAlgorithm());
     }
 
-    /*****************************************************************************************/
-
-    public enum Features {
-        validation,token,signbox
-    }
-    
-    /*****************************************************************************************/
-
-    public static void authorizeCall(String features, Features feature) {
-        if (features != null && !features.contains(feature.name())) throw new InvalidParameterException("Unknown Operation");
-    }
-
 /*****************************************************************************************/
 
 private static void handleRevokedCertificates(Exception e) {
     if (e instanceof AlertException && e.getMessage().startsWith("Revoked/Suspended certificate")) {
         logAndThrowEx(BAD_REQUEST, CERT_REVOKED, e);
     }
+}
+
+/*****************************************************************************************/
+
+public enum Features {
+    validation,token,signbox
+}
+
+/*****************************************************************************************/
+
+public static void authorizeCall(String features, Features feature) {
+    if (features != null && !features.contains(feature.name())) throw new InvalidParameterException("Unknown Operation");
 }
 
 /*****************************************************************************************/
