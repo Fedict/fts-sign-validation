@@ -1,9 +1,8 @@
 {
-  "profileId": "XADES_EDEPOT_SEPIA_LTA",
+  "profileId": "XADES_EDEPOT_SEPIA",
   "digestAlgorithm": "SHA256",
   "signatureLevel": "XAdES_BASELINE_LT",
   "signaturePackaging": "ENVELOPING",
-  "signatureForm": "XAdES",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "embedXML": true,
   "returnDigest": false
