@@ -5,6 +5,8 @@
   "signaturePackaging": "ENVELOPING",
   "signatureForm": "XAdES",
   "tspServer": "http://tss.eidpki.belgium.be/",
+  "trustAnchorBPPolicy": false,
+  "addCertPathToKeyinfo": true,
   "embedXML": true,
   "returnDigest": false
 }
