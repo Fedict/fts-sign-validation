@@ -316,7 +316,7 @@ public class DSSBeanConfig {
     public ShadowRemoteDocumentValidationService remoteValidationService() throws Exception {
         ShadowRemoteDocumentValidationService service = new ShadowRemoteDocumentValidationService();
         service.setVerifier(certificateVerifier());
-        service.setDataLoader(fileCacheDataLoader());
+        service.setDataLoader(new URNByPassDataloader(fileCacheDataLoader()));
         return service;
     }
 
