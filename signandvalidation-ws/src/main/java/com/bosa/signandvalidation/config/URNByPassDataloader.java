@@ -8,7 +8,8 @@ import java.util.List;
 /**********************************************************************************
  * The URNByPassDataloader is there to allow 'policySpuri' with "urn:" as
  * protocol. The dataloader will return the 'policySpuri' value as the content of the Policy.
- * Therefore the policyDigestValue must be done on the value of 'policySpuri'
+ * IT will also not try to fetch the URL content.
+ * Therefore the policyDigestValue must be calculated on the value of 'policySpuri'
  * This is because Fednot is depending on "urn:" policySpuri.
  ***********************************************************************************/
 
