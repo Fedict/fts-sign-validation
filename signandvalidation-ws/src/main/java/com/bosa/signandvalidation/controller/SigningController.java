@@ -1314,7 +1314,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             checkDataToSign(parameters, null);
 
-            prepareVisibleSignature(parameters, dataToSignDto.getToSignDocument(), clientSigParams);
+            if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
+                prepareVisibleSignature(parameters, dataToSignDto.getToSignDocument(), clientSigParams);
+            }
 
             ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(dataToSignDto.getToSignDocument(), parameters, null, applicationName);
 
@@ -1419,7 +1421,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
-            prepareVisibleSignature(parameters, signDocumentDto.getToSignDocument(), clientSigParams);
+            if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
+                prepareVisibleSignature(parameters, signDocumentDto.getToSignDocument(), clientSigParams);
+            }
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);
