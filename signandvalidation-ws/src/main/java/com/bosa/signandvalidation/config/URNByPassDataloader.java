@@ -36,12 +36,6 @@ public class URNByPassDataloader implements DataLoader {
     }
 
     @Override
-    public byte[] get(String urlString, boolean b) {
-        if (urlString.startsWith("urn:")) return null;
-        return dataLoader.get(urlString ,b);
-    }
-
-    @Override
     public byte[] post(String urlString, byte[] bytesToPost) {
         return dataLoader.post(urlString, bytesToPost);
     }
