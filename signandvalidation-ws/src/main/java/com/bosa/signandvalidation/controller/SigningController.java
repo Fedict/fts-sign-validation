@@ -464,13 +464,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         int fieldNb = 5;
         String[] coords = psfC.split(",");
         if (coords.length == fieldNb) {
-            int[] intCoords = new int[fieldNb];
+            float[] boxCoords = new float[fieldNb];
             try {
-                while (fieldNb != 0) intCoords[--fieldNb] = Integer.parseInt(coords[fieldNb]);
+                while (fieldNb != 0) boxCoords[--fieldNb] = Float.parseFloat(coords[fieldNb]);
                 try {
-                    PDPage page = pdfDoc.getPage(intCoords[0] - 1);
+                    PDPage page = pdfDoc.getPage((int)boxCoords[0] - 1);
                     PDRectangle box = page.getBBox();
-                    if (!box.contains(intCoords[1], intCoords[2]) || !box.contains(intCoords[1] + intCoords[3], intCoords[2] + intCoords[4])) {
+                    if (!box.contains(boxCoords[1], boxCoords[2]) || !box.contains(boxCoords[1] + boxCoords[3], boxCoords[2] + boxCoords[4])) {
                         logAndThrowEx(FORBIDDEN, SIGNATURE_OUT_OF_BOUNDS, "The new signature field position is outside the page dimensions: '" + psfC + "'", null);
                     }
                     return;
