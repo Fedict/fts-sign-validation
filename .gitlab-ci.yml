@@ -1,4 +1,4 @@
 include:
   project: eidas/fts-config-files
   file: gitlab-ci/sign-validation.yaml
-  ref: master
+  ref: gs4
