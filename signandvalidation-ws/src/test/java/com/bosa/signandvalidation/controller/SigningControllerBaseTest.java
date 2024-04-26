@@ -8,6 +8,7 @@ import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import com.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
+import com.bosa.signingconfigurator.model.VisiblePdfSignatureParameters;
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
@@ -64,6 +65,7 @@ public class SigningControllerBaseTest extends SignAndValidationBaseTest impleme
         ClientSignatureParameters clientSignatureParameters = new ClientSignatureParameters();
         clientSignatureParameters.setSigningCertificate(new RemoteCertificate(dssPrivateKeyEntry.getCertificate().getEncoded()));
         clientSignatureParameters.setCertificateChain(chain);
+        clientSignatureParameters.setPdfSigParams(new VisiblePdfSignatureParameters());
         return clientSignatureParameters;
     }
 

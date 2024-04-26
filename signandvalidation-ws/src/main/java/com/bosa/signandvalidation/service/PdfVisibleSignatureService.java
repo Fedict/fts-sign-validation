@@ -4,6 +4,7 @@ import com.bosa.signandvalidation.model.PdfSignatureProfile;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
+import com.bosa.signingconfigurator.model.VisiblePdfSignatureParameters;
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.ws.dto.RemoteColor;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -93,13 +94,14 @@ public class PdfVisibleSignatureService {
 
     public void prepareVisibleSignature(RemoteSignatureParameters remoteSigParams, float psfNHeight, float psfNWidth, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
 
-        PdfSignatureProfile psp = clientSigParams.getPsp();
+        VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
+        PdfSignatureProfile psp = pdfParams.getPsp();
         if (psp == null) psp = new PdfSignatureProfile();
         makePspDefaults(psp);
 
         RemoteSignatureFieldParameters fieldParams = new RemoteSignatureFieldParameters();
-        if (clientSigParams.getPsfN() == null) {
-            String psfC = clientSigParams.getPsfC();
+        if (pdfParams.getPsfN() == null) {
+            String psfC = pdfParams.getPsfC();
             if (psfC == null) return;
 
             if (DEFAULT_STRING.equals(psfC)) psfC = psp.defaultCoordinates;
@@ -110,16 +112,16 @@ public class PdfVisibleSignatureService {
             fieldParams.setWidth(Float.parseFloat(coords[3]));
             fieldParams.setHeight(Float.parseFloat(coords[4]));
         } else {
-            fieldParams.setFieldId(clientSigParams.getPsfN());
+            fieldParams.setFieldId(pdfParams.getPsfN());
             fieldParams.setHeight(psfNHeight);
             fieldParams.setWidth(psfNWidth);
         }
 
-        String text = makeText(psp.texts, clientSigParams.getSignLanguage(),
+        String text = makeText(psp.texts, pdfParams.getSignLanguage(),
                 remoteSigParams.getBLevelParams().getSigningDate(),
                 remoteSigParams.getSigningCertificate());
 
-        byte image[] = clientSigParams.getPhoto();
+        byte image[] = pdfParams.getPhoto();
         if (image == null) image = psp.image;
 
         RemoteSignatureImageParameters sigImgParams = new RemoteSignatureImageParameters();

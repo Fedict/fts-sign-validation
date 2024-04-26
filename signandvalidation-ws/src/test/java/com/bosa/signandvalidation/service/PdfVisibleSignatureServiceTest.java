@@ -3,6 +3,7 @@ package com.bosa.signandvalidation.service;
 import com.bosa.signandvalidation.model.PdfSignatureProfile;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
+import com.bosa.signingconfigurator.model.VisiblePdfSignatureParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.utils.Utils;
@@ -91,10 +92,12 @@ public class PdfVisibleSignatureServiceTest {
                 params.setSigningCertificate(cert);
                 ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
                 PdfSignatureProfile psp = (new ObjectMapper()).readValue(new String(pspFileBytes), PdfSignatureProfile.class);
-                clientSigParams.setPsp(psp);
-                clientSigParams.setPsfC(psp.defaultCoordinates == null ? "1,10,10,200,150" : DEFAULT_STRING);
-                clientSigParams.setSignLanguage(fileNameNoExt.substring(0, 2));
-                if (fileNameNoExt.charAt(2) == 'T') clientSigParams.setPhoto(photoBytes);
+                VisiblePdfSignatureParameters pdfParams = new VisiblePdfSignatureParameters();
+                pdfParams.setPsp(psp);
+                pdfParams.setPsfC(psp.defaultCoordinates == null ? "1,10,10,200,150" : DEFAULT_STRING);
+                pdfParams.setSignLanguage(fileNameNoExt.substring(0, 2));
+                if (fileNameNoExt.charAt(2) == 'T') pdfParams.setPhoto(photoBytes);
+                clientSigParams.setPdfSigParams(pdfParams);
                 new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
 
                 compareImages(params.getImageParameters().getImage().getBytes(), fileNameNoExt);
@@ -107,9 +110,11 @@ public class PdfVisibleSignatureServiceTest {
         RemoteSignatureParameters params = new RemoteSignatureParameters();
         params.setSigningCertificate(cert);
         ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
-        clientSigParams.setSignLanguage("fr");
-        clientSigParams.setPsfC("2,20,20,300,150");
-        clientSigParams.setPhoto(photoBytes);
+        VisiblePdfSignatureParameters pdfParams = new VisiblePdfSignatureParameters();
+        pdfParams.setSignLanguage("fr");
+        pdfParams.setPsfC("2,20,20,300,150");
+        pdfParams.setPhoto(photoBytes);
+        clientSigParams.setPdfSigParams(pdfParams);
         new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
 
         compareImages(params.getImageParameters().getImage().getBytes(), "noPSP1");

@@ -7,6 +7,7 @@ import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import com.bosa.signandvalidation.utils.OCSPOnlyRevocationDataLoadingStrategy;
 import com.bosa.signandvalidation.utils.OCSPOnlyForLeafRevocationDataLoadingStrategy;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
+import com.bosa.signingconfigurator.model.VisiblePdfSignatureParameters;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -931,14 +932,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public void prepareVisibleSignatureForToken(RemoteSignatureParameters remoteSigParams, TokenSignInput input, String bucket, ClientSignatureParameters clientSigParams)
             throws NullParameterException, IOException {
 
+        VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
         PdfSignatureProfile psp = getPspFile(input, bucket);
-        clientSigParams.setPsp(psp);
+        pdfParams.setPsp(psp);
         String psfN = input.getPsfN();
-        if (psfN != null) clientSigParams.setPsfN(psfN);
+        if (psfN != null) pdfParams.setPsfN(psfN);
         String psfC = input.getPsfC();
-        if (psfC != null) clientSigParams.setPsfC(psfC);
+        if (psfC != null) pdfParams.setPsfC(psfC);
         String signLanguage = input.getSignLanguage();
-        if (signLanguage != null) clientSigParams.setSignLanguage(signLanguage);
+        if (signLanguage != null) pdfParams.setSignLanguage(signLanguage);
         pdfVisibleSignatureService.prepareVisibleSignature(remoteSigParams, input.getPsfNHeight(), input.getPsfNWidth(), clientSigParams);
     }
 
@@ -1348,14 +1350,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     private void prepareVisibleSignature(RemoteSignatureParameters parameters, RemoteDocument pdf, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
-        PDRectangle rect = null;
-        String psfN = clientSigParams.getPsfN();
-        String psfC = clientSigParams.getPsfC();
-        if (psfN != null || psfC != null) {
-            PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(pdf.getBytes()), (String) null);
-            rect = checkVisibleSignatureParameters(psfC, psfN, clientSigParams.getPsp(), pdfDoc);
+        VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
+        if (pdfParams != null) {
+            PDRectangle rect = null;
+            String psfN = pdfParams.getPsfN();
+            String psfC = pdfParams.getPsfC();
+            if (psfN != null || psfC != null) {
+                PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(pdf.getBytes()), (String) null);
+                rect = checkVisibleSignatureParameters(psfC, psfN, pdfParams.getPsp(), pdfDoc);
+            }
+            pdfVisibleSignatureService.prepareVisibleSignature(parameters, rect == null ? 0 : rect.getHeight(), rect == null ? 0 : rect.getWidth(), clientSigParams);
         }
-        pdfVisibleSignatureService.prepareVisibleSignature(parameters, rect == null ? 0 : rect.getHeight(), rect == null ? 0 : rect.getWidth(), clientSigParams);
     }
 
     /*****************************************************************************************/

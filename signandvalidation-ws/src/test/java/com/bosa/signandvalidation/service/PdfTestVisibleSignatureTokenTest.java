@@ -126,7 +126,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
 
         ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
-        clientSignatureParameters.setPhoto(photo);
+        clientSignatureParameters.getPdfSigParams().setPhoto(photo);
 
         // get token from file
         GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
