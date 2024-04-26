@@ -47,8 +47,9 @@ public class PdfVisibleSignatureService {
     private static final String NN_TOKEN            = "%nn%";       // Placeholder for National number
     private static final String LEGACY_NN_TOKEN     = "%rrn%";      // Old Placeholder for National number - to delete some day ;-)
 
-    private static final String DEFAULT_TEXT = GIVENNAME_TOKEN + " " + SURNAME_TOKEN;
+    private static final String DEFAULT_TEXT        = GIVENNAME_TOKEN + " " + SURNAME_TOKEN;
 
+    public static final String TRANSPARENT          = "TRANSPARENT";
 
     // Simple PNG image of a paper and a pen on gray (#D0D0D0) background, size = 125 x 150 pixels
     private static final byte[] IMAGE = Base64.getDecoder().decode(
@@ -245,7 +246,8 @@ public class PdfVisibleSignatureService {
     ///////////////////////////////////////////////////////////////////////////
 
     private RemoteColor makeColor(String color, boolean transparent) {
-        return new RemoteColor(Integer.parseInt(color.substring(1, 3), 16),
+        return TRANSPARENT.equals(color) ? new RemoteColor(0, 0, 0, 0) :
+        new RemoteColor(Integer.parseInt(color.substring(1, 3), 16),
                 Integer.parseInt(color.substring(3, 5), 16),
                 Integer.parseInt(color.substring(5, 7), 16),
                 transparent ? 160 : 255);

@@ -67,6 +67,7 @@ import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setO
 import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static com.bosa.signandvalidation.model.SigningType.XadesMultiFile;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
+import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.TRANSPARENT;
 import static com.bosa.signandvalidation.utils.SupportUtils.xmlDocToString;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 
@@ -129,7 +130,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
-    private static final Pattern pspColorPattern                = Pattern.compile("#[0-9a-fA-F]{6}");
+    private static final Pattern pspColorPattern                = Pattern.compile("(#[0-9a-fA-F]{6}|" + TRANSPARENT + ")");
     private static final Pattern pspFontPattern                = Pattern.compile(".*(/b|/i|/bi|/ib)?"); // <FontName>/<b><i>. Sample : "Serif/bi"
 
     private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en");
