@@ -470,7 +470,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 try {
                     PDPage page = pdfDoc.getPage((int)boxCoords[0] - 1);
                     PDRectangle box = page.getBBox();
-                    if (!box.contains(boxCoords[1], boxCoords[2]) || !box.contains(boxCoords[1] + boxCoords[3], boxCoords[2] + boxCoords[4])) {
+                    if (page.getRotation() == 90 ?
+                            (!box.contains(boxCoords[2], boxCoords[1]) || !box.contains(boxCoords[2] + boxCoords[4], boxCoords[1] + boxCoords[3])) :
+                            (!box.contains(boxCoords[1], boxCoords[2]) || !box.contains(boxCoords[1] + boxCoords[3], boxCoords[2] + boxCoords[4]))) {
                         logAndThrowEx(FORBIDDEN, SIGNATURE_OUT_OF_BOUNDS, "The new signature field position is outside the page dimensions: '" + psfC + "'", null);
                     }
                     return;
