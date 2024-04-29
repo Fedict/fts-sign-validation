@@ -61,6 +61,7 @@ import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setO
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
 import static com.bosa.signandvalidation.model.SigningType.XadesMultiFile;
+import static com.bosa.signandvalidation.utils.MiscUtils.getPolicyFile;
 import static com.bosa.signandvalidation.utils.XmlUtil.xmlDocToString;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 import eu.europa.esig.dss.enumerations.Indication;
@@ -1244,7 +1245,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
             detachedDocuments.add(signDocumentDto.getToSignDocument());
 
-            RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, signDocumentDto.getValidatePolicy());
+            RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, getValidationPolicy(signDocumentDto.getValidatePolicy(), signProfile));
             logger.info("Returning from signDocument()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1294,7 +1295,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
             // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
-            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getToSignDocuments(), parameters, signDocumentDto.getValidatePolicy());
+            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getToSignDocuments(), parameters, getValidationPolicy(signDocumentDto.getValidatePolicy(), signProfile));
             logger.info("Returning from signDocumentMultiple()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1550,7 +1551,19 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return new PolicyParameters(dto.getId(), dto.getDescription(), dto.getDigestAlgorithm());
     }
 
-/*****************************************************************************************/
+    /*****************************************************************************************/
+
+    private static RemoteDocument getValidationPolicy(RemoteDocument policy, ProfileSignatureParameters signProfile) throws IOException {
+
+        if (policy == null) {
+            if (signProfile.getValidationPolicyFilename() != null) {
+                policy = getPolicyFile(signProfile.getValidationPolicyFilename());
+            }
+        }
+        return policy;
+    }
+
+    /*****************************************************************************************/
 
 private static void handleRevokedCertificates(Exception e) {
     if (e instanceof AlertException && e.getMessage().startsWith("Revoked/Suspended certificate")) {

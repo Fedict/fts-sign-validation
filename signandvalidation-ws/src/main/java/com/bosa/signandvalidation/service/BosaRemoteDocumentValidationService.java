@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Configuration;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.INVALID_PARAM;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static com.bosa.signandvalidation.utils.MiscUtils.getPolicyFile;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
@@ -132,15 +133,6 @@ public class BosaRemoteDocumentValidationService {
 			ThreadedCertificateVerifier.clearExtraCertificateSource(); // Cleanup
 		}
 		return report;
-	}
-
-	private RemoteDocument getPolicyFile(String fileName) throws IOException {
-		logger.warning("Loading policy for signature validation : " + fileName);
-		InputStream genericIs = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + fileName);
-		if (genericIs == null) throw new IOException("Policy file not found");
-		RemoteDocument policyDocument = new RemoteDocument(Utils.toByteArray(genericIs), fileName);
-		genericIs.close();
-		return policyDocument;
 	}
 
 	// The below password is only needed because, pre-Java 20 JVM, a "null" password keystore

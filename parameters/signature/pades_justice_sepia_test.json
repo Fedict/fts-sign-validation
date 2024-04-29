@@ -1,8 +1,9 @@
 {
-  "profileId": "PADES_JUSTICE_SEPIA_LTA",
+  "profileId": "PADES_JUSTICE_SEPIA_TEST",
   "digestAlgorithm": "SHA256",
   "signatureLevel": "PAdES_BASELINE_LTA",
   "signaturePackaging": "ENVELOPED",
   "tspServer": "http://tss.eidpki.belgium.be/",
-  "returnDigest": false
+  "returnDigest": false,
+  "validationPolicyFilename": "testEsealingConstraint.xml"
 }

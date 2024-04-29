@@ -93,6 +93,8 @@ public class ProfileSignatureParameters extends JsonObject {
 
     private Boolean returnDigest;
 
+    private String validationPolicyFilename;
+
     /*
      * The values unrelated to signature parameters.
      */
@@ -188,4 +190,5 @@ public class ProfileSignatureParameters extends JsonObject {
 
     public Boolean isReturnDigest() { return returnDigest == null || returnDigest; }
 
+    public String getValidationPolicyFilename() { return validationPolicyFilename; }
 }
