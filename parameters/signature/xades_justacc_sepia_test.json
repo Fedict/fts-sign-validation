@@ -1,0 +1,18 @@
+{
+  "profileId": "XADES_JUSTACC_SEPIA_TEST",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "XAdES_BASELINE_LT",
+  "signaturePackaging": "ENVELOPING",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "trustAnchorBPPolicy": false,
+  "addCertPathToKeyinfo": true,
+  "policyId": "urn:oid:1.3.6.1.4.1.35390.10.15.6.1.0",
+  "policyQualifier": "OID_AS_URN",
+  "policyDescription": "To_be_confirmed",
+  "policyDigestAlgorithm": "SHA256",
+  "policyDigestValue": "bnee/GRkXU//UpD6sEFJfqxplCz/gW2RiuT1DHVMS8I=",
+  "policySpuri": "https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf",
+  "embedXML": true,
+  "returnDigest": false,
+  "validationPolicyFilename": "testEsealingConstraint.xml"
+}
