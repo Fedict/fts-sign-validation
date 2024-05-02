@@ -69,6 +69,7 @@ import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static com.bosa.signandvalidation.model.SigningType.XadesMultiFile;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.TRANSPARENT;
+import static com.bosa.signandvalidation.utils.MiscUtils.getPolicyFile;
 import static com.bosa.signandvalidation.utils.SupportUtils.xmlDocToString;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 
