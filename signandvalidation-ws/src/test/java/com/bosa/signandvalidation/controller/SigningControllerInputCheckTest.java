@@ -140,7 +140,7 @@ public class SigningControllerInputCheckTest {
 
         // finish with general params
         testToken(token, INVALID_PARAM, "'Xades Multifile' with an invalid signProfile :null");
-        token.setXmlSignProfile("XADES_JUSTACCT_CITIZEN");
+        token.setXmlSignProfile("XADES_JUSTACT_CITIZEN");
 
         testToken(token, INVALID_PARAM, "'OutXslt' (file2.xml) is not unique");
         token.setOutXsltPath("OutXSLT.xml");
