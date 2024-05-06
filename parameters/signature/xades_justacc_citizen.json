@@ -4,7 +4,7 @@
   "referenceDigestAlgorithm": "SHA512",
   "signatureLevel": "XAdES_BASELINE_LTA",
   "signaturePackaging": "ENVELOPED",
-  "signatureForm": "XAdES",
+  "referenceDigestAlgorithm": "SHA512",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
   "addCertPathToKeyinfo": true,

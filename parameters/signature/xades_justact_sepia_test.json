@@ -1,5 +1,5 @@
 {
-  "profileId": "XADES_JUSTACC_SEPIA_TEST",
+  "profileId": "XADES_JUSTACT_SEPIA_TEST",
   "digestAlgorithm": "SHA256",
   "signatureLevel": "XAdES_BASELINE_LT",
   "signaturePackaging": "ENVELOPING",
