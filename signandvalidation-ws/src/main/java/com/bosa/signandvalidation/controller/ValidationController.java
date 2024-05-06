@@ -67,7 +67,7 @@ public class ValidationController extends ControllerBase implements ErrorStrings
     }
 
     @Operation(summary = "Validate a single document's signatures", description = "Validate a signed file.<BR>" +
-            "<BR><B>NOTE : validaSignature calls validaSignatureFull and returns a smaller set of information</B><BR>" +
+            "<BR><B>NOTE : validateSignature calls validaSignatureFull and returns a smaller set of information</B><BR>" +
             "<BR>The Signature can be either part of the signed document or external to the document(s)" +
             "<BR>For external (DETACHED) signature validation a list of 'originalDocument' files must be provided" +
             "<BR>It is possible to check if all signatures have the expected signature level. For this you must set the 'level' value<BR>" +
