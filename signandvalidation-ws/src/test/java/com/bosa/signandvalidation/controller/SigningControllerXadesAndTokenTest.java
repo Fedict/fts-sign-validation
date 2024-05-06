@@ -138,7 +138,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         unSignedXmlFile += "</" + ROOT_XSLT_ELT + ">";
 
         // Start testing
-        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", "MDOC_XADES_LTA", inFiles, OUT_FILE_NAME);
+        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", "XADES_JUSTACCT_CITIZEN", inFiles, OUT_FILE_NAME);
         gtfd.setOutXsltPath(MAIN_XSLT_FILE_NAME);
         gtfd.setOutDownload(true);
 
