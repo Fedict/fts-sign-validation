@@ -1445,11 +1445,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
             detachedDocuments.add(signDocumentDto.getToSignDocument());
 
-            /*
-            OutputStream fos = new FileOutputStream(new File("XXX.pdf"));
-            fos.write(signedDoc.getBytes());
-            fos.close();
-             */
+//            try (FileOutputStream fos = new FileOutputStream("signed.file")) { fos.write(signedDoc.getBytes()); }
 
             RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, signDocumentDto.getValidatePolicy());
             logger.info("Returning from signDocument()");
