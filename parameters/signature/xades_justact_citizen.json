@@ -1,5 +1,5 @@
 {
-  "profileId": "XADES_JUSTACCT_CITIZEN",
+  "profileId": "XADES_JUSTACT_CITIZEN",
   "digestAlgorithm": "SHA384",
   "referenceDigestAlgorithm": "SHA512",
   "signatureLevel": "XAdES_BASELINE_LTA",

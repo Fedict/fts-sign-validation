@@ -139,7 +139,7 @@ public class SigningControllerInputCheckTest {
         input2.setDisplayXsltPath("xslt");
 
         // finish with general params
-        token.setXmlSignProfile("MDOC_XADES_LTA");
+        token.setXmlSignProfile("XADES_JUSTACT_CITIZEN");
         testToken(token, INVALID_PARAM, "'Xades Multifile' must be used only for XML files");
         token.setPdfSignProfile(null);
 

@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignXMLElementsDTO {
-    @Schema(example = "XADES_MDOC_LTA", requiredMode = Schema.RequiredMode.REQUIRED, description = "The signing profile to use")
+    @Schema(example = "XADES_JUSTACT_CITIZEN", requiredMode = Schema.RequiredMode.REQUIRED, description = "The signing profile to use")
     private String signingProfileId;
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "A file to be signed")
     private RemoteDocument toSignDocument;
