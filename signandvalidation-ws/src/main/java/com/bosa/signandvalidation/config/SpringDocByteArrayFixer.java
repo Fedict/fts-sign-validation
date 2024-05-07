@@ -1,5 +1,6 @@
 package com.bosa.signandvalidation.config;
 
+import io.swagger.v3.oas.models.media.Schema;
 import org.springdoc.core.SpringDocUtils;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,11 +13,11 @@ import org.springframework.context.annotation.Configuration;
             type: string
             format: byte
 
-    This configuration aims to fix this by replacing all "byte []" by Strings.
+    This configuration aims to fix this by replacing all "byte []" by string with format "byte".
  */
 @Configuration
 public class SpringDocByteArrayFixer {
     static {
-        SpringDocUtils.getConfig().replaceWithClass(byte[].class, String.class);
+        SpringDocUtils.getConfig().replaceWithSchema(byte[].class, new Schema<byte[]>().type("string").format("byte"));
     }
 }

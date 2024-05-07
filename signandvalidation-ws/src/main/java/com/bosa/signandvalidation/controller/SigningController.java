@@ -9,6 +9,7 @@ import com.bosa.signandvalidation.utils.OCSPOnlyForLeafRevocationDataLoadingStra
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.bosa.signingconfigurator.model.VisiblePdfSignatureParameters;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
@@ -18,8 +19,10 @@ import com.bosa.signingconfigurator.model.PolicyParameters;
 import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.alert.exception.AlertException;
-import eu.europa.esig.dss.enumerations.*;
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.pades.exception.ProtectedDocumentException;
+import eu.europa.esig.dss.enumerations.SignatureForm;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
@@ -611,7 +614,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkValue("outFilePath", outPath, false, null, filenamesList);
         }
     }
-
 
     /*****************************************************************************************/
 
