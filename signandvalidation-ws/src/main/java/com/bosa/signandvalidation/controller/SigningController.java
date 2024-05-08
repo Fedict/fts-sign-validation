@@ -9,7 +9,6 @@ import com.bosa.signandvalidation.utils.OCSPOnlyForLeafRevocationDataLoadingStra
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.bosa.signingconfigurator.model.VisiblePdfSignatureParameters;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
@@ -376,7 +375,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (signingType != signProfile.getSigningType()) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be of the same signingType." , null);
             }
-        } else token.setSigningType(signProfile.getSigningType());
+        }
+        token.setSigningType(signProfile.getSigningType());
     }
 
     /*****************************************************************************************/

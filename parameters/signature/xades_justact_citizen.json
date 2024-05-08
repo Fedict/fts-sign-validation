@@ -8,5 +8,6 @@
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
   "addCertPathToKeyinfo": true,
-  "revocationStrategy": "OCSP_ONLY_FOR_LEAF"
+  "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
+  "signingType": "XadesMultiFile"
 }
