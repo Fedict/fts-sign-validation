@@ -19,8 +19,6 @@ public class SignXMLElementsDTO {
     private RemoteDocument toSignDocument;
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Signature parameters")
     private ClientSignatureParameters clientSignatureParameters;
-    @Schema(description = "A policy to include in the signed XML file")
-    private PolicyDTO policy;
     @Schema(description = "The list of XML elements Ids that must be signed")
     private List<String> elementIdsToSign;
 

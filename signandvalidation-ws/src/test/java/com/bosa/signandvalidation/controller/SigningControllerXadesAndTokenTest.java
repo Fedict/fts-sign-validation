@@ -215,10 +215,8 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         System.out.println(sb);
         RemoteDocument fileToSign = new RemoteDocument(sb.toString().getBytes(), "aFile.xml");
 
-        PolicyDTO policy = new PolicyDTO("https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf", "policyDesc", DigestAlgorithm.SHA256);
-
         // get data to sign
-        GetDataToSignXMLElementsDTO prepareSignDto = new GetDataToSignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets, "ID");
+        GetDataToSignXMLElementsDTO prepareSignDto = new GetDataToSignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, targets, "ID");
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_XADES_MULTI_DOC, prepareSignDto, DataToSignDTO.class);
 
         // sign
@@ -226,7 +224,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignXMLElementsDTO signDto = new SignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets, signatureValue.getValue(), "ID");
+        SignXMLElementsDTO signDto = new SignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, targets, signatureValue.getValue(), "ID");
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_XADES_MULTI_DOC, signDto, RemoteDocument.class);
         assertNotNull(signedDocument);
     }

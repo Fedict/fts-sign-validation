@@ -14,7 +14,6 @@ public class GetDataToSignXMLElementsDTO {
     private String signingProfileId;
     private RemoteDocument toSignDocument;
     private ClientSignatureParameters clientSignatureParameters;
-    private PolicyDTO policy;
     private List<String> elementIdsToSign;
     @Schema(description = "A logging identifier for the current user session")
     private String token;

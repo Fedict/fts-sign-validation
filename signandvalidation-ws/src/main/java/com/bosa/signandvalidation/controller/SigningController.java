@@ -1672,7 +1672,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             clientSigParams.setSigningDate(signingDate);
 
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(getDataToSignDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, policyDtoToPolicyParameters(getDataToSignDto.getPolicy()));
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
 
             List<DSSReference> references = buildReferences(signingDate, getDataToSignDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
 
@@ -1718,7 +1718,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDto.getSigningProfileId());
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, policyDtoToPolicyParameters(signDto.getPolicy()));
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
@@ -1747,12 +1747,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
 /*****************************************************************************************/
 
-    private static PolicyParameters policyDtoToPolicyParameters(PolicyDTO dto) {
-        return new PolicyParameters(dto.getId(), dto.getDescription(), dto.getDigestAlgorithm());
-    }
-
-    /*****************************************************************************************/
-
     private static RemoteDocument getValidationPolicy(RemoteDocument policy, ProfileSignatureParameters signProfile) throws IOException {
 
         if (policy == null) {
@@ -1763,7 +1757,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return policy;
     }
 
-    /*****************************************************************************************/
+/*****************************************************************************************/
 
 private static void handleRevokedCertificates(Exception e) {
     if (e instanceof AlertException && e.getMessage().startsWith("Revoked/Suspended certificate")) {
