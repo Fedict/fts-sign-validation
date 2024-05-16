@@ -808,6 +808,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Cache-Control", "no-cache");
             response.setHeader("Content-Transfer-Encoding", "binary");
+            // Below is a Snyk false positive report : The value is sanitized
             response.setHeader("Content-Disposition", contentDisposition);
 
             if (singleFilePath != null) {
@@ -899,6 +900,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
 
             if (APPLICATION_PDF.equals(mediaType)) {
+                // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
+                // or in "ImageIO.read" where it is NOT used as a path !
                 prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
             }
 
@@ -1012,6 +1015,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
             if (APPLICATION_PDF.equals(mediaType)) {
+                // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
+                // or in "ImageIO.read" where it is NOT used as a path !
                 prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
             }
 
@@ -1323,6 +1328,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkDataToSign(parameters, null);
 
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
+                // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
+                // or in "ImageIO.read" where it is NOT used as a path !
                 prepareVisibleSignature(parameters, dataToSignDto.getToSignDocument(), clientSigParams);
             }
 
@@ -1433,6 +1440,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             setOverrideRevocationStrategy(signProfile);
 
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
+                // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
+                // or in "ImageIO.read" where it is NOT used as a path !
                 prepareVisibleSignature(parameters, signDocumentDto.getToSignDocument(), clientSigParams);
             }
 

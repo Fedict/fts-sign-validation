@@ -27,6 +27,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
+        // Below is a Snyk false positive report : REST is stateless AND we're not authenticated so CSRF does not make sense
         http.csrf().disable();
 
         // javadoc uses frames

@@ -147,6 +147,7 @@ public class PdfVisibleSignatureService {
         if (psp.textPos == null) psp.textPos = SignerTextPosition.BOTTOM;
         if (psp.textColor == null) psp.textColor = "#0000FF"; // blue
         if (psp.imageDpi == null) psp.imageDpi = 400;
+        // Below is a Snyk false positive report : The comparison always take the same time (discounting some nanoseconds)
         if (psp.image != null && Arrays.equals(psp.image, DEFAULT_BYTES)) psp.image = IMAGE;
 
         if (psp.version == 2) {
