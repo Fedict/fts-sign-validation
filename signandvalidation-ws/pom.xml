@@ -188,17 +188,11 @@
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
         </dependency>
-	<!-- JSON Web Tokens -->
-	<dependency>
-	    <groupId>com.nimbusds</groupId>
-	    <artifactId>nimbus-jose-jwt</artifactId>
-	    <version>8.19</version>
-	</dependency>
         <!-- minio -->
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
-            <version>8.5.7</version>
+            <version>8.5.10</version>
             <exclusions>
                 <exclusion>
                     <artifactId>bcprov-jdk15on</artifactId>
