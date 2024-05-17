@@ -22,7 +22,6 @@ import eu.europa.esig.dss.simplereport.jaxb.*;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
-import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
@@ -31,6 +30,7 @@ import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlValidationProcessBasicSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -60,16 +60,13 @@ public class BosaRemoteDocumentValidationService {
 	BigInteger testRootCertSN;
 
 	private static final Logger logger = Logger.getLogger(BosaRemoteDocumentValidationService.class.getName());
-	private ShadowRemoteDocumentValidationService remoteDocumentValidationService;
+	@Setter
+    private ShadowRemoteDocumentValidationService remoteDocumentValidationService;
 
 	public BosaRemoteDocumentValidationService() {
 	}
 
-	public void setRemoteDocumentValidationService(ShadowRemoteDocumentValidationService remoteDocumentValidationService) {
-		this.remoteDocumentValidationService = remoteDocumentValidationService;
-	}
-
-	public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, TrustSources trust) {
+    public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, TrustSources trust) {
 		return validateDocument(signedDocument, originalDocuments, policy, trust, null);
 	}
 
