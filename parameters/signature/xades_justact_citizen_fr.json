@@ -5,6 +5,7 @@
   "signatureLevel": "XAdES_BASELINE_LTA",
   "signaturePackaging": "ENVELOPED",
   "tspServer": "http://tss.eidpki.belgium.be/",
+  "signatureForm": "PAdES",
   "trustAnchorBPPolicy": false,
   "addCertPathToKeyinfo": true,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
