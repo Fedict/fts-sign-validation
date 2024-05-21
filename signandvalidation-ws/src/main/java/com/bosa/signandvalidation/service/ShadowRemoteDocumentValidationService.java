@@ -74,6 +74,11 @@ public class ShadowRemoteDocumentValidationService {
         this.dataLoader = dataLoader;
     }
 
+    /**************** fileCacheDataLoader setter */
+    public void setDataLoader(DataLoader dataLoader) {
+        this.dataLoader = dataLoader;
+    }
+
     /**
      * Sets the certificate verifier
      *
@@ -84,21 +89,45 @@ public class ShadowRemoteDocumentValidationService {
     }
 
     /**
+     * Sets the validation policy to be used by default, when no policy provided within the request
+     *
+     * @param validationPolicy {@link InputStream}
+     */
+    public void setDefaultValidationPolicy(InputStream validationPolicy) {
+        try {
+            this.defaultValidationPolicy = ValidationPolicyFacade.newFacade().getValidationPolicy(validationPolicy);
+        } catch (Exception e) {
+            throw new DSSRemoteServiceException(String.format("Unable to instantiate validation policy: %s", e.getMessage()), e);
+        }
+    }
+
+    /**
+     * Sets the validation policy to be used by default, when no policy provided within the request
+     *
+     * @param validationPolicy {@link ValidationPolicy}
+     */
+    public void setDefaultValidationPolicy(ValidationPolicy validationPolicy) {
+        this.defaultValidationPolicy = validationPolicy;
+    }
+
+    /**
      * Validates the document
      *
      * @param dataToValidate {@link DataToValidateDTO} the request
-     * @return {@link SignatureFullValiationDTO} response
+     * @return {@link WSReportsDTO} response
      */
-    public SignatureFullValiationDTO validateDocument(DataToValidateDTO dataToValidate) {
+    public WSReportsDTO validateDocument(DataToValidateDTO dataToValidate) {
         LOG.info("ValidateDocument in process...");
         SignedDocumentValidator validator = initValidator(dataToValidate);
 
         Reports reports;
         RemoteDocument policy = dataToValidate.getPolicy();
-        if (policy == null) {
-            reports = validator.validateDocument();
-        } else {
+        if (policy != null) {
             reports = validator.validateDocument(getValidationPolicy(policy));
+        } else if (defaultValidationPolicy != null) {
+            reports = validator.validateDocument(defaultValidationPolicy);
+        } else {
+            reports = validator.validateDocument();
         }
 
         SignatureFullValiationDTO reportsDTO =
@@ -140,11 +169,20 @@ public class ShadowRemoteDocumentValidationService {
         }
     }
 
-    private SignedDocumentValidator initValidator(DataToValidateDTO dataToValidate) {
+    /**
+     * Instantiates a {@code SignedDocumentValidator} based on the request data DTO
+     *
+     * @param dataToValidate {@link DataToValidateDTO} representing the request data
+     * @return {@link SignedDocumentValidator}
+     */
+    protected SignedDocumentValidator initValidator(DataToValidateDTO dataToValidate) {
         DSSDocument signedDocument = RemoteDocumentConverter.toDSSDocument(dataToValidate.getSignedDocument());
         SignedDocumentValidator signedDocValidator = SignedDocumentValidator.fromDocument(signedDocument);
         if (Utils.isCollectionNotEmpty(dataToValidate.getOriginalDocuments())) {
             signedDocValidator.setDetachedContents(RemoteDocumentConverter.toDSSDocuments(dataToValidate.getOriginalDocuments()));
+        }
+        if (Utils.isCollectionNotEmpty(dataToValidate.getEvidenceRecords())) {
+            signedDocValidator.setDetachedEvidenceRecordDocuments(RemoteDocumentConverter.toDSSDocuments(dataToValidate.getEvidenceRecords()));
         }
         signedDocValidator.setCertificateVerifier(verifier);
         // If null, uses default (NONE)
