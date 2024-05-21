@@ -2,7 +2,7 @@ package com.bosa.signandvalidation.service;
 
 /******************************* WARNING ****************************
 
- This class is a shadow of the DSS 5.9 "RemoteDocumentValidationService"
+ This class is a shadow of the DSS 5.13 "RemoteDocumentValidationService"
  It is needed because there is an issue when validating Xades signatures
  with "Policies". The code was using a non-proxied "dataLoader" object
  which is blocked by firewalls.
@@ -35,7 +35,6 @@ package com.bosa.signandvalidation.service;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import eu.europa.esig.dss.exception.IllegalInputException;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.policy.ValidationPolicy;
@@ -49,11 +48,14 @@ import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import eu.europa.esig.dss.validation.reports.Reports;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import eu.europa.esig.dss.ws.dto.exception.DSSRemoteServiceException;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
+import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -61,7 +63,7 @@ import java.util.List;
  */
 public class ShadowRemoteDocumentValidationService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ShadowRemoteDocumentValidationService.class);
 
     /** The certificate verifier to use */
     private CertificateVerifier verifier;
@@ -69,9 +71,14 @@ public class ShadowRemoteDocumentValidationService {
     /**************** fileCacheDataLoader will land here */
     private DataLoader dataLoader;
 
-    /**************** fileCacheDataLoader setter */
-    public void setDataLoader(DataLoader dataLoader) {
-        this.dataLoader = dataLoader;
+
+    /** The validation policy to be used by default */
+    private ValidationPolicy defaultValidationPolicy;
+    /**
+     * Default construction instantiating object with null certificate verifier
+     */
+    public ShadowRemoteDocumentValidationService() {
+        // empty
     }
 
     /**************** fileCacheDataLoader setter */
@@ -130,8 +137,8 @@ public class ShadowRemoteDocumentValidationService {
             reports = validator.validateDocument();
         }
 
-        SignatureFullValiationDTO reportsDTO =
-                new SignatureFullValiationDTO(reports.getDiagnosticDataJaxb(), reports.getSimpleReportJaxb(), reports.getDetailedReportJaxb());
+        WSReportsDTO reportsDTO = new WSReportsDTO(reports.getDiagnosticDataJaxb(), reports.getSimpleReportJaxb(),
+                reports.getDetailedReportJaxb(), reports.getEtsiValidationReportJaxb());
         LOG.info("ValidateDocument is finished");
         return reportsDTO;
     }

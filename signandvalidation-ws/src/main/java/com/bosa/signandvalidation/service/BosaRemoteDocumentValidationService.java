@@ -30,6 +30,7 @@ import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlValidationProcessBasicSignature;
 import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
+import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -72,7 +73,7 @@ public class BosaRemoteDocumentValidationService {
 
 	public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, TrustSources trust, RemoteSignatureParameters parameters) {
 
-		SignatureFullValiationDTO report = null;
+		WSReportsDTO report = null;
 		try {
 			if (trust != null) {
 				ThreadedCertificateVerifier.setExtraCertificateSource(trustSourcesToCertificateSource(trust));
@@ -129,21 +130,23 @@ public class BosaRemoteDocumentValidationService {
 		} finally {
 			ThreadedCertificateVerifier.clearExtraCertificateSource(); // Cleanup
 		}
-		return report;
+		return new SignatureFullValiationDTO(report);
 	}
 
 	// The below password is only needed because, pre-Java 20 JVM, a "null" password keystore
 	// ignores the certificates added to it. With Java 20 they are accepted.
 	// This hardcoded password will of course trigger security review (sast or human)... although it should not since
 	// the keystore is only held in memory (although not in "unswappable" memory... but that is another topic)
-	private static final String SILLY_PASSWORD = "123456";
+
+	private static final char [] SILLY_PASSWORD = "123456".toCharArray();
+
 	private CertificateSource trustSourcesToCertificateSource(TrustSources trust) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
 
 		CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
 		if (trust.getKeystore() != null) {
 			String password = trust.getPassword();
 			InputStream keyStoreStream = new ByteArrayInputStream(trust.getKeystore());
-			KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", password);
+			KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", password == null ? null : password.toCharArray());
 			trustedCertificateSource.importAsTrusted(keystoreCrtSrc);
 		}
 
@@ -167,7 +170,7 @@ public class BosaRemoteDocumentValidationService {
 			}
 			ByteArrayOutputStream baos = new ByteArrayOutputStream(1000);
 
-			keyStore.store(baos, SILLY_PASSWORD.toCharArray());
+			keyStore.store(baos, SILLY_PASSWORD);
 			InputStream keyStoreStream = new ByteArrayInputStream(baos.toByteArray());
 			KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", SILLY_PASSWORD);
 			trustedCertificateSource.importAsTrusted(keystoreCrtSrc);
@@ -176,7 +179,7 @@ public class BosaRemoteDocumentValidationService {
 		return trustedCertificateSource;
 	}
 
-	private boolean documentHasBelgianSignature(SignatureFullValiationDTO report) {
+	private boolean documentHasBelgianSignature(WSReportsDTO report) {
 		for(XmlToken sigOrTS : report.getSimpleReport().getSignatureOrTimestampOrEvidenceRecord()) {
 			if (sigOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature) {
 				XmlCertificateChain certChain = sigOrTS.getCertificateChain();
@@ -202,7 +205,7 @@ public class BosaRemoteDocumentValidationService {
 		return false;
 	}
 
-	private void modifyReports(SignatureFullValiationDTO report, String sigId, SubIndication subIndication, String errMesg) {
+	private void modifyReports(WSReportsDTO report, String sigId, SubIndication subIndication, String errMesg) {
 		// Modify the simple report
 		XmlSimpleReport simpleReport = report.getSimpleReport();
 		for (XmlToken token : simpleReport.getSignatureOrTimestampOrEvidenceRecord()) {
