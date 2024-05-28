@@ -15,7 +15,7 @@ public class MinioCleanupJob implements StorageService.BucketCleaner {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MinioCleanupJob.class);
 
-    @Value("${delete.files.days:4,365}")
+    @Value("${delete.files.days:}")
     private String deleteFilesDays;
 
     @Autowired
@@ -29,15 +29,27 @@ public class MinioCleanupJob implements StorageService.BucketCleaner {
     @Scheduled(initialDelayString = "PT1S", fixedDelayString = "PT3H")
 
     public void refresh() {
-        LOG.warn("Cleanup Starting (deleteFilesDays: " + deleteFilesDays + ")");
+        if (deleteFilesDays == null || !deleteFilesDays.matches("\\d+,\\d+")) {
+            LOG.warn("No Cleanup");
+            return;
+        }
+
+        LOG.warn("Cleanup Starting");
         startCleanup = LocalDate.now();
         secretBucket = minio.getSecretBucket();
         String[] bits = deleteFilesDays.split(",");
         daysToKeepFiles = Integer.parseInt(bits[0]);
-        if (daysToKeepFiles < 2) daysToKeepFiles = 2;
         daysToKeepTokens = Integer.parseInt(bits[1]);
-        if (daysToKeepTokens < 10) daysToKeepTokens = 10;
 
+        // Safeguards
+        if (daysToKeepFiles < 2) {
+            LOG.warn("daysToKeepFiles too small " + daysToKeepFiles);
+            daysToKeepFiles = 2;
+        }
+        if (daysToKeepTokens < 10) {
+            LOG.warn("daysToKeepTokens too small " + daysToKeepTokens);
+            daysToKeepTokens = 10;
+        }
         LOG.warn("daysToKeepFiles:" + daysToKeepFiles + " - daysToKeepTokens:" + daysToKeepTokens);
         minio.cleanupBuckets(this);
         LOG.warn("Cleanup Done");
