@@ -23,7 +23,7 @@ import java.io.*;
 import java.net.SocketTimeoutException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -161,8 +161,9 @@ public class StorageService {
         try {
             if (bucket == null) bucket = secretBucket;
             StatObjectResponse so = getClient().statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
-            return new FileStoreInfo(MediaTypeUtil.getMediaTypeFromFilename(name), so.etag(), so.size());
-
+            return new FileStoreInfo(MediaTypeUtil.getMediaTypeFromFilename(name), so.etag(), so.size(), LocalDateTime.from(so.lastModified()));
+        } catch(ErrorResponseException e) {
+            return new FileStoreInfo(); // File not found
         } catch (Exception e) {
             logAndThrow("getting info for", name, e);
         }
@@ -207,7 +208,7 @@ public class StorageService {
                 for (Result<Item> r : results) {
                     Item i = r.get();
                     fileName = i.objectName();
-                    if (cleaner.shouldDelete(bucketName, fileName, i.isDir(), i.isDir() ? null : LocalDate.from(i.lastModified()))) {
+                    if (cleaner.shouldDelete(bucketName, fileName, i.isDir(), i.isDir() ? null : LocalDateTime.from(i.lastModified()))) {
                         toDelete.add(new DeleteObject(fileName));
                         sb.append(fileName);
                         sb.append(", ");
@@ -230,6 +231,6 @@ public class StorageService {
     }
 
     public interface BucketCleaner {
-        boolean shouldDelete(String bucketName, String path, boolean isDir, LocalDate lastModification);
+        boolean shouldDelete(String bucketName, String path, boolean isDir, LocalDateTime lastModification);
     }
 }
