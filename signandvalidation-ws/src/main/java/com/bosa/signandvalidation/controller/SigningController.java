@@ -149,7 +149,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_DATA_TO_SIGN_XADES_MULTI_DOC = "/getDataToSignXades";
     public static final String SIGN_DOCUMENT_XADES_MULTI_DOC    = "/signDocumentXades";
 
-    private static final String KEYS_FOLDER                     = "keys/";
+    public static final String KEYS_FOLDER                      = "keys/";
     private static final String JSON_FILENAME_EXTENSION         = ".json";
 
     private static final SimpleDateFormat logDateTimeFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
@@ -185,6 +185,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Value("BOSA FTS v${application.version}")
     private String applicationName;
+
     @Value("${features}")
     private String features;
 
@@ -206,8 +207,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
     @PostMapping(value = GET_TOKEN_FOR_DOCUMENT, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocument(@RequestBody GetTokenForDocumentDTO tokenData) {
-        authorizeCall(features, Features.token);
         try {
+            authorizeCall(features, Features.token);
             if(!(storageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
