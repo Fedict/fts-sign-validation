@@ -75,7 +75,7 @@ public class MinioCleanupJob implements StorageService.BucketCleaner {
 
         LOG.warn("Cleanup Starting");
         minio.cleanupBuckets(this);
-        LOG.warn("Cleanup Done");
+        LOG.warn("Cleanup Done. Next cleanup at" + startCleanup.plusHours(hoursBetweenCleanups));
     }
 
     @Override
