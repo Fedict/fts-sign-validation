@@ -407,6 +407,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 input.setPsfNHeight(rect.getHeight());
                 input.setPsfNWidth(rect.getWidth());
             }
+            pdfDoc.close();
         }
     }
 
@@ -1369,6 +1370,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (psfN != null || psfC != null) {
                 PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(pdf.getBytes()), (String) null);
                 rect = checkVisibleSignatureParameters(psfC, psfN, pdfParams.getPsp(), pdfDoc);
+                pdfDoc.close();
             }
             pdfVisibleSignatureService.prepareVisibleSignature(parameters, rect == null ? 0 : rect.getHeight(), rect == null ? 0 : rect.getWidth(), clientSigParams);
         }
