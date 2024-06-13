@@ -19,9 +19,6 @@ import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${frame-ancestors}")
-    private String frameAncestors;
-
     private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
 
     @Override
@@ -36,8 +33,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         final DelegatingRequestMatcherHeaderWriter javadocHdrWriter = new DelegatingRequestMatcherHeaderWriter(javadocAntPathRequestMatcher, hw);
         http.headers().addHeaderWriter(javadocHdrWriter);
 
-        // so does the GUI thing, from a different domain even.
-        http.headers().xssProtection().and().contentSecurityPolicy("frame-ancestors " + frameAncestors);
         // Since Firefox v115 does not apply its own rule of "CSP frame-ancestors overrides X-Frame-Options DENY" we remove the X-Frame-Options
         http.headers().frameOptions().disable();
 
