@@ -1,10 +1,10 @@
 package com.bosa.signandvalidation.service;
 
 import com.bosa.signandvalidation.model.PdfSignatureProfile;
-import com.bosa.signandvalidation.model.TokenSignInput;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
+import com.bosa.signingconfigurator.model.VisiblePdfSignatureParameters;
 import eu.europa.esig.dss.enumerations.*;
 import eu.europa.esig.dss.ws.dto.RemoteColor;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
@@ -15,23 +15,20 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureImageParame
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
 import java.io.*;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
+
+import static com.bosa.signandvalidation.config.ErrorStrings.INVALID_PARAM;
+import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 /**
  * The current DSS lib has problems in creating a consistent PDF visible signature,
@@ -47,11 +44,13 @@ public class PdfVisibleSignatureService {
     private static final byte[] DEFAULT_BYTES       = DEFAULT_STRING.getBytes();
     private static final String SURNAME_TOKEN       = "%sn%";
     private static final String GIVENNAME_TOKEN     = "%gn%";
+    private static final String COMMONNAME_TOKEN    = "%cn%";
     private static final String NN_TOKEN            = "%nn%";       // Placeholder for National number
     private static final String LEGACY_NN_TOKEN     = "%rrn%";      // Old Placeholder for National number - to delete some day ;-)
 
-    private static final String DEFAULT_TEXT = GIVENNAME_TOKEN + " " + SURNAME_TOKEN;
+    private static final String DEFAULT_TEXT        = GIVENNAME_TOKEN + " " + SURNAME_TOKEN;
 
+    public static final String TRANSPARENT          = "TRANSPARENT";
 
     // Simple PNG image of a paper and a pen on gray (#D0D0D0) background, size = 125 x 150 pixels
     private static final byte[] IMAGE = Base64.getDecoder().decode(
@@ -93,57 +92,45 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, TokenSignInput input, String bucket, ClientSignatureParameters clientSigParams)
-            throws NullParameterException, IOException {
+    public void prepareVisibleSignature(RemoteSignatureParameters remoteSigParams, float psfNHeight, float psfNWidth, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
 
-        PdfSignatureProfile psp = null;
-        String pspPath = input.getPspFilePath();
-        if (pspPath != null) {
-            try {
-                byte[] json = storageService.getFileAsBytes(bucket, pspPath, false);
-                psp = (new ObjectMapper()).readValue(new String(json), PdfSignatureProfile.class);
-            }
-            catch (Exception e) {
-                throw new NullParameterException("Error reading or parsing PDF Signature Profile file: " + e.getMessage());
-            }
-        }
-
-        clientSigParams.setPsp(psp);
-        clientSigParams.setPsfN(input.getPsfN());
-        clientSigParams.setPsfC(input.getPsfC());
-        clientSigParams.setSignLanguage(input.getSignLanguage());
-        checkAndFillParams(remoteSigParams, document, clientSigParams);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-
-    public void checkAndFillParams(RemoteSignatureParameters remoteSigParams, RemoteDocument document, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
-
-        PdfSignatureProfile psp = clientSigParams.getPsp();
+        VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
+        PdfSignatureProfile psp = pdfParams.getPsp();
         if (psp == null) psp = new PdfSignatureProfile();
         makePspDefaults(psp);
 
         RemoteSignatureFieldParameters fieldParams = new RemoteSignatureFieldParameters();
-        if (clientSigParams.getPsfN() == null) {
-            if (clientSigParams.getPsfC() == null) return;
-            convertFieldCoords(clientSigParams.getPsfC(), psp.defaultCoordinates, fieldParams);
-        } else fieldParams.setFieldId(clientSigParams.getPsfN());
+        if (pdfParams.getPsfN() == null) {
+            String psfC = pdfParams.getPsfC();
+            if (psfC == null) return;
 
-        String text = makeText(psp.texts,
-                clientSigParams.getSignLanguage(),
+            if (DEFAULT_STRING.equals(psfC)) psfC = psp.defaultCoordinates;
+            String[] coords = psfC.split(",");
+            fieldParams.setPage(Integer.parseInt(coords[0]));
+            fieldParams.setOriginX(Float.parseFloat(coords[1]));
+            fieldParams.setOriginY(Float.parseFloat(coords[2]));
+            fieldParams.setWidth(Float.parseFloat(coords[3]));
+            fieldParams.setHeight(Float.parseFloat(coords[4]));
+        } else {
+            fieldParams.setFieldId(pdfParams.getPsfN());
+            fieldParams.setHeight(psfNHeight);
+            fieldParams.setWidth(psfNWidth);
+        }
+
+        String text = makeText(psp.texts, pdfParams.getSignLanguage(),
                 remoteSigParams.getBLevelParams().getSigningDate(),
                 remoteSigParams.getSigningCertificate());
 
-        byte image[] = clientSigParams.getPhoto();
+        byte image[] = pdfParams.getPhoto();
         if (image == null) image = psp.image;
 
         RemoteSignatureImageParameters sigImgParams = new RemoteSignatureImageParameters();
         remoteSigParams.setImageParameters(sigImgParams);
         sigImgParams.setFieldParameters(fieldParams);
         if (psp.version == 1) {
-            fillParamsForV1(sigImgParams, document, psp, text, image);
+            fillParamsForV1(sigImgParams, psp, text, image);
         } else {
-            fillParamsForV2(sigImgParams, psp, text, image);
+            fillParamsForV2(sigImgParams, fieldParams, psp, text, image);
         }
     }
 
@@ -160,6 +147,7 @@ public class PdfVisibleSignatureService {
         if (psp.textPos == null) psp.textPos = SignerTextPosition.BOTTOM;
         if (psp.textColor == null) psp.textColor = "#0000FF"; // blue
         if (psp.imageDpi == null) psp.imageDpi = 400;
+        // Below is a Snyk false positive report : The comparison always take the same time (discounting some nanoseconds)
         if (psp.image != null && Arrays.equals(psp.image, DEFAULT_BYTES)) psp.image = IMAGE;
 
         if (psp.version == 2) {
@@ -180,48 +168,31 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    static void convertFieldCoords(String inputCoordinates, String pspDefaultCoordinates, RemoteSignatureFieldParameters fieldParams) throws NullParameterException {
+    static String makeText(HashMap<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
+        String text = DEFAULT_TEXT;
+        if (texts != null && !texts.isEmpty()) {
+            if (lang != null) {
+                text = texts.get(lang);
+                if (text == null) logAndThrowEx(FORBIDDEN, INVALID_PARAM, "language '" + lang + "' not specified in the psp file", null);
 
-        if (DEFAULT_STRING.equals(inputCoordinates)) {
-            inputCoordinates = pspDefaultCoordinates;
-            if (inputCoordinates == null) {
-                throw new NullParameterException("default PDF signature coordinates requested, but these we not specified in the psp (or no psp)");
-            }
+            } else text = texts.values().iterator().next(); // get the 1st text
         }
-        String[] coords = inputCoordinates.split(",");
-        if (coords.length != 5) {
-            throw new NullParameterException("expected 5 values for PDF signature coordinates but was: '" + inputCoordinates + "'");
-        }
-        fieldParams.setPage(Integer.parseInt(coords[0]));
-        fieldParams.setOriginX(Float.parseFloat(coords[1]));
-        fieldParams.setOriginY(Float.parseFloat(coords[2]));
-        fieldParams.setWidth(Float.parseFloat(coords[3]));
-        fieldParams.setHeight(Float.parseFloat(coords[4]));
+
+        CertInfo certInfo = new CertInfo(signingCert);
+        text = text.replace(SURNAME_TOKEN, certInfo.getField(CertInfo.Field.surname))
+                .replace(GIVENNAME_TOKEN, certInfo.getField(CertInfo.Field.givenName))
+                .replace(COMMONNAME_TOKEN, certInfo.getField(CertInfo.Field.commonName))
+                .replace(LEGACY_NN_TOKEN, certInfo.getField(CertInfo.Field.serialNumber))
+                .replace(NN_TOKEN, certInfo.getField(CertInfo.Field.serialNumber));
+
+        if (lang == null) lang = "en";
+
+        return injectDate(text, signingDate, lang);
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
-    static String makeText(HashMap<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
-        String text = DEFAULT_TEXT;
-        if (null != texts && texts.size() != 0) {
-            if (null != lang) {
-                text = texts.get(lang);
-                if (null == text)
-                    throw new NullParameterException("language '" + lang + "' not specified in the psp file");
-            }
-            else
-                text = texts.values().iterator().next(); // get the 1st text
-        }
-
-        CertInfo certInfo = new CertInfo(signingCert);
-
-        text = text.replace(SURNAME_TOKEN, certInfo.getSurname())
-                .replace(GIVENNAME_TOKEN, certInfo.getGivenName())
-                .replace(LEGACY_NN_TOKEN, certInfo.getSerialNumber())
-                .replace(NN_TOKEN, certInfo.getSerialNumber());
-
-        if (null == lang)
-            lang = "en";
+    public static String injectDate(String text, Date signingDate, String lang) {
         try {
             int idx = text.indexOf("%d(");
             while (-1 != idx) {
@@ -237,23 +208,21 @@ public class PdfVisibleSignatureService {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
-            throw new NullParameterException("Bad date format for PDF visible signature: " + e.getMessage());
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Bad date format for PDF visible signature: " , null);
         }
-
         return text;
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
-    public void fillParamsForV2(RemoteSignatureImageParameters sigImgParams, PdfSignatureProfile psp, String text, byte[] image) throws IOException {
+    public void fillParamsForV2(RemoteSignatureImageParameters sigImgParams, RemoteSignatureFieldParameters fieldParams, PdfSignatureProfile psp, String text, byte[] image) throws IOException {
         RemoteSignatureImageTextParameters textParams = new RemoteSignatureImageTextParameters();
         sigImgParams.setTextParameters(textParams);
 
         textParams.setSize(psp.textSize);
         textParams.setTextWrapping(psp.textWrapping);
-        textParams.setTextColor(makeColor(psp.textColor));
-        textParams.setBackgroundColor(makeColor(psp.bgColor));
+        textParams.setTextColor(makeColor(psp.textColor, false));
+        textParams.setBackgroundColor(makeColor(psp.bgColor, true));
         textParams.setText(text);
         textParams.setPadding(psp.textPadding.floatValue());
         textParams.setSignerTextPosition(psp.textPos);
@@ -266,7 +235,7 @@ public class PdfVisibleSignatureService {
         sigImgParams.setDpi(psp.imageDpi);
 
         sigImgParams.setImageScaling(psp.imageScaling);
-        sigImgParams.setBackgroundColor(makeColor(psp.bodyBgColor));
+        sigImgParams.setBackgroundColor(makeColor(psp.bodyBgColor, true));
         sigImgParams.setZoom(psp.zoom);
 
         // Alignment of the signature relative to page borders
@@ -274,42 +243,30 @@ public class PdfVisibleSignatureService {
         sigImgParams.setAlignmentVertical(psp.vertAlignment);
 
         // Adapt signature rotation
-        sigImgParams.setRotation(psp.rotation);
+        fieldParams.setRotation(psp.rotation);
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
-    private RemoteColor makeColor(String color) {
-        if (color.length() != 7) throw new IllegalArgumentException("Invalid color code specified: " + color);
-
-        return new RemoteColor(Integer.parseInt(color.substring(1, 3), 16),
+    private RemoteColor makeColor(String color, boolean transparent) {
+        return TRANSPARENT.equals(color) ? new RemoteColor(0, 0, 0, 0) :
+        new RemoteColor(Integer.parseInt(color.substring(1, 3), 16),
                 Integer.parseInt(color.substring(3, 5), 16),
-                Integer.parseInt(color.substring(5, 7), 16));
+                Integer.parseInt(color.substring(5, 7), 16),
+                transparent ? 160 : 255);
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
-    private void fillParamsForV1(RemoteSignatureImageParameters sigImgParams, RemoteDocument document, PdfSignatureProfile psp, String text, byte[] image) throws NullParameterException {
+    private void fillParamsForV1(RemoteSignatureImageParameters sigImgParams, PdfSignatureProfile psp, String text, byte[] image) throws NullParameterException {
 
         RemoteSignatureFieldParameters fieldParams = sigImgParams.getFieldParameters();
-        float xPdfField = 0; // width of the PDF visible signature field
-        float yPdfField = 0; // height of the PDF visible signature field
-        if (fieldParams.getFieldId() != null) {
-            // Pdf field -> get w/h from PDF
-            PDRectangle rect = getPdfSignatureRectangle(document, fieldParams.getFieldId());
-            xPdfField = rect.getWidth();
-            yPdfField = rect.getHeight();
-        } else {
-            xPdfField = fieldParams.getWidth();
-            yPdfField = fieldParams.getHeight();
-        }
-
         try {
             RemoteDocument imageDoc = new RemoteDocument();
             sigImgParams.setImage(imageDoc);
 
             imageDoc.setBytes(PdfImageBuilder.makePdfImage(
-                    (int)xPdfField, (int)yPdfField,
+                    fieldParams.getWidth().intValue(), fieldParams.getHeight().intValue(),
                     psp.bgColor,
                     psp.textPadding,
                     text,
@@ -363,37 +320,6 @@ public class PdfVisibleSignatureService {
 
         public PdfVisibleSignatureException(String mesg) {
             super(mesg);
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-
-    // Check if the sigFieldId is present, and get its enclosing rectangle
-    private static PDRectangle getPdfSignatureRectangle(RemoteDocument document, String sigFieldId) {
-        List<String> fieldIds = new ArrayList<>();
-
-        try {
-            PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(document.getBytes()), (String) null);
-
-            List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
-            if (sigFields.size() == 0)
-                throw new PdfVisibleSignatureException("A PDF signature field was specified but the PDF does not contain one");
-
-            for (PDSignatureField sigField : sigFields) {
-                String name = sigField.getPartialName();
-                fieldIds.add(name);
-                if (sigFieldId.equals(name)) {
-                    if (null != sigField.getSignature()) {
-                        throw new PdfVisibleSignatureException("The specified PDF signature field already contains a signature");
-                    }
-                    PDAnnotationWidget widget = sigField.getWidget();
-                    return widget.getRectangle();
-                }
-            }
-            throw new PdfVisibleSignatureException("Bad PDF signature field specified, available field(s) are: " + fieldIds.toString());
-
-        } catch (IOException e) {
-            throw new PdfVisibleSignatureException(e.toString());
         }
     }
 
@@ -462,9 +388,11 @@ public class PdfVisibleSignatureService {
             return buf;
         }
         catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Exception trying to read font: " + fontName + ". " + e.getMessage());
             return null;
         }
     }
+
+    ///////////////////////////////////////////////////////////////////////////
 }
 

@@ -5,6 +5,8 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.lang.reflect.Field;
+import java.security.InvalidParameterException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -53,45 +55,55 @@ public class Utils {
 
         // To be logged
         String logMesg = mesg;
-        if (null != token)
-            logMesg += getTokenFootprint(token);
-        if (null == e) {
-            // No exception to be logged -> add the start of the stack trace to the log
-            StringBuilder sb = new StringBuilder();
-            sb.append(logMesg);
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            boolean first = true;
-            for (StackTraceElement el : stackTrace) {
-                if (first) { // Skip the 1st element = the 'getStackTrace()' call
-                    first = false;
-                    continue;
-                }
-                if (el.getClassName().contains("springframework"))
-                    break; // we're not interested in the Spring calls, and higher
-                sb.append("\n  ").append(el.toString());
+
+        int nbEntries = e == null ? 20 : 10;
+        StringBuilder sb = new StringBuilder(logMesg);
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        boolean first = true;
+        for (StackTraceElement el : stackTrace) {
+            if (first) { // Skip the 1st element = the 'getStackTrace()' call
+                first = false;
+                continue;
             }
-            logMesg = sb.toString();
+            if (--nbEntries == 0 || el.getClassName().contains("springframework"))
+                break; // we're not interested in the Spring calls, and higher
+            sb.append("\n  ").append(el.toString());
         }
+        logMesg = sb.toString();
+
         logger.log(Level.SEVERE, logMesg, e);
 
         throw new ResponseStatusException(httpStatus, mesg);
     }
 
-    // The applicative logging system is used to track signature processes through the last 8 chars of the token
-    // Also store the token in the MDC for logging
-    public static String getTokenFootprint(String token) {
-        String footprint = token;
-        if (null != token) {
-            int len = token.length();
-            if (len >= 8) footprint = "..." + token.substring(len - 8, len);
-        } else footprint = "<null>";
-
-        MDC.put("token", footprint);
-        return " token=" + footprint;
+    // Confirm that the token is valid and store it in the MDC for logging
+    public static void checkAndRecordMDCToken(String tokenId) {
+        if (tokenId != null) {
+            int offset = tokenId.length();
+            while(offset != 0) {
+                char C = tokenId.charAt(--offset);
+                // Token must be composed of Base 64 characters only
+                if (!((C >= 'A' && C <= 'Z') || (C >= 'a' && C <= 'z') || (C >= '0' && C <= '9') || C == '+' || C == '/' || C == '_' || C == '-' || C == '=')) {
+                    throw new InvalidParameterException("Invalid Token Value");
+                }
+            }
+        } else tokenId = "<null>";
+        MDC.put("token", tokenId);
     }
 
     // Clear the token in the MDC to avoid polluting non-token logs with leftover token value
     public static void clearMDCToken() {
         MDC.remove("token");
+    }
+
+    public static void objectToMDC(Object o, boolean set) throws IllegalAccessException {
+        for(Field f : o.getClass().getDeclaredFields()) {
+            f.setAccessible(true);
+            Object value = f.get(o);
+            if (value instanceof String) {
+                if (set) MDC.put(f.getName(), (String) value);
+                else MDC.remove(f.getName());
+            }
+        }
     }
 }

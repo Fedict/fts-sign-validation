@@ -1,0 +1,16 @@
+{
+  "profileId": "XADES_JUSTACT_CITIZEN_DE",
+  "digestAlgorithm": "SHA384",
+  "referenceDigestAlgorithm": "SHA512",
+  "signatureLevel": "XAdES_BASELINE_LTA",
+  "signaturePackaging": "ENVELOPED",
+  "signatureForm": "XAdES",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "trustAnchorBPPolicy": false,
+  "addCertPathToKeyinfo": true,
+  "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
+  "policyId": "https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf",
+  "policyDescription": "To_be_confirmed",
+  "policyDigestAlgorithm": "SHA256",
+  "policyDigestValue": "KqjHoRzMD4OYDfLgRyuYPznBzC160NvT60arZ09gYoI="
+}

@@ -15,16 +15,6 @@ public class InterceptOCSPDataLoader extends OCSPDataLoader {
     }
 
     @Override
-    public byte[] get(String url, boolean refresh) {
-        try {
-            return super.get(url, refresh);
-        } catch(Exception e) {
-            DataLoadersExceptionLogger.logExceptionForThread(e, DataLoadersExceptionLogger.Types.OCSP);
-            throw e;
-        }
-    }
-
-    @Override
     public byte[] post(String url, byte[] content) {
         try {
             return super.post(url, content);

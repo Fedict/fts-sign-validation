@@ -18,7 +18,7 @@ public class SigningControllerInputCheckTest {
     @Test
     public void testNoSignProfile() throws Exception {
         TokenObject token = new TokenObject();
-        testToken(token, EMPTY_PARAM, "signProfile is null");
+        testToken(token, EMPTY_PARAM, "signProfile and altSignProfile can't both be null.");
     }
 
     @Test
@@ -139,8 +139,9 @@ public class SigningControllerInputCheckTest {
         input2.setDisplayXsltPath("xslt");
 
         // finish with general params
-        testToken(token, INVALID_PARAM, "'Xades Multifile' with an invalid signProfile :null");
-        token.setXmlSignProfile("MDOC_XADES_LTA");
+        token.setXmlSignProfile("XADES_MDOC_LTA");
+        testToken(token, INVALID_PARAM, "'Xades Multifile' must be used only for XML files");
+        token.setPdfSignProfile(null);
 
         testToken(token, INVALID_PARAM, "'OutXslt' (file2.xml) is not unique");
         token.setOutXsltPath("OutXSLT.xml");
@@ -158,11 +159,11 @@ public class SigningControllerInputCheckTest {
 
     private void testToken(TokenObject token, String error, String s) {
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
-            ctrl.checkTokenAndSetDefaults(token);
+            ctrl.validateTokenValues(token);
         });
         boolean verified = exception.getMessage().contains("||" + error + "||" + s);
         if (!verified) {
-            System.out.println("Expection :" + exception.getMessage() + " does not contain :" + s);
+            System.out.println("Exception :" + exception.getMessage() + " does not contain :" + s);
         }
         assertTrue(verified);
     }

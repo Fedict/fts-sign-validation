@@ -15,16 +15,6 @@ public class InterceptTimestampDataLoader extends TimestampDataLoader {
     }
 
     @Override
-    public byte[] get(String url, boolean refresh) {
-        try {
-            return super.get(url, refresh);
-        } catch(Exception e) {
-            DataLoadersExceptionLogger.logExceptionForThread(e, DataLoadersExceptionLogger.Types.TIMESTAMP);
-            throw e;
-        }
-    }
-
-    @Override
     public byte[] post(String url, byte[] content) {
         try {
             return super.post(url, content);

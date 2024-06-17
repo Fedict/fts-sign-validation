@@ -4,5 +4,6 @@
   "digestAlgorithm": "SHA256",
   "signatureLevel": "CAdES_BASELINE_B",
   "signaturePackaging": "DETACHED",
+  "signatureForm": "CAdES",
   "tspServer": "http://tss.eidpki.belgium.be/"
 }

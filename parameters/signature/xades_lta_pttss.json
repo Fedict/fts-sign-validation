@@ -3,5 +3,6 @@
   "digestAlgorithm": "SHA256",
   "signatureLevel": "XAdES_BASELINE_LTA",
   "signaturePackaging": "ENVELOPED",
+  "signatureForm": "XAdES",
   "tspServer": "http://tsa.belgium.be/connect"
 }

@@ -11,15 +11,15 @@ public class CertInfoTest {
     @Test
     public void testGetters() {
         CertInfo ci = new CertInfo(getTomTestCertificate());
-        assertEquals("Tom", ci.getGivenName());
-        assertEquals("Test", ci.getSurname());
-        assertEquals("73040102749", ci.getSerialNumber());
+        assertEquals("Tom", ci.getField(CertInfo.Field.givenName));
+        assertEquals("Test", ci.getField(CertInfo.Field.surname));
+        assertEquals("73040102749", ci.getField(CertInfo.Field.serialNumber));
     }
 
     @Test
     public void testGettersNOK() {
         CertInfo ci = new CertInfo(getOtherTestCertificate());
-        assertEquals("?", ci.getGivenName());
+        assertEquals("?", ci.getField(CertInfo.Field.givenName));
     }
 
     @Test()

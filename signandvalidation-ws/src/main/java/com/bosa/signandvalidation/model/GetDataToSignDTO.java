@@ -2,43 +2,22 @@ package com.bosa.signandvalidation.model;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class GetDataToSignDTO {
 
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "A file to be signed")
     private RemoteDocument toSignDocument;
+    @Schema(example = "XADES_LTA", requiredMode = Schema.RequiredMode.REQUIRED, description = "The signing profile to use")
     private String signingProfileId;
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Signature parameters")
     private ClientSignatureParameters clientSignatureParameters;
-
-    public GetDataToSignDTO() {
-    }
-
-    public GetDataToSignDTO(RemoteDocument toSignDocument, String signingProfileId, ClientSignatureParameters clientSignatureParameters) {
-        this.toSignDocument = toSignDocument;
-        this.signingProfileId = signingProfileId;
-        this.clientSignatureParameters = clientSignatureParameters;
-    }
-
-    public RemoteDocument getToSignDocument() {
-        return toSignDocument;
-    }
-
-    public void setToSignDocument(RemoteDocument toSignDocument) {
-        this.toSignDocument = toSignDocument;
-    }
-
-    public String getSigningProfileId() {
-        return signingProfileId;
-    }
-
-    public void setSigningProfileId(String signingProfileId) {
-        this.signingProfileId = signingProfileId;
-    }
-
-    public ClientSignatureParameters getClientSignatureParameters() {
-        return clientSignatureParameters;
-    }
-
-    public void setClientSignatureParameters(ClientSignatureParameters clientSignatureParameters) {
-        this.clientSignatureParameters = clientSignatureParameters;
-    }
+    @Schema(description = "A logging identifier for the current user session")
+    private String token;
 }

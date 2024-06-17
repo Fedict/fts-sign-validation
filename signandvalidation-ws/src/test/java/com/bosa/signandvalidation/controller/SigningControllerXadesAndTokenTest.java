@@ -5,7 +5,6 @@ import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signandvalidation.service.StorageService;
-import com.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.model.Digest;
@@ -13,7 +12,6 @@ import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +58,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
             "<xsl:comment>" + XSLT_COMMENT + "</xsl:comment>" +
             "	<" + ROOT_XSLT_ELT + ">" +
             "		<xsl:for-each select=\"root/file\">" +
-            "			<" + FILE_XSLT_ELT + " iD=\"{@id}\" FileName=\"{tokenize(@name, '/')[last()]}\" MimeType=\"{tokenize(@name, '\\.')[last()]}\"></"+ FILE_XSLT_ELT + ">" +
+            "			<" + FILE_XSLT_ELT + " id=\"{@id}\" FileName=\"{tokenize(@name, '/')[last()]}\" MimeType=\"{tokenize(@name, '\\.')[last()]}\"></"+ FILE_XSLT_ELT + ">" +
             "		</xsl:for-each>" +
             "	</" + ROOT_XSLT_ELT + ">" +
             "</xsl:template>" +
@@ -67,7 +67,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
     @AllArgsConstructor
     private enum FileDef {
-        F1("root/aFile.xml", "1", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1"),
+        F1("root/aFile.xml", "Uno", APPLICATION_XML, "QSBUZXN0", "pinp.xslt", "XSLT1"),
         F2("bFile.xml", "deux", APPLICATION_XML, "QSBUZXN0", "pimp1.xslt", "XSLT2"),
         F3("test.pdf", "drie", APPLICATION_PDF, "QSBUZXN0", null, null),
         F4("dFile.pdf", "FOUR", APPLICATION_PDF, "QSBUZXN0", null, null);
@@ -79,14 +79,13 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         private final String xslt;
         private final String xsltData;
 
-        SignInput getXmlSignInput() { return new SignInput(name, id, xslt, null, null, null, null, false); }
+        SignInput getXmlSignInput() { return new SignInput(name, id, xslt, null, null, null, null, false, false); }
         public static FileDef find(String name) {
             for (FileDef fd : values()) {
                 String fdName = fd.name;
                 int pos = fdName.lastIndexOf('/');
                 fdName = pos == -1 ? fdName : fdName.substring(pos + 1);
-                if (name.compareTo(fdName) == 0 || name.compareTo(fdName) == 0)
-                    return fd;
+                if (name.compareTo(fdName) == 0) return fd;
             }
             return null;
         }
@@ -99,8 +98,8 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
         Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(MAIN_XSLT_FILE_NAME))).thenReturn(new ByteArrayInputStream(MAIN_XSLT_FILE.getBytes()));
 
-        WSReportsDTO reportsDto = new WSReportsDTO();
-        Mockito.when(validationService.validateDocument(any(),any(), any(), any())).thenReturn(reportsDto);
+        SignatureFullValiationDTO reportsDto = new SignatureFullValiationDTO();
+        Mockito.when(validationService.validateDocument(any(),any(), any(), any(), any())).thenReturn(reportsDto);
         SignatureIndicationsDTO indications = new SignatureIndicationsDTO();
         indications.setIndication(Indication.TOTAL_PASSED);
         Mockito.when(reportsService.getLatestSignatureIndicationsDto(eq(reportsDto), any())).thenReturn(indications);
@@ -135,12 +134,12 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
                 Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(fd.xslt))).thenReturn(new ByteArrayInputStream(fd.xsltData.getBytes()));
             }
 
-            unSignedXmlFile += "<" + FILE_XSLT_ELT + " FileName=\"" + lastOccurenceOf(fd.name, '/') + "\" MimeType=\"" + lastOccurenceOf(fd.name, '.') + "\" iD=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">";
+            unSignedXmlFile += "<" + FILE_XSLT_ELT + " FileName=\"" + lastOccurenceOf(fd.name, '/') + "\" MimeType=\"" + lastOccurenceOf(fd.name, '.') + "\" id=\"" + fd.id + "\">" + fd.data + "</" + FILE_XSLT_ELT + ">";
         }
         unSignedXmlFile += "</" + ROOT_XSLT_ELT + ">";
 
         // Start testing
-        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", "MDOC_XADES_LTA", inFiles, OUT_FILE_NAME);
+        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", SignProfiles.XADES_MDOC_LTA.name(), inFiles, OUT_FILE_NAME);
         gtfd.setOutXsltPath(MAIN_XSLT_FILE_NAME);
         gtfd.setOutDownload(true);
 
@@ -171,7 +170,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         }
 
         Pkcs12SignatureToken sigToken = new Pkcs12SignatureToken(
-                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
 
@@ -199,7 +198,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
     @Test
     public void testSignXadesMultiDocument() throws Exception {
         Pkcs12SignatureToken token = new Pkcs12SignatureToken(
-                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
         List<DSSPrivateKeyEntry> keys = token.getKeys();
@@ -207,19 +206,17 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
 
         StringBuilder sb = new StringBuilder("<root>");
-        List<SignElement> targets = new ArrayList<>();
+        List<String> targets = new ArrayList<>();
         for(SigningControllerXadesAndTokenTest.FileDef fDef : SigningControllerXadesAndTokenTest.FileDef.values()) {
-            targets.add(new SignElement(fDef.id, fDef.type.toString()));
+            targets.add(fDef.id);
             sb.append("<file id=\"").append(fDef.id).append("\" name=\"").append(fDef.name).append("\">").append(fDef.data).append("</file>");
         }
         sb.append("</root>");
         System.out.println(sb);
         RemoteDocument fileToSign = new RemoteDocument(sb.toString().getBytes(), "aFile.xml");
 
-        PolicyParameters policy = new PolicyParameters("https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf", "policyDesc", DigestAlgorithm.SHA256);
-
         // get data to sign
-        GetDataToSignXMLElementsDTO prepareSignDto = new GetDataToSignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets);
+        GetDataToSignXMLElementsDTO prepareSignDto = new GetDataToSignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, targets, "ID");
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_XADES_MULTI_DOC, prepareSignDto, DataToSignDTO.class);
 
         // sign
@@ -227,7 +224,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignXMLElementsDTO signDto = new SignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, policy, targets, signatureValue.getValue());
+        SignXMLElementsDTO signDto = new SignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, targets, signatureValue.getValue(), "ID");
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_XADES_MULTI_DOC, signDto, RemoteDocument.class);
         assertNotNull(signedDocument);
     }

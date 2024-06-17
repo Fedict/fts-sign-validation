@@ -29,6 +29,7 @@ public class TokenObject {
     private boolean requestDocumentReadConfirm; // Request the user to check a "I have read the file" box before signing
     private boolean previewDocuments; // If true, display documents in the sign screen, otherwise provide list of downloadable links
     private boolean selectDocuments;
+    private boolean noSkipErrors; // If true, disable the user to skip a file in error to sign
 
     private String pdfSignProfile;
     private String xmlSignProfile;
@@ -41,14 +42,4 @@ public class TokenObject {
     private String outFilePath;
     private String OutPathPrefix;
     private boolean outDownload;
-
-    // Mandatory parameters
-    public TokenObject(SigningType signingType, String bucket, String pdfSignProfile, String xmlSignProfile, List<TokenSignInput> inputs, String outFilePath) {
-        this.signingType = signingType;
-        this.inputs = inputs;
-        this.bucket = bucket;
-        this.outFilePath = outFilePath;
-        this.pdfSignProfile = pdfSignProfile;
-        this.xmlSignProfile = xmlSignProfile;
-    }
 }

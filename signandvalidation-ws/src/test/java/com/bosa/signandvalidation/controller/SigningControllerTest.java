@@ -2,7 +2,6 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.*;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
@@ -39,7 +38,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
 
         // get data to sign
-        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters);
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters, "ID");
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
@@ -48,12 +47,12 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_B", clientSignatureParameters, signatureValue.getValue(), null);
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_B", clientSignatureParameters, signatureValue.getValue(), null, "ID");
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
         // extend document
-        ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, "XADES_T", null);
+        ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, "XADES_T", null, "ID");
         RemoteDocument extendedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + EXTEND_DOCUMENT, extendDocumentDTO, RemoteDocument.class);
         assertNotNull(extendedDocument);
 
@@ -76,7 +75,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
 
         // get data to sign
-        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "CADES_B", clientSignatureParameters);
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "CADES_B", clientSignatureParameters, "ID");
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
@@ -85,7 +84,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "CADES_B", clientSignatureParameters, signatureValue.getValue(), null);
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "CADES_B", clientSignatureParameters, signatureValue.getValue(), null, "ID");
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
@@ -108,7 +107,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
 
         // get data to sign
-        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "PADES_B", clientSignatureParameters);
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "PADES_B", clientSignatureParameters, "ID");
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
@@ -117,7 +116,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "PADES_B", clientSignatureParameters, signatureValue.getValue(), null);
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "PADES_B", clientSignatureParameters, signatureValue.getValue(), null, "ID");
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
@@ -140,7 +139,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
 
         // get data to sign
-        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "JADES_B", clientSignatureParameters);
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "JADES_B", clientSignatureParameters, "ID");
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
@@ -149,7 +148,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "JADES_B", clientSignatureParameters, signatureValue.getValue(), null);
+        SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "JADES_B", clientSignatureParameters, signatureValue.getValue(), null, "ID");
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
@@ -170,7 +169,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         FileDocument fileToTimestamp = new FileDocument(new File("src/test/resources/sample.pdf"));
         RemoteDocument remoteDocument = RemoteDocumentConverter.toRemoteDocument(fileToTimestamp);
 
-        TimestampDocumentDTO timestampOneDocumentDTO = new TimestampDocumentDTO(remoteDocument, "PROFILE_1");
+        TimestampDocumentDTO timestampOneDocumentDTO = new TimestampDocumentDTO(remoteDocument, "PROFILE_1", "ID");
         RemoteDocument timestampedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + TIMESTAMP_DOCUMENT, timestampOneDocumentDTO, RemoteDocument.class);
 
         assertNotNull(timestampedDocument);
@@ -195,7 +194,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
 
         // get data to sign
-        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters);
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters, "ID");
         Map result = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, Map.class);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
@@ -217,7 +216,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
 
         // get data to sign
-        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters);
+        GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters, "ID");
         Map result = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, Map.class);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));

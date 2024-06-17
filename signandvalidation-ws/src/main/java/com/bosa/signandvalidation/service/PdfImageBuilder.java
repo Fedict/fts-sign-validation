@@ -1,15 +1,12 @@
 package com.bosa.signandvalidation.service;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.awt.image.BufferedImage;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Color;
-import java.awt.Graphics2D;
 import javax.imageio.ImageIO;
 
 /**
@@ -154,19 +151,23 @@ public class PdfImageBuilder {
 		}
 
 		// Create the resulting PDF image
-		BufferedImage ret =  new BufferedImage(xLen, yLen, BufferedImage.TYPE_INT_RGB);
+		BufferedImage ret =  new BufferedImage(xLen, yLen, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D graphs = (Graphics2D) ret.getGraphics();
 		// 1. Paint background
-		graphs.setColor(makeColor(bgColor));
+		graphs.setColor(makeColor(bgColor, true));
 		graphs.fillRect(0, 0, xLen, yLen);
 		// 2. Add text lines
 		graphs.setFont(font);
-		graphs.setColor(makeColor(textColor));
+		graphs.setColor(makeColor(textColor, false));
 		for (int i = 0; i < lineCount; i++)
 			graphs.drawChars(linesChars[i], 0, linesChars[i].length, xOffs + linesX[i], yOffs + linesY[i]);
 		// 3. Add image
-		if (null != img)
+		if (null != img) {
+			/* Render photo as transparent */
+			Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
+			graphs.setComposite(comp);
 			graphs.drawImage(img, xOffs + xImg, yOffs + yImg, null);
+		}
 
 		// Convert to a byte array contain a PNG image
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -196,13 +197,13 @@ public class PdfImageBuilder {
 	}
 
 	/* Convert a color string (e.g. "#0077ff") into a Java Color object */
-	static Color makeColor(String cc) throws IllegalArgumentException {
+	static Color makeColor(String cc, boolean transparent) throws IllegalArgumentException {
 		if (cc.length() != 7)
 			throw new IllegalArgumentException("Invalid color code specified: " + cc);
 		int r = Integer.parseInt(cc.substring(1, 3), 16);
 		int g = Integer.parseInt(cc.substring(3, 5), 16);
 		int b = Integer.parseInt(cc.substring(5, 7), 16);
-		return new Color(r, g, b);
+		return new Color(r, g, b, transparent ? 160 : 255);
 	}
 
 	//////////////////////////// For testing ////////////////////////////
@@ -232,6 +233,7 @@ public class PdfImageBuilder {
 		System.out.println("  300 100 \"#ffffff\" 20 \" \\nSigned by:\\nAn Vos\\n \\nDate: 2021.09.20\\n \" \"#0000ff\" LEFT CENTER MIDDLE Courier 36");
 	}
 
+	/* Disabled -> Sast false positive
 	public static void main(String[] args) throws Exception {
 
 		//for (String s : java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames())
@@ -264,6 +266,7 @@ public class PdfImageBuilder {
 		writeFile(new File("out.png"), out);
 		System.out.println("Output written to out.png");
 	}
+	 */
 
 	static int getTextPos(String pos) {
 		if ("LEFT".equals(pos))
