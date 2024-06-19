@@ -1,0 +1,9 @@
+{
+  "profileId": "XADES_MDOC_LTA",
+  "digestAlgorithm": "SHA384",
+  "signatureLevel": "XAdES_BASELINE_LTA",
+  "signaturePackaging": "ENVELOPED",
+  "signatureForm": "XAdES",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "signingType": "XadesMultiFile"
+}
