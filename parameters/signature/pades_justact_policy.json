@@ -1,0 +1,9 @@
+{
+  "profileId": "PADES_JUSTACT_POLICY",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "PAdES_BASELINE_LTA",
+  "signaturePackaging": "ENVELOPED",
+  "signatureForm": "PAdES",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "returnDigest": false
+}

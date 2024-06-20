@@ -1,36 +1,15 @@
 package com.bosa.signandvalidation.model;
 
-/**
- * Define a citizen through its national number that is allowed to sign.
- * <p>
- * The field must have the same syntax as the "SERIALNUMBER" defined inside the citizen certificate
- *
- * @author Christophe
- */
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class AllowedToSign {
+
+    @Schema(example = "55050533154", requiredMode = Schema.RequiredMode.REQUIRED, description = "The document may signed by an eID with this belgian national number")
     private String nn;
-
-    public AllowedToSign() {
-    }
-
-    public AllowedToSign(String nn) {
-        this.nn = nn;
-    }
-    /**
-    * Returns the national register number. 
-    *
-    * @return the national register number
-    */
-    public String getNN() {
-        return nn;
-    }
-    /**
-    * Set the national register number.
-    * It must have the same syntax as the "SERIALNUMBER" defined inside the citizen certificate
-    *
-    * @param  nn  the national register number
-    */
-    public void setNN(String nn) {
-        this.nn = nn;
-    }
 }

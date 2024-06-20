@@ -65,7 +65,7 @@ public class SigningControllerBulkSignTest {
         TokenSignInput input1 = new TokenSignInput();
         input1.setFilePath(IN_FILE1);
         inputs.add(input1);
-        String tokenStr = sc.createToken(token);
+        String tokenStr = sc.saveToken(token);
 
         // Test security check
         try {
@@ -76,7 +76,7 @@ public class SigningControllerBulkSignTest {
 
         // Test one file output
         token.setOutDownload(true);
-        tokenStr = sc.createToken(token);
+        tokenStr = sc.saveToken(token);
         Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(THE_PREFIX + IN_FILE0))).thenReturn(new FileStoreInfo(MediaType.APPLICATION_PDF, "H", OUT_FILE_0.length()));
         Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(THE_PREFIX + IN_FILE0))).thenReturn(new ByteArrayInputStream(OUT_FILE_0.getBytes()));
 

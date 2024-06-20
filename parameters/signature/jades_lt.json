@@ -4,5 +4,6 @@
   "signatureLevel": "JAdES_BASELINE_LT",
   "jadesSerializationType": "FLATTENED_JSON_SERIALIZATION",
   "signaturePackaging":"ENVELOPING",
+  "signatureForm": "JAdES",
   "tspServer": "http://tss.eidpki.belgium.be/"
 }

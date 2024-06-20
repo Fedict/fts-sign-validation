@@ -1,10 +1,12 @@
 package com.bosa.signandvalidation.service;
 
-import com.bosa.signingconfigurator.exception.NullParameterException;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
@@ -12,15 +14,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class PdfVisibleSignatureTest {
-    @Test
-    public void testFillCoordinates() throws Exception {
-        RemoteSignatureFieldParameters sigFieldParams = new RemoteSignatureFieldParameters();
-        PdfVisibleSignatureService.convertFieldCoords("1,2,3,4,5", null, sigFieldParams);
-        assertEquals(1, sigFieldParams.getPage());
-        assertEquals((float) 2.0, sigFieldParams.getOriginX());
-        assertEquals((float) 3.0, sigFieldParams.getOriginY());
-        assertEquals((float) 4.0, sigFieldParams.getWidth());
-        assertEquals((float) 5.0, sigFieldParams.getHeight());
+    @BeforeAll
+    public static void init() throws IOException {
+        PdfVisibleSignatureServiceTest.clearList();
+    }
+    @AfterAll
+    public static void out() throws IOException {
+        PdfVisibleSignatureServiceTest.printNewPdfSignatureFiles();
     }
 
     @Test
@@ -55,8 +55,8 @@ public class PdfVisibleSignatureTest {
         try {
             PdfVisibleSignatureService.makeText(texts, "xx", signingDate, signingCert);
             fail(); // we shouldn't get here
-        } catch (NullParameterException e) {
-            System.out.println(e.getMessage());
+        } catch (ResponseStatusException e) {
+            assertEquals("403 FORBIDDEN \"NOW||INVALID_PARAM||language 'xx' not specified in the psp file\"", e.getMessage().replaceAll("\\d{17}", "NOW"));
         }
 
         texts = new LinkedHashMap<String,String>();

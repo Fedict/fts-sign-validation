@@ -1,6 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
-import com.bosa.signandvalidation.SignAndValidationTestBase;
+import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import com.bosa.signandvalidation.model.CertificateIndicationsDTO;
 import com.bosa.signandvalidation.model.CertificateToValidateDTO;
@@ -31,7 +31,7 @@ import static eu.europa.esig.dss.enumerations.KeyUsageBit.NON_REPUDIATION;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-public class ValidateCertificatesTest extends SignAndValidationTestBase implements ErrorStrings {
+public class ValidateCertificatesTest extends SignAndValidationBaseTest implements ErrorStrings {
 
     public static final String CERTIFICATE_ENDPOINT = "/validation/validateCertificate";
     public static final String CERTIFICATEFULL_ENDPOINT = "/validation/validateCertificateFull";
@@ -41,7 +41,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     public void certificatePassed() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
         RemoteCertificate passedCertificate = getPassedCertificate();
-        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(passedCertificate, null, null, NON_REPUDIATION);
+        CertificateToValidateDTO toValidate = new CertificateToValidateDTO(passedCertificate, null, null, NON_REPUDIATION, "ID");
 
         // when
         CertificateIndicationsDTO indicationsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateIndicationsDTO.class);
@@ -56,7 +56,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     public void certificateIndeterminate() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
-                Collections.singletonList(getExpiredIssuingCACertificate()), null, NON_REPUDIATION);
+                Collections.singletonList(getExpiredIssuingCACertificate()), null, NON_REPUDIATION, "ID");
 
         // when
         CertificateIndicationsDTO indicationsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateIndicationsDTO.class);
@@ -83,7 +83,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     public void certificateKeyUsageOk() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
-                null, null, NON_REPUDIATION);
+                null, null, NON_REPUDIATION, "ID");
 
         // when
         CertificateIndicationsDTO indicationsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateIndicationsDTO.class);
@@ -96,7 +96,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     public void certificateKeyUsageNok() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
-                null, null, KEY_CERT_SIGN);
+                null, null, KEY_CERT_SIGN, "ID");
 
         // when
         CertificateIndicationsDTO indicationsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATE_ENDPOINT, toValidate, CertificateIndicationsDTO.class);
@@ -109,7 +109,7 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     public void certificateFull() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
         CertificateToValidateDTO toValidate = new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
-                Collections.singletonList(getExpiredIssuingCACertificate()), null, NON_REPUDIATION);
+                Collections.singletonList(getExpiredIssuingCACertificate()), null, NON_REPUDIATION, "ID");
 
         // when
         CertificateReportsDTO reportsDTO = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATEFULL_ENDPOINT, toValidate, CertificateReportsDTO.class);
@@ -139,9 +139,9 @@ public class ValidateCertificatesTest extends SignAndValidationTestBase implemen
     public void certificatesPassedAndIndeterminate() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         // given
         List<CertificateToValidateDTO> toValidateList = new ArrayList<>();
-        toValidateList.add(new CertificateToValidateDTO(getPassedCertificate(), null, null, NON_REPUDIATION));
+        toValidateList.add(new CertificateToValidateDTO(getPassedCertificate(), null, null, NON_REPUDIATION, "ID"));
         toValidateList.add(new CertificateToValidateDTO(getExpiredIssuingCACertificateInstanceCert(),
-                Collections.singletonList(getExpiredIssuingCACertificate()), null, NON_REPUDIATION));
+                Collections.singletonList(getExpiredIssuingCACertificate()), null, NON_REPUDIATION, "ID"));
 
         // when
         IndicationsListDTO result = this.restTemplate.postForObject(LOCALHOST + port + CERTIFICATES_ENDPOINT, toValidateList, IndicationsListDTO.class);

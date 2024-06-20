@@ -1,38 +1,43 @@
 package com.bosa.signandvalidation.service;
 
 import com.bosa.signandvalidation.model.PdfSignatureProfile;
-import com.bosa.signandvalidation.model.TokenSignInput;
 
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
+import com.bosa.signingconfigurator.model.VisiblePdfSignatureParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
-import eu.europa.esig.dss.ws.dto.RemoteDocument;
 
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
+import org.jose4j.base64url.Base64;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.imageio.ImageIO;
 
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Date;
+import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @ExtendWith(MockitoExtension.class)
 public class PdfVisibleSignatureServiceTest {
 
-    private static int PIXEL_TO_IGNORE = 0xFFFFAEC9;
-    private static int INVALID_PIXEL = 0xFFFF0000;
+    private static final boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+    private static ByteArrayOutputStream newFilesBytes;
+    private static ZipOutputStream newFilesZip;
     private static final String THE_BUCKET = "THE_BUCKET";
 
     @Mock
@@ -46,13 +51,32 @@ public class PdfVisibleSignatureServiceTest {
     private static final File pspImagesFolder = new File(RESOURCE_PATH, "PSPImages");
     private static final File pspImagesFolderWindows = new File(pspImagesFolder, "Windows");
     private static byte photoBytes[];
-    private static byte pdfFileBytes[];
 
     @BeforeAll
-    private static void init() throws IOException {
-        photoBytes = Utils.toByteArray(new FileInputStream(RESOURCE_PATH + "photo.png"));
-        pdfFileBytes = Utils.toByteArray(new FileInputStream(pdfFile));
+    public static void init() throws IOException {
+        photoBytes = Utils.toByteArray(Files.newInputStream(Paths.get(RESOURCE_PATH + "photo.png")));
         System.setProperty(PdfVisibleSignatureService.FONTS_PATH_PROPERTY, RESOURCE_PATH + "fonts");
+        clearList();
+    }
+    @AfterAll
+    public static void out() throws IOException {
+        printNewPdfSignatureFiles();
+    }
+
+    public static void clearList() {
+        if (isWindows) return;
+
+        newFilesBytes = new ByteArrayOutputStream();
+        newFilesZip = new ZipOutputStream(newFilesBytes);
+    }
+
+    public static void printNewPdfSignatureFiles() throws IOException {
+        if (isWindows) return;
+
+        newFilesZip.close();
+        Logger logger = Logger.getLogger(PdfVisibleSignatureServiceTest.class.getName());
+        logger.severe("Listing Base 64 Zip file of all new PDF signature Images");
+        logger.severe(Base64.encode(newFilesBytes.toByteArray()));
     }
 
     @Test
@@ -60,23 +84,21 @@ public class PdfVisibleSignatureServiceTest {
         for (File f : pspTestFolder.listFiles()) {
             int posExt = f.getName().lastIndexOf("V1.psp");
             if (posExt >= 1) {
-                byte[] pspFileBytes = Utils.toByteArray(new FileInputStream(f));
+                byte[] pspFileBytes = Utils.toByteArray(Files.newInputStream(f.toPath()));
                 String fileNameNoExt = f.getName().substring(0, posExt);
 
                 RemoteSignatureParameters params = new RemoteSignatureParameters();
                 params.getBLevelParams().setSigningDate(new Date(1657185646000L));
                 params.setSigningCertificate(cert);
-                RemoteDocument doc = new RemoteDocument(pdfFileBytes, "A.pdf");
-                TokenSignInput input = new TokenSignInput();
-                input.setPspFilePath(f.getPath());
-                Mockito.reset(storageService);
-                Mockito.when(storageService.getFileAsBytes(eq(THE_BUCKET), eq(f.getPath()), eq(false))).thenReturn(pspFileBytes);
-                input.setSignLanguage(fileNameNoExt.substring(0, 2));
-                String defaultCoordinates = (new ObjectMapper()).readValue(new String(pspFileBytes), PdfSignatureProfile.class).defaultCoordinates;
-                input.setPsfC(defaultCoordinates == null ? "1,10,10,200,150" : DEFAULT_STRING);
                 ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
-                if (fileNameNoExt.charAt(2) == 'T') clientSigParams.setPhoto(photoBytes);
-                new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, clientSigParams);
+                PdfSignatureProfile psp = (new ObjectMapper()).readValue(new String(pspFileBytes), PdfSignatureProfile.class);
+                VisiblePdfSignatureParameters pdfParams = new VisiblePdfSignatureParameters();
+                pdfParams.setPsp(psp);
+                pdfParams.setPsfC(psp.defaultCoordinates == null ? "1,10,10,200,150" : DEFAULT_STRING);
+                pdfParams.setSignLanguage(fileNameNoExt.substring(0, 2));
+                if (fileNameNoExt.charAt(2) == 'T') pdfParams.setPhoto(photoBytes);
+                clientSigParams.setPdfSigParams(pdfParams);
+                new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
 
                 compareImages(params.getImageParameters().getImage().getBytes(), fileNameNoExt);
             }
@@ -87,13 +109,13 @@ public class PdfVisibleSignatureServiceTest {
     public void testV1RenderSignature() throws Exception {
         RemoteSignatureParameters params = new RemoteSignatureParameters();
         params.setSigningCertificate(cert);
-        RemoteDocument doc = new RemoteDocument(pdfFileBytes, "A.pdf");
-        TokenSignInput input = new TokenSignInput();
-        input.setSignLanguage("fr");
-        input.setPsfC("2,20,20,300,150");
         ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
-        clientSigParams.setPhoto(photoBytes);
-        new PdfVisibleSignatureService(storageService).checkAndFillParams(params, doc, input, THE_BUCKET, clientSigParams);
+        VisiblePdfSignatureParameters pdfParams = new VisiblePdfSignatureParameters();
+        pdfParams.setSignLanguage("fr");
+        pdfParams.setPsfC("2,20,20,300,150");
+        pdfParams.setPhoto(photoBytes);
+        clientSigParams.setPdfSigParams(pdfParams);
+        new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
 
         compareImages(params.getImageParameters().getImage().getBytes(), "noPSP1");
     }
@@ -101,15 +123,24 @@ public class PdfVisibleSignatureServiceTest {
     public static void compareImages(byte[] actualBytes, String expectedFileName) throws IOException {
 
         File imageFile = new File(pspImagesFolder, expectedFileName + ".png");
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (isWindows) {
             File windowsImageFile = new File(pspImagesFolderWindows, imageFile.getName());
             if (windowsImageFile.exists()) imageFile = windowsImageFile;
         }
 
         System.out.println("Expected image file : " + imageFile.getPath());
 
-        // If expected image not yet generated, create it in the resource folder
-        if (!imageFile.exists()) new InMemoryDocument(actualBytes).save(imageFile.getPath());
+        // On CI/CD the platform differences create different images, in order to get a copy of them we print the B64
+        // If expected image not yet generated, create it in the resource folder or print it in a stream that will be logged (On servers)
+        if (!imageFile.exists()) {
+            if (!isWindows) {
+                newFilesZip.putNextEntry(new ZipEntry(imageFile.getName()));
+                Utils.copy(new ByteArrayInputStream((actualBytes)), newFilesZip);
+                return;
+            } else {
+                new InMemoryDocument(actualBytes).save(imageFile.getPath());
+            }
+        }
 
         BufferedImage expectedImage = ImageIO.read(imageFile);
         BufferedImage actualImage = ImageIO.read(new ByteArrayInputStream(actualBytes));
@@ -117,12 +148,8 @@ public class PdfVisibleSignatureServiceTest {
         int differentPixelsCount = countMismatchedPixels(actualImage, expectedImage);
         if (differentPixelsCount == 0) return;
 
-        // On CI/CD the platform differences create different images, in order to get a copy of them we print the B64
-        //System.out.println(imageFile.getPath());
-        //System.out.println(Base64.getEncoder().encodeToString(actualBytes));
-
         // In case of image size or pixel mismatch, save actual image for quicker analysis
-        imageFile = new File(pspImagesFolder, expectedFileName + "_ACTUAL.png");
+        imageFile = new File(imageFile.getParent(), expectedFileName + "_ACTUAL.png");
 
         new InMemoryDocument(actualBytes).save(imageFile.getPath());
 
@@ -132,7 +159,7 @@ public class PdfVisibleSignatureServiceTest {
         }
 
         // In case of pixel mismatch, save red painted image for quicker analysis
-        imageFile = new File(pspImagesFolder, expectedFileName + "_INV_PIXELS.png");
+        imageFile = new File(imageFile.getParent(), expectedFileName + "_INV_PIXELS.png");
         ImageIO.write(expectedImage, "png", imageFile);
         fail("Difference between expected image and rendered image. Image with red painted invalid pixels is here : " + imageFile.getPath());
     }
@@ -149,7 +176,9 @@ public class PdfVisibleSignatureServiceTest {
             for (int x = 0; x < expectedImageWidth; x++) {
                 int actualRGB = actualImage.getRGB(x, y);
                 int expectedRGB = expectedImage.getRGB(x, y);
+                int PIXEL_TO_IGNORE = 0xFFFFAEC9;
                 if (expectedRGB != PIXEL_TO_IGNORE && actualRGB != expectedRGB) {
+                    int INVALID_PIXEL = 0xFFFF0000;
                     expectedImage.setRGB(x, y, INVALID_PIXEL);
                     mismatchedPixels++;
                 }

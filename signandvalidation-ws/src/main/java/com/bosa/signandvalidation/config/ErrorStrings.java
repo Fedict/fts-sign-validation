@@ -43,7 +43,7 @@ public interface ErrorStrings {
 	/** Invalid signature level for document */
 	String INVALID_SIGNATURE_LEVEL = "INVALID_SIGNATURE_LEVEL";
 
-	/** NN of the certificate is not in the allowed to sign list */
+	/** NN of the certificate is not in the "allowed to sign" list or a PDF attribute forbids signature **/
 	String NOT_ALLOWED_TO_SIGN = "NOT_ALLOWED_TO_SIGN";
 
 	/** PDF signature field problem: not specified when needed or invalid value */
@@ -65,4 +65,7 @@ public interface ErrorStrings {
 	// Internal (sign-validation to gui-sin) errors
 	/** Not allowed downloading signed files */
 	String BLOCKED_DOWNLOAD = "BLOCKED_DOWNLOAD";
+
+	// The Visible signature of pdf signature does not fit entirely on the page
+	String SIGNATURE_OUT_OF_BOUNDS = "SIGNATURE_OUT_OF_BOUNDS";
 }

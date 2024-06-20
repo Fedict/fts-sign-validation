@@ -2,7 +2,7 @@ package com.bosa.signandvalidation.service;
 
 /******************************* WARNING ****************************
 
- This class is a shadow of the DSS 5.9 "RemoteDocumentValidationService"
+ This class is a shadow of the DSS 5.13 "RemoteDocumentValidationService"
  It is needed because there is an issue when validating Xades signatures
  with "Policies". The code was using a non-proxied "dataLoader" object
  which is blocked by firewalls.
@@ -48,12 +48,14 @@ import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import eu.europa.esig.dss.validation.reports.Reports;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import eu.europa.esig.dss.ws.dto.exception.DSSRemoteServiceException;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -61,13 +63,23 @@ import java.util.List;
  */
 public class ShadowRemoteDocumentValidationService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(eu.europa.esig.dss.ws.validation.common.RemoteDocumentValidationService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ShadowRemoteDocumentValidationService.class);
 
     /** The certificate verifier to use */
     private CertificateVerifier verifier;
 
     /**************** fileCacheDataLoader will land here */
     private DataLoader dataLoader;
+
+
+    /** The validation policy to be used by default */
+    private ValidationPolicy defaultValidationPolicy;
+    /**
+     * Default construction instantiating object with null certificate verifier
+     */
+    public ShadowRemoteDocumentValidationService() {
+        // empty
+    }
 
     /**************** fileCacheDataLoader setter */
     public void setDataLoader(DataLoader dataLoader) {
@@ -84,6 +96,28 @@ public class ShadowRemoteDocumentValidationService {
     }
 
     /**
+     * Sets the validation policy to be used by default, when no policy provided within the request
+     *
+     * @param validationPolicy {@link InputStream}
+     */
+    public void setDefaultValidationPolicy(InputStream validationPolicy) {
+        try {
+            this.defaultValidationPolicy = ValidationPolicyFacade.newFacade().getValidationPolicy(validationPolicy);
+        } catch (Exception e) {
+            throw new DSSRemoteServiceException(String.format("Unable to instantiate validation policy: %s", e.getMessage()), e);
+        }
+    }
+
+    /**
+     * Sets the validation policy to be used by default, when no policy provided within the request
+     *
+     * @param validationPolicy {@link ValidationPolicy}
+     */
+    public void setDefaultValidationPolicy(ValidationPolicy validationPolicy) {
+        this.defaultValidationPolicy = validationPolicy;
+    }
+
+    /**
      * Validates the document
      *
      * @param dataToValidate {@link DataToValidateDTO} the request
@@ -95,10 +129,12 @@ public class ShadowRemoteDocumentValidationService {
 
         Reports reports;
         RemoteDocument policy = dataToValidate.getPolicy();
-        if (policy == null) {
-            reports = validator.validateDocument();
-        } else {
+        if (policy != null) {
             reports = validator.validateDocument(getValidationPolicy(policy));
+        } else if (defaultValidationPolicy != null) {
+            reports = validator.validateDocument(defaultValidationPolicy);
+        } else {
+            reports = validator.validateDocument();
         }
 
         WSReportsDTO reportsDTO = new WSReportsDTO(reports.getDiagnosticDataJaxb(), reports.getSimpleReportJaxb(),
@@ -140,11 +176,20 @@ public class ShadowRemoteDocumentValidationService {
         }
     }
 
-    private SignedDocumentValidator initValidator(DataToValidateDTO dataToValidate) {
+    /**
+     * Instantiates a {@code SignedDocumentValidator} based on the request data DTO
+     *
+     * @param dataToValidate {@link DataToValidateDTO} representing the request data
+     * @return {@link SignedDocumentValidator}
+     */
+    protected SignedDocumentValidator initValidator(DataToValidateDTO dataToValidate) {
         DSSDocument signedDocument = RemoteDocumentConverter.toDSSDocument(dataToValidate.getSignedDocument());
         SignedDocumentValidator signedDocValidator = SignedDocumentValidator.fromDocument(signedDocument);
         if (Utils.isCollectionNotEmpty(dataToValidate.getOriginalDocuments())) {
             signedDocValidator.setDetachedContents(RemoteDocumentConverter.toDSSDocuments(dataToValidate.getOriginalDocuments()));
+        }
+        if (Utils.isCollectionNotEmpty(dataToValidate.getEvidenceRecords())) {
+            signedDocValidator.setDetachedEvidenceRecordDocuments(RemoteDocumentConverter.toDSSDocuments(dataToValidate.getEvidenceRecords()));
         }
         signedDocValidator.setCertificateVerifier(verifier);
         // If null, uses default (NONE)

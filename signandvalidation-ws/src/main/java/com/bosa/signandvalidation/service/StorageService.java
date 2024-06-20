@@ -9,18 +9,22 @@ import com.bosa.signandvalidation.model.FileStoreInfo;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import io.minio.*;
 import io.minio.errors.*;
+import io.minio.messages.Bucket;
+import io.minio.messages.DeleteError;
+import io.minio.messages.DeleteObject;
+import io.minio.messages.Item;
+import lombok.Getter;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.SocketTimeoutException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,6 +38,8 @@ import static org.springframework.http.HttpStatus.*;
  */
 @Service
 public class StorageService {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(StorageService.class);
+
     @Value("${objectstorage.endpoint}")
     private String S3Endpoint;
 
@@ -43,13 +49,14 @@ public class StorageService {
     @Value("${objectstorage.secretkey}")
     private String secretKey;
 
+    @Getter
     @Value("${objectstorage.secretbucket}")
     private String secretBucket;
 
     private MinioClient client;
 
     private MinioClient getClient() {
-        if(client == null) {
+        if (client == null) {
             client = MinioClient.builder()
                     .endpoint(S3Endpoint)
                     .credentials(accessKey, secretKey)
@@ -66,10 +73,10 @@ public class StorageService {
                     .build();
             return testClient.bucketExists(BucketExistsArgs.builder().bucket(accesskey).build());
         } catch (ErrorResponseException | InsufficientDataException
-                | InternalException | InvalidKeyException
-                | InvalidResponseException | IOException
-                | NoSuchAlgorithmException | ServerException
-                | XmlParserException ex) {
+                 | InternalException | InvalidKeyException
+                 | InvalidResponseException | IOException
+                 | NoSuchAlgorithmException | ServerException
+                 | XmlParserException ex) {
             Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, "Exception :" + ex.toString() + " - Cause:" + ex.getCause() + " - Message :" + ex.getMessage(), ex);
             return false;
         }
@@ -116,7 +123,8 @@ public class StorageService {
             if (inStream != null) {
                 try {
                     inStream.close();
-                } catch (IOException ignored) { }
+                } catch (IOException ignored) {
+                }
             }
         }
         return outBytes;
@@ -129,7 +137,7 @@ public class StorageService {
             stream = getClient().getObject(GetObjectArgs.builder().bucket(bucket).object(name).build());
             StringBuilder sb = new StringBuilder(32768);
             byte[] buffer = new byte[2048];
-            while(true) {
+            while (true) {
                 int read = stream.read(buffer);
                 if (read < 0) break;
                 sb.append(new String(buffer));
@@ -142,7 +150,8 @@ public class StorageService {
             if (stream != null) {
                 try {
                     stream.close();
-                } catch (IOException ignored) { }
+                } catch (IOException ignored) {
+                }
             }
         }
         return null;
@@ -152,8 +161,9 @@ public class StorageService {
         try {
             if (bucket == null) bucket = secretBucket;
             StatObjectResponse so = getClient().statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
-            return new FileStoreInfo(MediaTypeUtil.getMediaTypeFromFilename(name), so.etag(), so.size());
-
+            return new FileStoreInfo(MediaTypeUtil.getMediaTypeFromFilename(name), so.etag(), so.size(), LocalDateTime.from(so.lastModified()));
+        } catch(ErrorResponseException e) {
+            return new FileStoreInfo(); // File not found
         } catch (Exception e) {
             logAndThrow("getting info for", name, e);
         }
@@ -181,5 +191,46 @@ public class StorageService {
         if (e instanceof SocketTimeoutException) s = GATEWAY_TIMEOUT;
         else if (e instanceof IOException) s = BAD_GATEWAY;
         logAndThrowEx(s, STORAGE_ERROR, msg, e);
+    }
+
+    public void cleanupBuckets(BucketCleaner cleaner) {
+        String bucketName = "none";
+        String fileName = bucketName;
+        try {
+            MinioClient minioClient = getClient();
+            StringBuilder sb = new StringBuilder();
+            List<DeleteObject> toDelete = new ArrayList<DeleteObject>();
+            for (Bucket bucket : minioClient.listBuckets()) {
+                sb.setLength(0);
+                toDelete.clear();
+                bucketName = bucket.name();
+                Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
+                for (Result<Item> r : results) {
+                    Item i = r.get();
+                    fileName = i.objectName();
+                    if (cleaner.shouldDelete(bucketName, fileName, i.isDir(), i.isDir() ? null : LocalDateTime.from(i.lastModified()))) {
+                        toDelete.add(new DeleteObject(fileName));
+                        sb.append(fileName);
+                        sb.append(", ");
+                    }
+                }
+                if (!toDelete.isEmpty()) {
+                    sb.setLength(sb.length() - 2);
+                    LOG.warn("Deleting bucket '" + bucketName + "' (" + sb + "')");
+                    Iterable<Result<DeleteError>> deleteErrors = minioClient.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(toDelete).build());
+                    for (Result<DeleteError> deleteError : deleteErrors) {
+                        DeleteError error = deleteError.get();
+                        LOG.warn("Delete error : " + error.objectName() + " - " + error.code());
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            logAndThrow("Cleaning", bucketName + "-" + fileName, e);
+        }
+    }
+
+    public interface BucketCleaner {
+        boolean shouldDelete(String bucketName, String path, boolean isDir, LocalDateTime lastModification);
     }
 }
