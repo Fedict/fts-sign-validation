@@ -9,14 +9,15 @@ Feature: Validation certificate service
         And Preparing the chain "<certificateChain>"
         When The user validates the certificate
         Then The response is <code>
+        And The certificate is <Indication>
+        And The subindication is "<SubIndication>"
 
         Examples:
-            | certificate     | certificateChain | code |
-            | root.crt        | certificate.cer  | 200  |
-            | certificate.cer | root.crt         | 200  |
-            | certificate.cer | Sign-5.xml       | 500  |
-            | Sign-5.xml      | certificate.cer  | 500  |
-
+            | certificate     | certificateChain | code | Indication    | SubIndication                     |
+            | root.crt        | certificate.cer  | 200  | PASSED        | Skip                              |
+            | certificate.cer | root.crt         | 200  | INDETERMINATE | CERTIFICATE_CHAIN_GENERAL_FAILURE |
+            | BAD.crt         | certificate.cer  | 500  | Skip          | Skip                              |
+            | certificate.cer | BAD.crt          | 200  | INDETERMINATE | CERTIFICATE_CHAIN_GENERAL_FAILURE |
 
     @active
     Scenario Outline: Posting longer certificateChain
@@ -46,7 +47,7 @@ Feature: Validation certificate service
             #| single_cert.crt                 | belgium.crt root.crt | 200  | PASSED        |
 
 
-    @active
+    @active @wip
     Scenario Outline: Posting several certificates
         Given Preparing the certificate "<certificate>"
         And Preparing the chain "<certificateChain>"
@@ -59,10 +60,10 @@ Feature: Validation certificate service
             | certificate     | certificateChain            | second_certificate | second_certificateChain     | code |
             | root.crt        | belgium.crt certificate.cer | root.crt           | belgium.crt certificate.cer | 200  |
             | certificate.cer | belgium.crt root.crt        | certificate.cer    | belgium.crt root.crt        | 200  |
-            | Sign-5.xml      | certificate.cer             | root.crt           | certificate.cer             | 500  |
-            | certificate.cer | Sign-5.xml                  | certificate.cer    | root.crt                    | 500  |
-            | certificate.cer | root.crt                    | Sign-5.xml         | root.crt                    | 500  |
-            | certificate.cer | root.crt                    | certificate.cer    | Sign-5.xml                  | 500  |
+            | BAD.crt         | certificate.cer             | root.crt           | certificate.cer             | 500  |
+            | certificate.cer | BAD.crt                     | certificate.cer    | root.crt                    | 200  |
+            | certificate.cer | root.crt                    | BAD.crt            | root.crt                    | 500  |
+            | certificate.cer | root.crt                    | certificate.cer    | BAD.crt                     | 200  |
 
 
     @active

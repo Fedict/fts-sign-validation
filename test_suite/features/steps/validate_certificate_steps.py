@@ -33,8 +33,9 @@ def validate_certicate(context):
 
 @then("The certificate is {result}")
 def validation_result(context, result):
-    response_dict = json.loads(context.response.content)
-    assert response_dict["indication"] == result
+    if result != 'Skip':
+        response_dict = json.loads(context.response.content)
+        assert response_dict["indication"] == result
 
 
 @when("The user validates the certificates")
@@ -52,3 +53,9 @@ def validation_results(context, first_result, second_result):
     response_dict = json.loads(context.response.content)
     assert response_dict["indications"][0]["indication"] == first_result
     assert response_dict["indications"][1]["indication"] == second_result
+
+@then('The subindication is "{SubIndication}"')
+def validation_subconclusion(context, SubIndication):
+    if SubIndication != 'Skip':
+        response_dict = json.loads(context.response.content)
+        assert response_dict["subIndication"] == SubIndication
