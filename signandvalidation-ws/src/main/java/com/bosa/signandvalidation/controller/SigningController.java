@@ -1074,8 +1074,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document doc = db.parse(new ByteArrayInputStream(signedDoc.getBytes()));
 
-        // It is supposed to be extremely rare so we log the file
-        logger.info(xmlDocToString(doc));
+        //logger.info(xmlDocToString(doc));
 
         NodeList elements = doc.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "X509Data");
         if (elements == null || elements.getLength() != 1) {
