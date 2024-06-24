@@ -1,3 +1,4 @@
 {
-  "url": "https://validate.ta.fts.bosa.belgium.be/signandvalidation/"
+  "url": "https://validate.ta.fts.bosa.belgium.be/signandvalidation/",
+  "url": "http://localhost:8751/"
 }

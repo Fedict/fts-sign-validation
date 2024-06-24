@@ -24,14 +24,13 @@ def validation_Indication(context, Indication):
     assert response_dict["indication"] == Indication
 
 
-@then('The subindication is "{SubIndication}"')
+@then('The subindicationLabel is "{SubIndication}"')
 def validation_subconclusion(context, SubIndication):
     response_dict = json.loads(context.response.content)
-    if response_dict["subIndication"] is None:
+    if response_dict["subIndicationLabel"] is None:
         return True
     else:
-        assert response_dict["subIndication"]
-
+        assert response_dict["subIndicationLabel"] == SubIndication
 
 @when('Add {naughtystring} to the "{value}"')
 def replace_signatureid(context, value, naughtystring):
