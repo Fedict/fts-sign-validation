@@ -12,10 +12,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PolicyDTO {
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "http://policy.hom.com/policy")
+    @Schema(description = "Deprecated")
     private String id;
-    @Schema(example = "Belgium signing Policy")
+    @Schema(description = "Deprecated")
     private String description;
-    @Schema(example = "SHA256", description = "The digest algorithm used to make the policy digest. Default value is SHA256")
+    @Schema(description = "Deprecated")
     private DigestAlgorithm digestAlgorithm;
 }
