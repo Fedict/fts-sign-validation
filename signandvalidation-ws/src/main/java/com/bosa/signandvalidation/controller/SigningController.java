@@ -896,8 +896,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
             }
 
-            byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
-            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
+            byte[] bytesOfFile = storageService.getFileAsBytes(token.getBucket(), filePath, true);
+            RemoteDocument fileToSign = new RemoteDocument(bytesOfFile, null);
 
             checkDataToSign(parameters, dataToSignForTokenDto.getToken());
 
@@ -909,7 +909,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), clientSigParams.getSigningDate());
+            byte [] bytesToSign = dataToSign.getBytes();
+            if (signProfile.isReturnDigest()) bytesToSign = DSSUtils.digest(digestAlgorithm, bytesToSign);
+            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, bytesToSign, clientSigParams.getSigningDate());
 
             logger.info("Returning from getDataToSignForToken()");
 
@@ -1039,7 +1041,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
             detachedDocuments.add(fileToSign);
 
-            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), null);
+            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), getValidationPolicy(null, signProfile));
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
@@ -1460,7 +1462,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
 //            try (FileOutputStream fos = new FileOutputStream("signed.file")) { fos.write(signedDoc.getBytes()); }
 
-            RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, signDocumentDto.getValidatePolicy());
+            RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, getValidationPolicy(signDocumentDto.getValidatePolicy(), signProfile));
             logger.info("Returning from signDocument()");
             return ret;
         } catch (ProfileNotFoundException e) {
