@@ -1,0 +1,10 @@
+{
+  "profileId": "PADES_MINTEST_SEALING",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "PAdES_BASELINE_B",
+  "signaturePackaging": "ENVELOPED",
+  "signatureForm": "PAdES",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "returnDigest": false,
+  "validationPolicyFilename": "testEsealingConstraint.xml"
+}
