@@ -9,5 +9,9 @@
   "trustAnchorBPPolicy": false,
   "addCertPathToKeyinfo": true,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
-  "signingType": "XadesMultiFile"
+  "signingType": "XadesMultiFile",
+  "policyId": "http://signinfo.eda.just.fgov.be/SignaturePolicy/pdf/PrivateSeal/BE_Justice_Signature_Policy_PrivateSeal_Hum_v0.12_202204_Fr.pdf",
+  "policyDescription": "Service Public F\u00e9d\u00e9ral Belge Justice",
+  "policyDigestAlgorithm": "SHA512",
+  "policyDigestValue": "2dDo/+x2EANV9HaiN1wAuim0XglynSewsKASDXL4bKNPNp8Bv6NlaBRxowSwEdJlaa/Llcf9UIuzL0HD6brVyQ=="
 }
