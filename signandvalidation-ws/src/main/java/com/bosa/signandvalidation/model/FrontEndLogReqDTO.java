@@ -5,39 +5,28 @@
  */
 package com.bosa.signandvalidation.model;
 
+import com.bosa.signandvalidation.exceptions.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+
 import java.util.logging.Level;
 
 /**
  *
  * @author wouter
  */
+@Data
 public class FrontEndLogReqDTO {
     private String message;
     private String token;
     private String level;
 
-    public String getMessage() {
-        return message;
-    }
-    public String getToken() {
-        return token;
-    }
-    public String getLevel() {
-        return level;
-    }
-    public void setMessage(String message) {
-        this.message = message;
-    }
-    public void setToken(String token) {
-        this.token = token;
-    }
-    public void setLevel(String level) {
-        this.level = level;
-    }
-
     @JsonIgnore
     public Level getLevelEnum() {
         return Level.parse(level);
+    }
+
+    public void sanitize() {
+        message             = Utils.sanitize(message, 256);
     }
 }

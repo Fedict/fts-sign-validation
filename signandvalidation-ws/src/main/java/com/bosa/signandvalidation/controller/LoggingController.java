@@ -32,8 +32,9 @@ public class LoggingController extends ControllerBase {
     @Operation(hidden = true)
     @PostMapping(value = "/error", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public FrontEndErrorRespDTO errorMesg(@RequestBody FrontEndErrorReqDTO feError) {
-        String ref = logDateTimeFormatter.format(Instant.now());
         checkAndRecordMDCToken(feError.getToken());
+        feError.sanitize();
+        String ref = logDateTimeFormatter.format(Instant.now());
 
         StringBuilder sb = new StringBuilder();
         sb.append(ref).append("||").append(feError.getErr())
@@ -47,8 +48,9 @@ public class LoggingController extends ControllerBase {
     @Operation(hidden = true)
     @PostMapping(value = "/log", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public FrontEndLogRespDTO logMessage(@RequestBody FrontEndLogReqDTO feLog) {
-        String ref = logDateTimeFormatter.format(Instant.now());
         checkAndRecordMDCToken(feLog.getToken());
+        feLog.sanitize();
+        String ref = logDateTimeFormatter.format(Instant.now());
 
         StringBuilder sb = new StringBuilder();
         sb.append(ref).append("||").append("message: ").append(feLog.getMessage());
@@ -61,6 +63,7 @@ public class LoggingController extends ControllerBase {
     @PostMapping(value = "/versions", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String logVersion(@RequestBody VersionLogReqDTO versionLog) throws IllegalAccessException {
         checkAndRecordMDCToken(versionLog.getToken());
+        versionLog.sanitize();
         versionLog.setToken(null);
         objectToMDC(versionLog, true);
         logger.warning("Versions");

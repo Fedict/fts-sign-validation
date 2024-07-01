@@ -1,10 +1,14 @@
 package com.bosa.signandvalidation.exceptions;
 
 import com.bosa.signandvalidation.controller.SigningController;
+import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
+import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
 import java.time.Instant;
@@ -80,6 +84,8 @@ public class Utils {
     public static void checkAndRecordMDCToken(String tokenId) {
         if (tokenId != null) {
             int offset = tokenId.length();
+            if (offset >= 20) throw new InvalidParameterException("Invalid Token Value");
+
             while(offset != 0) {
                 char C = tokenId.charAt(--offset);
                 // Token must be composed of Base 64 characters only
@@ -105,5 +111,41 @@ public class Utils {
                 else MDC.remove(f.getName());
             }
         }
+    }
+
+    // Cleanup malicious inputs. Slow when sanitizing, fast when not
+    public static String sanitize(String string, int maxSize) {
+        if (string == null) return null;
+
+        int length = string.length();
+        if (length <= maxSize) {
+            int i = 0;
+            while(true) {
+                if (i == length) return string;
+                char C = string.charAt(i++);
+                // All chars between 32 and 126 are printable
+                if (C < 32 || C == 127) break;
+            }
+        } else length = maxSize;
+
+        StringBuilder sb = new StringBuilder(length);
+        int i = 0;
+        while(i != length) {
+            char C = string.charAt(i++);
+            if (C < 32 || C == 127) C = '#';
+            sb.append(C);
+        }
+
+        logger.warning("Sanitized : " + string + " to " + sb.toString());
+        return sb.toString();
+    }
+
+    public static RemoteDocument getPolicyFile(String fileName) throws IOException {
+        logger.warning("Loading policy for signature validation : " + fileName);
+        InputStream genericIs = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + fileName);
+        if (genericIs == null) throw new IOException("Policy file not found");
+        RemoteDocument policyDocument = new RemoteDocument(eu.europa.esig.dss.utils.Utils.toByteArray(genericIs), fileName);
+        genericIs.close();
+        return policyDocument;
     }
 }

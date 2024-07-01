@@ -5,10 +5,8 @@
  */
 package com.bosa.signandvalidation.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.bosa.signandvalidation.exceptions.Utils;
 import lombok.Data;
-
-import java.util.logging.Level;
 
 /**
  *
@@ -23,4 +21,13 @@ public class VersionLogReqDTO {
     private String browserStore;
     private String token;
     private String userAgent;
+
+    public void sanitize() {
+        frontEndType        = Utils.sanitize(frontEndType, 20);
+        frontEnd            = Utils.sanitize(frontEnd, 20);
+        beID                = Utils.sanitize(beID, 20);
+        browserExt          = Utils.sanitize(browserExt, 20);
+        browserStore        = Utils.sanitize(browserStore, 20);
+        userAgent           = Utils.sanitize(userAgent, 256);
+    }
 }

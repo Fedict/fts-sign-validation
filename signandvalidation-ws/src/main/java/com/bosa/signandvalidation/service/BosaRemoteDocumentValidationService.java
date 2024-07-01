@@ -36,8 +36,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.INVALID_PARAM;
+import static com.bosa.signandvalidation.exceptions.Utils.getPolicyFile;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
-import static com.bosa.signandvalidation.utils.MiscUtils.getPolicyFile;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
