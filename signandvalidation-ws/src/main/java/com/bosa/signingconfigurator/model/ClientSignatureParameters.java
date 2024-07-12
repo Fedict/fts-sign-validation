@@ -37,4 +37,10 @@ public class ClientSignatureParameters {
 
     @Schema(description = "Only used for getDataToSign, signDocument, getDataToSignForToken and signDocumentForToken used for customizing the visible PDF signature")
     private VisiblePdfSignatureParameters pdfSigParams;
+
+    public ClientSignatureParameters(RemoteCertificate signingCertificate, List<RemoteCertificate> certificateChain, Date signingDate) {
+        this.signingCertificate = signingCertificate;
+        this.certificateChain = certificateChain;
+        this.signingDate = signingDate;
+    }
 }

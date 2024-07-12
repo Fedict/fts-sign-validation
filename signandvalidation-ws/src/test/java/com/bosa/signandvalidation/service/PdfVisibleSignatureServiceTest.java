@@ -98,7 +98,7 @@ public class PdfVisibleSignatureServiceTest {
                 pdfParams.setSignLanguage(fileNameNoExt.substring(0, 2));
                 if (fileNameNoExt.charAt(2) == 'T') pdfParams.setPhoto(photoBytes);
                 clientSigParams.setPdfSigParams(pdfParams);
-                new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
+                new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams.getPdfSigParams());
 
                 compareImages(params.getImageParameters().getImage().getBytes(), fileNameNoExt);
             }
@@ -115,7 +115,7 @@ public class PdfVisibleSignatureServiceTest {
         pdfParams.setPsfC("2,20,20,300,150");
         pdfParams.setPhoto(photoBytes);
         clientSigParams.setPdfSigParams(pdfParams);
-        new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
+        new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams.getPdfSigParams());
 
         compareImages(params.getImageParameters().getImage().getBytes(), "noPSP1");
     }
