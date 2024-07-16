@@ -176,6 +176,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private RemoteAltSignatureServiceImpl altSignatureService;
 
     @Autowired
+    private RemoteSigningService remoteSigningService;
+
+    @Autowired
     private StorageService storageService;
 
     @Autowired
@@ -1036,8 +1039,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("Entering remoteSignDocumentsForToken()");
 
             TokenObject token = getTokenFromId(signDto.getToken());
-            String sad = getSadFromCode(signDto.getCode());
-             List<RemoteCertificate> certChain = getCertificatesFromSad(sad);
+            String sad = remoteSigningService.getSadFromCode(signDto.getCode());
+             List<RemoteCertificate> certChain = remoteSigningService.getCertificatesFromSad(sad);
             RemoteCertificate signingCert = certChain.get(0);
             certChain.remove(signingCert);
 
@@ -1087,7 +1090,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             DataToSignDTO[] dataToSign = getDataToSignMultipleDocumentsForToken(token, inputBags);
 
-            byte [][] signedDdata = signHashes(signDto.getCode(), dataToSign);
+            byte [][] signedDdata = remoteSigningService.signDigests(sad, dataToSign);
 
             signMultipleDocumentsForToken(token, inputBags, signedDdata, certChain);
 
@@ -1100,21 +1103,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
-    }
-
-    /*****************************************************************************************/
-
-    private String getSadFromCode(String code) {
-        return "SAD";
-    }
-
-    private List<RemoteCertificate> getCertificatesFromSad(String sad) {
-
-        return null;
-    }
-
-    private byte[][] signHashes(String code, DataToSignDTO[] dataToSign) {
-        return null;
     }
 
     /*****************************************************************************************/
