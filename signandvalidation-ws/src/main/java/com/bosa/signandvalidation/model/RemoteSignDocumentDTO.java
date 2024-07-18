@@ -5,6 +5,7 @@
  */
 package com.bosa.signandvalidation.model;
 
+import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,10 +20,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RemoteSignDocumentDTO {
+    private String signingProfileId;
     private String token;
     private String code;
     private String signLanguage;
     private String psfN;
     private String psfC;
     private PdfSignatureProfile psp;
+    private RemoteDocument toSignDocument;
 }

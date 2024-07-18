@@ -176,7 +176,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private RemoteAltSignatureServiceImpl altSignatureService;
 
     @Autowired
-    private RemoteSigningService remoteSigningService;
+    private RemoteSigningInterface remoteSigningService;
 
     @Autowired
     private StorageService storageService;
@@ -1090,9 +1090,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             DataToSignDTO[] dataToSign = getDataToSignMultipleDocumentsForToken(token, inputBags);
 
-            byte [][] signedDdata = remoteSigningService.signDigests(sad, dataToSign);
+            byte [][] signedData = remoteSigningService.signDigests(sad, dataToSign);
 
-            signMultipleDocumentsForToken(token, inputBags, signedDdata, certChain);
+            signMultipleDocumentsForToken(token, inputBags, signedData, certChain);
 
             logger.info("Returning from remoteSignDocumentsForToken().");
         } catch (Exception e) {
@@ -1596,21 +1596,68 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Operation(hidden = true)
     @PostMapping(value = REMOTE_SIGN_DOCUMENT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<RemoteDocument> remoteSignDocument(@RequestBody RemoteSignDocumentDTO signDto) {
+    public RemoteDocument remoteSignDocument(@RequestBody RemoteSignDocumentDTO signDto) {
         authorizeCall(features, Features.signbox);
         try {
             checkAndRecordMDCToken(signDto.getToken());
             logger.info("Entering remoteSignDocument()");
 
-            logger.info("Returning from remoteSignDocument().");
-        } catch (Exception e) {
-            DataLoadersExceptionLogger.logAndThrow(e);
+            String sad = remoteSigningService.getSadFromCode(signDto.getCode());
+
+            Date now = signingTime == null ? new Date() : new Date(signingTime);
+            List<RemoteCertificate> certChain = remoteSigningService.getCertificatesFromSad(sad);
+            RemoteCertificate signingCert = certChain.get(0);
+            certChain.remove(signingCert);
+            ClientSignatureParameters clientSigParams = new ClientSignatureParameters(signingCert, certChain, now);
+            VisiblePdfSignatureParameters pdfSigParams = new VisiblePdfSignatureParameters(signDto.getPsfC(), signDto.getPsfN(), signDto.getSignLanguage());
+            pdfSigParams.setPsp(signDto.getPsp());
+
+            ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDto.getSigningProfileId());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
+
+            setOverrideRevocationStrategy(signProfile);
+
+            checkCertificates(parameters);
+
+            if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
+                // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
+                // or in "ImageIO.read" where it is NOT used as a path !
+                prepareVisibleSignature(parameters, signDto.getToSignDocument(), pdfSigParams);
+            }
+
+            ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(signDto.getToSignDocument(), parameters, null, applicationName);
+
+            DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
+            byte [] bytesToSign = dataToSign.getBytes();
+            if (signProfile.isReturnDigest()) bytesToSign = DSSUtils.digest(digestAlgorithm, bytesToSign);
+
+            byte [] signedData = remoteSigningService.signDigest(sad, digestAlgorithm, bytesToSign);
+
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signedData);
+            RemoteDocument signedDoc = altSignatureService.altSignDocument(signDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);
+
+            if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams.getCertificateChain());
+
+//            try (FileOutputStream fos = new FileOutputStream("signed.file")) { fos.write(signedDoc.getBytes()); }
+
+            RemoteDocument ret =  validateResult(signedDoc, null, parameters, getValidationPolicy(null, signProfile));
+            logger.info("Returning from remoteSignDocument()");
+            return ret;
+        } catch (ProfileNotFoundException e) {
+            logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
+        } catch (PdfVisibleSignatureService.PdfVisibleSignatureException e) {
+            logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
+        } catch(NullParameterException e) {
+            logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
+        } catch(ProtectedDocumentException e) {
+            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
+        } catch (RuntimeException | IOException | ParserConfigurationException | TransformerException | SAXException e) {
+            handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
             clearOverrideRevocationDataLoadingStrategyFactory();
         }
-
-        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+        return null; // We won't get here
     }
 
     /*****************************************************************************************/
@@ -1919,11 +1966,17 @@ public enum Features {
     validation,token,signbox
 }
 
-/*****************************************************************************************/
+    /*****************************************************************************************/
 
-public static void authorizeCall(String features, Features feature) {
-    if (features != null && !features.contains(feature.name())) throw new InvalidParameterException("Unknown Operation");
-}
+    public static void authorizeCall(String features, Features feature) {
+        if (features != null && !features.contains(feature.name())) throw new InvalidParameterException("Unknown Operation");
+    }
+
+    /*****************************************************************************************/
+
+    public void setRemoteSigningService(RemoteSigningInterface remoteSigningService) {
+        this.remoteSigningService = remoteSigningService;
+    }
 
 /*****************************************************************************************/
 }
