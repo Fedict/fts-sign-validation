@@ -27,7 +27,7 @@
     </appender>
 
     <springProfile name="local">
-        <root level="TRACE">
+        <root level="INFO">
             <appender-ref ref="STDOUT" />
         </root>
         <!-- <logger name="eu.europa" level="TRACE" />
@@ -35,7 +35,7 @@
     </springProfile>
 
     <springProfile name="!local">
-        <root level="INFO">
+        <root level="TRACE">
             <appender-ref ref="json" />
         </root>
         <!-- EST-592 Disable logging of large number of "CRL Signature cannot be validated : ..." -->
