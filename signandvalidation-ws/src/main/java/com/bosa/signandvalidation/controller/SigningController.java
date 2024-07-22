@@ -1129,7 +1129,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             byte [] digestToSign = dataToBeSigned.getBytes();
             if (inputBag.getSignProfile().isReturnDigest()) digestToSign = DSSUtils.digest(digestAlgorithm, digestToSign);
             dataToSign[index] = new DataToSignDTO(digestAlgorithm, digestToSign, clientSigParams.getSigningDate());
-
         }
         return dataToSign;
     }
