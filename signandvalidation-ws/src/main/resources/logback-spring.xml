@@ -27,7 +27,7 @@
     </appender>
 
     <springProfile name="local">
-        <root level="INFO">
+        <root level="TRACE">
             <appender-ref ref="STDOUT" />
         </root>
         <!-- <logger name="eu.europa" level="TRACE" />
