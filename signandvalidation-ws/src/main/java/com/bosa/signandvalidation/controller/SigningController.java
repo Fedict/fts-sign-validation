@@ -317,7 +317,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkAndRecordMDCToken(tokenString);
             objectToMDC(gtfd, true);
             logger.info("Returning from getTokenForDocuments()");
-            objectToMDC(gtfd, true);
+            objectToMDC(gtfd, false);
             return tokenString;
         } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
