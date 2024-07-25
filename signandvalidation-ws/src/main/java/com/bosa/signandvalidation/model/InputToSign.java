@@ -12,7 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class InputToSign {
     private Integer index;
-    private String signLanguage;
     private String psfN;
     private String psfC;
+    private boolean psfP;
+    private String language;
 }

@@ -21,5 +21,6 @@ import java.util.List;
 public class RemoteSignDocumentsForTokenDTO {
     private String token;
     private String code;
+    private byte [] photo;
     private List<InputToSign> inputsToSign;
 }

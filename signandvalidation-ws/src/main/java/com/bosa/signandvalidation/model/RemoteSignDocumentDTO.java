@@ -23,9 +23,10 @@ public class RemoteSignDocumentDTO {
     private String signingProfileId;
     private String token;
     private String code;
-    private String signLanguage;
+    private String language;
     private String psfN;
     private String psfC;
+    private byte [] photo;
     private PdfSignatureProfile psp;
     private RemoteDocument toSignDocument;
 }

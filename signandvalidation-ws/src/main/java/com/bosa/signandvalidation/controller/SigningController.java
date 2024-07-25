@@ -1081,7 +1081,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     signProfile = signingConfigService.findProfileParamsById(signProfileId);
                     canSignWithExpiredCertificate = canSignWithExpiredCertificate & signProfile.getSignWithExpiredCertificate();
                     ClientSignatureParameters clientSigParams = new ClientSignatureParameters(signingCert, certChain, now);
-                    clientSigParams.setPdfSigParams(new VisiblePdfSignatureParameters(inputToSign.getPsfC(), inputToSign.getPsfN(), inputToSign.getSignLanguage()));
+                    byte [] photo = tokenInputToSign.isPsfP() || inputToSign.isPsfP() ? signDto.getPhoto() : null;
+                    clientSigParams.setPdfSigParams(new VisiblePdfSignatureParameters(inputToSign.getPsfC(), inputToSign.getPsfN(), inputToSign.getLanguage(), photo));
                     parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
                     inputBags[index] = new SignInputBag(filePath, isPDF, clientSigParams, parameters, signProfile, tokenInputToSign, null);
                 }
@@ -1608,7 +1609,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteCertificate signingCert = certChain.get(0);
             certChain.remove(signingCert);
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters(signingCert, certChain, now);
-            VisiblePdfSignatureParameters pdfSigParams = new VisiblePdfSignatureParameters(signDto.getPsfC(), signDto.getPsfN(), signDto.getSignLanguage());
+            VisiblePdfSignatureParameters pdfSigParams = new VisiblePdfSignatureParameters(signDto.getPsfC(), signDto.getPsfN(), signDto.getLanguage(), signDto.getPhoto());
             pdfSigParams.setPsp(signDto.getPsp());
 
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDto.getSigningProfileId());

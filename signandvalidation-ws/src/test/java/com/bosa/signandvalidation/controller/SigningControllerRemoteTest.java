@@ -98,7 +98,7 @@ public class SigningControllerRemoteTest {
         FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.pdf"));
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
 
-        RemoteSignDocumentDTO dto = new RemoteSignDocumentDTO("PADES_1", "zeToken", CODE, "fr", null, "1,10,20,200,100", null, toSignDocument);
+        RemoteSignDocumentDTO dto = new RemoteSignDocumentDTO("PADES_1", TOKEN, CODE, "fr", null, "1,10,20,200,100", null, null, toSignDocument);
         RemoteDocument signedDocument = sc.remoteSignDocument(dto);
 
         assertNotNull(signedDocument);
@@ -119,10 +119,10 @@ public class SigningControllerRemoteTest {
         sc.setRemoteSigningService(testRemoteSigningService);
 
         List<InputToSign> inputsToSign = new ArrayList<>();
-        inputsToSign.add(new InputToSign(0, "fr", null, "1,10,20,200,100"));
-        inputsToSign.add(new InputToSign(2, "de", "signature_2", null));
-        inputsToSign.add(new InputToSign(3, "nl", null, null));
-        RemoteSignDocumentsForTokenDTO dto = new RemoteSignDocumentsForTokenDTO(TOKEN, CODE, inputsToSign);
+        inputsToSign.add(new InputToSign(0, null, "1,10,20,200,100", false, "fr"));
+        inputsToSign.add(new InputToSign(2, "signature_2", null, false, "nl"));
+        inputsToSign.add(new InputToSign(3, null, null, false, "de"));
+        RemoteSignDocumentsForTokenDTO dto = new RemoteSignDocumentsForTokenDTO(TOKEN, CODE, null, inputsToSign);
         ResponseEntity<RemoteDocument> result = sc.remoteSignDocumentsForToken(dto);
 
         assertNotNull(result);
