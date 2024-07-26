@@ -351,7 +351,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     // Convoluted logic to identify if we have one or two profiles, for xml files and/or pdf files
     private void setProfileInfo(TokenObject token, String profileId) {
-        if (profileId == null) return;
+        if (profileId == null || profileId.isEmpty()) return;
         ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
         if (signProfile == null) {
             logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile is invalid." , null);
