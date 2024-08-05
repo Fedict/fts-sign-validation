@@ -1151,7 +1151,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             setOverrideRevocationStrategy(signProfile);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signedDigests[index]);
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signedDigests[index]);
             RemoteDocument signedDoc = altSignatureService.altSignDocument(file, parameters, signatureValueDto, inputBag.getReferences(), applicationName);
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, certChain);
@@ -1634,7 +1634,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             byte [] signedData = remoteSigningService.signDigest(sad, digestAlgorithm, bytesToSign);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signedData);
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signedData);
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams.getCertificateChain());
