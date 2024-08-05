@@ -1151,7 +1151,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             setOverrideRevocationStrategy(signProfile);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signedDigests[index]);
+            SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signedDigests[index]);
             RemoteDocument signedDoc = altSignatureService.altSignDocument(file, parameters, signatureValueDto, inputBag.getReferences(), applicationName);
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, certChain);
@@ -1518,7 +1518,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, DSSUtils.digest(digestAlgorithm, dataToSign.getBytes()), dataToSignDto.getClientSignatureParameters().getSigningDate());
+            byte [] bytesToSign = dataToSign.getBytes();
+            if (signProfile.isReturnDigest()) bytesToSign = DSSUtils.digest(digestAlgorithm, bytesToSign);
+            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, bytesToSign, dataToSignDto.getClientSignatureParameters().getSigningDate());
             logger.info("Returning from getDataToSignMultiple()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1564,7 +1566,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 prepareVisibleSignature(parameters, signDocumentDto.getToSignDocument(), clientSigParams.getPdfSigParams());
             }
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams.getCertificateChain());
@@ -1687,10 +1689,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams.getCertificateChain());
+
+            //try (FileOutputStream fos = new FileOutputStream("signed.file.xml")) { fos.write(signedDoc.getBytes()); }
 
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
             // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
@@ -1917,7 +1921,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signDto.getSignatureValue());
             List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), signDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDto.getToSignDocument(), parameters, signatureValueDto, references, null);
 
@@ -1943,8 +1947,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    public static SignatureAlgorithm getSignatureAlgorithm(RemoteSignatureParameters parameters) {
-        return SignatureAlgorithm.getAlgorithm(parameters.getEncryptionAlgorithm(), parameters.getDigestAlgorithm());
+    public static SignatureValueDTO getSignatureValueDTO(RemoteSignatureParameters parameters, byte[] signatureValue) {
+        return new SignatureValueDTO(SignatureAlgorithm.getAlgorithm(parameters.getEncryptionAlgorithm(), parameters.getDigestAlgorithm()), signatureValue);
     }
 
     /*****************************************************************************************/
