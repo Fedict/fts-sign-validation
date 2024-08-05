@@ -14,6 +14,8 @@ import java.security.InvalidParameterException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -103,12 +105,22 @@ public class Utils {
     }
 
     public static void objectToMDC(Object o, boolean set) throws IllegalAccessException {
+        objectToMDC("", o, set);
+    }
+
+    private static void objectToMDC(String prefix, Object o, boolean set) throws IllegalAccessException {
         for(Field f : o.getClass().getDeclaredFields()) {
             f.setAccessible(true);
             Object value = f.get(o);
-            if (value instanceof String) {
-                if (set) MDC.put(f.getName(), (String) value);
-                else MDC.remove(f.getName());
+            if (value instanceof List) {
+                int count = 0;
+                Iterator<?> i = ((List<?>) value).iterator();
+                String nameLevel = prefix + f.getName() + "[";
+                while(i.hasNext()) objectToMDC(nameLevel + count++ + "].", i.next(), set);
+            } else {
+                String name = prefix + f.getName();
+                if (!set) MDC.remove(name);
+                else if (value != null) MDC.put(name, value.toString());
             }
         }
     }
@@ -124,7 +136,7 @@ public class Utils {
                 if (i == length) return string;
                 char C = string.charAt(i++);
                 // All chars between 32 and 126 are printable
-                if (C < 32 || C == 127) break;
+                if (C < 32 || C > 126) break;
             }
         } else length = maxSize;
 
@@ -132,7 +144,7 @@ public class Utils {
         int i = 0;
         while(i != length) {
             char C = string.charAt(i++);
-            if (C < 32 || C == 127) C = '#';
+            if (C < 32 || C > 126) C = '#';
             sb.append(C);
         }
 

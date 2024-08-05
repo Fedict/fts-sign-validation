@@ -1,0 +1,12 @@
+{
+  "profileId": "XADES_MINTEST_MULTIFILE",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "XAdES_BASELINE_LTA",
+  "signaturePackaging": "DETACHED",
+  "signatureForm": "XAdES",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "trustAnchorBPPolicy": false,
+  "addCertPathToKeyinfo": true,
+  "validationPolicyFilename": "testEsealingConstraint.xml",
+  "returnDigest": false
+}
