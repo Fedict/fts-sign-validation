@@ -23,6 +23,8 @@ import eu.europa.esig.dss.spi.client.http.DSSFileLoader;
 import eu.europa.esig.dss.spi.client.http.IgnoreDataLoader;
 import eu.europa.esig.dss.spi.client.jdbc.JdbcCacheConnector;
 import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
+import eu.europa.esig.dss.spi.validation.CertificateVerifier;
+import eu.europa.esig.dss.spi.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
@@ -31,12 +33,12 @@ import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.tsl.function.OfficialJournalSchemeInformationURI;
 import eu.europa.esig.dss.tsl.job.TLValidationJob;
 import eu.europa.esig.dss.tsl.source.LOTLSource;
-import eu.europa.esig.dss.validation.CertificateVerifier;
-import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.ws.cert.validation.common.RemoteCertificateValidationService;
 import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureServiceImpl;
 import eu.europa.esig.dss.xades.signature.XAdESService;
 import eu.europa.esig.dss.alert.LogOnStatusAlert;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -47,8 +49,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
@@ -195,7 +195,7 @@ public class DSSBeanConfig {
     @Bean(name = "extra-certificate-source")
     public CertificateSource extraTrustStoreSource() throws IOException {
         KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(
-            new ClassPathResource(extraKsFilename).getFile(), extraKsType, extraKsPassword
+            new ClassPathResource(extraKsFilename).getFile(), extraKsType, extraKsPassword.toCharArray()
         );
 
         CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
@@ -208,7 +208,7 @@ public class DSSBeanConfig {
     public CertificateSource testTrustStoreSource() throws IOException {
         if (testKsenabled) {
             KeyStoreCertificateSource keystore = new KeyStoreCertificateSource(
-                    new ClassPathResource(testKsFilename).getFile(), testKsType, testKsPassword
+                    new ClassPathResource(testKsFilename).getFile(), testKsType, testKsPassword.toCharArray()
             );
 
             CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
@@ -338,7 +338,7 @@ public class DSSBeanConfig {
     @Bean
     public KeyStoreCertificateSource ojContentKeyStore() {
         try {
-            return new KeyStoreCertificateSource(new ClassPathResource(ksFilename).getFile(), ksType, ksPassword);
+            return new KeyStoreCertificateSource(new ClassPathResource(ksFilename).getFile(), ksType, ksPassword.toCharArray());
         } catch (IOException e) {
             throw new DSSException("Unable to load the file " + ksFilename, e);
         }

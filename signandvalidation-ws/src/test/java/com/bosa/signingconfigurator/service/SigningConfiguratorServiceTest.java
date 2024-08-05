@@ -22,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import java.util.*;
 
+import static com.bosa.signandvalidation.controller.SigningController.getSignatureAlgorithm;
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.*;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.*;
 import static javax.xml.crypto.dsig.CanonicalizationMethod.*;
@@ -131,7 +132,7 @@ public class SigningConfiguratorServiceTest {
         assertNull(result.getAsicContainerType());
         assertEquals(SignatureLevel.XAdES_BASELINE_B, result.getSignatureLevel());
         assertEquals(SignaturePackaging.ENVELOPING, result.getSignaturePackaging());
-        assertEquals(SignatureAlgorithm.RSA_SHA256, result.getSignatureAlgorithm());
+        assertEquals(SignatureAlgorithm.RSA_SHA256, getSignatureAlgorithm(result));
         assertEquals(SHA512, result.getReferenceDigestAlgorithm());
 
         // based on SignatureAlgorithm
@@ -155,7 +156,7 @@ public class SigningConfiguratorServiceTest {
         assertNull(result.getAsicContainerType());
         assertEquals(SignatureLevel.XAdES_BASELINE_B, result.getSignatureLevel());
         assertEquals(SignaturePackaging.ENVELOPING, result.getSignaturePackaging());
-        assertEquals(SignatureAlgorithm.RSA_SHA256, result.getSignatureAlgorithm());
+        assertEquals(SignatureAlgorithm.RSA_SHA256, getSignatureAlgorithm(result));
         assertEquals(SHA512, result.getReferenceDigestAlgorithm());
 
         // based on SignatureAlgorithm
@@ -176,7 +177,7 @@ public class SigningConfiguratorServiceTest {
         RemoteSignatureParameters result = service.getSignatureParams(null, clientParams, null);
 
         // then
-        assertEquals(SignatureAlgorithm.ECDSA_SHA384, result.getSignatureAlgorithm());
+        assertEquals(SignatureAlgorithm.ECDSA_SHA384, getSignatureAlgorithm(result));
 
         // based on SignatureAlgorithm
         assertEquals(SHA384, result.getDigestAlgorithm());
@@ -311,12 +312,12 @@ public class SigningConfiguratorServiceTest {
         assertNull(result.getAsicContainerType());
         assertEquals(SignatureLevel.XAdES_BASELINE_B, result.getSignatureLevel());
         assertEquals(SignaturePackaging.ENVELOPING, result.getSignaturePackaging());
-        assertEquals(SignatureAlgorithm.RSA_SHA256, result.getSignatureAlgorithm());
+        //assertEquals(SignatureAlgorithm.RSA_SHA256, getSignatureAlgorithm(result)); Not needed since extension does not sign
         assertEquals(SHA512, result.getReferenceDigestAlgorithm());
 
         // based on SignatureAlgorithm
         assertEquals(DigestAlgorithm.SHA256, result.getDigestAlgorithm());
-        assertEquals(EncryptionAlgorithm.RSA, result.getEncryptionAlgorithm());
+        //assertEquals(EncryptionAlgorithm.RSA, result.getEncryptionAlgorithm()); Not needed since extension does not sign
     }
 
     @Test
@@ -333,12 +334,12 @@ public class SigningConfiguratorServiceTest {
         assertNull(result.getAsicContainerType());
         assertEquals(SignatureLevel.XAdES_BASELINE_B, result.getSignatureLevel());
         assertEquals(SignaturePackaging.ENVELOPING, result.getSignaturePackaging());
-        assertEquals(SignatureAlgorithm.RSA_SHA256, result.getSignatureAlgorithm());
+        //assertEquals(SignatureAlgorithm.RSA_SHA256, getSignatureAlgorithm(result)); Not needed since extension does not sign
         assertEquals(SHA512, result.getReferenceDigestAlgorithm());
 
         // based on SignatureAlgorithm
         assertEquals(DigestAlgorithm.SHA256, result.getDigestAlgorithm());
-        assertEquals(EncryptionAlgorithm.RSA, result.getEncryptionAlgorithm());
+        //assertEquals(EncryptionAlgorithm.RSA, result.getEncryptionAlgorithm()); Not needed since extension does not sign
     }
 
     @Test

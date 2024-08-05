@@ -20,6 +20,7 @@ import com.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.alert.exception.AlertException;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
+import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
 import eu.europa.esig.dss.pades.exception.ProtectedDocumentException;
 import eu.europa.esig.dss.enumerations.SignatureForm;
 import eu.europa.esig.dss.spi.DSSUtils;
@@ -44,6 +45,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -81,10 +83,9 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -695,7 +696,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             logger.info("Done creating xml file : " + token.getOutFilePath());
 
-        } catch (JAXBException | TransformerException | ParserConfigurationException e) {
+        } catch (JAXBException |TransformerException | ParserConfigurationException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
     }
@@ -1563,7 +1564,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 prepareVisibleSignature(parameters, signDocumentDto.getToSignDocument(), clientSigParams.getPdfSigParams());
             }
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams.getCertificateChain());
@@ -1686,7 +1687,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams.getCertificateChain());
@@ -1916,7 +1917,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signDto.getSignatureValue());
             List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), signDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDto.getToSignDocument(), parameters, signatureValueDto, references, null);
 
@@ -1940,7 +1941,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-/*****************************************************************************************/
+    /*****************************************************************************************/
+
+    public static SignatureAlgorithm getSignatureAlgorithm(RemoteSignatureParameters parameters) {
+        return SignatureAlgorithm.getAlgorithm(parameters.getEncryptionAlgorithm(), parameters.getDigestAlgorithm());
+    }
+
+    /*****************************************************************************************/
 
     private static RemoteDocument getValidationPolicy(RemoteDocument policy, ProfileSignatureParameters signProfile) throws IOException {
 

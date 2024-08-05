@@ -1,9 +1,9 @@
 package com.bosa.signandvalidation.config;
 
+import eu.europa.esig.dss.spi.validation.CommonCertificateVerifier;
+import eu.europa.esig.dss.spi.validation.RevocationDataLoadingStrategyFactory;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.ListCertificateSource;
-import eu.europa.esig.dss.validation.CommonCertificateVerifier;
-import eu.europa.esig.dss.validation.RevocationDataLoadingStrategyFactory;
 
 import java.util.logging.Logger;
 
