@@ -1636,7 +1636,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             byte [] signedData = remoteSigningService.signDigest(sad, digestAlgorithm, bytesToSign);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(getSignatureAlgorithm(parameters), signedData);
+            SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signedData);
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams.getCertificateChain());
