@@ -255,9 +255,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             String tokenString = saveToken(token);
             checkAndRecordMDCToken(tokenString);
-            objectToMDC(tokenData, true);
+            objectToMDC(tokenData);
             logger.info("Returning from getTokenForDocument()");
-            objectToMDC(tokenData, false);
             return tokenString;
         } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -315,9 +314,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             // Create Token
             String tokenString = saveToken(token);
             checkAndRecordMDCToken(tokenString);
-            objectToMDC(gtfd, true);
+            objectToMDC(gtfd);
             logger.info("Returning from getTokenForDocuments()");
-            objectToMDC(gtfd, false);
             return tokenString;
         } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -1048,8 +1046,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             MDC.put("bucket", token.getBucket());
             MDC.put("fileName", signedDoc.getName());
             logger.info("Returning from signDocumentForToken().");
-            MDC.remove("bucket");
-            MDC.remove("fileName");
         } catch (Exception e) {
             handleRevokedCertificates(e);
             DataLoadersExceptionLogger.logAndThrow(e);
