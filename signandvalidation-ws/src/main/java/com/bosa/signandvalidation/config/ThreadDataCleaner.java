@@ -18,5 +18,4 @@ public class ThreadDataCleaner implements HandlerInterceptor {
         DataLoadersExceptionLogger.clearThreadExceptions();
         Utils.clearMDCToken();
     }
-
 }

@@ -898,7 +898,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             byte[] bytesOfFile = storageService.getFileAsBytes(token.getBucket(), filePath, true);
             RemoteDocument fileToSign = new RemoteDocument(bytesOfFile, null);
 
-            checkDataToSign(parameters, dataToSignForTokenDto.getToken());
+            checkDataToSign(parameters, dataToSignForTokenDto.getToken(), signProfile.getSignWithExpiredCertificate());
 
             if (APPLICATION_PDF.equals(mediaType)) {
                 // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
@@ -1040,7 +1040,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
             detachedDocuments.add(fileToSign);
 
-            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), getValidationPolicy(null, signProfile));
+            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(),
+                    getValidationPolicy(null, signProfile), signProfile.getSignWithExpiredCertificate());
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
@@ -1139,13 +1140,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, RemoteDocument validatePolicy) {
-        return validateResult(signedDoc, detachedContents, parameters, null, null, validatePolicy);
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters,
+                                          RemoteDocument validatePolicy, boolean allowExpiredCerts) {
+
+        return validateResult(signedDoc, detachedContents, parameters, null, null, validatePolicy, allowExpiredCerts);
     }
 
     /*****************************************************************************************/
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token, String outFilePath, RemoteDocument validatePolicy) {
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters,
+                                          TokenObject token, String outFilePath, RemoteDocument validatePolicy, boolean allowExpiredCerts) {
+
         SignatureFullValiationDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, validatePolicy, null, parameters);
 
         if (null != token) {
@@ -1171,7 +1176,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     logger.severe("Can't log report !!!!!!!!");
                 }
             }
-            if (!parameters.isSignWithExpiredCertificate()) {
+            if (!allowExpiredCerts) {
                 String subIndication = indications.getSubIndicationLabel();
                 if (CERT_REVOKED.compareTo(subIndication) == 0) {
                     logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
@@ -1185,7 +1190,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private void checkDataToSign(RemoteSignatureParameters parameters, String tokenString) {
+    private void checkDataToSign(RemoteSignatureParameters parameters, String tokenString, boolean allowExpiredCerts) {
 
         Date now = new Date();
         // Check if the signing cert is present and not expired
@@ -1204,7 +1209,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logger.info("Signing certificate ID for " + tokenString + " : " + new CertificateToken(signingCrt).getDSSIdAsString());
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
-            if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
+            if (!allowExpiredCerts && now.after(signingCrt.getNotAfter()))
                 logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + logDateTimeFormat.format(signingCrt.getNotAfter()));
         }
         catch (CertificateException e) {
@@ -1327,7 +1332,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             setOverrideRevocationStrategy(signProfile);
 
-            checkDataToSign(parameters, null);
+            checkDataToSign(parameters, null, signProfile.getSignWithExpiredCertificate());
 
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
                 // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
@@ -1463,7 +1468,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
 //            try (FileOutputStream fos = new FileOutputStream("signed.file")) { fos.write(signedDoc.getBytes()); }
 
-            RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, getValidationPolicy(signDocumentDto.getValidatePolicy(), signProfile));
+            RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters,
+                    getValidationPolicy(signDocumentDto.getValidatePolicy(), signProfile), signProfile.getSignWithExpiredCertificate());
+
             logger.info("Returning from signDocument()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1514,7 +1521,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
             // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
-            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getToSignDocuments(), parameters, getValidationPolicy(signDocumentDto.getValidatePolicy(), signProfile));
+            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getToSignDocuments(), parameters,
+                    getValidationPolicy(signDocumentDto.getValidatePolicy(), signProfile), signProfile.getSignWithExpiredCertificate());
+
             logger.info("Returning from signDocumentMultiple()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1555,7 +1564,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null);
+            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null, false);
             logger.info("Returning from extendDocumentMultiple()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1594,7 +1603,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteDocument extendedDoc = altSignatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null);
+            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null, false);
             logger.info("Returning from extendDocument()");
             return ret;
         } catch (ProfileNotFoundException e) {

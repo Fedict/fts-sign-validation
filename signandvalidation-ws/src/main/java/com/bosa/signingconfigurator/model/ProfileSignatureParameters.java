@@ -37,8 +37,6 @@ public class ProfileSignatureParameters extends JsonObject {
 
     private DigestAlgorithm digestAlgorithm;
 
-    private MaskGenerationFunction maskGenerationFunction;
-
     private DigestAlgorithm referenceDigestAlgorithm;
 
     /**
