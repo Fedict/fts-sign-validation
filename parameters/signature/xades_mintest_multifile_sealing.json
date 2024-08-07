@@ -1,5 +1,5 @@
 {
-  "profileId": "XADES_MINTEST_MULTIFILE",
+  "profileId": "XADES_MINTEST_MULTIFILE_SEALING",
   "digestAlgorithm": "SHA256",
   "signatureLevel": "XAdES_BASELINE_LTA",
   "signaturePackaging": "DETACHED",
@@ -8,5 +8,6 @@
   "trustAnchorBPPolicy": false,
   "addCertPathToKeyinfo": true,
   "validationPolicyFilename": "testEsealingConstraint.xml",
-  "returnDigest": false
+  "returnDigest": false,
+  "signingType": "MultiFileDetached"
 }
