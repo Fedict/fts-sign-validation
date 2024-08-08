@@ -556,10 +556,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     break;
 
                 case MultiFileDetached:
+/*
                     if (input.getXmlEltId() != null || input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFilePath() != null) {
+
                         logAndThrowEx(FORBIDDEN, INVALID_PARAM, "XmlEltId, PsfN, PsfC, SignLanguage and PspFileName must be null for " + signingType, null);
                     }
-                    break;
+ */                   break;
 
                 default:
                     if (input.getXmlEltId() != null) {
