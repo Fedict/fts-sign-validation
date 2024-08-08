@@ -9,9 +9,9 @@
   "trustAnchorBPPolicy": false,
   "addCertPathToKeyinfo": true,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
-  "signingType": "XadesMultiFile",
   "policyId": "https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf",
   "policyDescription": "Service Public F\u00e9d\u00e9ral Belge Justice",
   "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "KqjHoRzMD4OYDfLgRyuYPznBzC160NvT60arZ09gYoI="
+  "policyDigestValue": "KqjHoRzMD4OYDfLgRyuYPznBzC160NvT60arZ09gYoI=",
+  "signingType": "MultiFileDetached"
 }

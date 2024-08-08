@@ -1045,6 +1045,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteDocument signedDoc;
             RemoteDocument fileToSign;
             List<RemoteDocument> toSignDocuments = null;
+            List<RemoteDocument> detachedDocuments = null;
             switch (token.getSigningType()) {
                 case MultiFileDetached:
                     toSignDocuments = new ArrayList<>(10);
@@ -1054,6 +1055,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                         toSignDocuments.add(fileToSign);
                     }
                     signedDoc = signatureServiceMultiple.signDocument(toSignDocuments, parameters, signatureValueDto);
+                    detachedDocuments = toSignDocuments;
                     break;
 
                 case XadesMultiFile:
@@ -1073,6 +1075,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
                     fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), null);
                     signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, null, applicationName);
+
+                    // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
+                    // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
+                    detachedDocuments = clientSigParams.getDetachedContents();
+                    if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
+                    detachedDocuments.add(fileToSign);
                     break;
             }
 
@@ -1082,7 +1090,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             logger.info("signDocumentForToken(): validating the signed doc");
 
-            signedDoc = validateResult(signedDoc, toSignDocuments, parameters, token, signedDoc.getName(), getValidationPolicy(null, signProfile));
+            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), getValidationPolicy(null, signProfile));
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
