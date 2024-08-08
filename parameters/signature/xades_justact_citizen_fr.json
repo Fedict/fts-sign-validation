@@ -3,7 +3,7 @@
   "digestAlgorithm": "SHA384",
   "referenceDigestAlgorithm": "SHA512",
   "signatureLevel": "XAdES_BASELINE_LTA",
-  "signaturePackaging": "ENVELOPED",
+  "signaturePackaging": "DETACHED",
   "signatureForm": "XAdES",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
