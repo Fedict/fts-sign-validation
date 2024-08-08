@@ -604,9 +604,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 break;
 
             case MultiFileDetached:
-                if (token.getOutXsltPath() != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXslt' must be null for " + signingType, null);
-                }
+//                if (token.getOutXsltPath() != null) {
+//                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXsltPath' must be null for " + signingType, null);
+//                }
                 if (prefix != null) {
                     logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for " + signingType, null);
                 }
@@ -614,7 +614,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             default:
                 if (token.getOutXsltPath() != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXslt' must be null for " + signingType, null);
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXsltPath' must be null for " + signingType, null);
                 }
 
                 if (inputs.size() > 1 && !token.isPreviewDocuments()) {
