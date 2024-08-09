@@ -905,23 +905,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkCertificates(parameters);
 
             ToBeSignedDTO dataToSign;
-            RemoteDocument fileToSign;
             switch (token.getSigningType()) {
                 case MultiFileDetached:
-                    List<RemoteDocument> toSignDocuments = new ArrayList<>(10);
-                    for(TokenSignInput input : token.getInputs()) {
-                        filePath = input.getFilePath();
-                        fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), filePath);
-                        toSignDocuments.add(fileToSign);
-                    }
-                    dataToSign = signatureServiceMultiple.getDataToSign(toSignDocuments, parameters);
+                    dataToSign = signatureServiceMultiple.getDataToSign(getDocumentsToSign(token), parameters);
                     break;
 
                 case XadesMultiFile:
-                    List<String> idsToSign = new ArrayList<>(10);
-                    for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
-                    List<DSSReference> references = buildReferences(signingDate, idsToSign, parameters.getReferenceDigestAlgorithm());
-                    fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true), null);
+                    List<DSSReference> references = buildReferences(signingDate, token, parameters.getReferenceDigestAlgorithm());
+                    RemoteDocument fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true), null);
                     dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
                     break;
 
@@ -932,8 +923,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                         prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
                     }
 
-                    fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), null);
-                    dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, null, applicationName);
+                    RemoteDocument fileToSign1 = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), null);
+                    dataToSign = altSignatureService.altGetDataToSign(fileToSign1, parameters, null, applicationName);
                     break;
             }
 
@@ -964,6 +955,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
+    }
+
+    /*****************************************************************************************/
+
+    private List<RemoteDocument> getDocumentsToSign(TokenObject token) {
+        List<RemoteDocument> toSignDocuments = new ArrayList<>(10);
+        for(TokenSignInput input : token.getInputs()) {
+            String filePath = input.getFilePath();
+            RemoteDocument fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), filePath);
+            toSignDocuments.add(fileToSign);
+        }
+        return toSignDocuments;
     }
 
     /*****************************************************************************************/
@@ -1045,24 +1048,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteDocument signedDoc;
             RemoteDocument fileToSign;
-            List<RemoteDocument> toSignDocuments = null;
             List<RemoteDocument> detachedDocuments = null;
             switch (token.getSigningType()) {
                 case MultiFileDetached:
-                    toSignDocuments = new ArrayList<>(10);
-                    for(TokenSignInput input : token.getInputs()) {
-                        filePath = input.getFilePath();
-                        fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), filePath);
-                        toSignDocuments.add(fileToSign);
-                    }
-                    signedDoc = signatureServiceMultiple.signDocument(toSignDocuments, parameters, signatureValueDto);
-                    detachedDocuments = toSignDocuments;
+                    signedDoc = signatureServiceMultiple.signDocument(detachedDocuments = getDocumentsToSign(token), parameters, signatureValueDto);
                     break;
 
                 case XadesMultiFile:
-                    List<String> idsToSign = new ArrayList<>(10);
-                    for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
-                    List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), idsToSign, parameters.getReferenceDigestAlgorithm());
+                    List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), token, parameters.getReferenceDigestAlgorithm());
                     fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true), null);
                     signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, applicationName);
                     break;
@@ -1325,7 +1318,16 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private List<DSSReference> buildReferences(Date signingTime, List<String> xmlIds, DigestAlgorithm refDigestAlgo) {
+    private List<DSSReference> buildReferences(Date signingTime, TokenObject token, DigestAlgorithm refDigestAlgo) {
+        List<String> idsToSign = new ArrayList<>(10);
+        for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
+        return buildReferences(signingTime, idsToSign, refDigestAlgo);
+    }
+
+    /*****************************************************************************************/
+
+        private List<DSSReference> buildReferences(Date signingTime, List<String> xmlIds, DigestAlgorithm refDigestAlgo) {
+
         String timeRef = Long.toString(signingTime.getTime());
         List<DSSReference> references = new ArrayList<DSSReference>();
         int count = 0;
