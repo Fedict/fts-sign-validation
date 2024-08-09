@@ -94,7 +94,7 @@ public class SigningControllerInputCheckTest {
         input.setDisplayXsltPath(null);
 
         token.setOutXsltPath("file2.xml");
-        testToken(token, INVALID_PARAM, "'outXslt' must be null for Standard");
+        testToken(token, INVALID_PARAM, "'outXsltPath' must be null for Standard");
 
         // ... then check "Xades multifile", first with one file
         token.setSigningType(SigningType.XadesMultiFile);
@@ -143,7 +143,7 @@ public class SigningControllerInputCheckTest {
         testToken(token, INVALID_PARAM, "XadesMultiFile must be used only for XML files");
         token.setPdfSignProfile(null);
 
-        testToken(token, INVALID_PARAM, "'OutXslt' (file2.xml) is not unique");
+        testToken(token, INVALID_PARAM, "'outXsltPath' (file2.xml) is not unique");
         token.setOutXsltPath("OutXSLT.xml");
 
         token.setOutPathPrefix("ABC/");

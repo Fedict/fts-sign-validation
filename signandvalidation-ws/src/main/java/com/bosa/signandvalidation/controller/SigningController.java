@@ -595,7 +595,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for " + signingType, null);
                 }
 
-                checkValue("OutXslt", token.getOutXsltPath(), true, null, filenamesList);
+                checkValue("outXsltPath", token.getOutXsltPath(), true, null, filenamesList);
                 if (token.isSelectDocuments()) {
                     // Xades Multifile signs all files at the same time so can't have "cherry picked" files without large changes
                     logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Can't individually select documents for " + signingType, null);
