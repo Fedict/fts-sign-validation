@@ -10,6 +10,7 @@ import com.bosa.signingconfigurator.model.PolicyParameters;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileTimestampParameters;
 
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
 import eu.europa.esig.dss.enumerations.ObjectIdentifierQualifier;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -25,6 +26,7 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
 import java.util.List;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -53,25 +55,12 @@ public class SigningConfiguratorService {
 
         if (signProfile == null) signProfile = findDefaultProfileParams();
 
-        // check to add policy (EPES)
+        // Useful when policy digest need to be calculated
+        //System.out.println(Base64.getEncoder().encodeToString(calcPolicyDigest(signProfile.getPolicyId().startsWith("http") ? signProfile.getPolicyId() : signProfile.getPolicySpuri(), signProfile.getPolicyDigestAlgorithm())));
+
+            // check to add policy (EPES)
         if (policyParameters != null && policyParameters.isPolicyValid()) {
-            // calculate policy file digest
-            DSSDocument doc = fileCacheDataLoader.getDocument(policyParameters.getPolicyId());
-            // Java 9
-            // byte[] bytes = doc.openStream().readAllBytes();
-            // Java 8
-            InputStream is = doc.openStream();
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            int nRead;
-            byte[] data = new byte[4096];
-            while ((nRead = is.read(data, 0, data.length)) != -1) {
-                buffer.write(data, 0, nRead);
-            }
-            buffer.flush();
-            byte[] bytes = buffer.toByteArray();
-            
-            DSSDocument policyContent = new InMemoryDocument(bytes);
-            byte[] digestedBytes = DSSUtils.digest(policyParameters.getPolicyDigestAlgorithm(), policyContent);
+            byte[] digestedBytes = calcPolicyDigest(policyParameters.getPolicyId(), policyParameters.getPolicyDigestAlgorithm());
             // Fill policy entries
             signProfile.setPolicyId(policyParameters.getPolicyId());
             signProfile.setPolicySpuri(policyParameters.getPolicyId());
@@ -85,6 +74,27 @@ public class SigningConfiguratorService {
         }
         tspSource.setTspServer(signProfile.getTspServer());
         return fillRemoteSignatureParams(clientParams, signProfile);
+    }
+
+    // calculate policy file digest
+    private byte[] calcPolicyDigest(String policyId, DigestAlgorithm policyDigestAlgorithm) throws IOException {
+
+        DSSDocument doc = fileCacheDataLoader.getDocument(policyId);
+        // Java 9
+        // byte[] bytes = doc.openStream().readAllBytes();
+        // Java 8
+        InputStream is = doc.openStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[4096];
+        while ((nRead = is.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        buffer.flush();
+        byte[] bytes = buffer.toByteArray();
+
+        DSSDocument policyContent = new InMemoryDocument(bytes);
+        return DSSUtils.digest(policyDigestAlgorithm, policyContent);
     }
 
     public RemoteSignatureParameters getExtensionParams(ProfileSignatureParameters profile, List<RemoteDocument> detachedContents) throws ProfileNotFoundException {
