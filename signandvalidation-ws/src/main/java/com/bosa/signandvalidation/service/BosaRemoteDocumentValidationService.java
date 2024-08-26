@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import com.bosa.signandvalidation.config.ThreadedCertificateVerifier;
 import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.TrustSources;
+import eu.europa.esig.dss.detailedreport.jaxb.XmlDetailedReport;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -34,6 +35,13 @@ import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.INVALID_PARAM;
 import static com.bosa.signandvalidation.exceptions.Utils.getPolicyFile;
@@ -58,7 +66,7 @@ public class BosaRemoteDocumentValidationService {
 	private static final BigInteger BRCA6 = new BigInteger("718b57ff6b693e5a1c235ed887a3ef51f4010f26", 16);
 
 	@Value("${test.rootCertSN:#{null}}")
-	BigInteger testRootCertSN;
+	static BigInteger testRootCertSN;
 
 	private static final Logger logger = Logger.getLogger(BosaRemoteDocumentValidationService.class.getName());
 	@Setter
@@ -83,9 +91,10 @@ public class BosaRemoteDocumentValidationService {
 
 			// Let DSS validate with provided, trust or default (null => Belgian) validation policy
 			report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
-			if (policy == null && !documentHasBelgianSignature(report)) {
-				// But in case of "pure non-belgian" document, use the default DSS policy
-				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")));
+			if (policy == null && documentHasNonBelgianSignature(report)) {
+				// But in case of mixed "belgian/non-belgian" or pure "non-belgian" document, use the default DSS policy
+				WSReportsDTO reportDSS = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")));
+				report = mergeValidationReports(report, reportDSS);
 			}
 
 			// When timestamp servers are down, DSS produced a signature that did not reflect the
@@ -133,6 +142,42 @@ public class BosaRemoteDocumentValidationService {
 		return new SignatureFullValiationDTO(report);
 	}
 
+	// Merge two DSS reports taking all Belgian-certificate results from the beReport and others from the dssReport and recalculating the conclusions
+	private static WSReportsDTO mergeValidationReports(WSReportsDTO beReport, WSReportsDTO dssReport) {
+		try  {
+			JAXBContext jaxbContext = JAXBContext.newInstance(BosaRemoteDocumentValidationService.XmlReportRoot.class);
+			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			BosaRemoteDocumentValidationService.XmlReportRoot root = new BosaRemoteDocumentValidationService.XmlReportRoot();
+			root.setReport(beReport);
+			StringWriter sw = new StringWriter();
+			jaxbMarshaller.marshal(root, sw);
+
+			try (FileOutputStream fos = new FileOutputStream("beReport.xml")) { fos.write(sw.toString().getBytes()); }
+
+			root.setReport(dssReport);
+			sw = new StringWriter();
+			jaxbMarshaller.marshal(root, sw);
+			try (FileOutputStream fos = new FileOutputStream("dssReport.xml")) { fos.write(sw.toString().getBytes()); }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return beReport;
+	}
+
+	@XmlRootElement
+	@XmlAccessorType(XmlAccessType.FIELD)
+	private static class XmlReportRoot {
+
+		private WSReportsDTO report;
+
+		public void setReport(WSReportsDTO report) {
+			this.report = report;
+		}
+	}
+
+
 	// The below password is only needed because, pre-Java 20 JVM, a "null" password keystore
 	// ignores the certificates added to it. With Java 20 they are accepted.
 	// This hardcoded password will of course trigger security review (sast or human)... although it should not since
@@ -179,20 +224,20 @@ public class BosaRemoteDocumentValidationService {
 		return trustedCertificateSource;
 	}
 
-	private boolean documentHasBelgianSignature(WSReportsDTO report) {
+	private static boolean documentHasNonBelgianSignature(WSReportsDTO report) {
 		for(XmlToken sigOrTS : report.getSimpleReport().getSignatureOrTimestampOrEvidenceRecord()) {
 			if (sigOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature) {
 				XmlCertificateChain certChain = sigOrTS.getCertificateChain();
 				if (certChain == null) continue;
 				List<XmlCertificate> certChain2 = certChain.getCertificate();
 				XmlCertificate rootCert = certChain2.get(certChain2.size() - 1);
-				if (isBelgianCertificate(report.getDiagnosticData().getUsedCertificates(), rootCert.getId())) return true;
+				if (!isBelgianTestOrRootCertificate(report.getDiagnosticData().getUsedCertificates(), rootCert.getId())) return true;
 			}
 		}
 	return false;
 	}
 
-	private boolean isBelgianCertificate(List<eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate> certs, String id) {
+	private static boolean isBelgianTestOrRootCertificate(List<eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate> certs, String id) {
 		for (eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate cert : certs) {
 			if (id.equals(cert.getId())) {
 				BigInteger sn = cert.getSerialNumber();
