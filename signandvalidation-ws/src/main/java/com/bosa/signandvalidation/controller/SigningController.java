@@ -127,7 +127,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_FILE_FOR_TOKEN               = "/getFileForToken";
     public static final String SIGN_DOCUMENT_FOR_TOKEN          = "/signDocumentForToken";
 
-    public static final int DEFAULT_TOKEN_VALIDITY_SECS         = 5 * 60 * 60;
     public static final int DEFAULT_SIGN_DURATION_SECS          = 2 * 60;
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
@@ -177,6 +176,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Autowired
     private Environment environment;
+
+    // Token timeout is 5 hours (300 minutes) or else
+    @Value("${token.timeout:300}")
+    private Integer defaultTokenTimeout;
 
     @Value("${signing.time}")
     private Long signingTime;
@@ -510,7 +513,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         Integer tokenTimeout = token.getTokenTimeout();
-        if (tokenTimeout == null) token.setTokenTimeout(tokenTimeout = DEFAULT_TOKEN_VALIDITY_SECS);
+        if (tokenTimeout == null) token.setTokenTimeout(tokenTimeout = defaultTokenTimeout * 60);
 
         Integer signTimeout = token.getSignTimeout();
         if (signTimeout == null) token.setSignTimeout(signTimeout = DEFAULT_SIGN_DURATION_SECS);
