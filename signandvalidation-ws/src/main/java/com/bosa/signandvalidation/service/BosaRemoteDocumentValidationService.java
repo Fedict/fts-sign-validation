@@ -82,10 +82,10 @@ public class BosaRemoteDocumentValidationService {
 			}
 
 			// Let DSS validate with provided, trust or default (null => Belgian) validation policy
-			report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
+			report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy), parameters != null);
 			if (policy == null && !documentHasBelgianSignature(report)) {
 				// But in case of "pure non-belgian" document, use the default DSS policy
-				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")));
+				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")), parameters != null);
 			}
 
 			// When timestamp servers are down, DSS produced a signature that did not reflect the
