@@ -3,7 +3,9 @@ package com.bosa.signandvalidation.controller;
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
@@ -14,6 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SigningControllerInputCheckTest {
 
     private static SigningController ctrl = new SigningController();
+
+    @BeforeAll
+    static void init() {
+        ReflectionTestUtils.setField(ctrl, "defaultTokenTimeout", (Integer)300);
+    }
 
     @Test
     public void testNoSignProfile() throws Exception {
