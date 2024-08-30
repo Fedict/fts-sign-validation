@@ -292,7 +292,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             token.setOutFilePath(gtfd.getOutFilePath());
             setProfileInfo(token, gtfd.getSignProfile());
             setProfileInfo(token, gtfd.getAltSignProfile());
-            token.setSignTimeout(gtfd.getSignTimeout() );
+            token.setSignTimeout(gtfd.getSignTimeout());
             token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
             PolicyDTO policy = gtfd.getPolicy();
             if (policy != null) {
@@ -336,6 +336,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ti.setDisplayXsltPath(input.getDisplayXsltPath());
             ti.setPspFilePath(input.getPspFilePath());
             ti.setSignLanguage(input.getSignLanguage());
+            ti.setDocumentURI(input.getFileURI());
             ti.setPsfC(input.getPsfC());
             ti.setPsfN(input.getPsfN());
             ti.setPsfP(input.isPsfP());
@@ -963,7 +964,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         List<RemoteDocument> toSignDocuments = new ArrayList<>(10);
         for(TokenSignInput input : token.getInputs()) {
             String filePath = input.getFilePath();
-            RemoteDocument fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), filePath);
+            String documentURI = input.getDocumentURI();
+            if (documentURI == null) documentURI = filePath;
+            RemoteDocument fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), documentURI);
             toSignDocuments.add(fileToSign);
         }
         return toSignDocuments;
