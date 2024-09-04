@@ -79,7 +79,7 @@ public class BosaRemoteDocumentValidationService {
 		return validateDocument(signedDocument, originalDocuments, policy, trust, null);
 	}
 
-	public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, TrustSources trust, RemoteSignatureParameters parameters) {
+	public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, TrustSources trust, SignatureLevel expectedSigLevel) {
 
 		WSReportsDTO report = null;
 		try {
@@ -95,6 +95,10 @@ public class BosaRemoteDocumentValidationService {
 				// But in case of mixed "belgian/non-belgian" or pure "non-belgian" document, use the default DSS policy
 				WSReportsDTO reportDSS = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")));
 				report = mergeValidationReports(report, reportDSS);
+			report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy), expectedSigLevel != null);
+			if (policy == null && !documentHasBelgianSignature(report)) {
+				// But in case of "pure non-belgian" document, use the default DSS policy
+				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")), expectedSigLevel != null);
 			}
 
 			// When timestamp servers are down, DSS produced a signature that did not reflect the
@@ -125,12 +129,11 @@ public class BosaRemoteDocumentValidationService {
 				}
 			}
 
-			if (parameters != null && maxSig != null) {
+			if (expectedSigLevel != null && maxSig != null) {
 				// Check if the signature level (of the sig we just made) corresponds with the requested level
-				SignatureLevel expSigLevel = parameters.getSignatureLevel();
 				SignatureLevel sigLevel = maxSig.getSignatureFormat();
-				if (!sigLevel.equals(expSigLevel)) {
-					modifyReports(report, maxSig.getId(), SubIndication.FORMAT_FAILURE, "expected level " + expSigLevel + " but was: " + sigLevel);
+				if (!sigLevel.equals(expectedSigLevel)) {
+					modifyReports(report, maxSig.getId(), SubIndication.FORMAT_FAILURE, "expected level " + expectedSigLevel + " but was: " + sigLevel);
 				}
 			}
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException e) {
