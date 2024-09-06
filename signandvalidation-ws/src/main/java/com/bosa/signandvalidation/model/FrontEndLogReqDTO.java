@@ -27,6 +27,6 @@ public class FrontEndLogReqDTO {
     }
 
     public void sanitize() {
-        message = Utils.sanitize(message, 384);
+        message = Utils.sanitize(message, 512);
     }
 }
