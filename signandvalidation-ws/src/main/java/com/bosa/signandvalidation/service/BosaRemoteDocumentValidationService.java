@@ -14,8 +14,10 @@ import java.util.logging.Logger;
 import com.bosa.signandvalidation.config.ThreadedCertificateVerifier;
 import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.TrustSources;
+import eu.europa.esig.dss.detailedreport.DetailedReport;
 import eu.europa.esig.dss.detailedreport.jaxb.*;
 import eu.europa.esig.dss.diagnostic.jaxb.*;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
@@ -140,8 +142,8 @@ public class BosaRemoteDocumentValidationService {
 
 	// Merge two DSS reports taking all Belgian-certificate results from the beReport and others from the dssReport and recalculating the conclusions
 	private static WSReportsDTO mergeValidationReports(WSReportsDTO beReport, WSReportsDTO dssReport) {
-		//dumpReport(beReport, "beReport.xml");
-		//dumpReport(dssReport, "dssReport.xml");
+		dumpReport(beReport, "beReport.xml");
+		dumpReport(dssReport, "dssReport.xml");
 		WSReportsDTO result = new WSReportsDTO();
 		result.setDiagnosticData(beReport.getDiagnosticData());
 		result.setSimpleReport(buildSimpleReport(beReport, dssReport));
@@ -197,7 +199,8 @@ public class BosaRemoteDocumentValidationService {
 	}
 
 	private static void addRevocationBasicBuildingBlocks(WSReportsDTO xReport, String signatureID, List<XmlBasicBuildingBlocks> dbbbs) {
-			for(XmlSignature signature : xReport.getDiagnosticData().getSignatures()) {
+		XmlDiagnosticData diagData = xReport.getDiagnosticData();
+		for(XmlSignature signature : diagData.getSignatures()) {
 				if (signature.getId().compareToIgnoreCase(signatureID) == 0) {
 					XmlFoundRevocations foundRevocations = signature.getFoundRevocations();
 					for (XmlRelatedRevocation foundRevocation : foundRevocations.getRelatedRevocations()) {
@@ -208,7 +211,12 @@ public class BosaRemoteDocumentValidationService {
 					}
 				}
 			}
+		for(XmlCertificate usedCert : diagData.getUsedCertificates()) {
+			for(XmlCertificateRevocation revocation : usedCert.getRevocations()) {
+				addUniqueRevocationBasicBuildingBlocks(revocation.getRevocation().getId(), xReport, dbbbs);
+			}
 		}
+	}
 
 	private static void addUniqueRevocationBasicBuildingBlocks(String id, WSReportsDTO xReport, List<XmlBasicBuildingBlocks> dbbbs) {
 		for(XmlBasicBuildingBlocks bbb : xReport.getDetailedReport().getBasicBuildingBlocks()) {
