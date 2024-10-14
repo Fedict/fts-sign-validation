@@ -517,6 +517,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         Integer tokenTimeout = token.getTokenTimeout();
+        if (defaultTokenTimeout == null) defaultTokenTimeout = 300;
         if (tokenTimeout == null) token.setTokenTimeout(tokenTimeout = defaultTokenTimeout * 60);
 
         Integer signTimeout = token.getSignTimeout();
