@@ -55,9 +55,6 @@ public class SigningConfiguratorService {
 
         if (signProfile == null) signProfile = findDefaultProfileParams();
 
-        // Useful when policy digest need to be calculated
-        //System.out.println(Base64.getEncoder().encodeToString(calcPolicyDigest(signProfile.getPolicyId().startsWith("http") ? signProfile.getPolicyId() : signProfile.getPolicySpuri(), signProfile.getPolicyDigestAlgorithm())));
-
             // check to add policy (EPES)
         if (policyParameters != null && policyParameters.isPolicyValid()) {
             byte[] digestedBytes = calcPolicyDigest(policyParameters.getPolicyId(), policyParameters.getPolicyDigestAlgorithm());

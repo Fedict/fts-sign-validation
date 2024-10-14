@@ -9,9 +9,9 @@
   "trustAnchorBPPolicy": false,
   "addCertPathToKeyinfo": true,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
-  "policyId": "https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf",
+  "policyId": "https://justact-acc.just.fgov.be/fr/legal-documents/justact/esign-policy/eSign_policy_JustAct_Fr_v1.pdf",
   "policyDescription": "Service Public F\u00e9d\u00e9ral Belge Justice",
   "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "KqjHoRzMD4OYDfLgRyuYPznBzC160NvT60arZ09gYoI=",
+  "policyDigestValue": "YFr9tRDNNaggS2F87gc7rIWy6uH3Aqa1jL7yXbws0wY=",
   "signingType": "MultiFileDetached"
 }
