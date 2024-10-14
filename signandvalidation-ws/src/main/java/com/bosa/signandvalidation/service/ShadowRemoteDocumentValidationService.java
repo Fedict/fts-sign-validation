@@ -37,6 +37,11 @@ package com.bosa.signandvalidation.service;
 
 import eu.europa.esig.dss.exception.IllegalInputException;
 import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.pades.validation.PDFDocumentValidator;
+import eu.europa.esig.dss.pdf.IPdfObjFactory;
+import eu.europa.esig.dss.pdf.ServiceLoaderPdfObjFactory;
+import eu.europa.esig.dss.pdf.modifications.DefaultPdfDifferencesFinder;
+import eu.europa.esig.dss.pdf.modifications.DefaultPdfObjectModificationsFinder;
 import eu.europa.esig.dss.policy.ValidationPolicy;
 import eu.europa.esig.dss.policy.ValidationPolicyFacade;
 import eu.europa.esig.dss.spi.client.http.DataLoader;
@@ -123,9 +128,9 @@ public class ShadowRemoteDocumentValidationService {
      * @param dataToValidate {@link DataToValidateDTO} the request
      * @return {@link WSReportsDTO} response
      */
-    public WSReportsDTO validateDocument(DataToValidateDTO dataToValidate) {
+    public WSReportsDTO validateDocument(DataToValidateDTO dataToValidate, boolean skipPDFVisualComparison) {
         LOG.info("ValidateDocument in process...");
-        SignedDocumentValidator validator = initValidator(dataToValidate);
+        SignedDocumentValidator validator = initValidator(dataToValidate, skipPDFVisualComparison);
 
         Reports reports;
         RemoteDocument policy = dataToValidate.getPolicy();
@@ -151,7 +156,7 @@ public class ShadowRemoteDocumentValidationService {
      */
     public List<RemoteDocument> getOriginalDocuments(DataToValidateDTO dataToValidate) {
         LOG.info("GetOriginalDocuments in process...");
-        SignedDocumentValidator validator = initValidator(dataToValidate);
+        SignedDocumentValidator validator = initValidator(dataToValidate, false);
 
         String signatureId = dataToValidate.getSignatureId();
         if (signatureId == null) {
@@ -179,12 +184,27 @@ public class ShadowRemoteDocumentValidationService {
     /**
      * Instantiates a {@code SignedDocumentValidator} based on the request data DTO
      *
-     * @param dataToValidate {@link DataToValidateDTO} representing the request data
+     * @param dataToValidate          {@link DataToValidateDTO} representing the request data
+     * @param skipPDFVisualComparison   When true, skip Validation "PDF Visual checks". Those are extremely slow an
+     *                                 not needed with a validation coming right after a new signature was made
      * @return {@link SignedDocumentValidator}
      */
-    protected SignedDocumentValidator initValidator(DataToValidateDTO dataToValidate) {
+    protected SignedDocumentValidator initValidator(DataToValidateDTO dataToValidate, boolean skipPDFVisualComparison) {
         DSSDocument signedDocument = RemoteDocumentConverter.toDSSDocument(dataToValidate.getSignedDocument());
         SignedDocumentValidator signedDocValidator = SignedDocumentValidator.fromDocument(signedDocument);
+
+        // Improve validation performance by disabling the visual PDF checks
+        if (skipPDFVisualComparison && signedDocValidator instanceof PDFDocumentValidator) {
+            IPdfObjFactory pdfObjFactory = new ServiceLoaderPdfObjFactory();
+            DefaultPdfDifferencesFinder pdfDifferencesFinder = new DefaultPdfDifferencesFinder();
+            pdfDifferencesFinder.setMaximalPagesAmountForVisualComparison(0);       // '0' => skip the visual comparison
+            pdfObjFactory.setPdfDifferencesFinder(pdfDifferencesFinder);
+            DefaultPdfObjectModificationsFinder pdfObjectModificationsFinder = new DefaultPdfObjectModificationsFinder();
+            pdfObjectModificationsFinder.setMaximumObjectVerificationDeepness(0);   // '0' => skip the visual comparison
+            pdfObjFactory.setPdfObjectModificationsFinder(pdfObjectModificationsFinder);
+            ((PDFDocumentValidator)signedDocValidator).setPdfObjFactory(pdfObjFactory);
+        }
+
         if (Utils.isCollectionNotEmpty(dataToValidate.getOriginalDocuments())) {
             signedDocValidator.setDetachedContents(RemoteDocumentConverter.toDSSDocuments(dataToValidate.getOriginalDocuments()));
         }
@@ -204,5 +224,4 @@ public class ShadowRemoteDocumentValidationService {
 
         return signedDocValidator;
     }
-
 }

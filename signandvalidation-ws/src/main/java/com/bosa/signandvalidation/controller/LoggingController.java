@@ -65,9 +65,8 @@ public class LoggingController extends ControllerBase {
         checkAndRecordMDCToken(versionLog.getToken());
         versionLog.sanitize();
         versionLog.setToken(null);
-        objectToMDC(versionLog, true);
+        objectToMDC(versionLog);
         logger.warning("Versions");
-        objectToMDC(versionLog, false);
         return applicationVersion;
     }
 }

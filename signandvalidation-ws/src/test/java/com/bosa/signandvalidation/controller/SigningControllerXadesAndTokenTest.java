@@ -79,7 +79,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         private final String xslt;
         private final String xsltData;
 
-        SignInput getXmlSignInput() { return new SignInput(name, id, xslt, null, null, null, null, false, false); }
+        SignInput getXmlSignInput() { return new SignInput(name, id, xslt, null,  null,null, null, null, false, false); }
         public static FileDef find(String name) {
             for (FileDef fd : values()) {
                 String fdName = fd.name;

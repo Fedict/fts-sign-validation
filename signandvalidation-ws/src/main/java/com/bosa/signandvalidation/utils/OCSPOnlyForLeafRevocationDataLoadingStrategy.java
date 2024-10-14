@@ -34,7 +34,7 @@ public class OCSPOnlyForLeafRevocationDataLoadingStrategy extends RevocationData
                 return ocspToken != null ? ocspToken : crlToken;
             }
         } else {
-            LOG.warn("Signature EID Cert, No CRL fallback !!!!", certificateToken.getDSSIdAsString());
+            LOG.warn("Signature EID Cert, No CRL fallback !!!! - " + certificateToken.getDSSIdAsString());
         }
         return null;
     }

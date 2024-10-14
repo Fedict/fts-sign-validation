@@ -20,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DocumentMetadataDTO {
-    private SigningType signingType;
+    private boolean signAll; // Sign all documents at once or per document
     private boolean noSignedDownloads;
     private boolean selectDocuments;
     private boolean requestDocumentReadConfirm;
