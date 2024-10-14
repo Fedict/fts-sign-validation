@@ -20,6 +20,10 @@ public class SignInput {
     @Schema(example = "ID1", description = " Only applicable to XadesMultifile signType. The XML ID to used when creating the target XML file")
     private String xmlEltId; // The XML element where the file will be stored
 
+    // Only for XADES Detached
+    @Schema(example = "urn:oid:2.25.125.666.231.98", description = "Only applicable XADES Detached sign profile. Will be placed in the URI attribute of the file reference in the Xades. If left empty the full path name will be used")
+    private String fileURI;
+
     // Only when "fileName" file is of type XML
     @Schema(example = "RENDER.xslt", description = " Only applicable to XML files. The name of the file, stored on the S3 server, that must be used to improve the display of the XML to be signed")
     private String displayXsltPath; // An optional XSLT filename in the bucket can be provided to display the XML

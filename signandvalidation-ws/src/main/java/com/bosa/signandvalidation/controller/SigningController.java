@@ -69,6 +69,7 @@ import java.text.SimpleDateFormat;
 import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.clearOverrideRevocationDataLoadingStrategyFactory;
 import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setOverrideRevocationDataLoadingStrategyFactory;
 import static com.bosa.signandvalidation.exceptions.Utils.*;
+import static com.bosa.signandvalidation.model.SigningType.Standard;
 import static com.bosa.signandvalidation.model.SigningType.XadesMultiFile;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.TRANSPARENT;
@@ -258,7 +259,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkTokenAndSetDefaults(token);
 
             String tokenString = saveToken(token);
-            checkAndRecordMDCToken(tokenString);
+            MDC.put("token", tokenString);
             objectToMDC(tokenData);
             logger.info("Returning from getTokenForDocument()");
             return tokenString;
@@ -295,7 +296,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             token.setOutFilePath(gtfd.getOutFilePath());
             setProfileInfo(token, gtfd.getSignProfile());
             setProfileInfo(token, gtfd.getAltSignProfile());
-            token.setSignTimeout(gtfd.getSignTimeout() );
+            token.setSignTimeout(gtfd.getSignTimeout());
             token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
             PolicyDTO policy = gtfd.getPolicy();
             if (policy != null) {
@@ -317,7 +318,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Create Token
             String tokenString = saveToken(token);
-            checkAndRecordMDCToken(tokenString);
+            MDC.put("token", tokenString);
             objectToMDC(gtfd);
             logger.info("Returning from getTokenForDocuments()");
             return tokenString;
@@ -339,6 +340,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ti.setDisplayXsltPath(input.getDisplayXsltPath());
             ti.setPspFilePath(input.getPspFilePath());
             ti.setSignLanguage(input.getSignLanguage());
+            ti.setDocumentURI(input.getFileURI());
             ti.setPsfC(input.getPsfC());
             ti.setPsfN(input.getPsfN());
             ti.setPsfP(input.isPsfP());
@@ -374,7 +376,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         SigningType signingType = token.getSigningType();
         if (signingType != null) {
             if (signingType != signProfile.getSigningType()) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be of the same signingType." , null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be of the same signingType ('" + signingType + "' != '" +signProfile.getSigningType() + "')." , null);
             }
         }
         token.setSigningType(signProfile.getSigningType());
@@ -496,6 +498,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     void validateTokenValues(TokenObject token) {
 
+        SigningType signingType = token.getSigningType();
         String pdfProfileId = token.getPdfSignProfile();
         String xmlProfileId = token.getXmlSignProfile();
         if (pdfProfileId == null && xmlProfileId == null) {
@@ -549,26 +552,37 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "input files must be either XML or PDF", null);
             }
 
-            if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
-                checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
-                if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFilePath() != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades", null);
-                }
-            } else {
-                if (input.getXmlEltId() != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'XmlEltId' must be null for 'non Xades Multifile'", null);
-                }
-
-                if ((isPDF && pdfProfileId == null) || (isXML && xmlProfileId == null)) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "No signProfile for file type provided (" + inputFileType.toString() + " => " + pdfProfileId + "/" + xmlProfileId + ")", null);
-                }
-
-                if (isPDF) {
-                    String signLanguage = input.getSignLanguage();
-                    if (signLanguage != null && !allowedLanguages.contains(signLanguage)) {
-                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'SignLanguage' (" + signLanguage + ") must be one of " + String.join(", ", allowedLanguages), null);
+            switch(signingType) {
+                case XadesMultiFile:
+                    checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
+                    if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFilePath() != null) {
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for " + signingType, null);
                     }
-                }
+                    break;
+
+                case MultiFileDetached:
+                    if (input.getXmlEltId() != null || input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFilePath() != null) {
+
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "XmlEltId, PsfN, PsfC, SignLanguage and PspFileName must be null for " + signingType, null);
+                    }
+                   break;
+
+                default:
+                    if (input.getXmlEltId() != null) {
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'XmlEltId' must be null for " + signingType, null);
+                    }
+
+                    if ((isPDF && pdfProfileId == null) || (isXML && xmlProfileId == null)) {
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "No signProfile for file type provided (" + inputFileType.toString() + " => " + pdfProfileId + "/" + xmlProfileId + ")", null);
+                    }
+
+                    if (isPDF) {
+                        String signLanguage = input.getSignLanguage();
+                        if (signLanguage != null && !allowedLanguages.contains(signLanguage)) {
+                            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'SignLanguage' (" + signLanguage + ") must be one of " + String.join(", ", allowedLanguages), null);
+                        }
+                    }
+                    break;
             }
             if (!isXML && input.getDisplayXsltPath() != null) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "DisplayXslt must be null for non-xml files", null);
@@ -576,28 +590,41 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         String prefix = token.getOutPathPrefix();
-        if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
-            if (pdfProfileId != null) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'Xades Multifile' must be used only for XML files", null);
-            }
+        switch(signingType) {
+            case XadesMultiFile:
+                if (pdfProfileId != null) {
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, signingType + " must be used only for XML files", null);
+                }
 
-            if (prefix != null) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for 'Xades Multifile'", null);
-            }
+                if (prefix != null) {
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for " + signingType, null);
+                }
 
-            checkValue("OutXslt", token.getOutXsltPath(), true, null, filenamesList);
-            if (token.isSelectDocuments()) {
-                // Xades Multifile signs all files at the same time so can't have "cherry picked" files without large changes
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Can't individually select documents for 'Xades Multifile'", null);
-            }
-        } else {
-            if (inputs.size() > 1 && !token.isPreviewDocuments()) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "previewDocuments must be 'true' for non 'Xades Multifile' signature", null);
-            }
+                checkValue("outXsltPath", token.getOutXsltPath(), true, null, filenamesList);
+                if (token.isSelectDocuments()) {
+                    // Xades Multifile signs all files at the same time so can't have "cherry picked" files without large changes
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Can't individually select documents for " + signingType, null);
+                }
+                break;
 
-            if (token.getOutXsltPath() != null) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXslt' must be null for non 'Xades Multifile'", null);
-            }
+            case MultiFileDetached:
+                if (token.getOutXsltPath() != null) {
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXsltPath' must be null for " + signingType, null);
+                }
+                if (prefix != null) {
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for " + signingType, null);
+                }
+                break;
+
+            default:
+                if (token.getOutXsltPath() != null) {
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXsltPath' must be null for " + signingType, null);
+                }
+
+                if (inputs.size() > 1 && !token.isPreviewDocuments()) {
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "previewDocuments must be 'true' for " + signingType, null);
+                }
+                break;
         }
 
         String outPath = token.getOutFilePath();
@@ -611,7 +638,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (outPath != null) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outFilePath' must be null if outPathPrefix is set (Bulk Signing)", null);
             }
-            // TODO : Check "prefixed" names collisions
         } else {
             checkValue("outFilePath", outPath, false, null, filenamesList);
         }
@@ -741,7 +767,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             }
 
             logger.info("Returning from getMetadataForToken()");
-            return new DocumentMetadataDTO(token.getSigningType(), !token.isOutDownload(),
+            return new DocumentMetadataDTO(token.getSigningType() != SigningType.Standard, !token.isOutDownload(),
                     token.isSelectDocuments(), token.isRequestDocumentReadConfirm(), token.isPreviewDocuments(), token.isNoSkipErrors(), signedInputsMetadata);
         } catch (RuntimeException e){
                 logAndThrowEx(tokenString, INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -786,7 +812,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     break;
                 case OUT:
                     if (token.isOutDownload()) {
-                        if (token.getSigningType().equals(XadesMultiFile) || inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
+                        if (!Standard.equals(token.getSigningType()) || inputIndexes.length == 1) singleFilePath = getOutFilePath(token, input);
                         break;
                     }
 
@@ -865,49 +891,48 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             Date signingDate = signingTime == null ? new Date() : new Date(signingTime);
             clientSigParams.setSigningDate(signingDate);
 
-            String filePath;
+            String filePath = null;
             MediaType mediaType = null;
             TokenSignInput inputToSign = null;
-            List<DSSReference> references = null;
-            RemoteSignatureParameters parameters = null;
-            ProfileSignatureParameters signProfile = null;
-            if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
-                String profileId = token.getXmlSignProfile();
-                if (profileId == null) {
-                    // Double check that profile is not NULL to avoid default being used
-                    logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
-                }
-                signProfile = signingConfigService.findProfileParamsById(profileId);
-                parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
-                List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
-                for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
-                references = buildReferences(signingDate, idsToSign, parameters.getReferenceDigestAlgorithm());
-                filePath = token.getOutFilePath();
-            } else {
+            String profileId = token.getXmlSignProfile();
+            if (Standard.equals(token.getSigningType())) {
                 inputToSign = token.getInputs().get(dataToSignForTokenDto.getFileIdToSign());
                 filePath = inputToSign.getFilePath();
                 mediaType = MediaTypeUtil.getMediaTypeFromFilename(filePath);
-                String profileId = APPLICATION_PDF.equals(mediaType) ? token.getPdfSignProfile() : token.getXmlSignProfile();
-                if (profileId == null) {
-                    // Double check that profile is not NULL to avoid default being used
-                    logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
-                }
-                signProfile = signingConfigService.findProfileParamsById(profileId);
-                parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+                if (APPLICATION_PDF.equals(mediaType)) profileId = token.getPdfSignProfile();
+            }
+            ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
+            if (profileId == null) {
+                // Double check that profile is not NULL to avoid default being used
+                logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
+            }
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+            checkCertificates(parameters);
+
+            ToBeSignedDTO dataToSign;
+            switch (token.getSigningType()) {
+                case MultiFileDetached:
+                    dataToSign = signatureServiceMultiple.getDataToSign(getDocumentsToSign(token), parameters);
+                    break;
+
+                case XadesMultiFile:
+                    List<DSSReference> references = buildReferences(signingDate, token, parameters.getReferenceDigestAlgorithm());
+                    RemoteDocument fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true), null);
+                    dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
+                    break;
+
+                default:
+                    if (APPLICATION_PDF.equals(mediaType)) {
+                        // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
+                        // or in "ImageIO.read" where it is NOT used as a path !
+                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                    }
+
+                    RemoteDocument fileToSign1 = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), null);
+                    dataToSign = altSignatureService.altGetDataToSign(fileToSign1, parameters, null, applicationName);
+                    break;
             }
 
-            byte[] bytesOfFile = storageService.getFileAsBytes(token.getBucket(), filePath, true);
-            RemoteDocument fileToSign = new RemoteDocument(bytesOfFile, null);
-
-            checkDataToSign(parameters, dataToSignForTokenDto.getToken());
-
-            if (APPLICATION_PDF.equals(mediaType)) {
-                // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
-                // or in "ImageIO.read" where it is NOT used as a path !
-                prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
-            }
-
-            ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             byte [] bytesToSign = dataToSign.getBytes();
             if (signProfile.isReturnDigest()) bytesToSign = DSSUtils.digest(digestAlgorithm, bytesToSign);
@@ -935,6 +960,20 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
+    }
+
+    /*****************************************************************************************/
+
+    private List<RemoteDocument> getDocumentsToSign(TokenObject token) {
+        List<RemoteDocument> toSignDocuments = new ArrayList<>(10);
+        for(TokenSignInput input : token.getInputs()) {
+            String filePath = input.getFilePath();
+            String documentURI = input.getDocumentURI();
+            if (documentURI == null) documentURI = filePath;
+            RemoteDocument fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), documentURI);
+            toSignDocuments.add(fileToSign);
+        }
+        return toSignDocuments;
     }
 
     /*****************************************************************************************/
@@ -994,52 +1033,63 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
             checkNNAllowedToSign(token.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
 
-            String filePath;
+            String filePath = null;
             MediaType mediaType = null;
             TokenSignInput inputToSign = null;
-            List<DSSReference> references = null;
-            RemoteSignatureParameters parameters = null;
-            ProfileSignatureParameters signProfile = null;
-            if (SigningType.XadesMultiFile.equals(token.getSigningType())) {
-                signProfile = signingConfigService.findProfileParamsById(token.getXmlSignProfile());
-                parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
-                List<String> idsToSign = new ArrayList<String>(token.getInputs().size());
-                for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
-                references = buildReferences(clientSigParams.getSigningDate(), idsToSign, parameters.getReferenceDigestAlgorithm());
-                filePath = token.getOutFilePath();
-            } else {
+            String profileId = token.getXmlSignProfile();
+            if (Standard.equals(token.getSigningType())) {
                 inputToSign = token.getInputs().get(signDto.getFileIdToSign());
                 filePath = inputToSign.getFilePath();
                 mediaType = MediaTypeUtil.getMediaTypeFromFilename(filePath);
-                String signProfileId = APPLICATION_PDF.equals(mediaType) ? token.getPdfSignProfile() : token.getXmlSignProfile();
-                signProfile = signingConfigService.findProfileParamsById(signProfileId);
-                parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+                if (APPLICATION_PDF.equals(mediaType)) profileId = token.getPdfSignProfile();
             }
-
-            byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
-            RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
-            if (APPLICATION_PDF.equals(mediaType)) {
-                // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
-                // or in "ImageIO.read" where it is NOT used as a path !
-                prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+            ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
+            if (profileId == null) {
+                // Double check that profile is not NULL to avoid default being used
+                logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
             }
-
             setOverrideRevocationStrategy(signProfile);
-
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+            checkCertificates(parameters);
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
-            RemoteDocument signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, applicationName);
+
+            RemoteDocument signedDoc;
+            RemoteDocument fileToSign;
+            List<RemoteDocument> detachedDocuments = null;
+            switch (token.getSigningType()) {
+                case MultiFileDetached:
+                    signedDoc = signatureServiceMultiple.signDocument(detachedDocuments = getDocumentsToSign(token), parameters, signatureValueDto);
+                    break;
+
+                case XadesMultiFile:
+                    List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), token, parameters.getReferenceDigestAlgorithm());
+                    fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true), null);
+                    signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, applicationName);
+                    break;
+
+                default:
+                    if (APPLICATION_PDF.equals(mediaType)) {
+                        // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
+                        // or in "ImageIO.read" where it is NOT used as a path !
+                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                    }
+
+                    fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), null);
+                    signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, null, applicationName);
+
+                    // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
+                    // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
+                    detachedDocuments = clientSigParams.getDetachedContents();
+                    if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
+                    detachedDocuments.add(fileToSign);
+                    break;
+            }
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
 
             signedDoc.setName(getOutFilePath(token, inputToSign));
 
             logger.info("signDocumentForToken(): validating the signed doc");
-
-            // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
-            // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
-            List<RemoteDocument> detachedDocuments = clientSigParams.getDetachedContents();
-            if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
-            detachedDocuments.add(fileToSign);
 
             signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), getValidationPolicy(null, signProfile));
 
@@ -1184,7 +1234,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private void checkDataToSign(RemoteSignatureParameters parameters, String tokenString) {
+    private void checkCertificates(RemoteSignatureParameters parameters) {
 
         Date now = new Date();
         // Check if the signing cert is present and not expired
@@ -1198,9 +1248,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             X509Certificate signingCrt = (X509Certificate) CertificateFactory.getInstance("X509")
                     .generateCertificate(new ByteArrayInputStream(signingCertBytes));
 
-            // Log the cert ID, so it can be linked to the tokenString
-            if (null != tokenString)
-                logger.info("Signing certificate ID for " + tokenString + " : " + new CertificateToken(signingCrt).getDSSIdAsString());
+            logger.info("Signing certificate ID : " + new CertificateToken(signingCrt).getDSSIdAsString());
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
             if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
@@ -1277,7 +1325,16 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private List<DSSReference> buildReferences(Date signingTime, List<String> xmlIds, DigestAlgorithm refDigestAlgo) {
+    private List<DSSReference> buildReferences(Date signingTime, TokenObject token, DigestAlgorithm refDigestAlgo) {
+        List<String> idsToSign = new ArrayList<>(10);
+        for(TokenSignInput input : token.getInputs()) idsToSign.add(input.getXmlEltId());
+        return buildReferences(signingTime, idsToSign, refDigestAlgo);
+    }
+
+    /*****************************************************************************************/
+
+        private List<DSSReference> buildReferences(Date signingTime, List<String> xmlIds, DigestAlgorithm refDigestAlgo) {
+
         String timeRef = Long.toString(signingTime.getTime());
         List<DSSReference> references = new ArrayList<DSSReference>();
         int count = 0;
@@ -1326,7 +1383,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             setOverrideRevocationStrategy(signProfile);
 
-            checkDataToSign(parameters, null);
+            checkCertificates(parameters);
 
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
                 // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
