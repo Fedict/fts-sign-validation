@@ -12,6 +12,7 @@ import lombok.Setter;
 public class TokenSignInput {
     private String filePath; // Path of the file in the bucket to Sign (XML/PDF/Other)
     private String xmlEltId; // FOR XADES Multifile ! The XML element where the file will be stored
+    private String documentURI; // For XADES Detached !
 
     // If "filePath" file is of type : XML
     private String displayXsltPath; // An XSLT full path in the bucket can be provided to display the XML

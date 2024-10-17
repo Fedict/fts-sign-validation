@@ -26,7 +26,7 @@ import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 public class SigningControllerBaseTest extends SignAndValidationBaseTest implements ErrorStrings {
 
     public enum SignProfiles {
-        XADES_B,XADES_T,CADES_B,PADES_B,XADES_LTA,JADES_B, XADES_MDOC_LTA, XADES_B_DETACHED
+        XADES_B,XADES_T,CADES_B,PADES_B,XADES_LTA,JADES_B, XADES_MDOC_LTA, XADES_B_DETACHED, XADES_MULTIFILE_DETACHED
     }
 
     @BeforeAll
@@ -49,6 +49,8 @@ public class SigningControllerBaseTest extends SignAndValidationBaseTest impleme
                 SignaturePackaging.ENVELOPED, SHA512, SHA256, null, SigningType.XadesMultiFile, SignatureForm.XAdES);
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_B_DETACHED.name(), null, SignatureLevel.XAdES_BASELINE_B,
                 SignaturePackaging.DETACHED, null, SHA256, null, null, SignatureForm.XAdES);
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_MULTIFILE_DETACHED.name(), null, SignatureLevel.XAdES_BASELINE_B,
+                SignaturePackaging.DETACHED, null, SHA256, null, SigningType.MultiFileDetached, SignatureForm.XAdES);
 
 
         ProfileTimestampParametersDao timestampParamDao = applicationContext.getBean(ProfileTimestampParametersDao.class);
