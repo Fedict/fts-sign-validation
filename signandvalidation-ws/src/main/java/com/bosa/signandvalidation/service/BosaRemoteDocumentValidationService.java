@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 import com.bosa.signandvalidation.config.ThreadedCertificateVerifier;
 import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.TrustSources;
-import eu.europa.esig.dss.detailedreport.DetailedReport;
 import eu.europa.esig.dss.detailedreport.jaxb.*;
 import eu.europa.esig.dss.diagnostic.jaxb.*;
 import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
@@ -90,10 +89,14 @@ public class BosaRemoteDocumentValidationService {
 
 			// Let DSS validate with provided, trust or default (null => Belgian) validation policy
 			report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy), expectedSigLevel != null);
-			if (policy == null && documentHasNonBelgianSignature(report)) {
-				// But in case of mixed "belgian/non-belgian" or pure "non-belgian" document, use the default DSS policy
-				WSReportsDTO reportDSS = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")), true);
-				report = mergeValidationReports(report, reportDSS);
+			if (policy == null) {
+				int nbNonBelgianSignatures = countNonBelgianSignatures(report);
+				boolean allNonBelgianSignatures = report.getDetailedReport().getSignatureOrTimestampOrEvidenceRecord().size() == nbNonBelgianSignatures;
+				if (nbNonBelgianSignatures != 0 || allNonBelgianSignatures) {
+					// But in case of mixed "belgian/non-belgian" or pure "non-belgian" document, use the default DSS policy
+					WSReportsDTO reportDSS = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")), true);
+					report = allNonBelgianSignatures ? reportDSS : mergeValidationReports(report, reportDSS);
+				}
 			}
 
 			// When timestamp servers are down, DSS produced a signature that did not reflect the
@@ -142,14 +145,14 @@ public class BosaRemoteDocumentValidationService {
 
 	// Merge two DSS reports taking all Belgian-certificate results from the beReport and others from the dssReport and recalculating the conclusions
 	private static WSReportsDTO mergeValidationReports(WSReportsDTO beReport, WSReportsDTO dssReport) {
-		dumpReport(beReport, "beReport.xml");
-		dumpReport(dssReport, "dssReport.xml");
+		//dumpReport(beReport, "beReport.xml");
+		//dumpReport(dssReport, "dssReport.xml");
 		WSReportsDTO result = new WSReportsDTO();
 		result.setDiagnosticData(beReport.getDiagnosticData());
 		result.setSimpleReport(buildSimpleReport(beReport, dssReport));
 		result.setDetailedReport(buildDetailedReport(beReport, dssReport));
 		result.setValidationReportDataHandler(beReport.getValidationReportDataHandler());
-		dumpReport(result, "result.xml");
+		//dumpReport(result, "result.xml");
 		return result;
 	}
 
@@ -257,8 +260,8 @@ public class BosaRemoteDocumentValidationService {
 		XmlSimpleReport besReport = beReport.getSimpleReport();
 		sReport.setValidationTime(besReport.getValidationTime());
 		XmlValidationPolicy validationPolicy = new XmlValidationPolicy();
-		validationPolicy.setPolicyName("Mixed policy");								//////////////////////////////////////////////////////////
-		validationPolicy.setPolicyDescription("Mixed policy description");			//////////////////////////////////////////////////////////
+		validationPolicy.setPolicyName("Mixed policy");
+		validationPolicy.setPolicyDescription("File was validated with the Belgian Policy and with the international policy. The resulting report is a mix of both");
 		sReport.setValidationPolicy(validationPolicy);
 		sReport.setSignaturesCount(besReport.getSignaturesCount());
 		sReport.setDocumentName(besReport.getDocumentName());
@@ -295,11 +298,14 @@ public class BosaRemoteDocumentValidationService {
 	private static boolean isSignatureBEorNot(eu.europa.esig.dss.simplereport.jaxb.XmlSignature signature, boolean hasBelgianRootCert) {
 		for(eu.europa.esig.dss.simplereport.jaxb.XmlCertificate cert : signature.getCertificateChain().getCertificate()) {
 			if (cert.isTrusted()) {
-				for (XmlTrustAnchor trustAnchor : cert.getTrustAnchors().getTrustAnchor()) {
-					String country = trustAnchor.getCountryCode();
-					if (country != null) {
-						int comp = country.compareToIgnoreCase("BE");
-						if ((hasBelgianRootCert && comp == 0) || (!hasBelgianRootCert && comp != 0)) return true;
+				XmlTrustAnchors trustAnchors = cert.getTrustAnchors();
+				if (trustAnchors != null) {
+					for (XmlTrustAnchor trustAnchor : trustAnchors.getTrustAnchor()) {
+						String country = trustAnchor.getCountryCode();
+						if (country != null) {
+							int comp = country.compareToIgnoreCase("BE");
+							if ((hasBelgianRootCert && comp == 0) || (!hasBelgianRootCert && comp != 0)) return true;
+						}
 					}
 				}
 			}
@@ -382,17 +388,18 @@ public class BosaRemoteDocumentValidationService {
 		return trustedCertificateSource;
 	}
 
-	private static boolean documentHasNonBelgianSignature(WSReportsDTO report) {
+	private static int countNonBelgianSignatures(WSReportsDTO report) {
+		int nbSignatures = 0;
 		for(XmlToken sigOrTS : report.getSimpleReport().getSignatureOrTimestampOrEvidenceRecord()) {
 			if (sigOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature) {
 				XmlCertificateChain certChain = sigOrTS.getCertificateChain();
 				if (certChain == null) continue;
 				List<eu.europa.esig.dss.simplereport.jaxb.XmlCertificate> certChain2 = certChain.getCertificate();
 				eu.europa.esig.dss.simplereport.jaxb.XmlCertificate rootCert = certChain2.get(certChain2.size() - 1);
-				if (!isBelgianTestOrRootCertificate(report.getDiagnosticData().getUsedCertificates(), rootCert.getId())) return true;
+				if (!isBelgianTestOrRootCertificate(report.getDiagnosticData().getUsedCertificates(), rootCert.getId())) nbSignatures++;
 			}
 		}
-	return false;
+	return nbSignatures;
 	}
 
 	private static boolean isBelgianTestOrRootCertificate(List<eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate> certs, String id) {

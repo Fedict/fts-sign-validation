@@ -280,6 +280,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         validator.validate(new StreamSource(new StringReader(result.getReport())));
     }
 
+    /* The only file signed with a non BE signature is a production document, this test is therefore stripped from the test suite
     @Test
     public void validateBE_nonBETest() throws Exception {
         // given
@@ -303,5 +304,5 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         endPos = dst.indexOf(end, pos + 1);
         return dst.replaceAll(dst.substring(pos, endPos), value);
     }
-
+ */
 }
