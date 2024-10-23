@@ -3,7 +3,9 @@ package com.bosa.signandvalidation.controller;
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signingconfigurator.model.PolicyParameters;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
@@ -14,6 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SigningControllerInputCheckTest {
 
     private static SigningController ctrl = new SigningController();
+
+    @BeforeAll
+    static void init() {
+        ReflectionTestUtils.setField(ctrl, "defaultTokenTimeout", (Integer)300);
+    }
 
     @Test
     public void testNoSignProfile() throws Exception {
@@ -82,7 +89,7 @@ public class SigningControllerInputCheckTest {
 
         input.setFilePath("file1.pdf");
         input.setXmlEltId("#234234");
-        testToken(token, INVALID_PARAM, "'XmlEltId' must be null for 'non Xades Multifile'");
+        testToken(token, INVALID_PARAM, "'XmlEltId' must be null for Standard");
         input.setXmlEltId(null);
 
         input.setSignLanguage("ch");
@@ -94,7 +101,7 @@ public class SigningControllerInputCheckTest {
         input.setDisplayXsltPath(null);
 
         token.setOutXsltPath("file2.xml");
-        testToken(token, INVALID_PARAM, "'outXslt' must be null for non 'Xades Multifile'");
+        testToken(token, INVALID_PARAM, "'outXsltPath' must be null for Standard");
 
         // ... then check "Xades multifile", first with one file
         token.setSigningType(SigningType.XadesMultiFile);
@@ -104,23 +111,23 @@ public class SigningControllerInputCheckTest {
         testToken(token, INVALID_PARAM, "'XmlEltId' (#234234) does not match Regex ([a-zA-Z0-9\\-_]{1,30})");
         input.setXmlEltId("ID1");
 
-        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades");
+        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for XadesMultiFile");
         input.setSignLanguage(null);
 
         input.setPsfN("xxxx");
-        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades");
+        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for XadesMultiFile");
         input.setPsfN(null);
 
         input.setPsfC("xxxx");
-        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades");
+        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for XadesMultiFile");
         input.setPsfN(null);
 
         input.setPsfC("xxxx");
-        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades");
+        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for XadesMultiFile");
         input.setPsfC(null);
 
         input.setPspFilePath("pspFN");
-        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for Multifile Xades");
+        testToken(token, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for XadesMultiFile");
         input.setPspFilePath(null);
 
         // ... then with two files
@@ -140,18 +147,18 @@ public class SigningControllerInputCheckTest {
 
         // finish with general params
         token.setXmlSignProfile("XADES_MDOC_LTA");
-        testToken(token, INVALID_PARAM, "'Xades Multifile' must be used only for XML files");
+        testToken(token, INVALID_PARAM, "XadesMultiFile must be used only for XML files");
         token.setPdfSignProfile(null);
 
-        testToken(token, INVALID_PARAM, "'OutXslt' (file2.xml) is not unique");
+        testToken(token, INVALID_PARAM, "'outXsltPath' (file2.xml) is not unique");
         token.setOutXsltPath("OutXSLT.xml");
 
         token.setOutPathPrefix("ABC/");
-        testToken(token, INVALID_PARAM, "'outPathPrefix' must be null for 'Xades Multifile'");
+        testToken(token, INVALID_PARAM, "'outPathPrefix' must be null for XadesMultiFile");
 
         token.setOutFilePath("file2.xml");
         token.setOutPathPrefix("ABC_");
-        testToken(token, INVALID_PARAM, "'outPathPrefix' must be null for 'Xades Multifile'");
+        testToken(token, INVALID_PARAM, "'outPathPrefix' must be null for XadesMultiFile");
 
         token.setOutPathPrefix(null);
         testToken(token, INVALID_PARAM, "'outFilePath' (file2.xml) is not unique");

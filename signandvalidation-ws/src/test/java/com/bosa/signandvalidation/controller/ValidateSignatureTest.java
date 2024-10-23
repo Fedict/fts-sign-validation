@@ -280,6 +280,22 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         validator.validate(new StreamSource(new StringReader(result.getReport())));
     }
 
+    /* The only file signed with a non BE signature is a production document, this test is therefore stripped from the test suite
+    @Test
+    public void validateBE_nonBETest() throws Exception {
+        // given
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/BE_nonBE.pdf"));
+        DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
+        toValidate.setLevel(SignatureLevel.PAdES_BASELINE_LTA);
+
+        // when
+        SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
+
+        // then
+        assertNotNull(result);
+        assertEquals(TOTAL_PASSED, result.getIndication());
+    }
+
     private static String replace(String start, String end, String src, String dst) {
         int pos = src.indexOf(start) + start.length();
         int endPos = src.indexOf(end, pos + 1);
@@ -288,5 +304,5 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         endPos = dst.indexOf(end, pos + 1);
         return dst.replaceAll(dst.substring(pos, endPos), value);
     }
-
+ */
 }

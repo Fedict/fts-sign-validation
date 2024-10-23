@@ -99,16 +99,11 @@ public class Utils {
         MDC.put("token", tokenId);
     }
 
-    // Clear the token in the MDC to avoid polluting non-token logs with leftover token value
-    public static void clearMDCToken() {
-        MDC.remove("token");
+    public static void objectToMDC(Object o) throws IllegalAccessException {
+        objectToMDC("", o);
     }
 
-    public static void objectToMDC(Object o, boolean set) throws IllegalAccessException {
-        objectToMDC("", o, set);
-    }
-
-    private static void objectToMDC(String prefix, Object o, boolean set) throws IllegalAccessException {
+    private static void objectToMDC(String prefix, Object o) throws IllegalAccessException {
         for(Field f : o.getClass().getDeclaredFields()) {
             f.setAccessible(true);
             Object value = f.get(o);
@@ -116,12 +111,8 @@ public class Utils {
                 int count = 0;
                 Iterator<?> i = ((List<?>) value).iterator();
                 String nameLevel = prefix + f.getName() + "[";
-                while(i.hasNext()) objectToMDC(nameLevel + count++ + "].", i.next(), set);
-            } else {
-                String name = prefix + f.getName();
-                if (!set) MDC.remove(name);
-                else if (value != null) MDC.put(name, value.toString());
-            }
+                while(i.hasNext()) objectToMDC(nameLevel + count++ + "].", i.next());
+            } else if (value != null) MDC.put(prefix + f.getName(), value.toString());
         }
     }
 

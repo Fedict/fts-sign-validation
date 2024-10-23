@@ -14,26 +14,32 @@ import java.util.logging.Logger;
 import com.bosa.signandvalidation.config.ThreadedCertificateVerifier;
 import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.TrustSources;
+import eu.europa.esig.dss.detailedreport.jaxb.*;
+import eu.europa.esig.dss.diagnostic.jaxb.*;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate;
+import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.simplereport.jaxb.*;
+import eu.europa.esig.dss.simplereport.jaxb.XmlCertificateChain;
+import eu.europa.esig.dss.simplereport.jaxb.XmlMessage;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlDiagnosticData;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlBasicSignature;
-import eu.europa.esig.dss.diagnostic.jaxb.XmlSignature;
-import eu.europa.esig.dss.detailedreport.jaxb.XmlValidationProcessBasicSignature;
-import eu.europa.esig.dss.detailedreport.jaxb.XmlConclusion;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.INVALID_PARAM;
 import static com.bosa.signandvalidation.exceptions.Utils.getPolicyFile;
@@ -58,7 +64,7 @@ public class BosaRemoteDocumentValidationService {
 	private static final BigInteger BRCA6 = new BigInteger("718b57ff6b693e5a1c235ed887a3ef51f4010f26", 16);
 
 	@Value("${test.rootCertSN:#{null}}")
-	BigInteger testRootCertSN;
+	static BigInteger testRootCertSN;
 
 	private static final Logger logger = Logger.getLogger(BosaRemoteDocumentValidationService.class.getName());
 	@Setter
@@ -71,7 +77,7 @@ public class BosaRemoteDocumentValidationService {
 		return validateDocument(signedDocument, originalDocuments, policy, trust, null);
 	}
 
-	public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, TrustSources trust, RemoteSignatureParameters parameters) {
+	public SignatureFullValiationDTO validateDocument(RemoteDocument signedDocument, List<RemoteDocument> originalDocuments, RemoteDocument policy, TrustSources trust, SignatureLevel expectedSigLevel) {
 
 		WSReportsDTO report = null;
 		try {
@@ -82,10 +88,15 @@ public class BosaRemoteDocumentValidationService {
 			}
 
 			// Let DSS validate with provided, trust or default (null => Belgian) validation policy
-			report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy));
-			if (policy == null && !documentHasBelgianSignature(report)) {
-				// But in case of "pure non-belgian" document, use the default DSS policy
-				report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")));
+			report = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, policy), expectedSigLevel != null);
+			if (policy == null) {
+				int nbNonBelgianSignatures = countNonBelgianSignatures(report);
+				boolean allNonBelgianSignatures = report.getDetailedReport().getSignatureOrTimestampOrEvidenceRecord().size() == nbNonBelgianSignatures;
+				if (nbNonBelgianSignatures != 0 || allNonBelgianSignatures) {
+					// But in case of mixed "belgian/non-belgian" or pure "non-belgian" document, use the default DSS policy
+					WSReportsDTO reportDSS = remoteDocumentValidationService.validateDocument(new DataToValidateDTO(signedDocument, originalDocuments, getPolicyFile("DSS_constraint.xml")), true);
+					report = allNonBelgianSignatures ? reportDSS : mergeValidationReports(report, reportDSS);
+				}
 			}
 
 			// When timestamp servers are down, DSS produced a signature that did not reflect the
@@ -116,12 +127,11 @@ public class BosaRemoteDocumentValidationService {
 				}
 			}
 
-			if (parameters != null && maxSig != null) {
+			if (expectedSigLevel != null && maxSig != null) {
 				// Check if the signature level (of the sig we just made) corresponds with the requested level
-				SignatureLevel expSigLevel = parameters.getSignatureLevel();
 				SignatureLevel sigLevel = maxSig.getSignatureFormat();
-				if (!sigLevel.equals(expSigLevel)) {
-					modifyReports(report, maxSig.getId(), SubIndication.FORMAT_FAILURE, "expected level " + expSigLevel + " but was: " + sigLevel);
+				if (!sigLevel.equals(expectedSigLevel)) {
+					modifyReports(report, maxSig.getId(), SubIndication.FORMAT_FAILURE, "expected level " + expectedSigLevel + " but was: " + sigLevel);
 				}
 			}
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException e) {
@@ -132,6 +142,205 @@ public class BosaRemoteDocumentValidationService {
 		}
 		return new SignatureFullValiationDTO(report);
 	}
+
+	// Merge two DSS reports taking all Belgian-certificate results from the beReport and others from the dssReport and recalculating the conclusions
+	private static WSReportsDTO mergeValidationReports(WSReportsDTO beReport, WSReportsDTO dssReport) {
+		//dumpReport(beReport, "beReport.xml");
+		//dumpReport(dssReport, "dssReport.xml");
+		WSReportsDTO result = new WSReportsDTO();
+		result.setDiagnosticData(beReport.getDiagnosticData());
+		result.setSimpleReport(buildSimpleReport(beReport, dssReport));
+		result.setDetailedReport(buildDetailedReport(beReport, dssReport));
+		result.setValidationReportDataHandler(beReport.getValidationReportDataHandler());
+		//dumpReport(result, "result.xml");
+		return result;
+	}
+
+	private static XmlDetailedReport buildDetailedReport(WSReportsDTO beReport, WSReportsDTO dssReport) {
+		XmlDetailedReport dReport = new XmlDetailedReport();
+		XmlDetailedReport bedReport = beReport.getDetailedReport();
+		dReport.setValidationTime(bedReport.getValidationTime());
+		// Add all "BE" signatures from beReport to target Detailed Report
+		addDetailedSignatures(beReport, beReport, true, dReport);
+		// Add all non "BE" signatures from dssReport to target Detailed Report
+		addDetailedSignatures(beReport, dssReport, false, dReport);
+		return dReport;
+	}
+
+	private static void addDetailedSignatures(WSReportsDTO beReport, WSReportsDTO xReport, boolean hasBelgianRootCert, XmlDetailedReport dReport) {
+		XmlDetailedReport xdReport = xReport.getDetailedReport();
+		List<XmlBasicBuildingBlocks> dBasicBuildingBlocks = dReport.getBasicBuildingBlocks();
+		List<Serializable> targetSignatures = dReport.getSignatureOrTimestampOrEvidenceRecord();
+		for(Serializable token : xdReport.getSignatureOrTimestampOrEvidenceRecord()) {
+			if (token instanceof eu.europa.esig.dss.detailedreport.jaxb.XmlSignature) {
+				eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signature = (eu.europa.esig.dss.detailedreport.jaxb.XmlSignature)token;
+				if (isSignatureBEorNot(beReport.getSimpleReport(), signature.getId(), hasBelgianRootCert)) {
+					targetSignatures.add(signature);
+					addRevocationBasicBuildingBlocks(xReport, signature.getId(), dBasicBuildingBlocks);
+					addBasicBuildingBlocks(xdReport, signature, dBasicBuildingBlocks);
+				}
+			}
+		}
+
+		addTLAnalysisBuildingBlocks(xdReport, hasBelgianRootCert, dReport.getTLAnalysis());
+	}
+
+	private static void addTLAnalysisBuildingBlocks(XmlDetailedReport xdReport, boolean hasBelgianRootCert, List<XmlTLAnalysis> tlAnalyses) {
+		for (XmlTLAnalysis xtlAnalysis : xdReport.getTLAnalysis()) {
+			String country = xtlAnalysis.getCountryCode();
+			if (country.compareToIgnoreCase("EU") == 0 ||
+					(hasBelgianRootCert && country.compareToIgnoreCase("BE") == 0) ||
+					(!hasBelgianRootCert && country.compareToIgnoreCase("BE") != 0)) addUniqueTLAnalysis(xtlAnalysis, tlAnalyses);
+		}
+	}
+
+	private static void addUniqueTLAnalysis(XmlTLAnalysis xtlAnalysis, List<XmlTLAnalysis> tlAnalyses) {
+		for (XmlTLAnalysis tlAnalysis : tlAnalyses) {
+			if (tlAnalysis.getId().compareToIgnoreCase(xtlAnalysis.getId()) == 0) return;
+		}
+		tlAnalyses.add(xtlAnalysis);
+	}
+
+	private static void addRevocationBasicBuildingBlocks(WSReportsDTO xReport, String signatureID, List<XmlBasicBuildingBlocks> dbbbs) {
+		XmlDiagnosticData diagData = xReport.getDiagnosticData();
+		for(XmlSignature signature : diagData.getSignatures()) {
+				if (signature.getId().compareToIgnoreCase(signatureID) == 0) {
+					XmlFoundRevocations foundRevocations = signature.getFoundRevocations();
+					for (XmlRelatedRevocation foundRevocation : foundRevocations.getRelatedRevocations()) {
+						addUniqueRevocationBasicBuildingBlocks(foundRevocation.getRevocation().getId(), xReport, dbbbs);
+					}
+					for (XmlOrphanRevocation foundRevocation : foundRevocations.getOrphanRevocations()) {
+						addUniqueRevocationBasicBuildingBlocks(foundRevocation.getToken().getId(), xReport, dbbbs);
+					}
+				}
+			}
+		for(XmlCertificate usedCert : diagData.getUsedCertificates()) {
+			for(XmlCertificateRevocation revocation : usedCert.getRevocations()) {
+				addUniqueRevocationBasicBuildingBlocks(revocation.getRevocation().getId(), xReport, dbbbs);
+			}
+		}
+	}
+
+	private static void addUniqueRevocationBasicBuildingBlocks(String id, WSReportsDTO xReport, List<XmlBasicBuildingBlocks> dbbbs) {
+		for(XmlBasicBuildingBlocks bbb : xReport.getDetailedReport().getBasicBuildingBlocks()) {
+			if (bbb.getId().compareToIgnoreCase(id) == 0) {
+				System.out.println("ID : " + id);
+				addUniqueBasicBuildingBlock(dbbbs, bbb);
+				return;
+			}
+		}
+	}
+
+	private static void addBasicBuildingBlocks(XmlDetailedReport xdReport, eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signature, List<XmlBasicBuildingBlocks> dbbbs) {
+		for (eu.europa.esig.dss.detailedreport.jaxb.XmlTimestamp ts : signature.getTimestamps()) {
+			for(XmlBasicBuildingBlocks bbb : xdReport.getBasicBuildingBlocks()) {
+				if (ts.getId().compareToIgnoreCase(bbb.getId()) == 0) {
+					addUniqueBasicBuildingBlock(dbbbs, bbb);
+				}
+			}
+		}
+		for(XmlBasicBuildingBlocks bbb : xdReport.getBasicBuildingBlocks()) {
+			if (signature.getId().compareToIgnoreCase(bbb.getId()) == 0) dbbbs.add(bbb);
+		}
+	}
+
+	// If not already present in the target BB list, add  BB
+	private static void addUniqueBasicBuildingBlock(List<XmlBasicBuildingBlocks> dbbbs, XmlBasicBuildingBlocks bbToAdd) {
+		for (XmlBasicBuildingBlocks bbb : dbbbs) {
+			if (bbToAdd.getId().compareToIgnoreCase(bbb.getId()) == 0) {
+				System.out.println("SKIP ID : " + bbToAdd.getId());
+				return;
+			}
+		}
+		dbbbs.add(bbToAdd);
+	}
+
+	private static XmlSimpleReport buildSimpleReport(WSReportsDTO beReport, WSReportsDTO dssReport) {
+		XmlSimpleReport sReport = new XmlSimpleReport();
+		XmlSimpleReport besReport = beReport.getSimpleReport();
+		sReport.setValidationTime(besReport.getValidationTime());
+		XmlValidationPolicy validationPolicy = new XmlValidationPolicy();
+		validationPolicy.setPolicyName("Mixed policy");
+		validationPolicy.setPolicyDescription("File was validated with the Belgian Policy and with the international policy. The resulting report is a mix of both");
+		sReport.setValidationPolicy(validationPolicy);
+		sReport.setSignaturesCount(besReport.getSignaturesCount());
+		sReport.setDocumentName(besReport.getDocumentName());
+		int validSignatures = addSimpleSignatures(besReport, true, sReport.getSignatureOrTimestampOrEvidenceRecord());
+		validSignatures += addSimpleSignatures(dssReport.getSimpleReport(), false, sReport.getSignatureOrTimestampOrEvidenceRecord());
+		sReport.setValidSignaturesCount(validSignatures);
+		return sReport;
+	}
+
+	private static int addSimpleSignatures(XmlSimpleReport sReport, boolean hasBelgianRootCert, List<XmlToken> signatures) {
+		int validSignatures = 0;
+		for(XmlToken token : sReport.getSignatureOrTimestampOrEvidenceRecord()) {
+			if (token instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature) {
+				eu.europa.esig.dss.simplereport.jaxb.XmlSignature signature = (eu.europa.esig.dss.simplereport.jaxb.XmlSignature)token;
+				if (isSignatureBEorNot(signature, hasBelgianRootCert)) {
+					signatures.add(token);
+					if (Indication.TOTAL_PASSED.equals(signature.getIndication())) validSignatures++;
+				}
+			}
+		}
+		return validSignatures;
+	}
+
+	private static boolean isSignatureBEorNot(XmlSimpleReport besReport, String sigID, boolean hasBelgianRootCert) {
+		for(XmlToken token : besReport.getSignatureOrTimestampOrEvidenceRecord()) {
+			if (token instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature) {
+				eu.europa.esig.dss.simplereport.jaxb.XmlSignature signature = (eu.europa.esig.dss.simplereport.jaxb.XmlSignature)token;
+				if (signature.getId().compareToIgnoreCase(sigID) == 0) return isSignatureBEorNot(signature, hasBelgianRootCert);
+			}
+		}
+		return false;
+	}
+
+	private static boolean isSignatureBEorNot(eu.europa.esig.dss.simplereport.jaxb.XmlSignature signature, boolean hasBelgianRootCert) {
+		for(eu.europa.esig.dss.simplereport.jaxb.XmlCertificate cert : signature.getCertificateChain().getCertificate()) {
+			if (cert.isTrusted()) {
+				XmlTrustAnchors trustAnchors = cert.getTrustAnchors();
+				if (trustAnchors != null) {
+					for (XmlTrustAnchor trustAnchor : trustAnchors.getTrustAnchor()) {
+						String country = trustAnchor.getCountryCode();
+						if (country != null) {
+							int comp = country.compareToIgnoreCase("BE");
+							if ((hasBelgianRootCert && comp == 0) || (!hasBelgianRootCert && comp != 0)) return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private static void dumpReport(WSReportsDTO report, String fileName) {
+		try  {
+			JAXBContext jaxbContext = JAXBContext.newInstance(BosaRemoteDocumentValidationService.XmlReportRoot.class);
+			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			BosaRemoteDocumentValidationService.XmlReportRoot root = new BosaRemoteDocumentValidationService.XmlReportRoot();
+			root.setReport(report);
+			StringWriter sw = new StringWriter();
+			jaxbMarshaller.marshal(root, sw);
+
+			try (FileOutputStream fos = new FileOutputStream(fileName)) { fos.write(sw.toString().getBytes()); }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	@XmlRootElement
+	@XmlAccessorType(XmlAccessType.FIELD)
+	private static class XmlReportRoot {
+
+		private WSReportsDTO report;
+
+		public void setReport(WSReportsDTO report) {
+			this.report = report;
+		}
+	}
+
 
 	// The below password is only needed because, pre-Java 20 JVM, a "null" password keystore
 	// ignores the certificates added to it. With Java 20 they are accepted.
@@ -179,20 +388,21 @@ public class BosaRemoteDocumentValidationService {
 		return trustedCertificateSource;
 	}
 
-	private boolean documentHasBelgianSignature(WSReportsDTO report) {
+	private static int countNonBelgianSignatures(WSReportsDTO report) {
+		int nbSignatures = 0;
 		for(XmlToken sigOrTS : report.getSimpleReport().getSignatureOrTimestampOrEvidenceRecord()) {
 			if (sigOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature) {
 				XmlCertificateChain certChain = sigOrTS.getCertificateChain();
 				if (certChain == null) continue;
-				List<XmlCertificate> certChain2 = certChain.getCertificate();
-				XmlCertificate rootCert = certChain2.get(certChain2.size() - 1);
-				if (isBelgianCertificate(report.getDiagnosticData().getUsedCertificates(), rootCert.getId())) return true;
+				List<eu.europa.esig.dss.simplereport.jaxb.XmlCertificate> certChain2 = certChain.getCertificate();
+				eu.europa.esig.dss.simplereport.jaxb.XmlCertificate rootCert = certChain2.get(certChain2.size() - 1);
+				if (!isBelgianTestOrRootCertificate(report.getDiagnosticData().getUsedCertificates(), rootCert.getId())) nbSignatures++;
 			}
 		}
-	return false;
+	return nbSignatures;
 	}
 
-	private boolean isBelgianCertificate(List<eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate> certs, String id) {
+	private static boolean isBelgianTestOrRootCertificate(List<eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate> certs, String id) {
 		for (eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate cert : certs) {
 			if (id.equals(cert.getId())) {
 				BigInteger sn = cert.getSerialNumber();
