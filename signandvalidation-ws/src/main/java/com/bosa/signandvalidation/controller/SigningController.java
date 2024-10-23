@@ -908,7 +908,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
             }
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
-            checkDataToSign(parameters, dataToSignForTokenDto.getToken(), signProfile.getSignWithExpiredCertificate());
+            checkDataToSign(parameters, signProfile.getSignWithExpiredCertificate());
 
             ToBeSignedDTO dataToSign;
             switch (token.getSigningType()) {
@@ -1050,7 +1050,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
             }
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
-            checkDataToSign(parameters, signDto.getToken(), signProfile.getSignWithExpiredCertificate());
+            checkDataToSign(parameters, signProfile.getSignWithExpiredCertificate());
+            setOverrideRevocationStrategy(signProfile);
+
             SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signDto.getSignatureValue());
 
             RemoteDocument signedDoc;
@@ -1084,8 +1086,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     detachedDocuments.add(fileToSign);
                     break;
             }
-
-            setOverrideRevocationStrategy(signProfile);
 
             if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
 
@@ -1241,7 +1241,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private void checkDataToSign(RemoteSignatureParameters parameters, String tokenString, boolean allowExpiredCerts) {
+    private void checkDataToSign(RemoteSignatureParameters parameters, boolean allowExpiredCerts) {
 
         Date now = new Date();
         // Check if the signing cert is present and not expired
@@ -1387,10 +1387,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             clientSigParams.setSigningDate(new Date());
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(dataToSignDto.getSigningProfileId());
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
-
-            setOverrideRevocationStrategy(signProfile);
-
-            checkDataToSign(parameters, null, signProfile.getSignWithExpiredCertificate());
+            checkDataToSign(parameters, signProfile.getSignWithExpiredCertificate());
 
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
                 // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
@@ -1505,6 +1502,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDocumentDto.getSigningProfileId());
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
+            checkDataToSign(parameters, signProfile.getSignWithExpiredCertificate());
             setOverrideRevocationStrategy(signProfile);
 
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
