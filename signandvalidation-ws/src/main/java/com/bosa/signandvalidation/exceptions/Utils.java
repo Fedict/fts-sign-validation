@@ -146,9 +146,11 @@ public class Utils {
     public static RemoteDocument getPolicyFile(String fileName) throws IOException {
         InputStream genericIs = null;
         try {
-            logger.warning("Loading policy for signature validation : " + fileName);
             genericIs = Utils.class.getResourceAsStream("/policy/" + fileName);
-            if (genericIs != null) return new RemoteDocument(eu.europa.esig.dss.utils.Utils.toByteArray(genericIs), fileName);
+            if (genericIs != null) {
+                logger.warning("Loaded policy for signature validation : " + fileName);
+                return new RemoteDocument(eu.europa.esig.dss.utils.Utils.toByteArray(genericIs), fileName);
+            }
         } finally {
             if (genericIs != null) genericIs.close();
         }
@@ -158,9 +160,11 @@ public class Utils {
     public static TrustSources getGetExtraTrustFile(String fileName) throws IOException {
         InputStream genericIs = null;
         try {
-            logger.warning("Loading extra trust : " + fileName);
             genericIs = Utils.class.getResourceAsStream("/trusts/" + fileName);
-            if (genericIs != null) return new TrustSources(null, null, List.of(genericIs.readAllBytes()));
+            if (genericIs != null) {
+                logger.warning("Loaded extra trust : " + fileName);
+                return new TrustSources(null, null, List.of(genericIs.readAllBytes()));
+            }
         } finally {
             if (genericIs != null) genericIs.close();
         }
