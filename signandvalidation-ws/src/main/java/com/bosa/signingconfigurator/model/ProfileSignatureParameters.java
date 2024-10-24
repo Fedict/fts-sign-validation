@@ -100,6 +100,8 @@ public class ProfileSignatureParameters extends JsonObject {
 
     private String validationPolicyFilename;
 
+    private String extraTrustFilename;
+
     /*
      * The values unrelated to signature parameters.
      */
@@ -198,4 +200,6 @@ public class ProfileSignatureParameters extends JsonObject {
     public Boolean isReturnDigest() { return returnDigest == null || returnDigest; }
 
     public String getValidationPolicyFilename() { return validationPolicyFilename; }
+
+    public String getExtraTrustFilename() { return extraTrustFilename; }
 }

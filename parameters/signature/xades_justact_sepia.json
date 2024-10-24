@@ -14,5 +14,6 @@
   "policyDigestValue": "bnee/GRkXU//UpD6sEFJfqxplCz/gW2RiuT1DHVMS8I=",
   "policySpuri": "https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf",
   "embedXML": true,
-  "returnDigest": false
+  "returnDigest": false,
+  "extraTrustFilename": "globalSignDocSigning.crt"
 }

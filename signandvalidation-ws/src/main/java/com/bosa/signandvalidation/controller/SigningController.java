@@ -20,7 +20,6 @@ import com.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.alert.exception.AlertException;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
-import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.pades.exception.ProtectedDocumentException;
 import eu.europa.esig.dss.enumerations.SignatureForm;
 import eu.europa.esig.dss.spi.DSSUtils;
@@ -1092,7 +1091,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             logger.info("signDocumentForToken(): validating the signed doc");
 
-            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), getValidationPolicy(null, signProfile));
+            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), null, signProfile);
 
             // Save signed file
             storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
@@ -1189,14 +1188,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, RemoteDocument validatePolicy) {
-        return validateResult(signedDoc, detachedContents, parameters, null, null, validatePolicy);
-    }
+    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token, String outFilePath, RemoteDocument validatePolicy, ProfileSignatureParameters signProfile) throws IOException {
 
-    /*****************************************************************************************/
+        String extraTrustFilename = signProfile.getExtraTrustFilename();
+        TrustSources trust = extraTrustFilename == null ? null : getGetExtraTrustFile(extraTrustFilename);
+        if (validatePolicy == null) {
+            if (signProfile.getValidationPolicyFilename() != null) {
+                validatePolicy = getPolicyFile(signProfile.getValidationPolicyFilename());
+            }
+        }
 
-    private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token, String outFilePath, RemoteDocument validatePolicy) {
-        SignatureFullValiationDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, validatePolicy, null, parameters.getSignatureLevel());
+        SignatureFullValiationDTO reportsDto = validationService.validateDocument(signedDoc, detachedContents, validatePolicy, trust, parameters.getSignatureLevel());
 
         if (null != token) {
             try {
@@ -1520,7 +1522,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
 //            try (FileOutputStream fos = new FileOutputStream("signed.file")) { fos.write(signedDoc.getBytes()); }
 
-            RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, getValidationPolicy(signDocumentDto.getValidatePolicy(), signProfile));
+            RemoteDocument ret =  validateResult(signedDoc, detachedDocuments, parameters, null, null, signDocumentDto.getValidatePolicy(), signProfile);
             logger.info("Returning from signDocument()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1571,7 +1573,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
             // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
-            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getToSignDocuments(), parameters, getValidationPolicy(signDocumentDto.getValidatePolicy(), signProfile));
+            RemoteDocument ret = validateResult(signedDoc, signDocumentDto.getToSignDocuments(), parameters, null, null, signDocumentDto.getValidatePolicy(), signProfile);
             logger.info("Returning from signDocumentMultiple()");
             return ret;
         } catch (ProfileNotFoundException e) {
@@ -1612,12 +1614,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteDocument extendedDoc = signatureServiceMultiple.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null);
+            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null, null, null, extendProfile);
             logger.info("Returning from extendDocumentMultiple()");
             return ret;
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
@@ -1651,12 +1653,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             RemoteDocument extendedDoc = altSignatureService.extendDocument(extendDocumentDto.getToExtendDocument(), parameters);
 
-            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null);
+            RemoteDocument ret = validateResult(extendedDoc, extendDocumentDto.getDetachedContents(), parameters, null, null, null, extendProfile);
             logger.info("Returning from extendDocument()");
             return ret;
         } catch (ProfileNotFoundException e) {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
@@ -1816,18 +1818,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             clearOverrideRevocationDataLoadingStrategyFactory();
         }
         return null; // We won't get here
-    }
-
-/*****************************************************************************************/
-
-    private static RemoteDocument getValidationPolicy(RemoteDocument policy, ProfileSignatureParameters signProfile) throws IOException {
-
-        if (policy == null) {
-            if (signProfile.getValidationPolicyFilename() != null) {
-                policy = getPolicyFile(signProfile.getValidationPolicyFilename());
-            }
-        }
-        return policy;
     }
 
 /*****************************************************************************************/

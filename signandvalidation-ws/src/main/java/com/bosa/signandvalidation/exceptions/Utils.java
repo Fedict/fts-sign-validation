@@ -1,7 +1,7 @@
 package com.bosa.signandvalidation.exceptions;
 
 import com.bosa.signandvalidation.controller.SigningController;
-import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
+import com.bosa.signandvalidation.model.TrustSources;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
@@ -144,11 +144,26 @@ public class Utils {
     }
 
     public static RemoteDocument getPolicyFile(String fileName) throws IOException {
-        logger.warning("Loading policy for signature validation : " + fileName);
-        InputStream genericIs = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + fileName);
-        if (genericIs == null) throw new IOException("Policy file not found");
-        RemoteDocument policyDocument = new RemoteDocument(eu.europa.esig.dss.utils.Utils.toByteArray(genericIs), fileName);
-        genericIs.close();
-        return policyDocument;
+        InputStream genericIs = null;
+        try {
+            logger.warning("Loading policy for signature validation : " + fileName);
+            genericIs = Utils.class.getResourceAsStream("/policy/" + fileName);
+            if (genericIs != null) return new RemoteDocument(eu.europa.esig.dss.utils.Utils.toByteArray(genericIs), fileName);
+        } finally {
+            if (genericIs != null) genericIs.close();
+        }
+        return null;
+    }
+
+    public static TrustSources getGetExtraTrustFile(String fileName) throws IOException {
+        InputStream genericIs = null;
+        try {
+            logger.warning("Loading extra trust : " + fileName);
+            genericIs = Utils.class.getResourceAsStream("/trusts/" + fileName);
+            if (genericIs != null) return new TrustSources(null, null, List.of(genericIs.readAllBytes()));
+        } finally {
+            if (genericIs != null) genericIs.close();
+        }
+        return null;
     }
 }
