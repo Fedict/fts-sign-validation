@@ -14,6 +14,7 @@ import java.security.InvalidParameterException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -163,7 +164,9 @@ public class Utils {
             genericIs = Utils.class.getResourceAsStream("/trusts/" + fileName);
             if (genericIs != null) {
                 logger.warning("Loaded extra trust : " + fileName);
-                return new TrustSources(null, null, List.of(genericIs.readAllBytes()));
+                byte [] certBytes = genericIs.readAllBytes();
+                if (fileName.endsWith(".crt")) certBytes = Base64.getMimeDecoder().decode(certBytes);
+                return new TrustSources(null, null, List.of(certBytes));
             }
         } finally {
             if (genericIs != null) genericIs.close();
