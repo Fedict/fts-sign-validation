@@ -7,7 +7,6 @@
   "signatureForm": "XAdES",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
-  "addCertPathToKeyinfo": true,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
   "policyId": "https://justact-acc.just.fgov.be/nl/legal-documents/justact/esign-policy/eSign_policy_JustAct_Nl_v1.pdf",
   "policyDescription": "Federale Overheidsdienst Justitie",

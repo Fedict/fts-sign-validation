@@ -68,8 +68,7 @@ import java.text.SimpleDateFormat;
 import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.clearOverrideRevocationDataLoadingStrategyFactory;
 import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setOverrideRevocationDataLoadingStrategyFactory;
 import static com.bosa.signandvalidation.exceptions.Utils.*;
-import static com.bosa.signandvalidation.model.SigningType.Standard;
-import static com.bosa.signandvalidation.model.SigningType.XadesMultiFile;
+import static com.bosa.signandvalidation.model.SigningType.*;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.TRANSPARENT;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
@@ -1020,6 +1019,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("Entering signDocumentForToken()");
 
             TokenObject token = getTokenFromId(signDto.getToken());
+            SigningType sigType = token.getSigningType();
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
 
             // Signing within allowed time ?
@@ -1037,7 +1037,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             MediaType mediaType = null;
             TokenSignInput inputToSign = null;
             String profileId = token.getXmlSignProfile();
-            if (Standard.equals(token.getSigningType())) {
+            if (Standard.equals(sigType)) {
                 inputToSign = token.getInputs().get(signDto.getFileIdToSign());
                 filePath = inputToSign.getFilePath();
                 mediaType = MediaTypeUtil.getMediaTypeFromFilename(filePath);
@@ -1056,36 +1056,40 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             RemoteDocument signedDoc;
             RemoteDocument fileToSign;
             List<RemoteDocument> detachedDocuments = null;
-            switch (token.getSigningType()) {
-                case MultiFileDetached:
+            if (MultiFileDetached.equals(sigType) || XadesMultiFile.equals(sigType)) {
+                eu.europa.esig.dss.enumerations.SignatureLevel oldSignatureLevel = parameters.getSignatureLevel();
+                if (eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LTA.equals(oldSignatureLevel)) {
+                    parameters.setSignatureLevel(eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LT);
+                }
+                if (MultiFileDetached.equals(sigType)) {
                     signedDoc = signatureServiceMultiple.signDocument(detachedDocuments = getDocumentsToSign(token), parameters, signatureValueDto);
-                    break;
-
-                case XadesMultiFile:
+                } else {
                     List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), token, parameters.getReferenceDigestAlgorithm());
                     fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true), null);
-                    signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, applicationName);
-                    break;
+                    signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, null);
+                }
+                addCertPathToKeyinfo(signedDoc, clientSigParams);
+                if (eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LTA.equals(oldSignatureLevel)) {
+                    parameters.setSignatureLevel(eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LTA);
+                    parameters.setDetachedContents(detachedDocuments);
+                    signedDoc = signatureServiceMultiple.extendDocument(signedDoc, parameters);
+                }
+            } else {
+                if (APPLICATION_PDF.equals(mediaType)) {
+                    // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
+                    // or in "ImageIO.read" where it is NOT used as a path !
+                    prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                }
 
-                default:
-                    if (APPLICATION_PDF.equals(mediaType)) {
-                        // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
-                        // or in "ImageIO.read" where it is NOT used as a path !
-                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
-                    }
+                fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), null);
+                signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, null, applicationName);
 
-                    fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), null);
-                    signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, null, applicationName);
-
-                    // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
-                    // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
-                    detachedDocuments = clientSigParams.getDetachedContents();
-                    if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
-                    detachedDocuments.add(fileToSign);
-                    break;
+                // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
+                // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
+                detachedDocuments = clientSigParams.getDetachedContents();
+                if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
+                detachedDocuments.add(fileToSign);
             }
-
-            if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
 
             signedDoc.setName(getOutFilePath(token, inputToSign));
 
@@ -1512,8 +1516,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);
 
-            if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
-
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
             // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
             List<RemoteDocument> detachedDocuments = clientSigParams.getDetachedContents();
@@ -1529,7 +1531,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
-        } catch (RuntimeException | IOException | ParserConfigurationException | TransformerException | SAXException e) {
+        } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
@@ -1567,8 +1569,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
-            if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
-
             //try (FileOutputStream fos = new FileOutputStream("signed.file.xml")) { fos.write(signedDoc.getBytes()); }
 
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
@@ -1580,7 +1580,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, UNKNOWN_PROFILE, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
-        } catch (RuntimeException | IOException | ParserConfigurationException | TransformerException | SAXException e) {
+        } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
@@ -1800,8 +1800,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), signDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDto.getToSignDocument(), parameters, signatureValueDto, references, null);
 
-            if (signProfile.getAddCertPathToKeyinfo()) addCertPathToKeyinfo(signedDoc, clientSigParams);
-
             signedDoc.setName(signDto.getToSignDocument().getName());
             logger.info("Returning from signDocumentXades()");
             return signedDoc;
@@ -1811,7 +1809,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
-        } catch (RuntimeException | IOException | ParserConfigurationException | TransformerException | SAXException e) {
+        } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
