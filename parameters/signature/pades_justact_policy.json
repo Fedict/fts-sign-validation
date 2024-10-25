@@ -6,5 +6,5 @@
   "signatureForm": "PAdES",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "returnDigest": false,
-  "extraTrustFilename": "globalSignDocSigning.crt"
+  "extraTrustFilename": "SPFJusticeSepia.crt"
 }

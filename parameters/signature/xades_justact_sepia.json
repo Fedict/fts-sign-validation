@@ -15,5 +15,5 @@
   "policySpuri": "https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf",
   "embedXML": true,
   "returnDigest": false,
-  "extraTrustFilename": "globalSignDocSigning.crt"
+  "extraTrustFilename": "SPFJusticeSepia.crt"
 }
