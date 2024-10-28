@@ -1156,6 +1156,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         if (certsToAdd.isEmpty()) return;
 
+        logger.log(Level.WARNING, "Adding certificate to KeyInfo");
         for(String certToAdd : certsToAdd) {
             Node x509Cert = doc.createElementNS( "http://www.w3.org/2000/09/xmldsig#", "ds:X509Certificate");
             x509Cert.setTextContent(certToAdd);
