@@ -49,7 +49,7 @@ public class SigningControllerBaseTest extends SignAndValidationBaseTest impleme
                 SignaturePackaging.ENVELOPED, SHA512, SHA256, null, SigningType.XadesMultiFile, SignatureForm.XAdES);
         saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_B_DETACHED.name(), null, SignatureLevel.XAdES_BASELINE_B,
                 SignaturePackaging.DETACHED, null, SHA256, null, null, SignatureForm.XAdES);
-        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_MULTIFILE_DETACHED.name(), null, SignatureLevel.XAdES_BASELINE_B,
+        saveProfileSignatureParameters(profileSigParamDao, SignProfiles.XADES_MULTIFILE_DETACHED.name(), null, SignatureLevel.XAdES_BASELINE_LTA,
                 SignaturePackaging.DETACHED, null, SHA256, null, SigningType.MultiFileDetached, SignatureForm.XAdES);
 
 
