@@ -148,10 +148,9 @@ public class PdfVisibleSignatureServiceTest {
         int differentPixelsCount = countMismatchedPixels(actualImage, expectedImage);
         if (differentPixelsCount == 0) return;
 
-        System.out.println("File to update : " + imageFile.getPath());
-        System.out.println(java.util.Base64.getEncoder().encodeToString(actualBytes));
+        //System.out.println("File to update : " + imageFile.getPath());
+        //System.out.println(java.util.Base64.getEncoder().encodeToString(actualBytes));
 
-/*
         // In case of image size or pixel mismatch, save actual image for quicker analysis
         imageFile = new File(imageFile.getParent(), expectedFileName + "_ACTUAL.png");
 
@@ -166,7 +165,6 @@ public class PdfVisibleSignatureServiceTest {
         imageFile = new File(imageFile.getParent(), expectedFileName + "_INV_PIXELS.png");
         ImageIO.write(expectedImage, "png", imageFile);
         fail("Difference between expected image and rendered image. Image with red painted invalid pixels is here : " + imageFile.getPath());
- */
     }
 
     public static int countMismatchedPixels(BufferedImage actualImage, BufferedImage expectedImage) throws IOException {
