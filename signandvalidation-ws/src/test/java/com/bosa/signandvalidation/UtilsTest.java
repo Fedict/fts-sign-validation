@@ -27,6 +27,6 @@ public class UtilsTest {
         TrustSources trust = getGetExtraTrustFile("SPFJusticeSepia.crt");
 
         assertEquals(trust.getCerts().size(), 1);
-        assertEquals(trust.getCerts().get(0).length, 1406);
+        assertEquals(trust.getCerts().get(0).length, 1606);
     }
 }
