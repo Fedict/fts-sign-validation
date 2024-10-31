@@ -1216,7 +1216,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
         SignatureIndicationsDTO indications = token == null ?
                 reportsService.getSignatureIndicationsDto(reportsDto) :
-                reportsService.getLatestSignatureIndicationsDto(reportsDto, new Date(token.getCreateTime()));
+                // The "best time" of a signature that was just made can be in the past during unit tests... So go back 10s in time.
+                reportsService.getLatestSignatureIndicationsDto(reportsDto, new Date(token.getCreateTime() - 10000));
 
         Indication indication = indications.getIndication();
         if (indication != TOTAL_PASSED) {
