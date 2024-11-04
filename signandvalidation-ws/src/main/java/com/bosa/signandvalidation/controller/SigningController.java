@@ -953,6 +953,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
                 logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
             }
+            logger.warning(message);
             logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
         } catch (Exception e) {
             DataLoadersExceptionLogger.logAndThrow(e);
@@ -1416,6 +1417,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch(ProtectedDocumentException e) {
             logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
+        } catch (AlertException e) {
+            String message = e.getMessage();
+            if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
+                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+            }
+            logger.warning(message);
+            logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         } finally {
