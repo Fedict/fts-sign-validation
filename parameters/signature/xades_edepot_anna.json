@@ -6,7 +6,6 @@
   "signatureForm": "XAdES",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
-  "addCertPathToKeyinfo": true,
   "policyId": "urn:oid:1.3.6.1.4.1.35390.10.14.7.1.0",
   "policyQualifier": "OID_AS_URN",
   "policyDescription": "To_be_confirmed",
@@ -14,5 +13,6 @@
   "policyDigestValue": "bnee/GRkXU//UpD6sEFJfqxplCz/gW2RiuT1DHVMS8I=",
   "policySpuri": "https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf",
   "embedXML": true,
-  "returnDigest": false
+  "returnDigest": false,
+  "extraTrustFilename": "eDepotSepia.crt"
 }

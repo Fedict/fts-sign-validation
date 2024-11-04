@@ -135,6 +135,9 @@ public class ReportsService implements ErrorStrings {
                 }
             }
         }
+
+        if (latestSignature == null) LOG.error("No latest signature found :" + (System.currentTimeMillis() - minTime.getTime()));
+
         return latestSignature;
     }
 

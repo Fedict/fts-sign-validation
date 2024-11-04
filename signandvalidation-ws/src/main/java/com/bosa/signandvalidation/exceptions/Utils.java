@@ -1,7 +1,7 @@
 package com.bosa.signandvalidation.exceptions;
 
 import com.bosa.signandvalidation.controller.SigningController;
-import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
+import com.bosa.signandvalidation.model.TrustSources;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
@@ -14,6 +14,7 @@ import java.security.InvalidParameterException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -144,11 +145,32 @@ public class Utils {
     }
 
     public static RemoteDocument getPolicyFile(String fileName) throws IOException {
-        logger.warning("Loading policy for signature validation : " + fileName);
-        InputStream genericIs = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + fileName);
-        if (genericIs == null) throw new IOException("Policy file not found");
-        RemoteDocument policyDocument = new RemoteDocument(eu.europa.esig.dss.utils.Utils.toByteArray(genericIs), fileName);
-        genericIs.close();
-        return policyDocument;
+        InputStream genericIs = null;
+        try {
+            genericIs = Utils.class.getResourceAsStream("/policy/" + fileName);
+            if (genericIs != null) {
+                logger.warning("Loaded policy for signature validation : " + fileName);
+                return new RemoteDocument(eu.europa.esig.dss.utils.Utils.toByteArray(genericIs), fileName);
+            }
+        } finally {
+            if (genericIs != null) genericIs.close();
+        }
+        return null;
+    }
+
+    public static TrustSources getGetExtraTrustFile(String fileName) throws IOException {
+        InputStream genericIs = null;
+        try {
+            genericIs = Utils.class.getResourceAsStream("/trusts/" + fileName);
+            if (genericIs != null) {
+                logger.warning("Loaded extra trust : " + fileName);
+                byte [] certBytes = genericIs.readAllBytes();
+                if (fileName.endsWith(".crt")) certBytes = Base64.getMimeDecoder().decode(certBytes);
+                return new TrustSources(null, null, List.of(certBytes));
+            }
+        } finally {
+            if (genericIs != null) genericIs.close();
+        }
+        return null;
     }
 }

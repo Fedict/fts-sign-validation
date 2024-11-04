@@ -7,7 +7,6 @@
   "signatureForm": "XAdES",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
-  "addCertPathToKeyinfo": true,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
   "signingType": "XadesMultiFile",
   "policyId": "http://signinfo.eda.just.fgov.be/SignaturePolicy/pdf/PrivateSeal/BE_Justice_Signature_Policy_PrivateSeal_Hum_v0.12_202204_Fr.pdf",
