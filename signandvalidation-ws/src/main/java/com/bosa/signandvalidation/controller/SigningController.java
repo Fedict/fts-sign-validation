@@ -916,7 +916,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
                 case XadesMultiFile:
                     List<DSSReference> references = buildReferences(signingDate, token, parameters.getReferenceDigestAlgorithm());
-                    RemoteDocument fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true), null);
+                    byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true);
+                    logger.info("Filesize : " + bytesToSign.length);
+                    RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
                     dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
                     break;
 
@@ -927,8 +929,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                         prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
                     }
 
-                    RemoteDocument fileToSign1 = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), null);
-                    dataToSign = altSignatureService.altGetDataToSign(fileToSign1, parameters, null, applicationName);
+                    bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
+                    logger.info("Filesize : " + bytesToSign.length);
+                    fileToSign = new RemoteDocument(bytesToSign, null);
+                    dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, null, applicationName);
                     break;
             }
 
@@ -965,14 +969,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     private List<RemoteDocument> getDocumentsToSign(TokenObject token) {
+        long totalSize = 0;
         List<RemoteDocument> toSignDocuments = new ArrayList<>(10);
         for(TokenSignInput input : token.getInputs()) {
             String filePath = input.getFilePath();
             String documentURI = input.getDocumentURI();
             if (documentURI == null) documentURI = filePath;
-            RemoteDocument fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), documentURI);
-            toSignDocuments.add(fileToSign);
+            byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
+            toSignDocuments.add(new RemoteDocument(bytesToSign, documentURI));
+            totalSize += bytesToSign.length;
         }
+        logger.info(" Filesize (total) : " + totalSize);
         return toSignDocuments;
     }
 
@@ -1066,7 +1073,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     signedDoc = signatureServiceMultiple.signDocument(detachedDocuments = getDocumentsToSign(token), parameters, signatureValueDto);
                 } else {
                     List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), token, parameters.getReferenceDigestAlgorithm());
-                    fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true), null);
+                    byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true);
+                    logger.info("Filesize : " + bytesToSign.length);
+                    fileToSign = new RemoteDocument(bytesToSign, null);
                     signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, null);
                 }
                 addCertPathToKeyinfo(signedDoc, clientSigParams);
@@ -1082,7 +1091,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
                 }
 
-                fileToSign = new RemoteDocument(storageService.getFileAsBytes(token.getBucket(), filePath, true), null);
+                byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
+                logger.info("Filesize : " + bytesToSign.length);
+                fileToSign = new RemoteDocument(bytesToSign, null);
                 signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, null, applicationName);
 
                 // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
@@ -1384,7 +1395,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         authorizeCall(features, Features.signbox);
         try {
             checkAndRecordMDCToken(dataToSignDto.getToken());
-            logger.info("Entering getDataToSign()");
+            RemoteDocument toSignDocument = dataToSignDto.getToSignDocument();
+            logger.info("Entering getDataToSign(FileSize : " + toSignDocument.getBytes().length + ")");
 
             ClientSignatureParameters clientSigParams = dataToSignDto.getClientSignatureParameters();
             clientSigParams.setSigningDate(new Date());
@@ -1398,10 +1410,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
                 // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                 // or in "ImageIO.read" where it is NOT used as a path !
-                prepareVisibleSignature(parameters, dataToSignDto.getToSignDocument(), clientSigParams);
+                prepareVisibleSignature(parameters, toSignDocument, clientSigParams);
             }
 
-            ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(dataToSignDto.getToSignDocument(), parameters, null, applicationName);
+            ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(toSignDocument, parameters, null, applicationName);
 
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
             byte [] bytesToSign = dataToSign.getBytes();
@@ -1510,7 +1522,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         authorizeCall(features, Features.signbox);
         try {
             checkAndRecordMDCToken(signDocumentDto.getToken());
-            logger.info("Entering signDocument()");
+            RemoteDocument toSignDocument = signDocumentDto.getToSignDocument();
+            logger.info("Entering signDocument(FileSize : " + toSignDocument.getBytes().length + ")");
 
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDocumentDto.getSigningProfileId());
@@ -1520,11 +1533,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
                 // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                 // or in "ImageIO.read" where it is NOT used as a path !
-                prepareVisibleSignature(parameters, signDocumentDto.getToSignDocument(), clientSigParams);
+                prepareVisibleSignature(parameters, toSignDocument, clientSigParams);
             }
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
-            RemoteDocument signedDoc = altSignatureService.altSignDocument(signDocumentDto.getToSignDocument(), parameters, signatureValueDto, null, applicationName);
+            RemoteDocument signedDoc = altSignatureService.altSignDocument(toSignDocument, parameters, signatureValueDto, null, applicationName);
 
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
             // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
