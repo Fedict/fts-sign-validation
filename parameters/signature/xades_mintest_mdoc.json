@@ -1,5 +1,5 @@
 {
-  "profileId": "MDOC_XADES_LTA_JUSTICE",
+  "profileId": "XADES_MINTEST_MDOC",
   "digestAlgorithm": "SHA384",
   "referenceDigestAlgorithm": "SHA512",
   "signatureLevel": "XAdES_BASELINE_LTA",

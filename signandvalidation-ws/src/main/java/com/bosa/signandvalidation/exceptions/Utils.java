@@ -1,7 +1,7 @@
 package com.bosa.signandvalidation.exceptions;
 
 import com.bosa.signandvalidation.controller.SigningController;
-import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
+import com.bosa.signandvalidation.model.TrustSources;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
@@ -14,6 +14,7 @@ import java.security.InvalidParameterException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -99,16 +100,11 @@ public class Utils {
         MDC.put("token", tokenId);
     }
 
-    // Clear the token in the MDC to avoid polluting non-token logs with leftover token value
-    public static void clearMDCToken() {
-        MDC.remove("token");
+    public static void objectToMDC(Object o) throws IllegalAccessException {
+        objectToMDC("", o);
     }
 
-    public static void objectToMDC(Object o, boolean set) throws IllegalAccessException {
-        objectToMDC("", o, set);
-    }
-
-    private static void objectToMDC(String prefix, Object o, boolean set) throws IllegalAccessException {
+    private static void objectToMDC(String prefix, Object o) throws IllegalAccessException {
         for(Field f : o.getClass().getDeclaredFields()) {
             f.setAccessible(true);
             Object value = f.get(o);
@@ -116,12 +112,8 @@ public class Utils {
                 int count = 0;
                 Iterator<?> i = ((List<?>) value).iterator();
                 String nameLevel = prefix + f.getName() + "[";
-                while(i.hasNext()) objectToMDC(nameLevel + count++ + "].", i.next(), set);
-            } else {
-                String name = prefix + f.getName();
-                if (!set) MDC.remove(name);
-                else if (value != null) MDC.put(name, value.toString());
-            }
+                while(i.hasNext()) objectToMDC(nameLevel + count++ + "].", i.next());
+            } else if (value != null) MDC.put(prefix + f.getName(), value.toString());
         }
     }
 
@@ -153,11 +145,32 @@ public class Utils {
     }
 
     public static RemoteDocument getPolicyFile(String fileName) throws IOException {
-        logger.warning("Loading policy for signature validation : " + fileName);
-        InputStream genericIs = BosaRemoteDocumentValidationService.class.getResourceAsStream("/policy/" + fileName);
-        if (genericIs == null) throw new IOException("Policy file not found");
-        RemoteDocument policyDocument = new RemoteDocument(eu.europa.esig.dss.utils.Utils.toByteArray(genericIs), fileName);
-        genericIs.close();
-        return policyDocument;
+        InputStream genericIs = null;
+        try {
+            genericIs = Utils.class.getResourceAsStream("/policy/" + fileName);
+            if (genericIs != null) {
+                logger.warning("Loaded policy for signature validation : " + fileName);
+                return new RemoteDocument(eu.europa.esig.dss.utils.Utils.toByteArray(genericIs), fileName);
+            }
+        } finally {
+            if (genericIs != null) genericIs.close();
+        }
+        return null;
+    }
+
+    public static TrustSources getGetExtraTrustFile(String fileName) throws IOException {
+        InputStream genericIs = null;
+        try {
+            genericIs = Utils.class.getResourceAsStream("/trusts/" + fileName);
+            if (genericIs != null) {
+                logger.warning("Loaded extra trust : " + fileName);
+                byte [] certBytes = genericIs.readAllBytes();
+                if (fileName.endsWith(".crt")) certBytes = Base64.getMimeDecoder().decode(certBytes);
+                return new TrustSources(null, null, List.of(certBytes));
+            }
+        } finally {
+            if (genericIs != null) genericIs.close();
+        }
+        return null;
     }
 }

@@ -504,7 +504,7 @@
 			<!-- Digest algorithms -->
 <!--		<Algo Date="2005">MD2</Algo> 		Not referenced in ETSI/SOGIS -->
 			<Algo Date="2005">MD5</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
-			<Algo Date="2025">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
+			<Algo Date="2026">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
 			<Algo Date="2026">SHA224</Algo> <!-- ETSI 119 312 V1.4.2 -->
 			<Algo Date="2029">SHA256</Algo> <!-- ETSI 119 312 V1.4.2 -->
 			<Algo Date="2029">SHA384</Algo> <!-- ETSI 119 312 V1.4.2 -->

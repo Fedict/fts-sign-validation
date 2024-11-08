@@ -3,15 +3,14 @@
   "digestAlgorithm": "SHA384",
   "referenceDigestAlgorithm": "SHA512",
   "signatureLevel": "XAdES_BASELINE_LTA",
-  "signaturePackaging": "ENVELOPED",
+  "signaturePackaging": "DETACHED",
   "signatureForm": "XAdES",
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
-  "addCertPathToKeyinfo": true,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
-  "signingType": "XadesMultiFile",
-  "policyId": "https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf",
-  "policyDescription": "To_be_confirmed",
+  "policyId": "https://justact-acc.just.fgov.be/nl/legal-documents/justact/esign-policy/eSign_policy_JustAct_Nl_v1.pdf",
+  "policyDescription": "Federale Overheidsdienst Justitie",
   "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "KqjHoRzMD4OYDfLgRyuYPznBzC160NvT60arZ09gYoI="
+  "policyDigestValue": "YFr9tRDNNaggS2F87gc7rIWy6uH3Aqa1jL7yXbws0wY=",
+  "signingType": "MultiFileDetached"
 }
