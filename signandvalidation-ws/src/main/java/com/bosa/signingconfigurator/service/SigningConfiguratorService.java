@@ -142,7 +142,6 @@ public class SigningConfiguratorService {
         remoteSignatureParams.setContentTimestampParameters(profileParams.getContentTimestampParameters());
         remoteSignatureParams.setSignatureTimestampParameters(profileParams.getSignatureTimestampParameters());
         remoteSignatureParams.setArchiveTimestampParameters(profileParams.getArchiveTimestampParameters());
-        remoteSignatureParams.setSignWithExpiredCertificate(profileParams.getSignWithExpiredCertificate());
         remoteSignatureParams.setGenerateTBSWithoutCertificate(profileParams.getGenerateTBSWithoutCertificate());
         remoteSignatureParams.setEmbedXML(profileParams.getEmbedXML());
 
@@ -162,7 +161,6 @@ public class SigningConfiguratorService {
         remoteSignatureParams.setJwsSerializationType(profileParams.getJadesSerializationType());
         remoteSignatureParams.setSignaturePackaging(profileParams.getSignaturePackaging());
         remoteSignatureParams.setDigestAlgorithm(profileParams.getDigestAlgorithm());
-        remoteSignatureParams.setMaskGenerationFunction(profileParams.getMaskGenerationFunction());
         remoteSignatureParams.setReferenceDigestAlgorithm(profileParams.getReferenceDigestAlgorithm());
     }
 

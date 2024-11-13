@@ -20,5 +20,4 @@ public class ThreadDataCleaner implements HandlerInterceptor {
         MDC.clear();
         ThreadedCertificateVerifier.clearInteceptions();
     }
-
 }

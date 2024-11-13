@@ -1061,9 +1061,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 // Double check that profile is not NULL to avoid default being used
                 logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
             }
-            setOverrideRevocationStrategy(signProfile);
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
             checkCertificates(parameters);
+            setOverrideRevocationStrategy(signProfile);
             SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signDto.getSignatureValue());
 
             RemoteDocument signedDoc;
