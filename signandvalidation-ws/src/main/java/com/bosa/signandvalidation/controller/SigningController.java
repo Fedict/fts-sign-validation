@@ -67,7 +67,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
 
-import static com.bosa.signandvalidation.config.ThreadInterception.setOverrideRevocationDataLoadingStrategyFactory;
+import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setOverrideRevocationDataLoadingStrategyFactory;
 import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static com.bosa.signandvalidation.model.SigningType.*;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
@@ -1286,76 +1286,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 
-    //*****************************************************************************************
-
-/*
-    private DataToSignDTO[] getDataToSignMultipleDocumentsForToken(TokenObject token, SignInputBag [] inputBags) throws IOException, NullParameterException {
- 
-        int index = inputBags.length;
-        DataToSignDTO[] dataToSign = new DataToSignDTO[index];
-        while(index != 0) {
-            SignInputBag inputBag = inputBags[--index];
-            ClientSignatureParameters clientSigParams = inputBag.getClientSigParams();
-            RemoteSignatureParameters parameters = inputBag.getParameters();
-
-            if (inputBag.isPDF()) {
-                // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
-                // or in "ImageIO.read" where it is NOT used as a path !
-                prepareVisibleSignatureForToken(parameters, inputBag.getTokenInputToSign(), token.getBucket(), clientSigParams.getPdfSigParams());
-            }
-
-            byte[] fileBytes = storageService.getFileAsBytes(token.getBucket(), inputBag.getFilePath(), true);
-            RemoteDocument file = new RemoteDocument(fileBytes, null);
-
-            ToBeSignedDTO dataToBeSigned = altSignatureService.altGetDataToSign(file, parameters, inputBag.getReferences(), applicationName);
-            DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            byte [] digestToSign = dataToBeSigned.getBytes();
-            if (inputBag.getSignProfile().isReturnDigest()) digestToSign = DSSUtils.digest(digestAlgorithm, digestToSign);
-            dataToSign[index] = new DataToSignDTO(digestAlgorithm, digestToSign, clientSigParams.getSigningDate());
-        }
-        return dataToSign;
-    }
-
-    //*****************************************************************************************
-
-    private void signMultipleDocumentsForToken(TokenObject token, SignInputBag [] inputBags, byte [][] signedDigests, List<RemoteCertificate> certChain) throws IOException, ParserConfigurationException, TransformerException, SAXException {
-        // Log bucket and filename only for this method
-        MDC.put("bucket", token.getBucket());
-
-        int index = inputBags.length;
-        while(index != 0) {
-            SignInputBag inputBag = inputBags[--index];
-            RemoteSignatureParameters parameters = inputBag.getParameters();
-            ProfileSignatureParameters signProfile = inputBag.getSignProfile();
-            byte[] fileBytes = storageService.getFileAsBytes(token.getBucket(), inputBag.getFilePath(), true);
-            RemoteDocument file = new RemoteDocument(fileBytes, null);
-
-            setOverrideRevocationStrategy(signProfile);
-
-            SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signedDigests[index]);
-            RemoteDocument signedDoc = altSignatureService.altSignDocument(file, parameters, signatureValueDto, inputBag.getReferences(), applicationName);
-
-            signedDoc.setName(getOutFilePath(token, inputBag.getTokenInputToSign()));
-
-            logger.info("signDocumentForToken(): validating the signed doc");
-
-            // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
-            // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
-            List<RemoteDocument> detachedDocuments = inputBag.getClientSigParams().getDetachedContents();
-            if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
-            detachedDocuments.add(file);
-
-            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), null, signProfile);
-
-            // Save signed file
-            storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
-            MDC.put("fileName", signedDoc.getName());
-            logger.info("File signed");
-        }
-        MDC.remove("fileName");
-        MDC.remove("bucket");
-    }
-*/
     //*****************************************************************************************
 
     // For the Justice dept the signature must contain the Full cert path in the KeyInfo element even for all XADES signatures

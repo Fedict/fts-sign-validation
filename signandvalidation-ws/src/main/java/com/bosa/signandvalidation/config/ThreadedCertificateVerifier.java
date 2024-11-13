@@ -7,18 +7,26 @@ import eu.europa.esig.dss.spi.x509.ListCertificateSource;
 
 import java.util.logging.Logger;
 
-public class ThreadInterception extends CommonCertificateVerifier {
+import static com.bosa.signandvalidation.config.ErrorStrings.INTERNAL_ERR;
+import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
-    protected final Logger logger = Logger.getLogger(ThreadInterception.class.getName());
+public class ThreadedCertificateVerifier extends CommonCertificateVerifier {
+
+    protected final Logger logger = Logger.getLogger(ThreadedCertificateVerifier.class.getName());
 
     private static final ThreadLocal<CertificateSource> allThreadsExtraTrustSources = new ThreadLocal<CertificateSource>();
     private static final ThreadLocal<RevocationDataLoadingStrategyFactory> allThreadsOverrideRevocationDataLoadingStrategyFactory = new ThreadLocal<RevocationDataLoadingStrategyFactory>();
 
     public static void setExtraCertificateSource(CertificateSource extraSource) {
+        // There should never be a certificate source set already
+        if (allThreadsExtraTrustSources.get() != null) logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Certificate Source not cleared");
         allThreadsExtraTrustSources.set(extraSource);
     }
 
     public static void setOverrideRevocationDataLoadingStrategyFactory(RevocationDataLoadingStrategyFactory factory) {
+        // There should never be a revocation set already
+        if (allThreadsOverrideRevocationDataLoadingStrategyFactory.get() != null) logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "RevocationOverride not cleared");
         allThreadsOverrideRevocationDataLoadingStrategyFactory.set(factory);
     }
 

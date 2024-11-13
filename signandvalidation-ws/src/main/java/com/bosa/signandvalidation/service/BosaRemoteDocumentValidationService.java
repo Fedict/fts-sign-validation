@@ -11,7 +11,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.bosa.signandvalidation.config.ThreadInterception;
+import com.bosa.signandvalidation.config.ThreadedCertificateVerifier;
 import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.TrustSources;
 import eu.europa.esig.dss.detailedreport.jaxb.*;
@@ -81,7 +81,7 @@ public class BosaRemoteDocumentValidationService {
 		WSReportsDTO report = null;
 		try {
 			if (trust != null) {
-				ThreadInterception.setExtraCertificateSource(trustSourcesToCertificateSource(trust));
+				ThreadedCertificateVerifier.setExtraCertificateSource(trustSourcesToCertificateSource(trust));
 				// Use custom trust policy
 				if (policy == null) policy = getPolicyFile("Custom_trust_constraint.xml");
 			}

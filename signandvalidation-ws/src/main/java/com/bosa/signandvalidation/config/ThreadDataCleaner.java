@@ -18,7 +18,7 @@ public class ThreadDataCleaner implements HandlerInterceptor {
         DataLoadersExceptionLogger.clearThreadExceptions();
         // Clear Token and all other MDC data for this thread
         MDC.clear();
-        ThreadInterception.clearInteceptions();
+        ThreadedCertificateVerifier.clearInteceptions();
     }
 
 }
