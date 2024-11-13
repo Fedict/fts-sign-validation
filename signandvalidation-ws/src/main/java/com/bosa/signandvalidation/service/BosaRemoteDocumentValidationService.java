@@ -11,7 +11,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.bosa.signandvalidation.config.ThreadedCertificateVerifier;
+import com.bosa.signandvalidation.config.ThreadInterception;
 import com.bosa.signandvalidation.model.SignatureFullValiationDTO;
 import com.bosa.signandvalidation.model.TrustSources;
 import eu.europa.esig.dss.detailedreport.jaxb.*;
@@ -31,15 +31,14 @@ import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import eu.europa.esig.dss.ws.validation.dto.DataToValidateDTO;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.INVALID_PARAM;
 import static com.bosa.signandvalidation.exceptions.Utils.getPolicyFile;
@@ -82,7 +81,7 @@ public class BosaRemoteDocumentValidationService {
 		WSReportsDTO report = null;
 		try {
 			if (trust != null) {
-				ThreadedCertificateVerifier.setExtraCertificateSource(trustSourcesToCertificateSource(trust));
+				ThreadInterception.setExtraCertificateSource(trustSourcesToCertificateSource(trust));
 				// Use custom trust policy
 				if (policy == null) policy = getPolicyFile("Custom_trust_constraint.xml");
 			}
@@ -137,8 +136,6 @@ public class BosaRemoteDocumentValidationService {
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException e) {
 			// Exceptions linked to getCertificateSource keystore manipulation
 			logAndThrowEx(BAD_REQUEST, INVALID_PARAM, e);
-		} finally {
-			ThreadedCertificateVerifier.clearExtraCertificateSource(); // Cleanup
 		}
 		return new SignatureFullValiationDTO(report);
 	}

@@ -7,9 +7,9 @@ import eu.europa.esig.dss.spi.x509.ListCertificateSource;
 
 import java.util.logging.Logger;
 
-public class ThreadedCertificateVerifier extends CommonCertificateVerifier {
+public class ThreadInterception extends CommonCertificateVerifier {
 
-    protected final Logger logger = Logger.getLogger(ThreadedCertificateVerifier.class.getName());
+    protected final Logger logger = Logger.getLogger(ThreadInterception.class.getName());
 
     private static final ThreadLocal<CertificateSource> allThreadsExtraTrustSources = new ThreadLocal<CertificateSource>();
     private static final ThreadLocal<RevocationDataLoadingStrategyFactory> allThreadsOverrideRevocationDataLoadingStrategyFactory = new ThreadLocal<RevocationDataLoadingStrategyFactory>();
@@ -22,12 +22,9 @@ public class ThreadedCertificateVerifier extends CommonCertificateVerifier {
         allThreadsOverrideRevocationDataLoadingStrategyFactory.set(factory);
     }
 
-    public static void clearExtraCertificateSource() {
-        allThreadsExtraTrustSources.remove();
-    }
-
-    public static void clearOverrideRevocationDataLoadingStrategyFactory() {
+    public static void clearInteceptions() {
         allThreadsOverrideRevocationDataLoadingStrategyFactory.remove();
+        allThreadsExtraTrustSources.remove();
     }
 
     public ListCertificateSource getTrustedCertSources() {

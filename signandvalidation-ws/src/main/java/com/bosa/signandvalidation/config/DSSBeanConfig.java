@@ -222,7 +222,7 @@ public class DSSBeanConfig {
 
     @Bean
     public CertificateVerifier certificateVerifier() throws Exception {
-        CommonCertificateVerifier certificateVerifier = new ThreadedCertificateVerifier();
+        CommonCertificateVerifier certificateVerifier = new ThreadInterception();
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
         CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CERT_VERIFICATION);

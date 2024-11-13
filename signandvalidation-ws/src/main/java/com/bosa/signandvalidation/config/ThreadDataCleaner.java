@@ -1,7 +1,6 @@
 package com.bosa.signandvalidation.config;
 
 import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
-import com.bosa.signandvalidation.exceptions.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +18,7 @@ public class ThreadDataCleaner implements HandlerInterceptor {
         DataLoadersExceptionLogger.clearThreadExceptions();
         // Clear Token and all other MDC data for this thread
         MDC.clear();
+        ThreadInterception.clearInteceptions();
     }
 
 }
