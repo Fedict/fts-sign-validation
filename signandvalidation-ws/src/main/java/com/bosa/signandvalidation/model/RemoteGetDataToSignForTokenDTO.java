@@ -9,20 +9,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
 import java.util.List;
 
-/**
- *
- * @author christian
- */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RemoteSignDocumentsForTokenDTO {
+public class RemoteGetDataToSignForTokenDTO {
+    private String accessToken;
     private String token;
-    private String SAD;
-    private Date signingDate;
     private byte [] photo;
     private List<InputToSign> inputsToSign;
 }

@@ -1,6 +1,10 @@
 package com.bosa.signandvalidation.service;
 
 import com.bosa.signandvalidation.model.DataToSignDTO;
+import com.bosa.signandvalidation.model.remotesign.CredentialsListDTO;
+import com.bosa.signandvalidation.model.remotesign.GetCredentialsListDTO;
+import com.bosa.signandvalidation.model.remotesign.SignHashesDTO;
+import com.bosa.signandvalidation.model.remotesign.SignedHashesDTO;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import lombok.AllArgsConstructor;
@@ -76,6 +80,26 @@ public class RemoteSigningService extends RemoteSigningInterface {
         private byte[][] digests;
         private String digestAlgorithm;
         private String sad;
+    }
+
+    /*****************************************************************************************/
+    @Override
+    public String getAccessToken() {
+        return "";
+    }
+
+    /*****************************************************************************************/
+
+    @Override
+    public CredentialsListDTO getCredentialsList(GetCredentialsListDTO in) {
+        return null;
+    }
+
+    /*****************************************************************************************/
+
+    @Override
+    public SignedHashesDTO signSignHashes(SignHashesDTO in) {
+        return null;
     }
 
     /*****************************************************************************************/

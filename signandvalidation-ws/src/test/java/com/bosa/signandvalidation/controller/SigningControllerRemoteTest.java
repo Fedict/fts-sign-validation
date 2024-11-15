@@ -54,7 +54,7 @@ public class SigningControllerRemoteTest {
     @Autowired
     private SigningController sc;
 
-    private static RemoteSigningInterface testRemoteSigningService = new RemoteSigningInterface() {
+    private static final RemoteSigningInterface testRemoteSigningService = new RemoteSigningInterface() {
         private Pkcs12SignatureToken token;
         private DSSPrivateKeyEntry dssPrivateKeyEntry;
 
@@ -122,7 +122,7 @@ public class SigningControllerRemoteTest {
         inputsToSign.add(new InputToSign(0, null, "1,10,20,200,100", false, "fr"));
         inputsToSign.add(new InputToSign(2, "signature_2", null, false, "nl"));
         inputsToSign.add(new InputToSign(3, null, null, false, "de"));
-        RemoteSignDocumentsForTokenDTO dto = new RemoteSignDocumentsForTokenDTO(TOKEN, CODE, null, inputsToSign);
+        RemoteGetDataToSignForTokenDTO dto = new RemoteGetDataToSignForTokenDTO(TOKEN, CODE, null, inputsToSign);
         ResponseEntity<RemoteDocument> result = sc.remoteSignDocumentsForToken(dto);
 
         assertNotNull(result);
