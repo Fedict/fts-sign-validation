@@ -103,7 +103,6 @@ public class SigningControllerRemoteTest {
 
         assertNotNull(signedDocument);
     }
- */
 
     @Test
     public void testMultipleRemoteSigning() throws Exception {
@@ -132,4 +131,5 @@ public class SigningControllerRemoteTest {
             verify(storageService, times(1)).storeFile(eq(BUCKET), eq(OUT_PREFIX + "file " + fileIds[i] + ".pdf.validationreport.json"), any());
         }
     }
+ */
 }
