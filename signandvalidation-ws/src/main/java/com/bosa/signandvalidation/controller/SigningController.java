@@ -1034,9 +1034,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             TokenObject token = getTokenFromId(signDto.getToken());
 
+            // Signing within allowed time ?
             Date now = signingTime == null ? new Date() : new Date(signingTime);
-            if (now.getTime() - signDto.getSigningDate().getTime() > (token.getSignTimeout() * 1000)) {
-                logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "signTimeout reached)" , null);
+
+            long expiredBy = now.getTime() - token.getSignTimeout() * 1000L - signDto.getSigningDate().getTime();
+            if (expiredBy > 0) {
+                logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "Expired by :" + Long.toString(expiredBy / 1000) + " seconds");
             }
 
             SigningType sigType = token.getSigningType();
