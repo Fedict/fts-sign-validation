@@ -34,11 +34,26 @@ public class RemoteSigningService extends RemoteSigningInterface {
         this.certificatesOpURL      = certificatesOpURL;
     }
 
+    @Override
+    public List<RemoteCertificate> getCertificatesFromAccessToken(String accessToken) {
+        return List.of();
+    }
+
+    @Override
+    public String getAccoutStatus(String accessToken) {
+        return "";
+    }
+
     /*****************************************************************************************/
 
     public String getSadFromCode(String code) {
 
         return new RestTemplate().getForObject(sadOpURL + code, String.class);
+    }
+
+    @Override
+    public List<RemoteCertificate> getCertificates(String accessToken) {
+        return List.of();
     }
 
     /*****************************************************************************************/
@@ -83,7 +98,7 @@ public class RemoteSigningService extends RemoteSigningInterface {
     }
 
     /*****************************************************************************************/
-    @Override
+
     public String getAccessToken() {
         return "";
     }

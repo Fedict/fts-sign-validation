@@ -46,7 +46,7 @@ public class SigningControllerInputCheckTest {
         TokenObject token = new TokenObject();
         token.setPdfSignProfile("Profile");
         token.setSignTimeout(100000);
-        testToken(token, SIGN_PERIOD_EXPIRED, "signTimeout (100000) can't be larger than  Token expiration (18000)");
+        testToken(token, INVALID_PARAM, "signTimeout (100000) can't be larger than  Token expiration (18000)");
     }
 
     @Test

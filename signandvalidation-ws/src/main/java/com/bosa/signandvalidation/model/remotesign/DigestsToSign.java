@@ -12,10 +12,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DigestsToSign {
+    private Integer inputToSignId;
     private DigestAlgorithm digestAlgorithm;
     private List<byte[]> digests = new ArrayList<>();
 
-    public DigestsToSign(DigestAlgorithm digestAlgorithm, byte[] digest) {
+    public DigestsToSign(DigestAlgorithm digestAlgorithm, byte[] digest, Integer inputToSignId) {
         this.digestAlgorithm = digestAlgorithm;
         this.digests.add(digest);
     }

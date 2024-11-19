@@ -16,4 +16,5 @@ public class InputToSign {
     private String psfC;
     private boolean psfP;
     private String language;
+    private byte[] signedData;
 }

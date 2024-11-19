@@ -19,7 +19,6 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class RemoteSignDocumentDTO {
     private String signingProfileId;
     private String token;
@@ -30,26 +29,4 @@ public class RemoteSignDocumentDTO {
     private byte [] photo;
     private PdfSignatureProfile psp;
     private RemoteDocument toSignDocument;
-
-    @Getter
-    @NoArgsConstructor
-    public static class RemoteDataToSignDTO {
-        private List<DigestsToSign> digests = new ArrayList<>();
-        @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-        private Date signingDate;
-
-        public RemoteDataToSignDTO(Date signingDate) {
-            this.signingDate = signingDate;
-        }
-
-        public void addDigest(DigestAlgorithm digestAlgorithm, byte[] digest) {
-            for(DigestsToSign dts : digests) {
-                if (digestAlgorithm.equals(dts.getDigestAlgorithm())) {
-                    dts.getDigests().add(digest);
-                    return;
-                }
-            }
-            digests.add(new DigestsToSign(digestAlgorithm, digest));
-        }
-    }
 }

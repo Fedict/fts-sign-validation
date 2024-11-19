@@ -16,7 +16,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.ResponseEntity;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -54,6 +53,7 @@ public class SigningControllerRemoteTest {
     @Autowired
     private SigningController sc;
 
+/*
     private static final RemoteSigningInterface testRemoteSigningService = new RemoteSigningInterface() {
         private Pkcs12SignatureToken token;
         private DSSPrivateKeyEntry dssPrivateKeyEntry;
@@ -89,11 +89,11 @@ public class SigningControllerRemoteTest {
             return digests;
         }
     };
+ */
 
+/*
     @Test
     public void testRemoteSigning() throws Exception {
-
-        sc.setRemoteSigningService(testRemoteSigningService);
 
         FileDocument fileToSign = new FileDocument(new File("src/test/resources/sample.pdf"));
         RemoteDocument toSignDocument = new RemoteDocument(Utils.toByteArray(fileToSign.openStream()), fileToSign.getName());
@@ -103,6 +103,7 @@ public class SigningControllerRemoteTest {
 
         assertNotNull(signedDocument);
     }
+ */
 
     @Test
     public void testMultipleRemoteSigning() throws Exception {
@@ -116,17 +117,15 @@ public class SigningControllerRemoteTest {
             Mockito.when(storageService.getFileAsBytes(eq(BUCKET), eq("file " + fileIds[i] + ".pdf"), eq(true))).thenReturn(fileBytes);
         }
 
-        sc.setRemoteSigningService(testRemoteSigningService);
-
         List<InputToSign> inputsToSign = new ArrayList<>();
-        inputsToSign.add(new InputToSign(0, null, "1,10,20,200,100", false, "fr"));
-        inputsToSign.add(new InputToSign(2, "signature_2", null, false, "nl"));
-        inputsToSign.add(new InputToSign(3, null, null, false, "de"));
-        RemoteGetDataToSignForTokenDTO dto = new RemoteGetDataToSignForTokenDTO(TOKEN, CODE, null, inputsToSign);
-        ResponseEntity<RemoteDocument> result = sc.remoteSignDocumentsForToken(dto);
+        inputsToSign.add(new InputToSign(0, null, "1,10,20,200,100", false, "fr", null));
+        inputsToSign.add(new InputToSign(2, "signature_2", null, false, "nl", null));
+        inputsToSign.add(new InputToSign(3, null, null, false, "de", null));
+        GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(TOKEN, null, null, null, inputsToSign);
+        DataToSignForTokenDTO result = sc.getDataToSignForToken(dto);
 
         assertNotNull(result);
-        assertNull(result.getBody());
+        assertNull(result.getDigests());
 
         for(int i = 0; i < 3; i++) {
             verify(storageService, times(1)).storeFile(eq(BUCKET), eq(OUT_PREFIX + "file " + fileIds[i] + ".pdf"), any());
