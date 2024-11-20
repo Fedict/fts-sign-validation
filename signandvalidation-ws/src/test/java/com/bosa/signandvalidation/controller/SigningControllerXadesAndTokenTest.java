@@ -5,7 +5,6 @@ import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signandvalidation.service.StorageService;
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.model.Digest;
 import eu.europa.esig.dss.model.SignatureValue;
@@ -20,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -144,23 +142,23 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         gtfd.setOutDownload(true);
 
         // Create XML to sign
-        String token = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENTS, gtfd, String.class);
+        String token = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENTS_URL, gtfd, String.class);
         System.out.println(token);
 
         // First call from UI to get a view of the various files to display
-        DocumentMetadataDTO fift = this.restTemplate.getForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_METADATA_FOR_TOKEN + "?token=" + token, DocumentMetadataDTO.class);
+        DocumentMetadataDTO fift = this.restTemplate.getForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_METADATA_FOR_TOKEN_URL + "?token=" + token, DocumentMetadataDTO.class);
 
         int inputIndex = 0;
         for(SignInputMetadata input : fift.getInputs()) {
             // Per file call to display content & XSLT
-            ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_FILE_FOR_TOKEN + "/" + token + "/" + GetFileType.DOC + "/" + inputIndex, byte[].class);
+            ResponseEntity<byte[]> file = this.restTemplate.getForEntity(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_FILE_FOR_TOKEN_URL + "/" + token + "/" + GetFileType.DOC + "/" + inputIndex, byte[].class);
 
             FileDef fd = FileDef.find(input.getFileName());
             assertEquals(new String(file.getBody()), fd.data);
             assertEquals(file.getHeaders().getContentType(), fd.type);
 
             if (input.isHasDisplayXslt()) {
-                file = this.restTemplate.getForEntity(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_FILE_FOR_TOKEN + "/" + token + "/" + GetFileType.XSLT + "/" + inputIndex, byte[].class);
+                file = this.restTemplate.getForEntity(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_FILE_FOR_TOKEN_URL + "/" + token + "/" + GetFileType.XSLT + "/" + inputIndex, byte[].class);
 
                 fd = FileDef.find(input.getFileName());
                 assertEquals(new String(file.getBody()), fd.xsltData);
@@ -177,7 +175,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         // Get hash & algo that must be signed
         ClientSignatureParameters csp = getClientSignatureParameters(sigToken.getKeys().get(0));
         GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, 0, csp);
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dto, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dto, DataToSignDTO.class);
 
         // Sign hash
         SignatureValue signatureValue = sigToken.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), sigToken.getKeys().get(0));
@@ -185,7 +183,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         // Sign file & return its content
         csp.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, 0, csp, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, sdto, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, sdto, RemoteDocument.class);
 
         assertNull(signedDocument);
     }
@@ -217,7 +215,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         // get data to sign
         GetDataToSignXMLElementsDTO prepareSignDto = new GetDataToSignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, targets, "ID");
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_XADES_MULTI_DOC, prepareSignDto, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_XADES_MDOC_URL, prepareSignDto, DataToSignDTO.class);
 
         // sign
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
@@ -225,7 +223,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignXMLElementsDTO signDto = new SignXMLElementsDTO("XADES_LTA", fileToSign, clientSignatureParameters, targets, signatureValue.getValue(), "ID");
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_XADES_MULTI_DOC, signDto, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_XADES_MDOC_URL, signDto, RemoteDocument.class);
         assertNotNull(signedDocument);
     }
 }

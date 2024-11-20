@@ -25,6 +25,9 @@ public interface ErrorStrings {
 	/** Certificate (probably the signing cert) revoked */
 	String CERT_REVOKED = "CERT_REVOKED";
 
+	/** Certificate of an existing signature's signer is revoked */
+	String DOC_CERT_REVOKED = "DOC_CERT_REVOKED";
+
 	/** Unexpected exception thown */
 	String INTERNAL_ERR = "INTERNAL_ERR";
 

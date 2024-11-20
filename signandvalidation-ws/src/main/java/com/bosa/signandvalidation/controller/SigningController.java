@@ -108,24 +108,36 @@ import org.xml.sax.SAXException;
 
 @Tag(name = "Electronic signature services", description = "See also https://github.com/Fedict/fts-documentation")
 @RestController
-@RequestMapping(value = SigningController.ENDPOINT)
+@RequestMapping(value = SigningController.ENDPOINT_URL)
 public class SigningController extends ControllerBase implements ErrorStrings {
 
     protected final Logger logger = Logger.getLogger(SigningController.class.getName());
 
     // Service URL
-    public static final String ENDPOINT                         = "/signing";
+    public static final String ENDPOINT_URL                     = "/signing";
 
-    public static final String PING                             = "/ping";
-    public static final String VERSION                          = "/version";
+    public static final String LOGGING_URL                      = "/log";
+    public static final String PING_URL                         = "/ping";
+    public static final String ERROR_URL                        = "/error";
+    public static final String VERSION_URL                      = "/versions";
 
     // Token operations
-    public static final String GET_TOKEN_FOR_DOCUMENT           = "/getTokenForDocument";
-    public static final String GET_TOKEN_FOR_DOCUMENTS          = "/getTokenForDocuments";
-    public static final String GET_DATA_TO_SIGN_FOR_TOKEN       = "/getDataToSignForToken";
-    public static final String GET_METADATA_FOR_TOKEN           = "/getMetadataForToken";
-    public static final String GET_FILE_FOR_TOKEN               = "/getFileForToken";
-    public static final String SIGN_DOCUMENT_FOR_TOKEN          = "/signDocumentForToken";
+    public static final String GET_TOKEN_FOR_DOCUMENT_URL       = "/getTokenForDocument";
+    public static final String GET_TOKEN_FOR_DOCUMENTS_URL      = "/getTokenForDocuments";
+    public static final String GET_DATA_TO_SIGN_FOR_TOKEN_URL   = "/getDataToSignForToken";
+    public static final String GET_METADATA_FOR_TOKEN_URL       = "/getMetadataForToken";
+    public static final String GET_FILE_FOR_TOKEN_URL           = "/getFileForToken";
+    public static final String SIGN_DOCUMENT_FOR_TOKEN_URL      = "/signDocumentForToken";
+
+    // standard operations
+    public static final String GET_DATA_TO_SIGN_URL             = "/getDataToSign";
+    public static final String SIGN_DOCUMENT_URL                = "/signDocument";
+    public static final String EXTEND_DOCUMENT_URL              = "/extendDocument";
+    public static final String EXTEND_DOCUMENT_MULTIPLE_URL     = "/extendDocumentMultiple";
+    public static final String TIMESTAMP_DOCUMENT_URL           = "/timestampDocument";
+    public static final String TIMESTAMP_DOCUMENT_MULTIPLE_URL  = "/timestampDocumentMultiple";
+    public static final String GET_DATA_TO_SIGN_XADES_MDOC_URL  = "/getDataToSignXades";
+    public static final String SIGN_DOCUMENT_XADES_MDOC_URL     = "/signDocumentXades";
 
     public static final int DEFAULT_SIGN_DURATION_SECS          = 2 * 60;
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
@@ -135,16 +147,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final Pattern pspFontPattern                = Pattern.compile(".*(/b|/i|/bi|/ib)?"); // <FontName>/<b><i>. Sample : "Serif/bi"
 
     private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en");
-
-    // standard operations
-    public static final String GET_DATA_TO_SIGN                 = "/getDataToSign";
-    public static final String SIGN_DOCUMENT                    = "/signDocument";
-    public static final String EXTEND_DOCUMENT                  = "/extendDocument";
-    public static final String EXTEND_DOCUMENT_MULTIPLE         = "/extendDocumentMultiple";
-    public static final String TIMESTAMP_DOCUMENT               = "/timestampDocument";
-    public static final String TIMESTAMP_DOCUMENT_MULTIPLE      = "/timestampDocumentMultiple";
-    public static final String GET_DATA_TO_SIGN_XADES_MULTI_DOC = "/getDataToSignXades";
-    public static final String SIGN_DOCUMENT_XADES_MULTI_DOC    = "/signDocumentXades";
 
     public static final String KEYS_FOLDER                      = "keys/";
     private static final String JSON_FILENAME_EXTENSION         = ".json";
@@ -190,7 +192,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Value("${features}")
     private String features;
 
-    @GetMapping(value = PING, produces = TEXT_PLAIN_VALUE)
+    @GetMapping(value = PING_URL, produces = TEXT_PLAIN_VALUE)
     public String ping() {
         return "pong";
     }
@@ -206,7 +208,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             @ApiResponse(responseCode = "200", description = "Token created and ready for use"),
             @ApiResponse(responseCode = "500", description = "Error while creating the token")
     })
-    @PostMapping(value = GET_TOKEN_FOR_DOCUMENT, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = GET_TOKEN_FOR_DOCUMENT_URL, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocument(@RequestBody GetTokenForDocumentDTO tokenData) {
         try {
             authorizeCall(features, Features.token);
@@ -276,7 +278,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             @ApiResponse(responseCode = "200", description = "Token created and ready for use"),
             @ApiResponse(responseCode = "500", description = "Error while creating the token")
     })
-    @PostMapping(value = GET_TOKEN_FOR_DOCUMENTS, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = GET_TOKEN_FOR_DOCUMENTS_URL, produces = TEXT_PLAIN_VALUE, consumes = APPLICATION_JSON_VALUE)
     public String getTokenForDocuments(@RequestBody GetTokenForDocumentsDTO gtfd) throws IllegalAccessException {
         try {
             authorizeCall(features, Features.token);
@@ -746,7 +748,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     @Operation(hidden = true)
-    @GetMapping(value = GET_METADATA_FOR_TOKEN)
+    @GetMapping(value = GET_METADATA_FOR_TOKEN_URL)
     public DocumentMetadataDTO getMetadataForToken(@RequestParam("token") String tokenString) {
         authorizeCall(features, Features.token);
         try {
@@ -784,7 +786,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     @Operation(hidden = true)
-    @GetMapping(value = GET_FILE_FOR_TOKEN + "/{token}/{type}/{inputIndexes}")
+    @GetMapping(value = GET_FILE_FOR_TOKEN_URL + "/{token}/{type}/{inputIndexes}")
     public void getFileForToken(@PathVariable("token") String tokenString,
                                 @PathVariable GetFileType type,
                                 @PathVariable(required = true) Integer inputIndexes[],
@@ -874,7 +876,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     @Operation(hidden = true)
-    @PostMapping(value = GET_DATA_TO_SIGN_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = GET_DATA_TO_SIGN_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
         authorizeCall(features, Features.token);
         try {
@@ -1019,7 +1021,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     @Operation(hidden = true)
-    @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
         authorizeCall(features, Features.token);
         try {
@@ -1390,7 +1392,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = GET_DATA_TO_SIGN, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = GET_DATA_TO_SIGN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
         authorizeCall(features, Features.signbox);
         try {
@@ -1624,7 +1626,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = EXTEND_DOCUMENT_MULTIPLE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = EXTEND_DOCUMENT_MULTIPLE_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         authorizeCall(features, Features.signbox);
         try {
@@ -1663,7 +1665,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = EXTEND_DOCUMENT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = EXTEND_DOCUMENT_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         authorizeCall(features, Features.signbox);
         try {
@@ -1702,7 +1704,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = TIMESTAMP_DOCUMENT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = TIMESTAMP_DOCUMENT_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument timestampDocument(@RequestBody TimestampDocumentDTO timestampDocumentDto) {
         authorizeCall(features, Features.signbox);
         try {
@@ -1725,7 +1727,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     /*****************************************************************************************/
 
     @Operation(summary = "Timestamp a list of files and produce a file in ASIC format")
-    @PostMapping(value = TIMESTAMP_DOCUMENT_MULTIPLE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = TIMESTAMP_DOCUMENT_MULTIPLE_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampDocumentMultipleDTO timestampDocumentDto) {
         authorizeCall(features, Features.signbox);
         try {
@@ -1758,7 +1760,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = GET_DATA_TO_SIGN_XADES_MULTI_DOC, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = GET_DATA_TO_SIGN_XADES_MDOC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSign(@RequestBody GetDataToSignXMLElementsDTO getDataToSignDto) {
         authorizeCall(features, Features.signbox);
         try {
@@ -1806,7 +1808,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = SIGN_DOCUMENT_XADES_MULTI_DOC, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = SIGN_DOCUMENT_XADES_MDOC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignXMLElementsDTO signDto) {
         authorizeCall(features, Features.signbox);
 
@@ -1845,7 +1847,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
 private static void handleRevokedCertificates(Exception e) {
     if (e instanceof AlertException && e.getMessage().startsWith("Revoked/Suspended certificate")) {
-        logAndThrowEx(BAD_REQUEST, CERT_REVOKED, e);
+        logAndThrowEx(BAD_REQUEST, DOC_CERT_REVOKED, e);
     }
 }
 

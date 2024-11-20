@@ -39,7 +39,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // get data to sign
         GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters, "ID");
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + GET_DATA_TO_SIGN_URL, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
         // sign
@@ -48,12 +48,12 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "XADES_B", clientSignatureParameters, signatureValue.getValue(), null, "ID");
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + SIGN_DOCUMENT_URL, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
         // extend document
         ExtendDocumentDTO extendDocumentDTO = new ExtendDocumentDTO(signedDocument, "XADES_T", null, "ID");
-        RemoteDocument extendedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + EXTEND_DOCUMENT, extendDocumentDTO, RemoteDocument.class);
+        RemoteDocument extendedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + EXTEND_DOCUMENT_URL, extendDocumentDTO, RemoteDocument.class);
         assertNotNull(extendedDocument);
 
         InMemoryDocument iMD = new InMemoryDocument(extendedDocument.getBytes());
@@ -76,7 +76,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // get data to sign
         GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "CADES_B", clientSignatureParameters, "ID");
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + GET_DATA_TO_SIGN_URL, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
         // sign
@@ -85,7 +85,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "CADES_B", clientSignatureParameters, signatureValue.getValue(), null, "ID");
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + SIGN_DOCUMENT_URL, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
         InMemoryDocument iMD = new InMemoryDocument(signedDocument.getBytes());
@@ -108,7 +108,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // get data to sign
         GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "PADES_B", clientSignatureParameters, "ID");
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + GET_DATA_TO_SIGN_URL, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
         // sign
@@ -117,7 +117,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "PADES_B", clientSignatureParameters, signatureValue.getValue(), null, "ID");
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + SIGN_DOCUMENT_URL, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
         InMemoryDocument iMD = new InMemoryDocument(signedDocument.getBytes());
@@ -140,7 +140,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // get data to sign
         GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "JADES_B", clientSignatureParameters, "ID");
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + GET_DATA_TO_SIGN_URL, dataToSignDTO, DataToSignDTO.class);
         assertNotNull(dataToSign);
 
         // sign
@@ -149,7 +149,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentDTO signDocumentDTO = new SignDocumentDTO(toSignDocument, "JADES_B", clientSignatureParameters, signatureValue.getValue(), null, "ID");
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + SIGN_DOCUMENT, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + SIGN_DOCUMENT_URL, signDocumentDTO, RemoteDocument.class);
         assertNotNull(signedDocument);
 
         DataToValidateDTO toValidate = new DataToValidateDTO(signedDocument);
@@ -170,7 +170,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
         RemoteDocument remoteDocument = RemoteDocumentConverter.toRemoteDocument(fileToTimestamp);
 
         TimestampDocumentDTO timestampOneDocumentDTO = new TimestampDocumentDTO(remoteDocument, "PROFILE_1", "ID");
-        RemoteDocument timestampedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + TIMESTAMP_DOCUMENT, timestampOneDocumentDTO, RemoteDocument.class);
+        RemoteDocument timestampedDocument = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + TIMESTAMP_DOCUMENT_URL, timestampOneDocumentDTO, RemoteDocument.class);
 
         assertNotNull(timestampedDocument);
 
@@ -195,7 +195,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // get data to sign
         GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters, "ID");
-        Map result = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, Map.class);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + GET_DATA_TO_SIGN_URL, dataToSignDTO, Map.class);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
         assert(result.get("message").toString().contains(SIGN_CERT_EXPIRED + "||exp. date = 2021.03.06"));
@@ -217,7 +217,7 @@ public class SigningControllerTest extends SigningControllerBaseTest {
 
         // get data to sign
         GetDataToSignDTO dataToSignDTO = new GetDataToSignDTO(toSignDocument, "XADES_B", clientSignatureParameters, "ID");
-        Map result = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT + GET_DATA_TO_SIGN, dataToSignDTO, Map.class);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + ENDPOINT_URL + GET_DATA_TO_SIGN_URL, dataToSignDTO, Map.class);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
         assert(result.get("message").toString().endsWith("CERT_CHAIN_INCOMPLETE" + "||cert count: 1"));

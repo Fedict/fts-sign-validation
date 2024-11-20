@@ -63,11 +63,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // GetDataToSignForToken (With 10 second timeout)
         getTokenDTO.setSignTimeout(10);
         getTokenDTO.setOut("out");
-        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
 
         // get data to sign
         GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dataToSignDTO, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dataToSignDTO, DataToSignDTO.class);
 
         // sign
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
@@ -77,7 +77,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
 
         // sign document
-        Map result = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, Map.class);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, Map.class);
         assertNotNull(result);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
@@ -104,11 +104,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         signers.add(new AllowedToSign("12345678901"));
         getTokenDTO.setAllowedToSign(signers);
         getTokenDTO.setOut("out");
-        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
 
         // get data to sign
         GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
-        Map result = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dataToSignDTO, Map.class);
+        Map result = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dataToSignDTO, Map.class);
         assertNotNull(result);
 
         assertEquals(INTERNAL_SERVER_ERROR.value(), result.get("status"));
@@ -134,11 +134,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         getTokenDTO.setSignTimeout(1000);
         getTokenDTO.setNoDownload(false);
         getTokenDTO.setOut("out");
-        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
 
         // get data to sign
         GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dataToSignDTO, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dataToSignDTO, DataToSignDTO.class);
 
         // sign
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
@@ -146,7 +146,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
         assertNull(signedDocument);
     }
 
@@ -169,11 +169,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         getTokenDTO.setSignTimeout(1000);
         getTokenDTO.setNoDownload(false);
         getTokenDTO.setOut("out");
-        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
 
         // get data to sign
         GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dataToSignDTO, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dataToSignDTO, DataToSignDTO.class);
 
         // sign
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
@@ -181,7 +181,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
         assertNull(signedDocument);
     }
 
@@ -207,11 +207,11 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", SignProfiles.XADES_MULTIFILE_DETACHED.name(), inFiles, OUT_FILENAME);
         gtfd.setOutDownload(true);
 
-        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENTS, gtfd, String.class);
+        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENTS_URL, gtfd, String.class);
 
         // get data to sign
         GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dataToSignDTO, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dataToSignDTO, DataToSignDTO.class);
 
         // sign
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
@@ -219,7 +219,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        RemoteDocument noAnswer = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument noAnswer = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
         assertNull(noAnswer);
 
         ArgumentCaptor<byte[]> fileBytesCaptor = ArgumentCaptor.forClass(byte[].class);

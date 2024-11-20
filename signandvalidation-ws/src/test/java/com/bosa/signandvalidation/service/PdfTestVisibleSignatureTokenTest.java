@@ -141,13 +141,13 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         getTokenDTO.setOut(THE_OUT_FILENAME);
 
         if (expectError) {
-            return this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+            return this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
         }
-        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
 
         // get data to sign
         GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dataToSignDTO, DataToSignDTO.class);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dataToSignDTO, DataToSignDTO.class);
         // sign
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
 
@@ -177,7 +177,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENT_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
         return null;
     }
 }
