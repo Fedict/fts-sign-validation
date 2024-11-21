@@ -11,7 +11,7 @@
   "policyDescription": "To_be_confirmed",
   "policyDigestAlgorithm": "SHA256",
   "policyDigestValue": "qd6TIS9MA0QUADDis34j8Tx8bSezIy+R2XXxqXmYh8w=",
-  "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_ANNA_Test_SipENv1.0.pdf",
+  "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/edepot/eseal-policy/en/eDepotANNASIPTestSignaturePolicyENv1.1.pdf",
   "embedXML": true,
   "returnDigest": false,
   "validationPolicyFilename": "testEsealingConstraint.xml"

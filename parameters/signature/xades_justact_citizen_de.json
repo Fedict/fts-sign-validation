@@ -8,7 +8,7 @@
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
-  "policyId": "https://justact-acc.just.fgov.be/de/legal-documents/justact/esign-policy/eSign_policy_JustAct_De_v1.pdf",
+  "policyId": "https://Justonweb.be/de/legal-documents/justact/esign-policy/eSign_policy_JustAct_De_v1.pdf",
   "policyDescription": "F\u00f6deraler \u00f6ffentlicher Dienst Justiz",
   "policyDigestAlgorithm": "SHA256",
   "policyDigestValue": "YFr9tRDNNaggS2F87gc7rIWy6uH3Aqa1jL7yXbws0wY=",

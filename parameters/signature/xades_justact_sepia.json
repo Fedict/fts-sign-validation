@@ -11,7 +11,7 @@
   "policyDescription": "To_be_confirmed",
   "policyDigestAlgorithm": "SHA256",
   "policyDigestValue": "bnee/GRkXU//UpD6sEFJfqxplCz/gW2RiuT1DHVMS8I=",
-  "policySpuri": "https://mintest.ta.fts.bosa.belgium.be/static/testPolicy.pdf",
+  "policySpuri": "https://Justonweb.be/en/legal-documents/justact/eseal-policy/JustAct_Anna_SipENv1.0.pdf",
   "embedXML": true,
   "returnDigest": false,
   "extraTrustFilename": "SPFJusticeSepia.crt"
