@@ -13,5 +13,6 @@
   "policyDigestValue": "FxzO4/CFvR3InJ5nE1I4psfNxCVF9E3xhxQRj8RHu/pcTtMNxsdu9y68HKjM1KBN0ul0VF025PFPxI1CRPVpsA==",
   "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/justact/eseal-policy/JustAct_Anna_Test_SipENv1.0.pdf",
   "embedXML": true,
-  "returnDigest": false
+  "returnDigest": false,
+  "extraTrustFilename": "JustActTest.crt"
 }
