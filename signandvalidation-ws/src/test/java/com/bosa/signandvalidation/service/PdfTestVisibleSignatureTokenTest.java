@@ -131,7 +131,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         // get token from file
         GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
         getTokenDTO.setProf("PADES_B");
-        getTokenDTO.setLang(pspFileName.substring(0, 2));
+        getTokenDTO.setLang(SigningLanguages.valueOf(pspFileName.substring(0, 2)));
         getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setPsfC(DEFAULT_STRING);
         getTokenDTO.setPsfP(photo == null ? "false" : "true");

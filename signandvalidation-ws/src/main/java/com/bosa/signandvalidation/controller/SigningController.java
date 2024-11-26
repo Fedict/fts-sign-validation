@@ -146,8 +146,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final Pattern pspColorPattern                = Pattern.compile("(#[0-9a-fA-F]{6}|" + TRANSPARENT + ")");
     private static final Pattern pspFontPattern                = Pattern.compile(".*(/b|/i|/bi|/ib)?"); // <FontName>/<b><i>. Sample : "Serif/bi"
 
-    private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en", "mu");
-
     public static final String KEYS_FOLDER                      = "keys/";
     private static final String JSON_FILENAME_EXTENSION         = ".json";
 
@@ -576,13 +574,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     if ((isPDF && pdfProfileId == null) || (isXML && xmlProfileId == null)) {
                         logAndThrowEx(FORBIDDEN, INVALID_PARAM, "No signProfile for file type provided (" + inputFileType.toString() + " => " + pdfProfileId + "/" + xmlProfileId + ")", null);
                     }
-
-                    if (isPDF) {
-                        String signLanguage = input.getSignLanguage();
-                        if (signLanguage != null && !allowedLanguages.contains(signLanguage)) {
-                            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'SignLanguage' (" + signLanguage + ") must be one of " + String.join(", ", allowedLanguages), null);
-                        }
-                    }
                     break;
             }
             if (!isXML && input.getDisplayXsltPath() != null) {
@@ -997,8 +988,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         if (psfN != null) pdfParams.setPsfN(psfN);
         String psfC = input.getPsfC();
         if (psfC != null) pdfParams.setPsfC(psfC);
-        String signLanguage = input.getSignLanguage();
-        if (signLanguage != null) pdfParams.setSignLanguage(signLanguage);
+        SigningLanguages signLanguage = input.getSignLanguage();
+        if (signLanguage != null) pdfParams.setSignLanguage(signLanguage.name());
         pdfVisibleSignatureService.prepareVisibleSignature(remoteSigParams, input.getPsfNHeight(), input.getPsfNWidth(), clientSigParams);
     }
 

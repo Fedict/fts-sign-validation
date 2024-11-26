@@ -92,9 +92,7 @@ public class SigningControllerInputCheckTest {
         testToken(token, INVALID_PARAM, "'XmlEltId' must be null for Standard");
         input.setXmlEltId(null);
 
-        input.setSignLanguage("ch");
-        testToken(token, INVALID_PARAM, "'SignLanguage' (ch) must be one of fr, de, nl, en");
-        input.setSignLanguage("fr");
+        input.setSignLanguage(SigningLanguages.fr);
 
         input.setDisplayXsltPath("xslt");
         testToken(token, INVALID_PARAM, "DisplayXslt must be null for non-xml files");

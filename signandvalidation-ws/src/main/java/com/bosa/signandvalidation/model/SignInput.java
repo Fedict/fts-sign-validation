@@ -52,8 +52,8 @@ public class SignInput {
             "} " +
             "</PRE></CODE>")
     private String pspFilePath;
-    @Schema(example = "en", description = "The language in which the visible signature text of a PDF will be rendered")
-    private String signLanguage;
+    @Schema(description = "The language in which the visible signature text of a PDF will be rendered")
+    private SigningLanguages signLanguage;
     @Schema(example = "FleetManagerSignature", description = "The name of an existing Acroform of the PDF to sign where the signature must be rendered. If set, overrides 'drawable' field.")
     private String psfN;
     @Schema(example = "1,200,200,300,100", description = "The position where the visible signature signature in a PDF to sign will be placed. Format : 'Page Number,X,Y,Width,Height'. Example : '1,20,20,200,100'. If set, overrides 'drawable' field.")

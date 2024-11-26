@@ -73,8 +73,8 @@ public class GetTokenForDocumentDTO {
     private String psfC;
     @Schema(example = "true", description = "A boolean, if true it means the visible signature of a PDF to sign will include hte picture of the EID")
     private String psfP;
-    @Schema(example = "en, fr, nl, de", description = "The language in which the visible signature text of a PDF will be rendered")
-    private String lang;
+    @Schema(description = "The language in which the visible signature text of a PDF will be rendered")
+    private SigningLanguages lang;
     @Schema(example = "150", description = "If the time between a user clicks on the 'I want to Sign' button and the moment he signs the document is" +
             " greater than the number of seconds defined by “signTimeout” the signature will be rejected.<BR>Default value : 120 Seconds.")
     private Integer signTimeout;
