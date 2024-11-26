@@ -1,0 +1,18 @@
+{
+  "profileId": "XADES_JUSTACT_CITIZEN_TEST",
+  "digestAlgorithm": "SHA384",
+  "referenceDigestAlgorithm": "SHA512",
+  "signatureLevel": "XAdES_BASELINE_LTA",
+  "signaturePackaging": "DETACHED",
+  "signatureForm": "XAdES",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "trustAnchorBPPolicy": false,
+  "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
+  "policyId": "https://Justonweb.be/fr/legal-documents/justact/esign-policy/eSign_policy_JustAct_Nl_v1.pdf",
+  "policyDescription": "Federale Overheidsdienst Justitie",
+  "policyDigestAlgorithm": "SHA256",
+  "policyDigestValue": "YFr9tRDNNaggS2F87gc7rIWy6uH3Aqa1jL7yXbws0wY=",
+  "signingType": "MultiFileDetached",
+  "extraTrustFilename": "JustActTest.crt",
+  "validationPolicyFilename": "testEsealingConstraint.xml"
+}

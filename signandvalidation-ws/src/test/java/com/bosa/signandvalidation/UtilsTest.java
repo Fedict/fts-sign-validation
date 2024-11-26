@@ -24,7 +24,7 @@ public class UtilsTest {
     @Test
     public void testTrust() throws IllegalAccessException, IOException {
 
-        TrustSources trust = getGetExtraTrustFile("SPFJusticeSepia.crt");
+        TrustSources trust = getGetExtraTrustFile("JustActProd.crt");
 
         assertEquals(trust.getCerts().size(), 1);
         assertEquals(trust.getCerts().get(0).length, 1606);

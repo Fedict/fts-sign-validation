@@ -10,7 +10,7 @@
   "policyQualifier": "OID_AS_URN",
   "policyDescription": "To_be_confirmed",
   "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "VQBKWVuaHqA9abY2EFYbXrht3U56QlQQbYpk7ZtBn3E",
+  "policyDigestValue": "VQBKWVuaHqA9abY2EFYbXrht3U56QlQQbYpk7ZtBn3E=",
   "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/edepot/eseal-policy/eDepotNABANSIPTestSignaturePolicyENv1.0.pdf",
   "embedXML": true,
   "returnDigest": false,
