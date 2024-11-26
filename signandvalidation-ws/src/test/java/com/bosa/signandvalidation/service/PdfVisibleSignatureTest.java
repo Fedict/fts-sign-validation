@@ -30,6 +30,7 @@ public class PdfVisibleSignatureTest {
         texts.put("nl", "Getekend door %gn% %sn% (%nn%=%rrn%)\nop %d(d MMM YYYY)%");
         texts.put("fr", "Signé par %gn% %sn% (%nn%=%rrn%)\nau %d(d MMM YYYY)%");
         texts.put("de", "Unterzeichnet von %gn% %sn% (%nn%=%rrn%)\nam %d(d MMM YYYY)%");
+        texts.put("mu", "Signed, Getekend, Signé, Unterzeichnet %gn% %sn% (%nn%=%rrn%)\n%d(d MMM YYYY)%");
 
         Date signingDate = new Date();
         signingDate.setTime(1623318619435L);
@@ -48,6 +49,8 @@ public class PdfVisibleSignatureTest {
         assertEquals("Getekend door Tom Test (73040102749=73040102749)\nop 10 jun 2021", text);
         text = PdfVisibleSignatureService.makeText(texts, "fr", signingDate, signingCert);
         assertEquals("Signé par Tom Test (73040102749=73040102749)\nau 10 juin 2021", text);
+        text = PdfVisibleSignatureService.makeText(texts, "mu", signingDate, signingCert);
+        assertEquals("Signed, Getekend, Signé, Unterzeichnet Tom Test (73040102749=73040102749)\n10 Jun 2021", text);
         text = PdfVisibleSignatureService.makeText(texts, "de", signingDate, signingCert);
         // Ignore minor "locale" differences for date formatting (Ideally we should change the locale in the main code but there is a risk of PRD regression)
         text = text.replaceAll(" Juni ", " Jun ");

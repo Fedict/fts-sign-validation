@@ -149,7 +149,7 @@ public class PdfVisibleSignatureServiceTest {
         if (differentPixelsCount == 0) return;
 
         //System.out.println("File to update : " + imageFile.getPath());
-        //System.out.println(java.util.Base64.getEncoder().encodeToString(actualBytes));
+        System.out.println(java.util.Base64.getEncoder().encodeToString(actualBytes));
 
         // In case of image size or pixel mismatch, save actual image for quicker analysis
         imageFile = new File(imageFile.getParent(), expectedFileName + "_ACTUAL.png");

@@ -146,7 +146,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     private static final Pattern pspColorPattern                = Pattern.compile("(#[0-9a-fA-F]{6}|" + TRANSPARENT + ")");
     private static final Pattern pspFontPattern                = Pattern.compile(".*(/b|/i|/bi|/ib)?"); // <FontName>/<b><i>. Sample : "Serif/bi"
 
-    private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en");
+    private static final List<String> allowedLanguages          =  Arrays.asList("fr", "de", "nl", "en", "mu");
 
     public static final String KEYS_FOLDER                      = "keys/";
     private static final String JSON_FILENAME_EXTENSION         = ".json";
