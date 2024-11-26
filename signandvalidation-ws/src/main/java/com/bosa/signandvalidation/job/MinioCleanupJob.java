@@ -34,9 +34,9 @@ public class MinioCleanupJob implements StorageService.BucketCleaner {
     @PostConstruct
     public void init() {
         if (config == null || !config.matches("\\d+,\\d+,\\d+")) {
-            LOG.warn("No Cleanup. Config : " + config);
+            LOG.error("No Cleanup. Config : " + config);
             config = null;
-            return;
+            System.exit(-1);
         }
 
         String[] bits = config.split(",");
@@ -49,9 +49,9 @@ public class MinioCleanupJob implements StorageService.BucketCleaner {
             LOG.warn("daysToKeepFiles too small :" + daysToKeepFiles);
             daysToKeepFiles = 2;
         }
-        if (daysToKeepTokens < 10) {
+        if (daysToKeepTokens < 5) {
             LOG.warn("daysToKeepTokens too small :" + daysToKeepTokens);
-            daysToKeepTokens = 10;
+            daysToKeepTokens = 5;
         }
         if (hoursBetweenCleanups < 1) {
             LOG.warn("hoursBetweenCleanups too small :" + hoursBetweenCleanups);
