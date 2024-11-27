@@ -8,10 +8,10 @@
   "trustAnchorBPPolicy": false,
   "policyId": "urn:oid:1.3.6.1.4.1.35390.10.8.7.1.0",
   "policyQualifier": "OID_AS_URN",
-  "policyDescription": "To_be_confirmed",
+  "policyDescription": "eDepot Authentic Deeds TEST",
   "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "VQBKWVuaHqA9abY2EFYbXrht3U56QlQQbYpk7ZtBn3E=",
-  "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/edepot/eseal-policy/eDepotNABANSIPTestSignaturePolicyENv1.0.pdf",
+  "policyDigestValue": "7OQ8ZSYe+fjMoofjrFZYCyaLCs7zsxOyWqQa3/anMRU=",
+  "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_Naban_Test_SipENv1.0.pdf",
   "embedXML": true,
   "returnDigest": false,
   "validationPolicyFilename": "testEsealingConstraint.xml"
