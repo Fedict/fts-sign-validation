@@ -36,7 +36,7 @@ public class MinioCleanupJob implements StorageService.BucketCleaner {
         if (config == null || !config.matches("\\d+,\\d+,\\d+")) {
             LOG.error("No Cleanup. Config : " + config);
             config = null;
-            System.exit(-1);
+            return;
         }
 
         String[] bits = config.split(",");
