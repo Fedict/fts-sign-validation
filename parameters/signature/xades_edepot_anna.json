@@ -11,7 +11,7 @@
   "policyDescription": "eDepot Private Deeds",
   "policyDigestAlgorithm": "SHA256",
   "policyDigestValue": "g8ChzwMapI4gjKRRboG9h7QPrf/hbbMDRIBNLW468zw=",
-  "policySpuri": "https://justonweb.be/en/legal-documents/edepot/eseal-policy/en/EdepotNABANSIPSignaturePolicyENv1.0.pdf",
+  "policySpuri": "https://Justonweb.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_ANNA_SipENv1.0.pdf",
   "embedXML": true,
   "returnDigest": false,
   "extraTrustFilename": "eDepotSepia.crt"

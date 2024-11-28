@@ -11,7 +11,7 @@
   "policyDescription": "eDepot Authentic Deeds",
   "policyDigestAlgorithm": "SHA256",
   "policyDigestValue": "bnee/GRkXU//UpD6sEFJfqxplCz/gW2RiuT1DHVMS8I=",
-  "policySpuri": "https://Justonweb.be/en/legal-documents/eDepot/eSeal policy/eDdepotANNASipSignaturePolicyENv1.1.pdf",
+  "policySpuri": "https://Justonweb.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_Naban_SipENv1.0.pdf",
   "embedXML": true,
   "returnDigest": false,
   "extraTrustFilename": "eDepotSepia.crt"
