@@ -292,7 +292,7 @@ public class BosaRemoteDocumentValidationService {
 				if (signature.getId().compareToIgnoreCase(sigID) == 0) return isSignatureBEorNot(signature, hasBelgianRootCert);
 			}
 		}
-		return false;
+		return !hasBelgianRootCert;
 	}
 
 	private static boolean isSignatureBEorNot(eu.europa.esig.dss.simplereport.jaxb.XmlSignature signature, boolean hasBelgianRootCert) {
@@ -307,10 +307,11 @@ public class BosaRemoteDocumentValidationService {
 							if ((hasBelgianRootCert && comp == 0) || (!hasBelgianRootCert && comp != 0)) return true;
 						}
 					}
+					return false;
 				}
 			}
 		}
-		return false;
+		return !hasBelgianRootCert;
 	}
 
 	private static void dumpReport(WSReportsDTO report, String fileName) {
