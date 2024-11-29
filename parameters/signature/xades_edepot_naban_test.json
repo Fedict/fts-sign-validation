@@ -10,7 +10,7 @@
   "policyQualifier": "OID_AS_URN",
   "policyDescription": "eDepot Authentic Deeds TEST",
   "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "7OQ8ZSYe+fjMoofjrFZYCyaLCs7zsxOyWqQa3/anMRU=",
+  "policyDigestValue": "gAKqNNqnxthGsojw8MazIyzn7LbJwZXj/rihF+RNUpY=",
   "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_Naban_Test_SipENv1.1.pdf",
   "embedXML": true,
   "returnDigest": false,

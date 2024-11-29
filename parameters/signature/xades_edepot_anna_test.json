@@ -10,7 +10,7 @@
   "policyQualifier": "OID_AS_URN",
   "policyDescription": "eDepot Private Deeds TEST",
   "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "qd6TIS9MA0QUADDis34j8Tx8bSezIy+R2XXxqXmYh8w=",
+  "policyDigestValue": "/K1lIH+9DdF+lb6Ozz+mBjvf9sMO25yqizPOaEENtOM=",
   "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_ANNA_Test_SipENv1.1.pdf",
   "embedXML": true,
   "returnDigest": false,
