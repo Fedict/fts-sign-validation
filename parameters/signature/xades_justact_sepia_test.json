@@ -10,8 +10,8 @@
   "policyQualifier": "OID_AS_URN",
   "policyDescription": "JustAct Private Deed ANNA Test Sip Signature Policy",
   "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "hTUo/SJcDa2ep3xaHuKgahi1qZDsv5mxajxWgCM3d+k=",
-  "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/justact/eseal-policy/JustAct_Anna_Test_SipENv1.1.pdf",
+  "policyDigestValue": "/K1lIH+9DdF+lb6Ozz+mBjvf9sMO25yqizPOaEENtOM=",
+  "policySpuri": "https://Justonweb.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_ANNA_Test_SipENv1.1.pdf",
   "embedXML": true,
   "returnDigest": false,
   "extraTrustFilename": "JustActTest.crt"
