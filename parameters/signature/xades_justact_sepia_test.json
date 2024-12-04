@@ -8,7 +8,7 @@
   "trustAnchorBPPolicy": false,
   "policyId": "urn:oid:1.3.6.1.4.1.35390.10.15.6.1.1",
   "policyQualifier": "OID_AS_URN",
-  "policyDescription": "JustAct Private Deed ANNA Test Sip Signature Policy",
+  "policyDescription": "JustAct Private Deed (ANNA) Sip Signature Policy TEST",
   "policyDigestAlgorithm": "SHA256",
   "policyDigestValue": "hTUo/SJcDa2ep3xaHuKgahi1qZDsv5mxajxWgCM3d+k=",
   "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/justact/eseal-policy/JustAct_Anna_Test_SipENv1.1.pdf",
