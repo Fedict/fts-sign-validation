@@ -14,5 +14,5 @@
   "policySpuri": "https://Justonweb.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_Naban_SipENv1.0.pdf",
   "embedXML": true,
   "returnDigest": false,
-  "extraTrustFilename": "eDepotSepia.crt"
+  "extraTrustFilename": "eDepotProd.crt"
 }

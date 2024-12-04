@@ -14,5 +14,6 @@
   "policySpuri": "https://justact-acc.just.fgov.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_Naban_Test_SipENv1.1.pdf",
   "embedXML": true,
   "returnDigest": false,
-  "validationPolicyFilename": "testEsealingConstraint.xml"
+  "validationPolicyFilename": "testEsealingConstraint.xml",
+  "extraTrustFilename": "eDepotTest.crt"
 }
