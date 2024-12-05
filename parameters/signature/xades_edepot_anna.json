@@ -10,8 +10,8 @@
   "policyQualifier": "OID_AS_URN",
   "policyDescription": "BOSA eDepot Private Deeds (ANNA) Sip Signature Policy",
   "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "g8ChzwMapI4gjKRRboG9h7QPrf/hbbMDRIBNLW468zw=",
-  "policySpuri": "https://Justonweb.be/en/legal-documents/edepot/eseal-policy/eDepot_Bosa_ANNA_SipENv1.0.pdf",
+  "policyDigestValue": "8v0DuK7OtDT1JFrHk0qB0Q6bRxxAfsok2x5W8Oc7wk4=",
+  "policySpuri": "https://epolicies.just.fgov.be/bosa/eseal-policy/eDepot_Bosa_ANNA_SipENv1.0.pdf",
   "embedXML": true,
   "returnDigest": false,
   "extraTrustFilename": "eDepotProd.crt"
