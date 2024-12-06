@@ -8,9 +8,9 @@
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
-  "policyId": "https://epolicies.just.fgov.be/justact/esign-policy/eSign_policy_JustAct_Fr_v1.pdf",
+  "policyId": "https://epolicies.just.fgov.be/justact/esign-policy/eSignature_policy_justact_fr_v1.1.pdf",
   "policyDescription": "Service Public F\u00e9d\u00e9ral Belge Justice",
-  "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "q9veggHN6uPbKxrapaap4pY/JlEB6spo91AzK8atzyw=",
+  "policyDigestAlgorithm": "SHA512",
+  "policyDigestValue": "0eH6/qwppOLwfLx8B4IJ1IGx/VPce7tkUEdDySTKGF5dml0HoALfPWs2TD16oOJr0V3qSn9mVVv5sTxIQDKdUw==",
   "signingType": "MultiFileDetached"
 }

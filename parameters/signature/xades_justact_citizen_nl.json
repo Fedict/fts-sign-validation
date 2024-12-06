@@ -8,9 +8,9 @@
   "tspServer": "http://tss.eidpki.belgium.be/",
   "trustAnchorBPPolicy": false,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
-  "policyId": "https://epolicies.just.fgov.be/justact/esign-policy/eSign_policy_JustAct_Nl_v1.pdf",
+  "policyId": "https://epolicies.just.fgov.be/justact/esign-policy/eSignature_policy_justact_nl_v1.1.pdf",
   "policyDescription": "Federale Overheidsdienst Justitie",
-  "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "YFr9tRDNNaggS2F87gc7rIWy6uH3Aqa1jL7yXbws0wY=",
+  "policyDigestAlgorithm": "SHA512",
+  "policyDigestValue": "Fw2ieQUPSLPvGRqxlQvOeWcoWJZ5/uTWcGWHAcSyiktT6chDs6zKmaw9pxxftc+MwPO5Fawqp46wywe0lC3crw==",
   "signingType": "MultiFileDetached"
 }
