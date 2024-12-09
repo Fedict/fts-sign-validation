@@ -212,7 +212,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(!(storageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
-            // Password not needed anymore
+            // Password not needed anymore (Avoid MDC logging)
             tokenData.setPwd(null);
 
             TokenObject token = new TokenObject();
@@ -220,6 +220,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             token.setBucket(tokenData.getName());
             token.setOutFilePath(tokenData.getOut());
             String profileId = tokenData.getProf();
+            if (profileId != null && profileId.isEmpty()) profileId = null;
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
             if (signProfile != null) {
                 if (SignatureForm.XAdES.equals(signProfile.getSignatureForm())) token.setXmlSignProfile(profileId);
@@ -281,7 +282,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
-            // Password not needed anymore
+            // Password not needed anymore (Avoid MDC logging)
             gtfd.setPassword(null);
 
             TokenObject token = new TokenObject();
@@ -491,9 +492,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         SigningType signingType = token.getSigningType();
         String pdfProfileId = token.getPdfSignProfile();
         String xmlProfileId = token.getXmlSignProfile();
-        if (pdfProfileId == null && xmlProfileId == null) {
-            logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile and altSignProfile can't both be null." , null);
-        }
 
         Integer tokenTimeout = token.getTokenTimeout();
         if (defaultTokenTimeout == null) defaultTokenTimeout = 300;
@@ -553,7 +551,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     }
 
                     if ((isPDF && pdfProfileId == null) || (isXML && xmlProfileId == null)) {
-                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "No signProfile for file type provided (" + inputFileType.toString() + " => " + pdfProfileId + "/" + xmlProfileId + ")", null);
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "No signProfile for file type provided (" + inputFileType + " => " + pdfProfileId + "/" + xmlProfileId + ")", null);
                     }
                     break;
             }
@@ -563,41 +561,28 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         String prefix = token.getOutPathPrefix();
-        switch(signingType) {
-            case XadesMultiFile:
-                if (pdfProfileId != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, signingType + " must be used only for XML files", null);
-                }
-
-                if (prefix != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for " + signingType, null);
-                }
-
-                checkValue("outXsltPath", token.getOutXsltPath(), true, null, filenamesList);
-                if (token.isSelectDocuments()) {
-                    // Xades Multifile signs all files at the same time so can't have "cherry picked" files without large changes
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Can't individually select documents for " + signingType, null);
-                }
-                break;
-
-            case MultiFileDetached:
-                if (token.getOutXsltPath() != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXsltPath' must be null for " + signingType, null);
-                }
-                if (prefix != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for " + signingType, null);
-                }
-                break;
-
-            default:
-                if (token.getOutXsltPath() != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXsltPath' must be null for " + signingType, null);
-                }
-
-                if (inputs.size() > 1 && !token.isPreviewDocuments()) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "previewDocuments must be 'true' for " + signingType, null);
-                }
-                break;
+        if (signingType == XadesMultiFile) {
+            if (pdfProfileId != null) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "XadesMultiFile must be used only for XML files", null);
+            }
+            checkValue("outXsltPath", token.getOutXsltPath(), true, null, filenamesList);
+        } else {
+            if (token.getOutXsltPath() != null) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXsltPath' must be null for " + signingType, null);
+            }
+        }
+        if (signingType == Standard) {
+            if (inputs.size() > 1 && !token.isPreviewDocuments()) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "previewDocuments must be 'true' for Standard", null);
+            }
+        } else {
+            if (prefix != null) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for " + signingType, null);
+            }
+            if (token.isSelectDocuments()) {
+                // Non 'Standard' signTypes sign all files at the same time so can't have "cherry picked" files without large changes
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Can't individually select documents for " + signingType, null);
+            }
         }
 
         String outPath = token.getOutFilePath();
@@ -875,10 +860,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 if (APPLICATION_PDF.equals(mediaType)) profileId = token.getPdfSignProfile();
             }
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
-            if (profileId == null) {
-                // Double check that profile is not NULL to avoid default being used
-                logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
-            }
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
             checkCertificates(parameters);
 
@@ -1026,10 +1007,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 if (APPLICATION_PDF.equals(mediaType)) profileId = token.getPdfSignProfile();
             }
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
-            if (profileId == null) {
-                // Double check that profile is not NULL to avoid default being used
-                logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
-            }
             setOverrideRevocationStrategy(signProfile);
             RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
             checkCertificates(parameters);
