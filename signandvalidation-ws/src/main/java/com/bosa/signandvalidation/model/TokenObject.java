@@ -5,7 +5,6 @@
  */
 package com.bosa.signandvalidation.model;
 
-import com.bosa.signingconfigurator.model.PolicyParameters;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,7 +32,6 @@ public class TokenObject {
 
     private String pdfSignProfile;
     private String xmlSignProfile;
-    private PolicyParameters policy;
 
     private String path; // Path of all the files in the bucket to Sign
     private List<TokenSignInput> inputs;

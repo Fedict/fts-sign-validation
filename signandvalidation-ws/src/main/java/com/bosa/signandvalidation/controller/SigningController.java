@@ -14,7 +14,6 @@ import com.google.common.cache.CacheBuilder;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 import com.bosa.signingconfigurator.exception.ProfileNotFoundException;
-import com.bosa.signingconfigurator.model.PolicyParameters;
 import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.alert.exception.AlertException;
@@ -239,9 +238,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             inputs.add(input);
             token.setInputs(inputs);
             token.setNoSkipErrors(true);
-            if (tokenData.getPolicyId() != null) {
-                token.setPolicy(new PolicyParameters(tokenData.getPolicyId(), tokenData.getPolicyDescription(), tokenData.getPolicyDigestAlgorithm()));
-            }
             token.setPreviewDocuments(true);
             token.setOutDownload(!tokenData.isNoDownload());
             token.setRequestDocumentReadConfirm(tokenData.isRequestDocumentReadConfirm());
@@ -296,10 +292,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             setProfileInfo(token, gtfd.getAltSignProfile());
             token.setSignTimeout(gtfd.getSignTimeout());
             token.setNnAllowedToSign(gtfd.getNnAllowedToSign());
-            PolicyDTO policy = gtfd.getPolicy();
-            if (policy != null) {
-                token.setPolicy(new PolicyParameters(policy.getId(), policy.getDescription(), policy.getDigestAlgorithm()));
-            }
             token.setOutXsltPath(gtfd.getOutXsltPath());
             token.setOutDownload(gtfd.isOutDownload());
             token.setOutPathPrefix(gtfd.getOutPathPrefix());
@@ -501,17 +493,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         String xmlProfileId = token.getXmlSignProfile();
         if (pdfProfileId == null && xmlProfileId == null) {
             logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "signProfile and altSignProfile can't both be null." , null);
-        }
-
-        PolicyParameters policy = token.getPolicy();
-        if (policy != null) {
-            if (policy.getPolicyId() == null) {
-                logAndThrowEx(FORBIDDEN, EMPTY_PARAM, "policyId is null." , null);
-            }
-            if (policy.getPolicyDigestAlgorithm() == null) {
-                policy.setPolicyDigestAlgorithm(DigestAlgorithm.SHA256);
-            }
-            // TODO more policy checks ?
         }
 
         Integer tokenTimeout = token.getTokenTimeout();
@@ -898,7 +879,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 // Double check that profile is not NULL to avoid default being used
                 logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
             }
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
             checkCertificates(parameters);
 
             ToBeSignedDTO dataToSign;
@@ -1050,7 +1031,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, "Profile is null, aborting !");
             }
             setOverrideRevocationStrategy(signProfile);
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
             checkCertificates(parameters);
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
 
@@ -1394,7 +1375,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = dataToSignDto.getClientSignatureParameters();
             clientSigParams.setSigningDate(new Date());
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(dataToSignDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
 
             setOverrideRevocationStrategy(signProfile);
 
@@ -1476,7 +1457,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(dataToSignDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, dataToSignDto.getClientSignatureParameters(), null);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, dataToSignDto.getClientSignatureParameters());
 
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -1520,7 +1501,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDocumentDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
             setOverrideRevocationStrategy(signProfile);
 
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
@@ -1579,7 +1560,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDocumentDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
             setOverrideRevocationStrategy(signProfile);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
@@ -1763,7 +1744,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             clientSigParams.setSigningDate(signingDate);
 
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(getDataToSignDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
 
             List<DSSReference> references = buildReferences(signingDate, getDataToSignDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
 
@@ -1809,7 +1790,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDto.getSigningProfileId());
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
             setOverrideRevocationStrategy(signProfile);
 
             SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());

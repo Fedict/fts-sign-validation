@@ -82,12 +82,6 @@ public class GetTokenForDocumentDTO {
     private boolean noDownload;
     @Schema(description = "A list of Belgian National numbers that are allowed to sign the document")
     private List<AllowedToSign> allowedToSign;
-    @Schema(example = "http://policy.hom.com/policy", description = "Only for XML documents. If present it will be added to the signature.")
-    private String policyId;
-    @Schema(example = "Belgium signing Policy", description = "Only for XML documents. If present it will be added to the signature.")
-    private String policyDescription;
-    @Schema(example = "SHA512", description = "The digest algorithm used to make the policy digest. Only for XML documents. If present it will be added to the signature.")
-    private DigestAlgorithm policyDigestAlgorithm;
     @Schema(example = "true", description = "If “true”, display a 'I have read this document' checkbox to the sign user interface that must be checked before signing is allowed")
     private boolean requestDocumentReadConfirm;
 }

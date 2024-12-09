@@ -1,20 +1,14 @@
 package com.bosa.signingconfigurator.service;
 
-
 import com.bosa.signingconfigurator.dao.ProfileSignatureParametersDao;
 import com.bosa.signingconfigurator.dao.ProfileTimestampParametersDao;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 import com.bosa.signingconfigurator.exception.ProfileNotFoundException;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.bosa.signingconfigurator.model.PolicyParameters;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileTimestampParameters;
 
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
-import eu.europa.esig.dss.enumerations.ObjectIdentifierQualifier;
-import eu.europa.esig.dss.model.DSSDocument;
-import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.service.http.commons.FileCacheDataLoader;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
@@ -26,11 +20,8 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
 import java.util.List;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 
 @Service
@@ -48,50 +39,14 @@ public class SigningConfiguratorService {
     @Autowired
     FileCacheDataLoader fileCacheDataLoader;
 
-    public RemoteSignatureParameters getSignatureParams(ProfileSignatureParameters signProfile, ClientSignatureParameters clientParams, PolicyParameters policyParameters) throws ProfileNotFoundException, NullParameterException, IOException {
+    public RemoteSignatureParameters getSignatureParams(ProfileSignatureParameters signProfile, ClientSignatureParameters clientParams) throws ProfileNotFoundException, NullParameterException, IOException {
         if (clientParams == null || clientParams.getSigningCertificate() == null || clientParams.getSigningDate() == null) {
             throw new NullParameterException("Parameters should not be null");
         }
 
         if (signProfile == null) signProfile = findDefaultProfileParams();
-
-            // check to add policy (EPES)
-        if (policyParameters != null && policyParameters.isPolicyValid()) {
-            byte[] digestedBytes = calcPolicyDigest(policyParameters.getPolicyId(), policyParameters.getPolicyDigestAlgorithm());
-            // Fill policy entries
-            signProfile.setPolicyId(policyParameters.getPolicyId());
-            signProfile.setPolicySpuri(policyParameters.getPolicyId());
-            if(policyParameters.getPolicyDescription()!=null)
-            {
-                signProfile.setPolicyDescription(policyParameters.getPolicyDescription());
-            }
-            signProfile.setPolicyQualifier(ObjectIdentifierQualifier.OID_AS_URI);
-            signProfile.setPolicyDigestAlgorithm(policyParameters.getPolicyDigestAlgorithm());
-            signProfile.setPolicyDigestValue(digestedBytes);
-        }
         tspSource.setTspServer(signProfile.getTspServer());
         return fillRemoteSignatureParams(clientParams, signProfile);
-    }
-
-    // calculate policy file digest
-    private byte[] calcPolicyDigest(String policyId, DigestAlgorithm policyDigestAlgorithm) throws IOException {
-
-        DSSDocument doc = fileCacheDataLoader.getDocument(policyId);
-        // Java 9
-        // byte[] bytes = doc.openStream().readAllBytes();
-        // Java 8
-        InputStream is = doc.openStream();
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[4096];
-        while ((nRead = is.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
-        }
-        buffer.flush();
-        byte[] bytes = buffer.toByteArray();
-
-        DSSDocument policyContent = new InMemoryDocument(bytes);
-        return DSSUtils.digest(policyDigestAlgorithm, policyContent);
     }
 
     public RemoteSignatureParameters getExtensionParams(ProfileSignatureParameters profile, List<RemoteDocument> detachedContents) throws ProfileNotFoundException {

@@ -1,8 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
-import com.bosa.signingconfigurator.model.PolicyParameters;
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -26,19 +24,6 @@ public class SigningControllerInputCheckTest {
     public void testNoSignProfile() throws Exception {
         TokenObject token = new TokenObject();
         testToken(token, EMPTY_PARAM, "signProfile and altSignProfile can't both be null.");
-    }
-
-    @Test
-    public void testNullPolicyId() throws Exception {
-        TokenObject token = new TokenObject();
-        token.setPdfSignProfile("Profile");
-        PolicyParameters policyParams = new PolicyParameters();
-        token.setPolicy(policyParams);
-        testToken(token, EMPTY_PARAM, "policyId is null");
-
-        policyParams.setPolicyId("ID");
-        testToken(token, EMPTY_PARAM, "'inputs' field is empty");
-        assertEquals(DigestAlgorithm.SHA256, policyParams.getPolicyDigestAlgorithm());
     }
 
     @Test

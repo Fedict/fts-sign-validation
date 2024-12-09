@@ -20,8 +20,6 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class GetTokenForDocumentsDTO {
-    @Schema(description = "Deprecated : This field is ignored and derived from the signProfile OR altSignProfile")
-    private SigningType signType;
     @Schema(example = "0qtp70go8n3gcxosz88z", requiredMode = Schema.RequiredMode.REQUIRED, description = "The name of the bucket where the files (pdf/xml/xlst/psp) are stored, also the username to authenticate on the S3 server")
     private String bucket;
     @Schema(example = "S3cr3t!PAsSv0rd", requiredMode = Schema.RequiredMode.REQUIRED, description = "The password to authenticate on the bucket")
@@ -44,8 +42,6 @@ public class GetTokenForDocumentsDTO {
     private String signProfile;
     @Schema(example = "PADES_LT", description = "In case the input contains both XML and PDF this is the second profile to use")
     private String altSignProfile;
-    @Schema(description = "Deprecated : Please use the 'signProfile based' policies and contact FTS team to request custom profiles")
-    private PolicyDTO policy;
 
     @Schema(description = "The list of input file definitions")
     private List<SignInput> inputs;
