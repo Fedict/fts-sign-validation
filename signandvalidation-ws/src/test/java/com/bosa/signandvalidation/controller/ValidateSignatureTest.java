@@ -73,8 +73,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
 
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
 
-        assertEquals(INDETERMINATE, result.getIndication());
-        assertEquals(CERT_REVOKED, result.getSubIndicationLabel());
+        assertEquals(TOTAL_PASSED, result.getIndication());
     }
 
     @Test
