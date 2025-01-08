@@ -75,8 +75,6 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
 
         assertEquals(TOTAL_PASSED, result.getIndication());
         assertNull(result.getSubIndicationLabel());
-        assertEquals(INDETERMINATE, result.getIndication());
-        assertEquals(CERT_REVOKED, result.getSubIndicationLabel());
     }
 
     @Test

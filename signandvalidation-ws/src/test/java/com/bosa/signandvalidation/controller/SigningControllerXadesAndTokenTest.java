@@ -178,7 +178,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         List<InputToSign> inputsToSign = new ArrayList<InputToSign>() {{ add(new InputToSign(0, null, null, false, "fr", null)); }};
         GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, csp.getSigningCertificate(), csp.getCertificateChain(), null, inputsToSign);
-        DataToSignForTokenDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dto, DataToSignForTokenDTO.class);
+        DataToSignForTokenDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dto, DataToSignForTokenDTO.class);
 
         // Sign hash
         DigestsToSign digest = dataToSign.getDigests().get(0);
@@ -187,7 +187,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         // Sign file & return its content
         inputsToSign.get(0).setSignedData(signatureValue.getValue());
         SignDocumentsForTokenDTO signDocumentDTO = new SignDocumentsForTokenDTO(csp.getSigningCertificate(), csp.getCertificateChain(), token, null, inputsToSign, dataToSign.getSigningDate());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENTS_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENTS_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
 
         assertNull(signedDocument);
     }

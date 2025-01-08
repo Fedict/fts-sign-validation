@@ -25,6 +25,8 @@ public class CheckTrusts {
     @Test
     public void testExistingTrusts() throws IllegalAccessException, IOException {
 
+        char[] PASSWORD_CHARS = "SILLY_PASSWORD".toCharArray();
+
         File trustsFolder = new File("src/main/resources/trusts");
         InputStream fis = null;
         try {
@@ -44,9 +46,9 @@ public class CheckTrusts {
             }
             ByteArrayOutputStream baos = new ByteArrayOutputStream(1000);
 
-            keyStore.store(baos, "SILLY_PASSWORD".toCharArray());
+            keyStore.store(baos, PASSWORD_CHARS);
             InputStream keyStoreStream = new ByteArrayInputStream(baos.toByteArray());
-            KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", "SILLY_PASSWORD");
+            KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", PASSWORD_CHARS);
 
             // If some certs in the folder are the same they will be removed from the keystore
             assertEquals(4, keystoreCrtSrc.getCertificates().size());

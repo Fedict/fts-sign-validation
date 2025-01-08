@@ -133,7 +133,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         // get token from file
         GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
         getTokenDTO.setProf("PADES_B");
-        getTokenDTO.setLang(pspFileName.substring(0, 2));
+        getTokenDTO.setLang(SigningLanguages.valueOf(pspFileName.substring(0, 2)));
         getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setPsfC(DEFAULT_STRING);
         getTokenDTO.setPsfP(photo == null ? "false" : "true");
@@ -143,16 +143,15 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         getTokenDTO.setOut(THE_OUT_FILENAME);
 
         if (expectError) {
-            return this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+            return this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
         }
-        String token = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
+        String token = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
 
         // get data to sign
         List<InputToSign> inputsToSign = new ArrayList<InputToSign>() {{ add(new InputToSign(0, null, null, false, "fr", null)); }};
         GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, csp.getSigningCertificate(), csp.getCertificateChain(), photo, inputsToSign);
-        DataToSignForTokenDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dto, DataToSignForTokenDTO.class);
-        GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dataToSignDTO, DataToSignDTO.class);
+        DataToSignForTokenDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dto, DataToSignForTokenDTO.class);
+
         // sign
         DigestsToSign digest = dataToSign.getDigests().get(0);
         SignatureValue signatureValue = signatureToken.signDigest(new Digest(digest.getDigestAlgorithm(), digest.getDigests().get(0)), dssPrivateKeyEntry);
@@ -183,10 +182,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         // sign document
         inputsToSign.get(0).setSignedData(signatureValue.getValue());
         SignDocumentsForTokenDTO signDocumentDTO = new SignDocumentsForTokenDTO(csp.getSigningCertificate(), csp.getCertificateChain(), token, photo, inputsToSign, dataToSign.getSigningDate());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENTS_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
-        clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENTS_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
         return null;
     }
 }
