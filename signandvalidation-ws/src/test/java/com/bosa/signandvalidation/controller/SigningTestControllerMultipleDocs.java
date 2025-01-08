@@ -50,9 +50,9 @@ public class SigningTestControllerMultipleDocs extends SignAndValidationBaseTest
         ProfileSignatureParametersDao profileSigParamDao = applicationContext.getBean(ProfileSignatureParametersDao.class);
         profileSigParamDao.deleteAll();
         saveProfileSignatureParameters(profileSigParamDao, "XADES_B", ASiCContainerType.ASiC_E, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.DETACHED, null, SHA256, null);
+                SignaturePackaging.DETACHED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_T", ASiCContainerType.ASiC_E, SignatureLevel.XAdES_BASELINE_T,
-                SignaturePackaging.DETACHED, DigestAlgorithm.SHA256, SHA256, null);
+                SignaturePackaging.DETACHED, DigestAlgorithm.SHA256, SHA256);
 
         ProfileTimestampParametersDao timestampParamDao = applicationContext.getBean(ProfileTimestampParametersDao.class);
         timestampParamDao.deleteAll();
@@ -132,15 +132,13 @@ public class SigningTestControllerMultipleDocs extends SignAndValidationBaseTest
                                                        SignatureLevel signatureLevel,
                                                        SignaturePackaging signaturePackaging,
                                                        DigestAlgorithm referenceDigestAlgorithm,
-                                                       DigestAlgorithm digestAlgorithm,
-                                                       MaskGenerationFunction maskGenerationFunction) {
+                                                       DigestAlgorithm digestAlgorithm) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setAsicContainerType(containerType);
         profileParams.setSignatureLevel(signatureLevel.toDSS());
         profileParams.setSignaturePackaging(signaturePackaging);
         profileParams.setDigestAlgorithm(digestAlgorithm);
-        profileParams.setMaskGenerationFunction(maskGenerationFunction);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
         profileParams.setTspServer("http://tsa.belgium.be/connect");
 

@@ -14,11 +14,13 @@ import com.google.common.cache.CacheBuilder;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.exception.NullParameterException;
 import com.bosa.signingconfigurator.exception.ProfileNotFoundException;
+import com.bosa.signingconfigurator.model.PolicyParameters;
 import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.bosa.signandvalidation.config.ErrorStrings;
 import eu.europa.esig.dss.alert.exception.AlertException;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
+import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
 import eu.europa.esig.dss.pades.exception.ProtectedDocumentException;
 import eu.europa.esig.dss.enumerations.SignatureForm;
 import eu.europa.esig.dss.spi.DSSUtils;
@@ -42,6 +44,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -64,7 +67,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
 
-import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.clearOverrideRevocationDataLoadingStrategyFactory;
 import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setOverrideRevocationDataLoadingStrategyFactory;
 import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static com.bosa.signandvalidation.model.SigningType.*;
@@ -80,10 +82,9 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -96,6 +97,8 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.springframework.http.HttpStatus;
 
+import static eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LT;
+import static eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LTA;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
 
@@ -127,7 +130,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_DATA_TO_SIGN_FOR_TOKEN_URL   = "/getDataToSignForToken";
     public static final String GET_METADATA_FOR_TOKEN_URL       = "/getMetadataForToken";
     public static final String GET_FILE_FOR_TOKEN_URL           = "/getFileForToken";
-    public static final String SIGN_DOCUMENT_FOR_TOKEN_URL      = "/signDocumentForToken";
+    public static final String SIGN_DOCUMENT_FOR_TOKEN_URL      = "/signDocumentsForToken";
 
     // standard operations
     public static final String GET_DATA_TO_SIGN_URL             = "/getDataToSign";
@@ -140,12 +143,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String SIGN_DOCUMENT_XADES_MDOC_URL     = "/signDocumentXades";
 
     private static final int SIZE_TOKEN_ID                      = 12;
-    public static final int DEFAULT_SIGN_DURATION_SECS          = 2 * 60;
-    public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
-    private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
-    private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
-    private static final Pattern pspColorPattern                = Pattern.compile("(#[0-9a-fA-F]{6}|" + TRANSPARENT + ")");
-    private static final Pattern pspFontPattern                = Pattern.compile(".*(/b|/i|/bi|/ib)?"); // <FontName>/<b><i>. Sample : "Serif/bi"
+    public static final int DEFAULT_SIGN_DURATION_SECS              = 2 * 60;
+    public static final int MAX_NN_ALLOWED_TO_SIGN                  = 32;
+    private static final Pattern nnPattern                          = Pattern.compile("[0-9]{11}");
+    private static final Pattern eltIdPattern                       = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
+    private static final Pattern pspColorPattern                    = Pattern.compile("(#[0-9a-fA-F]{6}|" + TRANSPARENT + ")");
+    private static final Pattern pspFontPattern                     = Pattern.compile(".*(/b|/i|/bi|/ib)?"); // <FontName>/<b><i>. Sample : "Serif/bi"
 
     public static final String KEYS_FOLDER                      = "keys/";
     private static final String JSON_FILENAME_EXTENSION         = ".json";
@@ -268,7 +271,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Create a 'signing flow token' for 1 to N documents ", description = "Create signing flow, validate it's parameters and create a unique identifier (Token).<BR>" +
             "This token must be provided in the redirection URL to the BOSA DSS front-end server" +
@@ -323,7 +326,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null;
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @NotNull
     private static List<TokenSignInput> getTokenSignInputs(GetTokenForDocumentsDTO gtfd) {
@@ -346,7 +349,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return tokenInputs;
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     // Convoluted logic to identify if we have one or two profiles, for xml files and/or pdf files
     private void setProfileInfo(TokenObject token, String profileId) {
@@ -377,7 +380,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         token.setSigningType(signProfile.getSigningType());
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private void checkTokenAndSetDefaults(TokenObject token) throws Exception {
 
@@ -408,7 +411,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     // In order to keep coherence between token and non-toke operations the validation code is the same
     static PDRectangle checkVisibleSignatureParameters(String psfC, String psfN, PdfSignatureProfile psp, PDDocument pdfDoc) {
@@ -455,7 +458,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null;
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private static void checkPspColor(String color, String name) {
         if (color != null && !pspColorPattern.matcher(color).matches()) {
@@ -463,7 +466,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     static void checkPsfC(PDDocument pdfDoc, String psfC) {
         int fieldNb = 5;
@@ -489,7 +492,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Invalid PDF signature coordinates: '" + psfC + "'", null);
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     void validateTokenValues(TokenObject token) {
 
@@ -504,7 +507,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         Integer signTimeout = token.getSignTimeout();
         if (signTimeout == null) token.setSignTimeout(signTimeout = DEFAULT_SIGN_DURATION_SECS);
         if (signTimeout > tokenTimeout) {
-            logAndThrowEx(FORBIDDEN, SIGN_PERIOD_EXPIRED, "signTimeout (" + signTimeout + ") can't be larger than  Token expiration (" + tokenTimeout + ")" , null);
+            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signTimeout (" + signTimeout + ") can't be larger than  Token expiration (" + tokenTimeout + ")" , null);
         }
 
         List<String> nnsAllowedToSign = token.getNnAllowedToSign();
@@ -605,7 +608,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private static void checkValue(String name, String value, boolean nullable, Pattern patternToMatch, List<String> uniqueList) {
         if (value != null) {
@@ -627,7 +630,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private void createXadesMultifileToBeSigned(TokenObject token) {
         try {
@@ -684,7 +687,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private void putFilesContent(Node node, TokenObject token) {
         while(node != null) {
@@ -706,7 +709,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(hidden = true)
     @GetMapping(value = GET_METADATA_FOR_TOKEN_URL)
@@ -737,14 +740,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private static String getNameFromPath(String filePath) {
         int pos = filePath.lastIndexOf("/");
         return pos == -1 ? filePath : filePath.substring(pos + 1);
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(hidden = true)
     @GetMapping(value = GET_FILE_FOR_TOKEN_URL + "/{token}/{type}/{inputIndexes}")
@@ -834,7 +837,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(hidden = true)
     @PostMapping(value = GET_DATA_TO_SIGN_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -844,65 +847,66 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             checkAndRecordMDCToken(dataToSignForTokenDto.getToken());
             logger.info("Entering getDataToSignForToken()");
 
-            TokenObject token = getTokenFromId(dataToSignForTokenDto.getToken());
-            ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
+            TokenObject token = getTokenFromId(signDto.getToken());
+            SigningType sigType = token.getSigningType();
 
-            // Signer allowed to sign ?
-            checkNNAllowedToSign(token.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
+            Date now = signingTime == null ? new Date() : new Date(signingTime);
 
-            Date signingDate = signingTime == null ? new Date() : new Date(signingTime);
-            clientSigParams.setSigningDate(signingDate);
+            // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
+            checkNNAllowedToSign(token.getNnAllowedToSign(), signDto.getCertSign());
 
-            String filePath = null;
-            MediaType mediaType = null;
-            TokenSignInput inputToSign = null;
-            String profileId = token.getXmlSignProfile();
-            if (Standard.equals(token.getSigningType())) {
-                inputToSign = token.getInputs().get(dataToSignForTokenDto.getFileIdToSign());
-                filePath = inputToSign.getFilePath();
-                mediaType = MediaTypeUtil.getMediaTypeFromFilename(filePath);
-                if (APPLICATION_PDF.equals(mediaType)) profileId = token.getPdfSignProfile();
-            }
-            ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
-            checkCertificates(parameters);
-
-            ToBeSignedDTO dataToSign;
-            switch (token.getSigningType()) {
-                case MultiFileDetached:
-                    dataToSign = signatureServiceMultiple.getDataToSign(getDocumentsToSign(token), parameters);
-                    break;
-
-                case XadesMultiFile:
-                    List<DSSReference> references = buildReferences(signingDate, token, parameters.getReferenceDigestAlgorithm());
+            RemoteDocument fileToSign = null;
+            List<DSSReference> references = null;
+            RemoteSignatureParameters parameters = null;
+            boolean canSignWithExpiredCertificate = true;
+            ProfileSignatureParameters signProfile = null;
+            DataToSignForTokenDTO dataToSign = new DataToSignForTokenDTO(now);
+            ClientSignatureParameters clientSigParams = new ClientSignatureParameters(signDto.getCertSign(), signDto.getCertChain(), now);
+            if (XadesMultiFile.equals(sigType) || MultiFileDetached.equals(sigType)) {
+                signProfile = signingConfigService.findProfileParamsById(token.getXmlSignProfile());
+                canSignWithExpiredCertificate = signProfile.getSignWithExpiredCertificate();
+                parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+                ToBeSignedDTO rawDataToSign = null;
+                if (XadesMultiFile.equals(sigType)) {
+                    references = buildReferences(now, token, parameters.getReferenceDigestAlgorithm());
                     byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true);
                     logger.info("Filesize : " + bytesToSign.length);
-                    RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
-                    dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
-                    break;
-
-                default:
-                    if (APPLICATION_PDF.equals(mediaType)) {
+                    fileToSign = new RemoteDocument(bytesToSign, null);
+                    rawDataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
+                } else {
+                    rawDataToSign = signatureServiceMultiple.getDataToSign(getDocumentsToSign(token), parameters);
+                }
+                addDataToSign(dataToSign, parameters, signProfile, rawDataToSign, 0);
+            } else {
+                long totalSize = 0;
+                List<InputToSign> inputsToSign = signDto.getInputsToSign();
+                int index = inputsToSign.size();
+                while(index != 0) {
+                    InputToSign inputToSign = inputsToSign.get(--index);
+                    TokenSignInput tokenInputToSign = token.getInputs().get(inputToSign.getIndex());
+                    String filePath = tokenInputToSign.getFilePath();
+                    boolean isPDF = APPLICATION_PDF.equals(MediaTypeUtil.getMediaTypeFromFilename(filePath));
+                    String signProfileId = isPDF ? token.getPdfSignProfile() : token.getXmlSignProfile();
+                    signProfile = signingConfigService.findProfileParamsById(signProfileId);
+                    canSignWithExpiredCertificate = canSignWithExpiredCertificate & signProfile.getSignWithExpiredCertificate();
+                    byte [] photo = tokenInputToSign.isPsfP() || inputToSign.isPsfP() ? signDto.getPhoto() : null;
+                    clientSigParams.setPdfSigParams(new VisiblePdfSignatureParameters(inputToSign.getPsfC(), inputToSign.getPsfN(), inputToSign.getLanguage(), photo));
+                    parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+                    if (isPDF) {
                         // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                         // or in "ImageIO.read" where it is NOT used as a path !
-                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                        prepareVisibleSignatureForToken(parameters, tokenInputToSign, token.getBucket(), clientSigParams.getPdfSigParams());
                     }
-
-                    bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
-                    logger.info("Filesize : " + bytesToSign.length);
-                    fileToSign = new RemoteDocument(bytesToSign, null);
-                    dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, null, applicationName);
-                    break;
+                    byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
+                    totalSize += bytesToSign.length;
+                    ToBeSignedDTO rawDataToSign = altSignatureService.altGetDataToSign(new RemoteDocument(bytesToSign, null), parameters, null, applicationName);
+                    addDataToSign(dataToSign, parameters, signProfile, rawDataToSign, inputToSign.getIndex());
+                }
+                logger.info("Filesize Total : " + totalSize);
             }
-
-            DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
-            byte [] bytesToSign = dataToSign.getBytes();
-            if (signProfile.isReturnDigest()) bytesToSign = DSSUtils.digest(digestAlgorithm, bytesToSign);
-            DataToSignDTO ret = new DataToSignDTO(digestAlgorithm, bytesToSign, clientSigParams.getSigningDate());
-
-            logger.info("Returning from getDataToSignForToken()");
-
-            return ret;
+            checkCertificates(canSignWithExpiredCertificate, signDto.getCertSign(), signDto.getCertChain());
+            logger.info("Returning from getDataToSignForToken().");
+            return dataToSign;
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (ProfileNotFoundException e) {
@@ -922,10 +926,19 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
-        return null; // We won't get here
+        return null;
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
+
+    private void addDataToSign(DataToSignForTokenDTO dataToSign, RemoteSignatureParameters parameters, ProfileSignatureParameters signProfile, ToBeSignedDTO rawDataToSign, int index) {
+        DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
+        byte [] bytesToSign = rawDataToSign.getBytes();
+        if (signProfile.isReturnDigest()) bytesToSign = DSSUtils.digest(digestAlgorithm, bytesToSign);
+        dataToSign.addDigest(digestAlgorithm, bytesToSign, index);
+    }
+
+    //*****************************************************************************************
 
     private List<RemoteDocument> getDocumentsToSign(TokenObject token) {
         long totalSize = 0;
@@ -942,24 +955,23 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return toSignDocuments;
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
-    public void prepareVisibleSignatureForToken(RemoteSignatureParameters remoteSigParams, TokenSignInput input, String bucket, ClientSignatureParameters clientSigParams)
+    public void prepareVisibleSignatureForToken(RemoteSignatureParameters remoteSigParams, TokenSignInput input, String bucket, VisiblePdfSignatureParameters pdfParams)
             throws NullParameterException, IOException {
 
-        VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
         PdfSignatureProfile psp = getPspFile(input, bucket);
         pdfParams.setPsp(psp);
         String psfN = input.getPsfN();
         if (psfN != null) pdfParams.setPsfN(psfN);
         String psfC = input.getPsfC();
         if (psfC != null) pdfParams.setPsfC(psfC);
-        SigningLanguages signLanguage = input.getSignLanguage();
-        if (signLanguage != null) pdfParams.setSignLanguage(signLanguage.name());
-        pdfVisibleSignatureService.prepareVisibleSignature(remoteSigParams, input.getPsfNHeight(), input.getPsfNWidth(), clientSigParams);
+        String signLanguage = input.getSignLanguage();
+        if (signLanguage != null) pdfParams.setSignLanguage(signLanguage);
+        pdfVisibleSignatureService.prepareVisibleSignature(remoteSigParams, input.getPsfNHeight(), input.getPsfNWidth(), pdfParams);
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     public PdfSignatureProfile getPspFile(TokenSignInput input, String bucket) {
         PdfSignatureProfile psp = null;
@@ -975,120 +987,116 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return psp;
     }
 
-    /*****************************************************************************************/
-
+    //*****************************************************************************************
     @Operation(hidden = true)
-    @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
+    @PostMapping(value = SIGN_DOCUMENTS_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public ResponseEntity<RemoteDocument> signDocumentsForToken(@RequestBody SignDocumentsForTokenDTO signDto) {
         authorizeCall(features, Features.token);
         try {
             checkAndRecordMDCToken(signDto.getToken());
-            logger.info("Entering signDocumentForToken()");
+            logger.info("Entering signDocumentsForToken()");
 
             TokenObject token = getTokenFromId(signDto.getToken());
-            SigningType sigType = token.getSigningType();
-            ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
 
             // Signing within allowed time ?
             Date now = signingTime == null ? new Date() : new Date(signingTime);
 
-            long expiredBy = now.getTime() - token.getSignTimeout() * 1000L - clientSigParams.getSigningDate().getTime();
+            long expiredBy = now.getTime() - token.getSignTimeout() * 1000L - signDto.getSigningDate().getTime();
             if (expiredBy > 0) {
                 logAndThrowEx(BAD_REQUEST, SIGN_PERIOD_EXPIRED, "Expired by :" + Long.toString(expiredBy / 1000) + " seconds");
             }
 
-            // If a whitelist of allowed national numbers is defined in the token, check if the presented certificate national number is allowed to sign the document
-            checkNNAllowedToSign(token.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
+            SigningType sigType = token.getSigningType();
+            ClientSignatureParameters clientSigParams = new ClientSignatureParameters(signDto.getCertSign(), signDto.getCertChain(), signDto.getSigningDate());
 
-            String filePath = null;
-            MediaType mediaType = null;
-            TokenSignInput inputToSign = null;
-            String profileId = token.getXmlSignProfile();
-            if (Standard.equals(sigType)) {
-                inputToSign = token.getInputs().get(signDto.getFileIdToSign());
-                filePath = inputToSign.getFilePath();
-                mediaType = MediaTypeUtil.getMediaTypeFromFilename(filePath);
-                if (APPLICATION_PDF.equals(mediaType)) profileId = token.getPdfSignProfile();
-            }
-            ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
-            setOverrideRevocationStrategy(signProfile);
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
-            checkCertificates(parameters);
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
-
-            RemoteDocument signedDoc;
-            RemoteDocument fileToSign;
-            List<RemoteDocument> detachedDocuments = null;
+            RemoteDocument signedFile;
+            ProfileSignatureParameters signProfile;
+            StringBuilder filesNames = new StringBuilder(300);
+            List<InputToSign> inputsToSign = signDto.getInputsToSign();
             if (MultiFileDetached.equals(sigType) || XadesMultiFile.equals(sigType)) {
+                List<RemoteDocument> documentsToSign = null;
+                signProfile = signingConfigService.findProfileParamsById(token.getXmlSignProfile());
+                RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+                SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, inputsToSign.get(0).getSignedData());
                 eu.europa.esig.dss.enumerations.SignatureLevel oldSignatureLevel = parameters.getSignatureLevel();
-                if (eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LTA.equals(oldSignatureLevel)) {
-                    parameters.setSignatureLevel(eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LT);
-                }
+                if (XAdES_BASELINE_LTA.equals(oldSignatureLevel)) parameters.setSignatureLevel(XAdES_BASELINE_LT);
+                setOverrideRevocationStrategy(signProfile);
                 if (MultiFileDetached.equals(sigType)) {
-                    signedDoc = signatureServiceMultiple.signDocument(detachedDocuments = getDocumentsToSign(token), parameters, signatureValueDto);
+                    signedFile = signatureServiceMultiple.signDocument(documentsToSign = getDocumentsToSign(token), parameters, signatureValueDto);
                 } else {
-                    List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), token, parameters.getReferenceDigestAlgorithm());
+                    List<DSSReference> references = buildReferences(signDto.getSigningDate(), token, parameters.getReferenceDigestAlgorithm());
                     byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true);
                     logger.info("Filesize : " + bytesToSign.length);
-                    fileToSign = new RemoteDocument(bytesToSign, null);
-                    signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, null);
+                    signedFile = altSignatureService.altSignDocument(new RemoteDocument(bytesToSign, null), parameters, signatureValueDto, references, null);
                 }
-                addCertPathToKeyinfo(signedDoc, clientSigParams);
-                if (eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LTA.equals(oldSignatureLevel)) {
-                    parameters.setSignatureLevel(eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LTA);
-                    parameters.setDetachedContents(detachedDocuments);
-                    signedDoc = signatureServiceMultiple.extendDocument(signedDoc, parameters);
+                addCertPathToKeyinfo(signedFile, signDto.getCertChain());
+                if (XAdES_BASELINE_LTA.equals(oldSignatureLevel)) {
+                    parameters.setSignatureLevel(XAdES_BASELINE_LTA);
+                    parameters.setDetachedContents(documentsToSign);
+                    signedFile = signatureServiceMultiple.extendDocument(signedFile, parameters);
                 }
+                String signedName = getOutFilePath(token, null);
+                signedFile.setName(signedName);
+
+                // Save signed file
+                storageService.storeFile(token.getBucket(), signedName, signedFile.getBytes());
+                validateResult(signedFile, documentsToSign, parameters, token, signedFile.getName(), null, signProfile);
+                filesNames.append(signedName);
             } else {
-                if (APPLICATION_PDF.equals(mediaType)) {
-                    // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
-                    // or in "ImageIO.read" where it is NOT used as a path !
-                    prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                int index = inputsToSign.size();
+                while(index != 0) {
+                    InputToSign inputToSign = inputsToSign.get(--index);
+                    TokenSignInput tokenInputToSign = token.getInputs().get(inputToSign.getIndex());
+                    String filePath = tokenInputToSign.getFilePath();
+                    boolean isPDF = APPLICATION_PDF.equals(MediaTypeUtil.getMediaTypeFromFilename(filePath));
+                    String signProfileId = isPDF ? token.getPdfSignProfile() : token.getXmlSignProfile();
+                    signProfile = signingConfigService.findProfileParamsById(signProfileId);
+                    byte [] photo = tokenInputToSign.isPsfP() || inputToSign.isPsfP() ? signDto.getPhoto() : null;
+                    clientSigParams.setPdfSigParams(new VisiblePdfSignatureParameters(inputToSign.getPsfC(), inputToSign.getPsfN(), inputToSign.getLanguage(), photo));
+                    RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, token.getPolicy());
+                    if (isPDF) {
+                        // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
+                        // or in "ImageIO.read" where it is NOT used as a path !
+                        prepareVisibleSignatureForToken(parameters, tokenInputToSign, token.getBucket(), clientSigParams.getPdfSigParams());
+                    }
+                    byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
+                    RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
+                    SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, inputToSign.getSignedData());
+                    setOverrideRevocationStrategy(signProfile);
+                    signedFile = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, null, applicationName);
+                    String signedName = getOutFilePath(token, tokenInputToSign);
+                    signedFile.setName(signedName);
+
+                    // Save signed file
+                    storageService.storeFile(token.getBucket(), signedName, signedFile.getBytes());
+
+                    // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
+                    // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
+                    List<RemoteDocument> detachedDocuments = clientSigParams.getDetachedContents();
+                    if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
+                    detachedDocuments.add(fileToSign);
+                    validateResult(signedFile, detachedDocuments, parameters, token, signedFile.getName(), null, signProfile);
+                    filesNames.append(signedName);
+                    if (index != 0) filesNames.append(", ");
                 }
-
-                byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
-                logger.info("Filesize : " + bytesToSign.length);
-                fileToSign = new RemoteDocument(bytesToSign, null);
-                signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, null, applicationName);
-
-                // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
-                // as it happens that "ATTACHED" profiles don't bother the detacheddocuments parameters we're adding them at all times
-                detachedDocuments = clientSigParams.getDetachedContents();
-                if (detachedDocuments == null) detachedDocuments = new ArrayList<>();
-                detachedDocuments.add(fileToSign);
             }
-
-            signedDoc.setName(getOutFilePath(token, inputToSign));
-
-            logger.info("signDocumentForToken(): validating the signed doc");
-
-            signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), null, signProfile);
-
-            // Save signed file
-            storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
-
-            // Log bucket and filename only for this method
-            MDC.put("bucket", token.getBucket());
-            MDC.put("fileName", signedDoc.getName());
-            logger.info("Returning from signDocumentForToken().");
+            MDC.put("Signed files", filesNames.toString());
+            logger.info("Returning from signDocumentsForToken().");
         } catch (Exception e) {
             handleRevokedCertificates(e);
             DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } finally {
-            clearOverrideRevocationDataLoadingStrategyFactory();
         }
-
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     // For the Justice dept the signature must contain the Full cert path in the KeyInfo element even for all XADES signatures
     // For LT/LTA signatures, EIDAS states that the certs must be present in "CertificateValues/EncapsulatedX509Certificate" but can
     // also be present in the KeyInfo element. DSS does not put the Root cert in the KeyInfo for LT/LTA
 
-    private void addCertPathToKeyinfo(RemoteDocument signedDoc, ClientSignatureParameters clientSigParams) throws ParserConfigurationException, TransformerException, IOException, SAXException {
+    private void addCertPathToKeyinfo(RemoteDocument signedDoc, List<RemoteCertificate> certChain) throws ParserConfigurationException, TransformerException, IOException, SAXException {
 
         DocumentBuilderFactory dbf = DocumentBuilderFactoryBuilder.getSecureDocumentBuilderFactoryBuilder().build(); // XXE blocked by DSS factory
         dbf.setNamespaceAware(true);
@@ -1108,7 +1116,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         List<String> certsToAdd = new ArrayList<>();
-        for(RemoteCertificate cert : clientSigParams.getCertificateChain()) {
+        for(RemoteCertificate cert : certChain) {
             String certBase64 = Base64.getEncoder().encodeToString(cert.getEncodedCertificate());
             Node x509Cert = x509Data.getFirstChild();
             while(true) {
@@ -1136,7 +1144,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         signedDoc.setBytes(bos.toByteArray());
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     // This mechanism allow dynamic control over the CertificateVerifier for the RevocationDataLoadingStrategyFactory
     // based on the signProfile "revocationStrategy" attribute
@@ -1151,14 +1159,14 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 break;
         }
     }
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private static String getOutFilePath(TokenObject token, TokenSignInput inputToSign) {
         String prefix = token.getOutPathPrefix();
         return (prefix == null) ? token.getOutFilePath() : prefix + inputToSign.getFilePath();
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private RemoteDocument validateResult(RemoteDocument signedDoc, List<RemoteDocument> detachedContents, RemoteSignatureParameters parameters, TokenObject token, String outFilePath, RemoteDocument validatePolicy, ProfileSignatureParameters signProfile) throws IOException {
 
@@ -1208,14 +1216,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return signedDoc;
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private void checkCertificates(RemoteSignatureParameters parameters) {
+        checkCertificates(parameters.isSignWithExpiredCertificate(), parameters.getSigningCertificate(), parameters.getCertificateChain());
+    }
 
+    //*****************************************************************************************
+
+    private void checkCertificates(boolean canSignWithExpiredCertificate, RemoteCertificate signingCert, List<RemoteCertificate> certChain) {
         Date now = new Date();
         // Check if the signing cert is present and not expired
         try {
-            RemoteCertificate signingCert = parameters.getSigningCertificate();
             if (null == signingCert)
                 logAndThrowEx(BAD_REQUEST, NO_SIGN_CERT, "no signing cert present in request");
             byte[] signingCertBytes = signingCert.getEncodedCertificate();
@@ -1227,7 +1239,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("Signing certificate ID : " + new CertificateToken(signingCrt).getDSSIdAsString());
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
-            if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
+            if (!canSignWithExpiredCertificate && now.after(signingCrt.getNotAfter()))
                 logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + logDateTimeFormat.format(signingCrt.getNotAfter()));
         }
         catch (CertificateException e) {
@@ -1235,12 +1247,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
 
         // Check if the cert chain is present (at least 2 certs)
-        List<RemoteCertificate> chain = parameters.getCertificateChain();
-        if (null == chain || chain.size() < 2)
-            logAndThrowEx(BAD_REQUEST, CERT_CHAIN_INCOMPLETE, "cert count: " + chain.size());
+        if (null == certChain || certChain.size() < 2)
+            logAndThrowEx(BAD_REQUEST, CERT_CHAIN_INCOMPLETE, "cert count: " + certChain.size());
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
     // Save token object to storageService and return a tokenId
 
     String saveToken(TokenObject token)  {
@@ -1267,7 +1278,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return tokenId;
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     // Get token from cache or storageService
     private TokenObject getTokenFromId(String tokenId) {
@@ -1290,7 +1301,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return token;
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private void checkNNAllowedToSign(List<String> nnAllowedToSign, RemoteCertificate signingCertificate) {
         if (nnAllowedToSign != null) {
@@ -1302,7 +1313,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         }
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     private List<DSSReference> buildReferences(Date signingTime, TokenObject token, DigestAlgorithm refDigestAlgo) {
         List<String> idsToSign = new ArrayList<>(10);
@@ -1310,7 +1321,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return buildReferences(signingTime, idsToSign, refDigestAlgo);
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
         private List<DSSReference> buildReferences(Date signingTime, List<String> xmlIds, DigestAlgorithm refDigestAlgo) {
 
@@ -1359,7 +1370,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             ClientSignatureParameters clientSigParams = dataToSignDto.getClientSignatureParameters();
             clientSigParams.setSigningDate(new Date());
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(dataToSignDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
 
             setOverrideRevocationStrategy(signProfile);
 
@@ -1368,7 +1379,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
                 // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                 // or in "ImageIO.read" where it is NOT used as a path !
-                prepareVisibleSignature(parameters, toSignDocument, clientSigParams);
+                prepareVisibleSignature(parameters, toSignDocument, clientSigParams.getPdfSigParams());
             }
 
             ToBeSignedDTO dataToSign = altSignatureService.altGetDataToSign(toSignDocument, parameters, null, applicationName);
@@ -1396,16 +1407,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } finally {
-            clearOverrideRevocationDataLoadingStrategyFactory();
         }
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
-    private void prepareVisibleSignature(RemoteSignatureParameters parameters, RemoteDocument pdf, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
-        VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
+    private void prepareVisibleSignature(RemoteSignatureParameters parameters, RemoteDocument pdf, VisiblePdfSignatureParameters pdfParams) throws NullParameterException, IOException {
         if (pdfParams != null) {
             PDRectangle rect = null;
             String psfN = pdfParams.getPsfN();
@@ -1415,11 +1423,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 rect = checkVisibleSignatureParameters(psfC, psfN, pdfParams.getPsp(), pdfDoc);
                 pdfDoc.close();
             }
-            pdfVisibleSignatureService.prepareVisibleSignature(parameters, rect == null ? 0 : rect.getHeight(), rect == null ? 0 : rect.getWidth(), clientSigParams);
+            pdfVisibleSignatureService.prepareVisibleSignature(parameters, rect == null ? 0 : rect.getHeight(), rect == null ? 0 : rect.getWidth(), pdfParams);
         }
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Calculate the digest of a list of files to sign", description = "Calculate the digest of a list of files to sign.<BR>" +
             "This is the first step in a two step process to sign the files")
@@ -1441,7 +1449,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(dataToSignDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, dataToSignDto.getClientSignatureParameters());
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, dataToSignDto.getClientSignatureParameters(), null);
 
             ToBeSignedDTO dataToSign = signatureServiceMultiple.getDataToSign(dataToSignDto.getToSignDocuments(), parameters);
             DigestAlgorithm digestAlgorithm = parameters.getDigestAlgorithm();
@@ -1462,7 +1470,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Create the signed file based on the signed digest", description = "Create the signed file based on the signed digest.<BR>" +
             "This is the second step in a two step process to sign the file")
@@ -1485,16 +1493,16 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDocumentDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
             if (SignatureForm.PAdES.equals(signProfile.getSignatureForm())) {
                 // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                 // or in "ImageIO.read" where it is NOT used as a path !
-                prepareVisibleSignature(parameters, toSignDocument, clientSigParams);
+                prepareVisibleSignature(parameters, toSignDocument, clientSigParams.getPdfSigParams());
             }
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(toSignDocument, parameters, signatureValueDto, null, applicationName);
 
             // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
@@ -1515,13 +1523,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } finally {
-            clearOverrideRevocationDataLoadingStrategyFactory();
         }
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
             "This is the first step in a two step process to sign the file<BR>" +
@@ -1544,10 +1550,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDocumentDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDocumentDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signDocumentDto.getSignatureValue());
             RemoteDocument signedDoc = signatureServiceMultiple.signDocument(signDocumentDto.getToSignDocuments(), parameters, signatureValueDto);
 
             //try (FileOutputStream fos = new FileOutputStream("signed.file.xml")) { fos.write(signedDoc.getBytes()); }
@@ -1564,13 +1570,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } finally {
-            clearOverrideRevocationDataLoadingStrategyFactory();
         }
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Extend the signature of a list of files", description = "Based on an existing signature, raise its signature level by adding the 'long term' attributes (OCSP/CRL evidences) or timestamps")
     @ApiResponses(value = {
@@ -1603,13 +1607,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } finally {
-            clearOverrideRevocationDataLoadingStrategyFactory();
         }
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Extend the signature of a file", description = "Based on a pre-signed file, raise its signature level by adding the 'long term' attributes (OCSP/CRL evidences) or timestamps")
     @ApiResponses(value = {
@@ -1642,13 +1644,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } finally {
-            clearOverrideRevocationDataLoadingStrategyFactory();
         }
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Timestamp a file")
     @ApiResponses(value = {
@@ -1680,7 +1680,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Timestamp a list of files and produce a file in ASIC format")
     @PostMapping(value = TIMESTAMP_DOCUMENT_MULTIPLE_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -1703,7 +1703,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Calculate the digest of a file to sign as Xades Internally detached", description = "Calculate the digest of a file to sign as Xades Internally detached.<BR>" +
             "This is the second step in a two step process to sign the file")
@@ -1728,7 +1728,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             clientSigParams.setSigningDate(signingDate);
 
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(getDataToSignDto.getSigningProfileId());
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
 
             List<DSSReference> references = buildReferences(signingDate, getDataToSignDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
 
@@ -1751,7 +1751,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         return null; // We won't get here
     }
 
-    /*****************************************************************************************/
+    //*****************************************************************************************
 
     @Operation(summary = "Create the signed file as Xades Internally detached based on the signed digest", description = "Create the signed file as Xades Internally detached based on the signed digest.<BR>" +
             "This is the second step in a two step process to sign the file")
@@ -1774,10 +1774,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDto.getSigningProfileId());
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
-            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
+            RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams, null);
             setOverrideRevocationStrategy(signProfile);
 
-            SignatureValueDTO signatureValueDto = new SignatureValueDTO(parameters.getSignatureAlgorithm(), signDto.getSignatureValue());
+            SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, signDto.getSignatureValue());
             List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), signDto.getElementIdsToSign(), parameters.getReferenceDigestAlgorithm());
             RemoteDocument signedDoc = altSignatureService.altSignDocument(signDto.getToSignDocument(), parameters, signatureValueDto, references, null);
 
@@ -1793,13 +1793,17 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         } catch (RuntimeException | IOException e) {
             handleRevokedCertificates(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-        } finally {
-            clearOverrideRevocationDataLoadingStrategyFactory();
         }
         return null; // We won't get here
     }
 
-/*****************************************************************************************/
+    //*****************************************************************************************
+
+    public static SignatureValueDTO getSignatureValueDTO(RemoteSignatureParameters parameters, byte[] signatureValue) {
+        return new SignatureValueDTO(SignatureAlgorithm.getAlgorithm(parameters.getEncryptionAlgorithm(), parameters.getDigestAlgorithm()), signatureValue);
+    }
+
+    //*****************************************************************************************
 
 private static void handleRevokedCertificates(Exception e) {
     if (e instanceof AlertException && e.getMessage().startsWith("Revoked/Suspended certificate")) {
@@ -1807,17 +1811,17 @@ private static void handleRevokedCertificates(Exception e) {
     }
 }
 
-/*****************************************************************************************/
+//*****************************************************************************************
 
 public enum Features {
     validation,token,signbox
 }
 
-/*****************************************************************************************/
+//*****************************************************************************************
 
 public static void authorizeCall(String features, Features feature) {
     if (features != null && !features.contains(feature.name())) throw new InvalidParameterException("Unknown Operation");
 }
 
-/*****************************************************************************************/
+//*****************************************************************************************
 }

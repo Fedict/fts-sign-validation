@@ -2,13 +2,13 @@ package com.bosa.signandvalidation.job;
 
 import com.bosa.signandvalidation.model.FileStoreInfo;
 import com.bosa.signandvalidation.service.StorageService;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 
 import static com.bosa.signandvalidation.controller.SigningController.KEYS_FOLDER;

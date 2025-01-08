@@ -3,6 +3,7 @@ package com.bosa.signandvalidation.service;
 import com.bosa.signandvalidation.controller.SigningController;
 import com.bosa.signandvalidation.controller.SigningControllerBaseTest;
 import com.bosa.signandvalidation.model.*;
+import com.bosa.signandvalidation.model.remotesign.DigestsToSign;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.esig.dss.model.Digest;
@@ -25,6 +26,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
@@ -118,20 +120,20 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
 
         Mockito.when(storageService.getFileAsBytes(anyString(), eq(pspFileName), anyBoolean())).thenReturn(pspFileBytes);
 
-        Pkcs12SignatureToken token = new Pkcs12SignatureToken(
+        Pkcs12SignatureToken signatureToken = new Pkcs12SignatureToken(
                 Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
-        List<DSSPrivateKeyEntry> keys = token.getKeys();
+        List<DSSPrivateKeyEntry> keys = signatureToken.getKeys();
         DSSPrivateKeyEntry dssPrivateKeyEntry = keys.get(0);
 
-        ClientSignatureParameters clientSignatureParameters = getClientSignatureParameters(dssPrivateKeyEntry);
-        clientSignatureParameters.getPdfSigParams().setPhoto(photo);
+        ClientSignatureParameters csp = getClientSignatureParameters(dssPrivateKeyEntry);
+        csp.getPdfSigParams().setPhoto(photo);
 
         // get token from file
         GetTokenForDocumentDTO getTokenDTO = new GetTokenForDocumentDTO();
         getTokenDTO.setProf("PADES_B");
-        getTokenDTO.setLang(SigningLanguages.valueOf(pspFileName.substring(0, 2)));
+        getTokenDTO.setLang(pspFileName.substring(0, 2));
         getTokenDTO.setName(THE_BUCKET);
         getTokenDTO.setPsfC(DEFAULT_STRING);
         getTokenDTO.setPsfP(photo == null ? "false" : "true");
@@ -141,15 +143,19 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         getTokenDTO.setOut(THE_OUT_FILENAME);
 
         if (expectError) {
-            return this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
+            return this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
         }
-        String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
+        String token = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_TOKEN_FOR_DOCUMENT, getTokenDTO, String.class);
 
         // get data to sign
+        List<InputToSign> inputsToSign = new ArrayList<InputToSign>() {{ add(new InputToSign(0, null, null, false, "fr", null)); }};
+        GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, csp.getSigningCertificate(), csp.getCertificateChain(), photo, inputsToSign);
+        DataToSignForTokenDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN, dto, DataToSignForTokenDTO.class);
         GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
         DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dataToSignDTO, DataToSignDTO.class);
         // sign
-        SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
+        DigestsToSign digest = dataToSign.getDigests().get(0);
+        SignatureValue signatureValue = signatureToken.signDigest(new Digest(digest.getDigestAlgorithm(), digest.getDigests().get(0)), dssPrivateKeyEntry);
 
         // This code will be triggered when signDocumentForToken will store it's output file to the file store
         doAnswer(invocation -> {
@@ -175,6 +181,9 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         }).when(storageService).storeFile(eq(THE_BUCKET), eq(THE_OUT_FILENAME), any());
 
         // sign document
+        inputsToSign.get(0).setSignedData(signatureValue.getValue());
+        SignDocumentsForTokenDTO signDocumentDTO = new SignDocumentsForTokenDTO(csp.getSigningCertificate(), csp.getCertificateChain(), token, photo, inputsToSign, dataToSign.getSigningDate());
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT + SigningController.SIGN_DOCUMENTS_FOR_TOKEN, signDocumentDTO, RemoteDocument.class);
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
         RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);

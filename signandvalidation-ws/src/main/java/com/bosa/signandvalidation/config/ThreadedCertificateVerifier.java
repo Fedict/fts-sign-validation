@@ -1,11 +1,15 @@
 package com.bosa.signandvalidation.config;
 
+import eu.europa.esig.dss.spi.validation.CommonCertificateVerifier;
+import eu.europa.esig.dss.spi.validation.RevocationDataLoadingStrategyFactory;
 import eu.europa.esig.dss.spi.x509.CertificateSource;
 import eu.europa.esig.dss.spi.x509.ListCertificateSource;
-import eu.europa.esig.dss.validation.CommonCertificateVerifier;
-import eu.europa.esig.dss.validation.RevocationDataLoadingStrategyFactory;
 
 import java.util.logging.Logger;
+
+import static com.bosa.signandvalidation.config.ErrorStrings.INTERNAL_ERR;
+import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 public class ThreadedCertificateVerifier extends CommonCertificateVerifier {
 
@@ -15,19 +19,20 @@ public class ThreadedCertificateVerifier extends CommonCertificateVerifier {
     private static final ThreadLocal<RevocationDataLoadingStrategyFactory> allThreadsOverrideRevocationDataLoadingStrategyFactory = new ThreadLocal<RevocationDataLoadingStrategyFactory>();
 
     public static void setExtraCertificateSource(CertificateSource extraSource) {
+        // There should never be a certificate source set already
+        if (allThreadsExtraTrustSources.get() != null) logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Certificate Source not cleared");
         allThreadsExtraTrustSources.set(extraSource);
     }
 
     public static void setOverrideRevocationDataLoadingStrategyFactory(RevocationDataLoadingStrategyFactory factory) {
+        // There should never be a revocation set already
+        if (allThreadsOverrideRevocationDataLoadingStrategyFactory.get() != null) logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "RevocationOverride not cleared");
         allThreadsOverrideRevocationDataLoadingStrategyFactory.set(factory);
     }
 
-    public static void clearExtraCertificateSource() {
-        allThreadsExtraTrustSources.remove();
-    }
-
-    public static void clearOverrideRevocationDataLoadingStrategyFactory() {
+    public static void clearInteceptions() {
         allThreadsOverrideRevocationDataLoadingStrategyFactory.remove();
+        allThreadsExtraTrustSources.remove();
     }
 
     public ListCertificateSource getTrustedCertSources() {

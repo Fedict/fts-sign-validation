@@ -51,29 +51,29 @@ public class DoubleTestCheckSignatureLevel extends SignAndValidationBaseTest imp
         ProfileSignatureParametersDao profileSigParamDao = applicationContext.getBean(ProfileSignatureParametersDao.class);
         profileSigParamDao.deleteAll();
         saveProfileSignatureParameters(profileSigParamDao, "XADES_B", null, SignatureLevel.XAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_T", null, SignatureLevel.XAdES_BASELINE_T,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_LT", null, SignatureLevel.XAdES_BASELINE_LT,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "XADES_LTA", null, SignatureLevel.XAdES_BASELINE_LTA,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "CADES_B", ASiCContainerType.ASiC_S, SignatureLevel.CAdES_BASELINE_B,
-                SignaturePackaging.DETACHED, null, SHA256, null);
+                SignaturePackaging.DETACHED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "CADES_T", ASiCContainerType.ASiC_S, SignatureLevel.CAdES_BASELINE_T,
-                SignaturePackaging.DETACHED, null, SHA256, null);
+                SignaturePackaging.DETACHED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "CADES_LT", ASiCContainerType.ASiC_S, SignatureLevel.CAdES_BASELINE_LT,
-                SignaturePackaging.DETACHED, null, SHA256, null);
+                SignaturePackaging.DETACHED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "CADES_LTA", ASiCContainerType.ASiC_S, SignatureLevel.CAdES_BASELINE_LTA,
-                SignaturePackaging.DETACHED, null, SHA256, null);
+                SignaturePackaging.DETACHED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "PADES_B", null, SignatureLevel.PAdES_BASELINE_B,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "PADES_T", null, SignatureLevel.PAdES_BASELINE_T,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "PADES_LT", null, SignatureLevel.PAdES_BASELINE_LT,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256);
         saveProfileSignatureParameters(profileSigParamDao, "PADES_LTA", null, SignatureLevel.PAdES_BASELINE_LTA,
-                SignaturePackaging.ENVELOPED, null, SHA256, null);
+                SignaturePackaging.ENVELOPED, null, SHA256);
 
         ProfileTimestampParametersDao timestampParamDao = applicationContext.getBean(ProfileTimestampParametersDao.class);
         timestampParamDao.deleteAll();
@@ -179,15 +179,13 @@ public class DoubleTestCheckSignatureLevel extends SignAndValidationBaseTest imp
                                                        SignatureLevel signatureLevel,
                                                        SignaturePackaging signaturePackaging,
                                                        DigestAlgorithm referenceDigestAlgorithm,
-                                                       DigestAlgorithm digestAlgorithm,
-                                                       MaskGenerationFunction maskGenerationFunction) {
+                                                       DigestAlgorithm digestAlgorithm) {
         ProfileSignatureParameters profileParams = new ProfileSignatureParameters();
         profileParams.setProfileId(profileId);
         profileParams.setAsicContainerType(containerType);
         profileParams.setSignatureLevel(signatureLevel.toDSS());
         profileParams.setSignaturePackaging(signaturePackaging);
         profileParams.setDigestAlgorithm(digestAlgorithm);
-        profileParams.setMaskGenerationFunction(maskGenerationFunction);
         profileParams.setReferenceDigestAlgorithm(referenceDigestAlgorithm);
         profileParams.setTspServer("http://tsa.belgium.be/connect");
 
