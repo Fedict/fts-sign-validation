@@ -28,6 +28,7 @@ public class SupportUtils {
     }
 
     /*****************************************************************************************/
+
     public static String objectToString(Object input) {
         try {
             return new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValueAsString(input);
@@ -35,4 +36,15 @@ public class SupportUtils {
             return e.toString();
         }
     }
+
+    /*****************************************************************************************/
+
+    public static void longToBytes(long value, byte[] dest, int beginOffset, int endOffset) {
+        while(beginOffset != endOffset) {
+            dest[--endOffset] = (byte)(value & 255);
+            value = value >> 8;
+        }
+    }
+
+    /*****************************************************************************************/
 }
