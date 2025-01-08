@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+import com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationIntrospector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         // JAXB is needed for DSS marshalling, we need to use Jackson annotations also
         // so we use a dual AnnotationIntrospector
-        JaxbAnnotationIntrospector primary = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
+        JakartaXmlBindAnnotationIntrospector primary = new JakartaXmlBindAnnotationIntrospector(TypeFactory.defaultInstance());
         JacksonAnnotationIntrospector secondary = new JacksonAnnotationIntrospector();
         objectMapper.setAnnotationIntrospector(AnnotationIntrospector.pair(primary, secondary));
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);

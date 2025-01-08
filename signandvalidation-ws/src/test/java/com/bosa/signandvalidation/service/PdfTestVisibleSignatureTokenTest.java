@@ -25,6 +25,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;

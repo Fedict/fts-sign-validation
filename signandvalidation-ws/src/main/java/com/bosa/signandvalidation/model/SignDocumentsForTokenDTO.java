@@ -5,21 +5,22 @@
  */
 package com.bosa.signandvalidation.model;
 
-import com.bosa.signingconfigurator.model.ClientSignatureParameters;
+import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- *
- * @author wouter
- */
+import java.util.Date;
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SignDocumentForTokenDTO {
+public class SignDocumentsForTokenDTO {
+    RemoteCertificate certSign;
+    List<RemoteCertificate> certChain;
     private String token;
-    private int fileIdToSign;
-    private ClientSignatureParameters clientSignatureParameters;
-    private byte[] signatureValue;
+    private byte [] photo;
+    private List<InputToSign> inputsToSign;
+    private Date signingDate;
 }

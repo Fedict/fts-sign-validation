@@ -28,4 +28,11 @@ public class VisiblePdfSignatureParameters {
     @Schema(description = "A description of how the visible signature of a PDF to sign must rendered. " +
             "V1 visible signature draws first the text & photo image, then resizes the image to the Acroform box. V2 Draws directly into the Acroform box")
     private PdfSignatureProfile psp;
+
+    public VisiblePdfSignatureParameters(String psfC, String psfN, String signLanguage, byte [] photo) {
+        this.psfC = psfC;
+        this.psfN = psfN;
+        this.photo = photo;
+        this.signLanguage = signLanguage;
+    }
 }

@@ -1,8 +1,8 @@
 package com.bosa.signandvalidation.utils;
 
 import eu.europa.esig.dss.model.x509.CertificateToken;
+import eu.europa.esig.dss.spi.validation.RevocationDataLoadingStrategy;
 import eu.europa.esig.dss.spi.x509.revocation.RevocationToken;
-import eu.europa.esig.dss.validation.RevocationDataLoadingStrategy;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class OCSPOnlyForLeafRevocationDataLoadingStrategy extends RevocationData
                 return ocspToken != null ? ocspToken : crlToken;
             }
         } else {
-            LOG.warn("Signature EID Cert, No CRL fallback !!!! - " + certificateToken.getDSSIdAsString());
+            LOG.warn("Signature EID Cert, No CRL fallback !!!!  :" + certificateToken.getDSSIdAsString());
         }
         return null;
     }
