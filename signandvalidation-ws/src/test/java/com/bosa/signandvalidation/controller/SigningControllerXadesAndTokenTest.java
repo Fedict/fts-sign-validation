@@ -1,7 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
-import com.bosa.signandvalidation.model.remotesign.DigestsToSign;
 import com.bosa.signandvalidation.service.BosaRemoteDocumentValidationService;
 import com.bosa.signandvalidation.service.ReportsService;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
@@ -168,26 +167,23 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
             inputIndex++;
         }
 
-        Pkcs12SignatureToken signatureToken = new Pkcs12SignatureToken(
+        Pkcs12SignatureToken sigToken = new Pkcs12SignatureToken(
                 Files.newInputStream(Paths.get("src/test/resources/citizen_nonrep.p12")),
                 new KeyStore.PasswordProtection("123456".toCharArray())
         );
 
         // Get hash & algo that must be signed
-        ClientSignatureParameters csp = getClientSignatureParameters(signatureToken.getKeys().get(0));
-
-        List<InputToSign> inputsToSign = new ArrayList<InputToSign>() {{ add(new InputToSign(0, null, null, false, "fr", null)); }};
-        GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, csp.getSigningCertificate(), csp.getCertificateChain(), null, inputsToSign);
-        DataToSignForTokenDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dto, DataToSignForTokenDTO.class);
+        ClientSignatureParameters csp = getClientSignatureParameters(sigToken.getKeys().get(0));
+        GetDataToSignForTokenDTO dto = new GetDataToSignForTokenDTO(token, 0, csp);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dto, DataToSignDTO.class);
 
         // Sign hash
-        DigestsToSign digest = dataToSign.getDigests().get(0);
-        SignatureValue signatureValue = signatureToken.signDigest(new Digest(digest.getDigestAlgorithm(), digest.getDigests().get(0)), signatureToken.getKeys().get(0));
+        SignatureValue signatureValue = sigToken.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), sigToken.getKeys().get(0));
 
         // Sign file & return its content
-        inputsToSign.get(0).setSignedData(signatureValue.getValue());
-        SignDocumentsForTokenDTO signDocumentDTO = new SignDocumentsForTokenDTO(csp.getSigningCertificate(), csp.getCertificateChain(), token, null, inputsToSign, dataToSign.getSigningDate());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENTS_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
+        csp.setSigningDate(dataToSign.getSigningDate());
+        SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, 0, csp, signatureValue.getValue());
+        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, sdto, RemoteDocument.class);
 
         assertNull(signedDocument);
     }

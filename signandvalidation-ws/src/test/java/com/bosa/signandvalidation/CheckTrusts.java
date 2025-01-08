@@ -25,7 +25,7 @@ public class CheckTrusts {
     @Test
     public void testExistingTrusts() throws IllegalAccessException, IOException {
 
-        char[] PASSWORD_CHARS = "SILLY_PASSWORD".toCharArray();
+        char [] PASSWORD_CHARS = "SILLY_PASSWORD".toCharArray();
 
         File trustsFolder = new File("src/main/resources/trusts");
         InputStream fis = null;
