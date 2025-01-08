@@ -70,6 +70,7 @@ import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static com.bosa.signandvalidation.model.SigningType.*;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.TRANSPARENT;
+import static com.bosa.signandvalidation.utils.SupportUtils.longToBytes;
 import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
 
 import java.security.cert.CertificateFactory;
@@ -138,6 +139,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_DATA_TO_SIGN_XADES_MDOC_URL  = "/getDataToSignXades";
     public static final String SIGN_DOCUMENT_XADES_MDOC_URL     = "/signDocumentXades";
 
+    private static final int SIZE_TOKEN_ID                      = 12;
     public static final int DEFAULT_SIGN_DURATION_SECS          = 2 * 60;
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
@@ -188,6 +190,8 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Value("${features}")
     private String features;
+
+    private final SecureRandom secureRandom = new SecureRandom();
 
     @GetMapping(value = PING_URL, produces = TEXT_PLAIN_VALUE)
     public String ping() {
@@ -1242,10 +1246,13 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     String saveToken(TokenObject token)  {
         String tokenId = null;
         try {
-            token.setCreateTime(new Date().getTime());
+            long now = new Date().getTime();
+            token.setCreateTime(now);
 
-            byte[] tokenBytes = new byte[12];
-            new SecureRandom().nextBytes(tokenBytes);
+            // Build tokenId with random and current time (for collisions)
+            byte[] tokenBytes = new byte[SIZE_TOKEN_ID];
+            secureRandom.nextBytes(tokenBytes);
+            longToBytes(now, tokenBytes, 0, 4);
             tokenId = Base64.getUrlEncoder().encodeToString(tokenBytes);
 
             // Store token in secret bucket
