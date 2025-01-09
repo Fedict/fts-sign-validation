@@ -96,8 +96,6 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.springframework.http.HttpStatus;
 
-import static eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LT;
-import static eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_LTA;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
 
@@ -877,9 +875,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
                 case XadesMultiFile:
                     List<DSSReference> references = buildReferences(signingDate, token, parameters.getReferenceDigestAlgorithm());
-                    byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true);
-                    logger.info("Filesize : " + bytesToSign.length);
-                    RemoteDocument fileToSign = new RemoteDocument(bytesToSign, null);
+                    RemoteDocument fileToSign = getDocumentToSign(token, token.getOutFilePath());
                     dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, references, applicationName);
                     break;
 
@@ -890,9 +886,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                         prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
                     }
 
-                    bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
-                    logger.info("Filesize : " + bytesToSign.length);
-                    fileToSign = new RemoteDocument(bytesToSign, null);
+                    fileToSign = getDocumentToSign(token, filePath);
                     dataToSign = altSignatureService.altGetDataToSign(fileToSign, parameters, null, applicationName);
                     break;
             }
@@ -930,18 +924,24 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     //****************************************************************************************
 
     private List<RemoteDocument> getDocumentsToSign(TokenObject token) {
-        long totalSize = 0;
         List<RemoteDocument> toSignDocuments = new ArrayList<>(10);
         for(TokenSignInput input : token.getInputs()) {
             String filePath = input.getFilePath();
             String documentURI = input.getDocumentURI();
             if (documentURI == null) documentURI = filePath;
             byte[] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
+            logger.info("File : " + filePath + " - Size : " + bytesToSign.length);
             toSignDocuments.add(new RemoteDocument(bytesToSign, documentURI));
-            totalSize += bytesToSign.length;
         }
-        logger.info(" Filesize (total) : " + totalSize);
         return toSignDocuments;
+    }
+
+    //*****************************************************************************************
+
+    private RemoteDocument getDocumentToSign(TokenObject token, String filePath) {
+        byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
+        logger.info("File : " + filePath + " - Size : " + bytesToSign.length);
+        return new RemoteDocument(bytesToSign, filePath);
     }
 
     //*****************************************************************************************
@@ -1029,9 +1029,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     signedDoc = signatureServiceMultiple.signDocument(detachedDocuments = getDocumentsToSign(token), parameters, signatureValueDto);
                 } else {
                     List<DSSReference> references = buildReferences(clientSigParams.getSigningDate(), token, parameters.getReferenceDigestAlgorithm());
-                    byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), token.getOutFilePath(), true);
-                    logger.info("Filesize : " + bytesToSign.length);
-                    fileToSign = new RemoteDocument(bytesToSign, null);
+                    fileToSign = getDocumentToSign(token, token.getOutFilePath());
                     signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, references, null);
                 }
                 addCertPathToKeyinfo(signedDoc, clientSigParams);
@@ -1047,9 +1045,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
                 }
 
-                byte [] bytesToSign = storageService.getFileAsBytes(token.getBucket(), filePath, true);
-                logger.info("Filesize : " + bytesToSign.length);
-                fileToSign = new RemoteDocument(bytesToSign, null);
+                fileToSign = getDocumentToSign(token, filePath);
                 signedDoc = altSignatureService.altSignDocument(fileToSign, parameters, signatureValueDto, null, applicationName);
 
                 // Adding the source document as detacheddocuments is needed when using a "DETACHED" sign profile,
@@ -1352,7 +1348,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         try {
             checkAndRecordMDCToken(dataToSignDto.getToken());
             RemoteDocument toSignDocument = dataToSignDto.getToSignDocument();
-            logger.info("Entering getDataToSign(FileSize : " + toSignDocument.getBytes().length + ")");
+            logger.info("Entering getDataToSign(File : " + toSignDocument.getName() + " - Size : " + toSignDocument.getBytes().length + ")");
 
             ClientSignatureParameters clientSigParams = dataToSignDto.getClientSignatureParameters();
             clientSigParams.setSigningDate(new Date());
@@ -1477,7 +1473,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         try {
             checkAndRecordMDCToken(signDocumentDto.getToken());
             RemoteDocument toSignDocument = signDocumentDto.getToSignDocument();
-            logger.info("Entering signDocument(FileSize : " + toSignDocument.getBytes().length + ")");
+            logger.info("Entering signDocument(File : " + toSignDocument.getName() + " - Size : " + toSignDocument.getBytes().length + ")");
 
             ClientSignatureParameters clientSigParams = signDocumentDto.getClientSignatureParameters();
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDocumentDto.getSigningProfileId());
