@@ -44,6 +44,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -396,7 +397,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             if (psfN == null && psfC == null) continue;
 
             byte[] file = storageService.getFileAsBytes(token.getBucket(), input.getFilePath(), true);
-            PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(file), (String) null);
+            PDDocument pdfDoc = Loader.loadPDF(file);
             PdfSignatureProfile psp = getPspFile(input, token.getBucket());
             PDRectangle rect = checkVisibleSignatureParameters(psfC, psfN, psp, pdfDoc);
             if (rect != null) {
@@ -414,19 +415,22 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     static PDRectangle checkVisibleSignatureParameters(String psfC, String psfN, PdfSignatureProfile psp, PDDocument pdfDoc) {
         // Check psfN
         if (psfN != null) {
-            try {
-                List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
-                for (PDSignatureField sigField : sigFields) {
-                    String name = sigField.getPartialName();
-                    if (psfN.equals(name)) {
-                        if (sigField.getSignature() != null) {
-                            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature.", null);
-                        }
-                        return sigField.getWidget().getRectangle();
+            List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
+            for (PDSignatureField sigField : sigFields) {
+                String name = sigField.getPartialName();
+                if (psfN.equals(name)) {
+                    if (sigField.getSignature() != null) {
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature.", null);
                     }
+
+
+
+                    // TODO Confirm if get(0) makes any sense
+
+
+
+                    return sigField.getWidgets().get(0).getRectangle();
                 }
-            } catch (IOException e) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Error reading PDF file.", null);
             }
             logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The PDF signature field does exist : " + psfN, null);
         }
@@ -1401,7 +1405,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             String psfN = pdfParams.getPsfN();
             String psfC = pdfParams.getPsfC();
             if (psfN != null || psfC != null) {
-                PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(pdf.getBytes()), (String) null);
+                PDDocument pdfDoc = Loader.loadPDF(pdf.getBytes());
                 rect = checkVisibleSignatureParameters(psfC, psfN, pdfParams.getPsp(), pdfDoc);
                 pdfDoc.close();
             }

@@ -1,12 +1,12 @@
 package com.bosa.signandvalidation.controller;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
-import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,7 +55,7 @@ public class SigningControllerValidationTest {
     @Test
     public void testInvalidPageAndBoundaries() throws Exception {
 
-        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/sample.pdf").toPath()), (String) null);
+        PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/sample.pdf"));
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
             SigningController.checkPsfC(pdfDoc, "20,1,1,2,2");
         });
@@ -74,7 +74,7 @@ public class SigningControllerValidationTest {
 
     @Test
     public void testMissingPsfN() throws Exception {
-        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/sample.pdf").toPath()), (String) null);
+        PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/sample.pdf"));
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
             SigningController.checkVisibleSignatureParameters(null, "Invalid", null, pdfDoc);
         });
@@ -83,7 +83,7 @@ public class SigningControllerValidationTest {
 
     @Test
     public void testPsfNAlreadySigned() throws Exception {
-        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/signed_visible_sigfields.pdf").toPath()), (String) null);
+        PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/signed_visible_sigfields.pdf"));
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
             SigningController.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
         });
@@ -92,7 +92,7 @@ public class SigningControllerValidationTest {
 
     @Test
     public void testValidPsfN() throws Exception {
-        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/visible_sigfields.pdf").toPath()), (String) null);
+        PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/visible_sigfields.pdf"));
         PDRectangle dim = SigningController.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
 
         assertEquals(112, (int)dim.getHeight());
