@@ -1190,14 +1190,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     logger.severe("Can't log report !!!!!!!!");
                 }
             }
-            if (!parameters.isSignWithExpiredCertificate()) {
-                String subIndication = indications.getSubIndicationLabel();
-                if (CERT_REVOKED.compareTo(subIndication) == 0) {
-                    logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
-                }
-                DataLoadersExceptionLogger.logAndThrow();
-                logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
+            String subIndication = indications.getSubIndicationLabel();
+            if (CERT_REVOKED.compareTo(subIndication) == 0) {
+                logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
             }
+            DataLoadersExceptionLogger.logAndThrow();
+            logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
         }
         return signedDoc;
     }
@@ -1221,7 +1219,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logger.info("Signing certificate ID : " + new CertificateToken(signingCrt).getDSSIdAsString());
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
-            if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
+            if (now.after(signingCrt.getNotAfter()))
                 logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + logDateTimeFormat.format(signingCrt.getNotAfter()));
         }
         catch (CertificateException e) {
