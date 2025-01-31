@@ -204,9 +204,9 @@ public class StorageService {
                 sb.setLength(0);
                 toDelete.clear();
                 bucketName = bucket.name();
-                Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
-                for (Result<Item> r : results) {
-                    try {
+                try {
+                    Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
+                    for (Result<Item> r : results) {
                         Item i = r.get();
                         fileName = i.objectName();
                         if (cleaner.shouldDelete(bucketName, fileName, i.isDir(), i.isDir() ? null : LocalDateTime.from(i.lastModified()))) {
@@ -214,9 +214,9 @@ public class StorageService {
                             sb.append(fileName);
                             sb.append(", ");
                         }
-                    } catch (Exception e) {
-                        LOG.error("Cleanup skipping bucket : " + fileName + " because of exception :" + e.getMessage());
                     }
+                } catch (Exception e) {
+                    LOG.error("Cleanup skipping bucket : " + bucketName + " because of exception :" + e.getMessage());
                 }
                 if (!toDelete.isEmpty()) {
                     sb.setLength(sb.length() - 2);
