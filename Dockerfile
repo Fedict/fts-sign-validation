@@ -1,4 +1,4 @@
-FROM tomcat:9.0
+FROM tomcat:10.0
 USER root
 
 RUN  mkdir -p /usr/local/tomcat/conf \
