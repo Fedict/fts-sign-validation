@@ -1,48 +1,64 @@
 package com.bosa.signandvalidation.service;
 
-import com.bosa.signandvalidation.model.TaskOutcomeDTO;
-import org.springframework.web.server.ResponseStatusException;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.time.DateUtils;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 public class TaskService {
 
-    protected final Logger logger = Logger.getLogger(TaskService.class.getName());
+    private final Logger logger = Logger.getLogger(TaskService.class.getName());
 
-    private final ConcurrentMap<UUID, CompletableFuture<Object>> runningTasks = new ConcurrentHashMap<>();
+    private final Map<UUID, TaskInfo> runningTasks = new ConcurrentHashMap<>();
+
+    private Date now;
 
     //*****************************************************************************************
 
-    public UUID addRunningTask(CompletableFuture<Object> future) {
+    public UUID addRunningTask(Future<Object> future) {
 
+        now = new Date();
         UUID taskId = UUID.randomUUID();
-        runningTasks.put(taskId, future);
+        runningTasks.put(taskId, new TaskInfo(future, now));
         manageTaskLifeCycle();
         return taskId;
     }
 
     //*****************************************************************************************
 
-    public TaskOutcomeDTO getTaskOutcome(UUID uuid) {
-        CompletableFuture<Object> task = runningTasks.get(uuid);
-        if (task == null) return null;
-        manageTaskLifeCycle();
-        return new TaskOutcomeDTO(task);
+    public Object getTaskResult(UUID uuid) throws ExecutionException, InterruptedException {
+        now = new Date();
+        TaskInfo ti = runningTasks.get(uuid);
+        if (ti == null) return null;
+        Future<Object> future = ti.getFuture();
+        if (!future.isDone()) {
+            manageTaskLifeCycle();
+            return Boolean.FALSE;
+        }
+        runningTasks.remove(uuid);
+        Object o = future.get();
+        if (o == null) o = Boolean.TRUE;
+        return o;
     }
 
     //*****************************************************************************************
 
     private void manageTaskLifeCycle() {
         try {
-            for(Map.Entry<UUID, CompletableFuture<Object>> task : runningTasks.entrySet()) {
-                // Cancel running tasks over 5 minutes
-                // Remove fully serviced tasks
-                //if (task.getValue().)
+            for(Map.Entry<UUID, TaskInfo> entry : runningTasks.entrySet()) {
+                TaskInfo ti = entry.getValue();
+                // Cancel tasks over 5 minutes
+                if (ti.getDeathDate().before(now)) {
+                    ti.getFuture().cancel(true) ;
+                    runningTasks.remove(entry.getKey());
+                }
             }
         } catch(Exception e) {
             logger.severe("Management : " + e.getMessage());
@@ -51,4 +67,17 @@ public class TaskService {
 
     //*****************************************************************************************
 
+    @Data
+    @NoArgsConstructor
+    private static class TaskInfo {
+        private Future<Object> future;
+        private Date deathDate;
+
+        public TaskInfo(Future<Object> future, Date now) {
+            this.future = future;
+            this.deathDate = DateUtils.addMinutes(now, 5);
+        }
+    }
+
+    //*****************************************************************************************
 }

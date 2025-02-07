@@ -54,8 +54,6 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
@@ -66,6 +64,7 @@ import java.security.InvalidParameterException;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
@@ -132,7 +131,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String SIGN_DOCUMENT_FOR_TOKEN_URL      = "/signDocumentForToken";
 
     // standard operations
-    public static final String GET_TASK_OUTCOME_URL             = "/signDocumentForToken";
+    public static final String GET_TASK_RESULT_URL              = "/getTaskResult";
     public static final String GET_DATA_TO_SIGN_URL             = "/getDataToSign";
     public static final String SIGN_DOCUMENT_URL                = "/signDocument";
     public static final String EXTEND_DOCUMENT_URL              = "/extendDocument";
@@ -995,7 +994,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     //*****************************************************************************************
 
     @Async
-    public CompletableFuture<Object> signDocumentForTokenAsync(SignDocumentForTokenDTO signDto) {
+    public Future<Object> signDocumentForTokenAsync(SignDocumentForTokenDTO signDto) {
         CompletableFuture<Object> task = new CompletableFuture<>();
         try {
             checkAndRecordMDCToken(signDto.getToken());
@@ -1084,13 +1083,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             MDC.put("fileName", signedDoc.getName());
             logger.info("Returning from signDocumentForToken().");
             task.complete(null);
-
         } catch (Exception e) {
             try {
                 handleRevokedCertificates(e);
                 DataLoadersExceptionLogger.logAndThrow(e);
                 logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-            } catch(ResponseStatusException eh) {
+            } catch(Exception eh) {
                 task.completeExceptionally(eh);
             }
         }
@@ -1100,17 +1098,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     //*****************************************************************************************
 
     @Operation(hidden = true)
-    @GetMapping(value = GET_TASK_OUTCOME_URL, produces = APPLICATION_JSON_VALUE)
-    public TaskOutcomeDTO getTaskOutcome(@RequestPart  UUID uuid) {
+    @GetMapping(value = GET_TASK_RESULT_URL, produces = APPLICATION_JSON_VALUE)
+    public Object getTaskResult(@RequestPart UUID uuid) {
         authorizeCall(features, Features.token);
-        TaskOutcomeDTO outcome =  taskService.getTaskOutcome(uuid);
-        if (outcome == null) throw new ResponseStatusException(NOT_FOUND);
-        Exception exception = outcome.getException();
-        if (exception != null) {
+        Object result =  null;
+        try {
+            result =  taskService.getTaskResult(uuid);
+        } catch(Exception exception) {
             if (exception instanceof  ResponseStatusException) throw (ResponseStatusException)exception;
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Task management " + exception.getMessage());
         }
-        return outcome;
+        if (result == null) throw new ResponseStatusException(NOT_FOUND);
+        return result;
     }
 
     //*****************************************************************************************
