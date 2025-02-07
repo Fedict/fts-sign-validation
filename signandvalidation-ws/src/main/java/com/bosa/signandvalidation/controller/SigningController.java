@@ -54,7 +54,10 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -62,6 +65,7 @@ import java.io.*;
 import java.security.InvalidParameterException;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
@@ -94,12 +98,10 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.springframework.http.HttpStatus;
-
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -130,6 +132,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String SIGN_DOCUMENT_FOR_TOKEN_URL      = "/signDocumentForToken";
 
     // standard operations
+    public static final String GET_TASK_OUTCOME_URL             = "/signDocumentForToken";
     public static final String GET_DATA_TO_SIGN_URL             = "/getDataToSign";
     public static final String SIGN_DOCUMENT_URL                = "/signDocument";
     public static final String EXTEND_DOCUMENT_URL              = "/extendDocument";
@@ -174,6 +177,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Autowired
     private StorageService storageService;
+
+    @Autowired
+    private TaskService taskService;
 
     @Autowired
     private Environment environment;
@@ -978,10 +984,19 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     }
 
     //*****************************************************************************************
+
     @Operation(hidden = true)
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
+    public UUID signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
         authorizeCall(features, Features.token);
+        return taskService.addRunningTask(signDocumentForTokenAsync(signDto));
+    }
+
+    //*****************************************************************************************
+
+    @Async
+    public CompletableFuture<Object> signDocumentForTokenAsync(SignDocumentForTokenDTO signDto) {
+        CompletableFuture<Object> task = new CompletableFuture<>();
         try {
             checkAndRecordMDCToken(signDto.getToken());
             logger.info("Entering signDocumentForToken()");
@@ -1068,12 +1083,34 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             MDC.put("bucket", token.getBucket());
             MDC.put("fileName", signedDoc.getName());
             logger.info("Returning from signDocumentForToken().");
+            task.complete(null);
+
         } catch (Exception e) {
-            handleRevokedCertificates(e);
-            DataLoadersExceptionLogger.logAndThrow(e);
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+            try {
+                handleRevokedCertificates(e);
+                DataLoadersExceptionLogger.logAndThrow(e);
+                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+            } catch(ResponseStatusException eh) {
+                task.completeExceptionally(eh);
+            }
         }
-        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+        return task;
+    }
+
+    //*****************************************************************************************
+
+    @Operation(hidden = true)
+    @GetMapping(value = GET_TASK_OUTCOME_URL, produces = APPLICATION_JSON_VALUE)
+    public TaskOutcomeDTO getTaskOutcome(@RequestPart  UUID uuid) {
+        authorizeCall(features, Features.token);
+        TaskOutcomeDTO outcome =  taskService.getTaskOutcome(uuid);
+        if (outcome == null) throw new ResponseStatusException(NOT_FOUND);
+        Exception exception = outcome.getException();
+        if (exception != null) {
+            if (exception instanceof  ResponseStatusException) throw (ResponseStatusException)exception;
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Task management " + exception.getMessage());
+        }
+        return outcome;
     }
 
     //*****************************************************************************************
