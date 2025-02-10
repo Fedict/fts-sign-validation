@@ -3,6 +3,7 @@ package com.bosa.signandvalidation.service;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
+@Service
 public class TaskService {
 
     private final Logger logger = Logger.getLogger(TaskService.class.getName());

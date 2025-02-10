@@ -986,16 +986,25 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Operation(hidden = true)
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public UUID signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
+    public UUID signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) throws InterruptedException {
         authorizeCall(features, Features.token);
-        return taskService.addRunningTask(signDocumentForTokenAsync(signDto));
+        System.out.println("IIIINNN - " + new Date());
+        System.out.println("Thread - " + Thread.currentThread().getName());
+        CompletableFuture<Object> task = signDocumentForTokenAsync(signDto);
+        System.out.println("IIIINNNXXXX - " + new Date());
+        UUID uuid = taskService.addRunningTask(task);
+        System.out.println("OOOOOOUT - " + new Date());
+        return uuid;
     }
 
     //*****************************************************************************************
 
-    @Async
-    public Future<Object> signDocumentForTokenAsync(SignDocumentForTokenDTO signDto) {
+    @Async("asyncExecutor")
+    public CompletableFuture<Object> signDocumentForTokenAsync(SignDocumentForTokenDTO signDto) throws InterruptedException {
         CompletableFuture<Object> task = new CompletableFuture<>();
+        System.out.println("IN - " + new Date());
+        System.out.println("Thread - " + Thread.currentThread().getName());
+        Thread.sleep(3000);
         try {
             checkAndRecordMDCToken(signDto.getToken());
             logger.info("Entering signDocumentForToken()");
@@ -1092,14 +1101,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                 task.completeExceptionally(eh);
             }
         }
+        System.out.println("OUT - " + new Date());
         return task;
     }
 
     //*****************************************************************************************
 
     @Operation(hidden = true)
-    @GetMapping(value = GET_TASK_RESULT_URL, produces = APPLICATION_JSON_VALUE)
-    public Object getTaskResult(@RequestPart UUID uuid) {
+    @GetMapping(value = GET_TASK_RESULT_URL + "/{uuid}", produces = APPLICATION_JSON_VALUE)
+    public Object getTaskResult(@PathVariable UUID uuid) {
         authorizeCall(features, Features.token);
         Object result =  null;
         try {
