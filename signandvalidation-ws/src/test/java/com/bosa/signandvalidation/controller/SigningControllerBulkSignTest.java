@@ -2,6 +2,7 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.StorageService;
+import com.bosa.signandvalidation.service.TokenSignService;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,7 +38,7 @@ public class SigningControllerBulkSignTest {
     private StorageService storageService;
 
     @Autowired
-    private SigningController sc;
+    private TokenSignService srv;
 
     @Test
     public void testGetFileFromToken() throws Exception {
@@ -65,31 +66,31 @@ public class SigningControllerBulkSignTest {
         TokenSignInput input1 = new TokenSignInput();
         input1.setFilePath(IN_FILE1);
         inputs.add(input1);
-        String tokenStr = sc.saveToken(token);
+        String tokenStr = srv.saveToken(token);
 
         // Test security check
         try {
-            sc.getFileForToken(tokenStr, OUT, new Integer[]{ 0 }, null, resp);
+            srv.getFileForToken(tokenStr, OUT, new Integer[]{ 0 }, null, resp);
         } catch (ResponseStatusException e) {
             assertTrue(e.getReason().endsWith("BLOCKED_DOWNLOAD||Forging request attempt !"));
         }
 
         // Test one file output
         token.setOutDownload(true);
-        tokenStr = sc.saveToken(token);
+        tokenStr = srv.saveToken(token);
         Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(THE_PREFIX + IN_FILE0))).thenReturn(new FileStoreInfo(MediaType.APPLICATION_PDF, "H", OUT_FILE_0.length()));
         Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(THE_PREFIX + IN_FILE0))).thenReturn(new ByteArrayInputStream(OUT_FILE_0.getBytes()));
 
         Mockito.when(storageService.getFileInfo(eq(THE_BUCKET),eq(THE_PREFIX + IN_FILE1))).thenReturn(new FileStoreInfo(MediaType.APPLICATION_PDF, "H", OUT_FILE_1.length()));
         Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(THE_PREFIX + IN_FILE1))).thenReturn(new ByteArrayInputStream(OUT_FILE_1.getBytes()));
 
-        sc.getFileForToken(tokenStr, OUT, new Integer[]{ 0 }, null, resp);
+        srv.getFileForToken(tokenStr, OUT, new Integer[]{ 0 }, null, resp);
 
         assertEquals(OUT_FILE_0, new String(out.toByteArray()));
 
         // Test two files output -> zip file
         out.reset();
-        sc.getFileForToken(tokenStr, OUT, new Integer[]{ 0, 1 }, null, resp);
+        srv.getFileForToken(tokenStr, OUT, new Integer[]{ 0, 1 }, null, resp);
         String outStr = new String(out.toByteArray());
         assertEquals("PK", outStr.substring(0, 2));
         assertTrue(outStr.indexOf(THE_PREFIX + IN_FILE0) != -1);
