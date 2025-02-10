@@ -32,18 +32,21 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.*;
 import static com.bosa.signandvalidation.exceptions.Utils.*;
+import static com.bosa.signandvalidation.exceptions.Utils.logger;
 import static com.bosa.signandvalidation.model.SigningType.*;
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.*;
 import static com.bosa.signandvalidation.utils.SupportUtils.longToBytes;
@@ -773,7 +776,10 @@ public class TokenSignService extends SignCommonService {
 
     //*****************************************************************************************
 
-    public ResponseEntity<RemoteDocument> signDocumentForToken(SignDocumentForTokenDTO signDto) {
+    @Async("asyncTasks")
+    public CompletableFuture<Object> signDocumentForToken(SignDocumentForTokenDTO signDto) {
+        System.out.println(Thread.currentThread().getName());
+        CompletableFuture<Object> task = new CompletableFuture<>();
         try {
             checkAndRecordMDCToken(signDto.getToken());
             logger.info("Entering signDocumentForToken()");
@@ -860,12 +866,18 @@ public class TokenSignService extends SignCommonService {
             MDC.put("bucket", token.getBucket());
             MDC.put("fileName", signedDoc.getName());
             logger.info("Returning from signDocumentForToken().");
+            task.complete(null);
         } catch (Exception e) {
-            handleRevokedCertificates(e);
-            DataLoadersExceptionLogger.logAndThrow(e);
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+            try {
+                handleRevokedCertificates(e);
+                DataLoadersExceptionLogger.logAndThrow(e);
+                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+            } catch(Exception eh) {
+                task.completeExceptionally(eh);
+            }
         }
-        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+        System.out.println("OUT - " + new Date());
+        return task;
     }
 
     //*****************************************************************************************

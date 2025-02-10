@@ -2,41 +2,8 @@ package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.service.*;
-import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
-import com.bosa.signandvalidation.utils.MediaTypeUtil;
-import com.bosa.signandvalidation.utils.OCSPOnlyRevocationDataLoadingStrategy;
-import com.bosa.signandvalidation.utils.OCSPOnlyForLeafRevocationDataLoadingStrategy;
-import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
-import com.bosa.signingconfigurator.model.VisiblePdfSignatureParameters;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.bosa.signingconfigurator.model.ClientSignatureParameters;
-import com.bosa.signingconfigurator.exception.NullParameterException;
-import com.bosa.signingconfigurator.exception.ProfileNotFoundException;
-import com.bosa.signingconfigurator.service.SigningConfiguratorService;
 import com.bosa.signandvalidation.config.ErrorStrings;
-import eu.europa.esig.dss.alert.exception.AlertException;
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import eu.europa.esig.dss.enumerations.Indication;
-import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
-import eu.europa.esig.dss.pades.exception.ProtectedDocumentException;
-import eu.europa.esig.dss.enumerations.SignatureForm;
-import eu.europa.esig.dss.spi.DSSUtils;
-import eu.europa.esig.dss.utils.Utils;
-import eu.europa.esig.dss.ws.dto.RemoteCertificate;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import eu.europa.esig.dss.ws.dto.SignatureValueDTO;
-import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
-import eu.europa.esig.dss.ws.signature.common.RemoteMultipleDocumentsSignatureService;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
-import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
-import eu.europa.esig.dss.model.x509.CertificateToken;
-import eu.europa.esig.dss.xades.DSSXMLUtils;
-import eu.europa.esig.dss.xades.reference.CanonicalizationTransform;
-import eu.europa.esig.dss.xades.reference.DSSReference;
-import eu.europa.esig.dss.xades.reference.DSSTransform;
-import eu.europa.esig.dss.xml.common.DocumentBuilderFactoryBuilder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -44,66 +11,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
-import org.apache.xml.security.transforms.Transforms;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.io.*;
 import java.security.InvalidParameterException;
-import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.text.SimpleDateFormat;
 
-import static com.bosa.signandvalidation.config.ThreadedCertificateVerifier.setOverrideRevocationDataLoadingStrategyFactory;
-import static com.bosa.signandvalidation.exceptions.Utils.*;
-import static com.bosa.signandvalidation.model.SigningType.*;
-import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
-import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.TRANSPARENT;
-import static com.bosa.signandvalidation.utils.SupportUtils.longToBytes;
-import static eu.europa.esig.dss.enumerations.Indication.TOTAL_PASSED;
-
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.cert.CertificateException;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-import javax.xml.XMLConstants;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
-import org.springframework.http.HttpStatus;
-
-import static org.springframework.http.HttpStatus.*;
+import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.*;
-
-import org.springframework.http.ResponseEntity;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 
 @Tag(name = "Electronic signature services", description = "See also https://github.com/Fedict/fts-documentation")
@@ -120,6 +39,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String VERSION_URL                      = "/versions";
 
     // Token operations
+    public static final String GET_TASK_RESULT_URL              = "/getTaskResult";
     public static final String GET_TOKEN_FOR_DOCUMENT_URL       = "/getTokenForDocument";
     public static final String GET_TOKEN_FOR_DOCUMENTS_URL      = "/getTokenForDocuments";
     public static final String GET_DATA_TO_SIGN_FOR_TOKEN_URL   = "/getDataToSignForToken";
@@ -142,6 +62,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Autowired
     private TokenSignService tokenSignService;
+
+    @Autowired
+    private TaskService taskService;
 
     @Value("${features}")
     private String features;
@@ -219,9 +142,26 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     @Operation(hidden = true)
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<RemoteDocument> signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
+    public UUID signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
         authorizeCall(features, Features.token);
-        return tokenSignService.signDocumentForToken(signDto);
+        return taskService.addRunningTask(tokenSignService.signDocumentForToken(signDto));
+    }
+
+    //*****************************************************************************************
+
+    @Operation(hidden = true)
+    @GetMapping(value = GET_TASK_RESULT_URL + "/{uuid}", produces = APPLICATION_JSON_VALUE)
+    public Object getTaskResult(@PathVariable UUID uuid) {
+        authorizeCall(features, Features.token);
+        Object result =  null;
+        try {
+            result =  taskService.getTaskResult(uuid);
+        } catch(Exception exception) {
+            if (exception instanceof ResponseStatusException) throw (ResponseStatusException)exception;
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Task management " + exception.getMessage());
+        }
+        if (result == null) throw new ResponseStatusException(NOT_FOUND);
+        return result;
     }
 
     /*****************************************************************************************
