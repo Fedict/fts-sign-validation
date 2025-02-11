@@ -1,5 +1,6 @@
 package com.bosa.signandvalidation.service;
 
+import com.bosa.signandvalidation.config.ThreadDataCleaner;
 import com.bosa.signandvalidation.model.*;
 import com.bosa.signandvalidation.dataloaders.DataLoadersExceptionLogger;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
@@ -46,9 +47,7 @@ import java.text.SimpleDateFormat;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.*;
 import static com.bosa.signandvalidation.exceptions.Utils.*;
-import static com.bosa.signandvalidation.exceptions.Utils.logger;
 import static com.bosa.signandvalidation.model.SigningType.*;
-import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.*;
 import static com.bosa.signandvalidation.utils.SupportUtils.longToBytes;
 
 import java.util.logging.Logger;
@@ -68,12 +67,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.springframework.http.HttpStatus;
-
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
 
-import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -88,8 +84,6 @@ public class TokenSignService extends SignCommonService {
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
     private static final Pattern eltIdPattern                   = Pattern.compile("[a-zA-Z0-9\\-_]{1,30}");
-    private static final Pattern pspColorPattern                = Pattern.compile("(#[0-9a-fA-F]{6}|" + TRANSPARENT + ")");
-    private static final Pattern pspFontPattern                = Pattern.compile(".*(/b|/i|/bi|/ib)?"); // <FontName>/<b><i>. Sample : "Serif/bi"
 
     public static final String KEYS_FOLDER                      = "keys/";
     private static final String JSON_FILENAME_EXTENSION         = ".json";
@@ -875,8 +869,10 @@ public class TokenSignService extends SignCommonService {
             } catch(Exception eh) {
                 task.completeExceptionally(eh);
             }
+        } finally {
+            // We're on a different thread (ASYNC) so clear all thread data
+            ThreadDataCleaner.clearAll();
         }
-        System.out.println("OUT - " + new Date());
         return task;
     }
 
