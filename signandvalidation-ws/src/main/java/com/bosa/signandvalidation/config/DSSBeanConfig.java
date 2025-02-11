@@ -401,8 +401,8 @@ public class DSSBeanConfig {
     public Executor asyncTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(10);
+        executor.setQueueCapacity(100);
         executor.setMaxPoolSize(100);
-        executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("Async");
         executor.initialize();
         return executor;
