@@ -771,9 +771,23 @@ public class TokenSignService extends SignCommonService {
     //*****************************************************************************************
 
     @Async("asyncTasks")
-    public CompletableFuture<Object> signDocumentForToken(SignDocumentForTokenDTO signDto) {
-        System.out.println(Thread.currentThread().getName());
+    public CompletableFuture<Object> signDocumentForTokenAsync(SignDocumentForTokenDTO signDto) {
         CompletableFuture<Object> task = new CompletableFuture<>();
+        try {
+            signDocumentForToken(signDto);
+            task.complete(null);
+        } catch(Exception e){
+            task.completeExceptionally(e);
+        } finally {
+            // We're on a different thread (ASYNC) so clear all thread data
+            ThreadDataCleaner.clearAll();
+        }
+        return task;
+    }
+
+    //*****************************************************************************************
+
+    private void signDocumentForToken(SignDocumentForTokenDTO signDto) {
         try {
             checkAndRecordMDCToken(signDto.getToken());
             logger.info("Entering signDocumentForToken()");
@@ -860,20 +874,11 @@ public class TokenSignService extends SignCommonService {
             MDC.put("bucket", token.getBucket());
             MDC.put("fileName", signedDoc.getName());
             logger.info("Returning from signDocumentForToken().");
-            task.complete(null);
         } catch (Exception e) {
-            try {
-                handleRevokedCertificates(e);
-                DataLoadersExceptionLogger.logAndThrow(e);
-                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-            } catch(Exception eh) {
-                task.completeExceptionally(eh);
-            }
-        } finally {
-            // We're on a different thread (ASYNC) so clear all thread data
-            ThreadDataCleaner.clearAll();
+            handleRevokedCertificates(e);
+            DataLoadersExceptionLogger.logAndThrow(e);
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
-        return task;
     }
 
     //*****************************************************************************************

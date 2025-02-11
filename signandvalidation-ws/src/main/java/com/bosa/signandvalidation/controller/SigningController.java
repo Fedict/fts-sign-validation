@@ -144,7 +144,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public UUID signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
         authorizeCall(features, Features.token);
-        return taskService.addRunningTask(tokenSignService.signDocumentForToken(signDto));
+        return taskService.addRunningTask(tokenSignService.signDocumentForTokenAsync(signDto));
     }
 
     //*****************************************************************************************
@@ -227,6 +227,25 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     //*****************************************************************************************
 
+    @Operation(summary = "Create the signed file based on the signed digest", description = "Create the signed file based on the signed digest.<BR>" +
+            "This is the second step in a two step process to sign the file")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "No error",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = RemoteDocument.class)) }),
+            @ApiResponse(responseCode = "400", description = "Invalid profile | Empty mandatory parameter",
+                    content = { @Content(mediaType = "text/plain") }),
+            @ApiResponse(responseCode = "500", description = "Technical error",
+                    content = { @Content(mediaType = "text/plain") })
+    })
+
+    @PostMapping(value = "/signDocumentASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public UUID signDocumentASync(@RequestBody SignDocumentDTO signDocumentDto) {
+        authorizeCall(features, Features.signbox);
+        return taskService.addRunningTask(signService.signDocumentASync(signDocumentDto));
+    }
+
+    //*****************************************************************************************
+
     @Operation(summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
             "This is the first step in a two step process to sign the file<BR>" +
             "The signed result will be of the ASIC format<BR>")
@@ -243,6 +262,26 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
         authorizeCall(features, Features.signbox);
         return signService.signDocumentMultiple(signDocumentDto);
+    }
+
+    //*****************************************************************************************
+
+    @Operation(summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
+            "This is the first step in a two step process to sign the file<BR>" +
+            "The signed result will be of the ASIC format<BR>")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "No error",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = RemoteDocument.class)) }),
+            @ApiResponse(responseCode = "400", description = "Invalid profile | Empty mandatory parameter",
+                    content = { @Content(mediaType = "text/plain") }),
+            @ApiResponse(responseCode = "500", description = "Technical error",
+                    content = { @Content(mediaType = "text/plain") })
+    })
+
+    @PostMapping(value = "/signDocumentMultipleASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public UUID signDocumentMultipleAsync(@RequestBody SignDocumentMultipleDTO signDocDto) {
+        authorizeCall(features, Features.signbox);
+        return taskService.addRunningTask(signService.signDocumentMultipleASync(signDocDto));
     }
 
     //*****************************************************************************************
@@ -265,6 +304,26 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     //*****************************************************************************************
 
+    @Operation(summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
+            "This is the first step in a two step process to sign the file<BR>" +
+            "The signed result will be of the ASIC format<BR>")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "No error",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = RemoteDocument.class)) }),
+            @ApiResponse(responseCode = "400", description = "Invalid profile | Empty mandatory parameter",
+                    content = { @Content(mediaType = "text/plain") }),
+            @ApiResponse(responseCode = "500", description = "Technical error",
+                    content = { @Content(mediaType = "text/plain") })
+    })
+
+    @PostMapping(value = "/extendDocumentASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public UUID extendDocumentAsync(@RequestBody ExtendDocumentDTO extDocDto) {
+        authorizeCall(features, Features.signbox);
+        return taskService.addRunningTask(signService.extendDocumentASync(extDocDto));
+    }
+
+    //*****************************************************************************************
+
     @Operation(summary = "Extend the signature of a list of files", description = "Based on an existing signature, raise its signature level by adding the 'long term' attributes (OCSP/CRL evidences) or timestamps")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "No error",
@@ -279,6 +338,26 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO extendDocumentDto) {
         authorizeCall(features, Features.signbox);
         return signService.extendDocumentMultiple(extendDocumentDto);
+    }
+
+    //*****************************************************************************************
+
+    @Operation(summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
+            "This is the first step in a two step process to sign the file<BR>" +
+            "The signed result will be of the ASIC format<BR>")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "No error",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = RemoteDocument.class)) }),
+            @ApiResponse(responseCode = "400", description = "Invalid profile | Empty mandatory parameter",
+                    content = { @Content(mediaType = "text/plain") }),
+            @ApiResponse(responseCode = "500", description = "Technical error",
+                    content = { @Content(mediaType = "text/plain") })
+    })
+
+    @PostMapping(value = "/extendDocumentMultipleASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public UUID extendDocumentMultipleASync(@RequestBody ExtendDocumentDTO extendDocumentDto) {
+        authorizeCall(features, Features.signbox);
+        return taskService.addRunningTask(signService.extendDocumentMultipleASync(extendDocumentDto));
     }
 
     //*****************************************************************************************
@@ -322,9 +401,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = GET_DATA_TO_SIGN_XADES_MDOC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public DataToSignDTO getDataToSign(@RequestBody GetDataToSignXMLElementsDTO getDataToSignDto) {
+    public DataToSignDTO getDataToSignXades(@RequestBody GetDataToSignXMLElementsDTO getDataToSignDto) {
         authorizeCall(features, Features.signbox);
-        return signService.getDataToSign(getDataToSignDto);
+        return signService.getDataToSignXades(getDataToSignDto);
     }
 
     //*****************************************************************************************
@@ -341,9 +420,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = SIGN_DOCUMENT_XADES_MDOC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument signDocument(@RequestBody SignXMLElementsDTO signDto) {
+    public RemoteDocument signDocumentXades(@RequestBody SignXMLElementsDTO signDto) {
         authorizeCall(features, Features.signbox);
-        return signService.signDocument(signDto);
+        return signService.signDocumentXades(signDto);
     }
 
     //*****************************************************************************************

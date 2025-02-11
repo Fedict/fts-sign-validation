@@ -400,8 +400,8 @@ public class DSSBeanConfig {
     @Bean(name = "asyncTasks")
     public Executor asyncTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(2);
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(100);
         executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("Async");
         executor.initialize();
