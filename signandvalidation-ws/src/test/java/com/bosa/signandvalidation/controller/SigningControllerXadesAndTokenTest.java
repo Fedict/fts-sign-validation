@@ -183,9 +183,9 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         // Sign file & return its content
         csp.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, 0, csp, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, sdto, RemoteDocument.class);
 
-        assertNull(signedDocument);
+        Boolean documentIsSigned = signSocumentAndWaitForResult(sdto, Boolean.class);
+        assertTrue(documentIsSigned);
     }
 
     private static String lastOccurenceOf(String name, char c) {

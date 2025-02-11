@@ -178,7 +178,8 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
+
+        signSocumentAndWaitForResult(signDocumentDTO, Boolean.class);
         return null;
     }
 }

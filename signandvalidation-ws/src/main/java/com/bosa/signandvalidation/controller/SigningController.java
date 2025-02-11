@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.security.InvalidParameterException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -156,8 +157,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
         Object result =  null;
         try {
             result =  taskService.getTaskResult(uuid);
+        } catch(ExecutionException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof ResponseStatusException) throw (ResponseStatusException)cause;
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Task execution " + cause.getMessage());
         } catch(Exception exception) {
-            if (exception instanceof ResponseStatusException) throw (ResponseStatusException)exception;
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Task management " + exception.getMessage());
         }
         if (result == null) throw new ResponseStatusException(NOT_FOUND);

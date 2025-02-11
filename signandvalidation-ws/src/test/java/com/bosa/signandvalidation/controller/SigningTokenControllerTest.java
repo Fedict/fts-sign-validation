@@ -8,7 +8,6 @@ import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.utils.Utils;
-import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -21,10 +20,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -77,7 +73,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
 
         // sign document
-        Map result = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, Map.class);
+        Map result = signSocumentAndWaitForResult(signDocumentDTO, Map.class);
         assertNotNull(result);
 
         assertEquals(BAD_REQUEST.value(), result.get("status"));
@@ -146,8 +142,8 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
-        assertNull(signedDocument);
+        Boolean documentIsSigned = signSocumentAndWaitForResult(signDocumentDTO, Boolean.class);
+        assertTrue(documentIsSigned);
     }
 
     @Test
@@ -181,8 +177,8 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
-        assertNull(signedDocument);
+        Boolean documentIsSigned = signSocumentAndWaitForResult(signDocumentDTO, Boolean.class);
+        assertTrue(documentIsSigned);
     }
 
     private static String OUT_FILENAME = "out";
@@ -219,8 +215,9 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        RemoteDocument noAnswer = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, RemoteDocument.class);
-        assertNull(noAnswer);
+
+        Object result = signSocumentAndWaitForResult(signDocumentDTO, Object.class);
+        assertNotNull(result);
 
         ArgumentCaptor<byte[]> fileBytesCaptor = ArgumentCaptor.forClass(byte[].class);
         verify(storageService).storeFile(Mockito.eq(THE_BUCKET), Mockito.eq(OUT_FILENAME), fileBytesCaptor.capture());
