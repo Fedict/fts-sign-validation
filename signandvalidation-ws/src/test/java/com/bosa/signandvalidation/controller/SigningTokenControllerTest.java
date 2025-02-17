@@ -142,8 +142,8 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        Boolean documentIsSigned = signSocumentAndWaitForResult(signDocumentDTO, Boolean.class);
-        assertTrue(documentIsSigned);
+        Map documentIsSigned = signSocumentAndWaitForResult(signDocumentDTO, Map.class);
+        assertTrue((Boolean)documentIsSigned.get("done"));
     }
 
     @Test
@@ -177,8 +177,8 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
-        Boolean documentIsSigned = signSocumentAndWaitForResult(signDocumentDTO, Boolean.class);
-        assertTrue(documentIsSigned);
+        Map documentIsSigned = signSocumentAndWaitForResult(signDocumentDTO, Map.class);
+        assertTrue((Boolean)documentIsSigned.get("done"));
     }
 
     private static String OUT_FILENAME = "out";

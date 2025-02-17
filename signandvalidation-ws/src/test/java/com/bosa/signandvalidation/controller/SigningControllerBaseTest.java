@@ -1,5 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
+import com.bosa.signandvalidation.model.ASyncTaskDTO;
 import com.bosa.signandvalidation.model.SignDocumentForTokenDTO;
 import com.bosa.signandvalidation.model.SigningType;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
@@ -19,7 +20,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 import static eu.europa.esig.dss.enumerations.DigestAlgorithm.*;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
@@ -113,17 +114,21 @@ public class SigningControllerBaseTest extends SignAndValidationBaseTest impleme
     }
 
     protected <T> T signSocumentAndWaitForResult(SignDocumentForTokenDTO signDocumentDTO, Class<T> returnClass) {
-        UUID uuid = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, UUID.class);
-        assertNotNull(uuid);
+        ASyncTaskDTO taskInfo = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, ASyncTaskDTO.class);
+        assertNotNull(taskInfo);
 
         Object result = null;
         int count = 100;
         do {
-            result = this.restTemplate.getForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TASK_RESULT_URL + "/" + uuid, Object.class);
+            result = this.restTemplate.getForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TASK_RESULT_URL + "/" + taskInfo.getUuid(), Object.class);
+            if (result instanceof Map) {
+                Object isDone = ((Map)result).get("done");
+                if (isDone == null || (Boolean)isDone) break;
+            }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {}
-        } while (Boolean.FALSE.equals(result) && --count != 0);
+        } while (--count != 0);
 
         return result == null ? null : (T)result;
     }

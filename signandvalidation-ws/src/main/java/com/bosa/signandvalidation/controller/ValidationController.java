@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -81,9 +80,9 @@ public class ValidationController extends ControllerBase {
     })
 
     @PostMapping(value = "/validateSignatureASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ASyncTaskDTO validateSignatureASync(@RequestBody DataToValidateDTO toValidate) throws IOException {
+    public ASyncTaskDTO validateSignatureASync(@RequestBody DataToValidateDTO validateDto) throws IOException {
         authorizeCall(features, SigningController.Features.validation);
-        return taskService.addRunningTask(validationService.validateSignatureASync(toValidate));
+        return taskService.addRunningTask(validationService.validateSignatureASync(validateDto), validateDto.getToken());
     }
 
     @Operation(summary = "Validate a single document's signatures returning all validation reports", description = "Validate a signed file.<BR>" +
