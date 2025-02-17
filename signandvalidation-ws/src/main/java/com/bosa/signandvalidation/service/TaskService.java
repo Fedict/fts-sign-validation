@@ -1,5 +1,7 @@
 package com.bosa.signandvalidation.service;
 
+import com.bosa.signandvalidation.model.ASyncTaskDTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
@@ -13,6 +15,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
+import static java.lang.Boolean.TRUE;
+
 @Service
 public class TaskService {
 
@@ -24,29 +28,33 @@ public class TaskService {
 
     //*****************************************************************************************
 
-    public UUID addRunningTask(Future<Object> future) {
+    public ASyncTaskDTO addRunningTask(Future<Object> future) {
 
         now = new Date();
         UUID taskId = UUID.randomUUID();
         runningTasks.put(taskId, new TaskInfo(future, now));
         manageTaskLifeCycle();
-        return taskId;
+        return new ASyncTaskDTO(taskId);
     }
 
     //*****************************************************************************************
+
+    @AllArgsConstructor
+    private static class Done {
+        private Boolean done;
+    }
 
     public Object getTaskResult(UUID uuid) throws ExecutionException, InterruptedException {
         now = new Date();
         TaskInfo ti = runningTasks.get(uuid);
         if (ti == null) return null;
         Future<Object> future = ti.getFuture();
-        if (!future.isDone()) {
-            manageTaskLifeCycle();
-            return Boolean.FALSE;
-        }
-        runningTasks.remove(uuid);
-        Object o = future.get();
-        if (o == null) o = Boolean.TRUE;
+        Object o = new Done(false);
+        if (future.isDone()) {
+            runningTasks.remove(uuid);
+            o = future.get();
+            if (o == null) o = new Done(true);
+        } else manageTaskLifeCycle();
         return o;
     }
 
