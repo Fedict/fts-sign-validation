@@ -235,7 +235,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             "This is the second step in a two step process to sign the file")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "No error",
-                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = RemoteDocument.class)) }),
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ASyncTaskDTO.class)) }),
             @ApiResponse(responseCode = "400", description = "Invalid profile | Empty mandatory parameter",
                     content = { @Content(mediaType = "text/plain") }),
             @ApiResponse(responseCode = "500", description = "Technical error",
@@ -275,7 +275,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             "The signed result will be of the ASIC format<BR>")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "No error",
-                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = RemoteDocument.class)) }),
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ASyncTaskDTO.class)) }),
             @ApiResponse(responseCode = "400", description = "Invalid profile | Empty mandatory parameter",
                     content = { @Content(mediaType = "text/plain") }),
             @ApiResponse(responseCode = "500", description = "Technical error",
@@ -313,7 +313,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             "The signed result will be of the ASIC format<BR>")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "No error",
-                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = RemoteDocument.class)) }),
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ASyncTaskDTO.class)) }),
             @ApiResponse(responseCode = "400", description = "Invalid profile | Empty mandatory parameter",
                     content = { @Content(mediaType = "text/plain") }),
             @ApiResponse(responseCode = "500", description = "Technical error",
@@ -351,7 +351,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             "The signed result will be of the ASIC format<BR>")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "No error",
-                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = RemoteDocument.class)) }),
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ASyncTaskDTO.class)) }),
             @ApiResponse(responseCode = "400", description = "Invalid profile | Empty mandatory parameter",
                     content = { @Content(mediaType = "text/plain") }),
             @ApiResponse(responseCode = "500", description = "Technical error",

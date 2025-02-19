@@ -72,7 +72,7 @@ public class ValidationController extends ControllerBase {
             " can be provided to extend the trusted list of root certificates.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Validation occurred without error. Check the validation results",
-                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = SignatureIndicationsDTO.class)) }),
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ASyncTaskDTO.class)) }),
             @ApiResponse(responseCode = "400", description = "One of the signatures does not match the expected signature level / Error trying to decode the 'trust' certificates or keystore files",
                     content = { @Content(mediaType = "text/plain") }),
             @ApiResponse(responseCode = "500", description = "Technical error",
