@@ -153,7 +153,6 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @Operation(hidden = true)
     @GetMapping(value = GET_TASK_RESULT_URL + "/{uuid}", produces = APPLICATION_JSON_VALUE)
     public Object getTaskResult(@PathVariable UUID uuid) {
-        authorizeCall(features, Features.token);
         Object result =  null;
         try {
             result =  taskService.getTaskResult(uuid);
