@@ -1,5 +1,5 @@
 {
-  "profileId": "XADES_JUSTACT_CITIZEN_TEST",
+  "profileId": "XADES_JUSTACT_CITIZEN_DE_TEST",
   "digestAlgorithm": "SHA384",
   "referenceDigestAlgorithm": "SHA512",
   "signatureLevel": "XAdES_BASELINE_LTA",
@@ -9,9 +9,8 @@
   "trustAnchorBPPolicy": false,
   "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
   "policyId": "https://justact-acc.just.fgov.be/epolicies/justact/esign-policy/eSignature_policy_justact_test_fr_v1.1.pdf",
-  "policyDescription": "Service Public F\u00e9d\u00e9ral Belge Justice",
-  "policyDigestAlgorithm": "SHA256",
-  "policyDigestValue": "q9veggHN6uPbKxrapaap4pY/JlEB6spo91AzK8atzyw=",
-  "signingType": "MultiFileDetached",
-  "validationPolicyFilename": "testEsealingConstraint.xml"
+  "policyDescription": "F\u00f6deraler \u00f6ffentlicher Dienst Justiz",
+  "policyDigestAlgorithm": "SHA512",
+  "policyDigestValue": "6TUzjmSv6xhIw+h9IM2cS5SIdQd0qXG6W0uleNEQCj1GLJPDqV4si1myxSfbfP4osk83U/0nZOEAabcyDNYLxQ==",
+  "signingType": "MultiFileDetached"
 }
