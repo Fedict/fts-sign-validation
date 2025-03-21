@@ -18,6 +18,7 @@ import eu.europa.esig.dss.ws.dto.ToBeSignedDTO;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureParameters;
 import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.xades.reference.DSSReference;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.springframework.scheduling.annotation.Async;
@@ -97,7 +98,7 @@ public class SignService extends SignCommonService {
             String psfN = pdfParams.getPsfN();
             String psfC = pdfParams.getPsfC();
             if (psfN != null || psfC != null) {
-                PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(pdf.getBytes()), (String) null);
+                PDDocument pdfDoc = Loader.loadPDF(pdf.getBytes());
                 rect = checkVisibleSignatureParameters(psfC, psfN, pdfParams.getPsp(), pdfDoc);
                 pdfDoc.close();
             }

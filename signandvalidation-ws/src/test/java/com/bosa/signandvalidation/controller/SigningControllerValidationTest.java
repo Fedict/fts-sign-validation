@@ -95,7 +95,7 @@ public class SigningControllerValidationTest {
     @Test
     public void testValidPsfN() throws Exception {
         PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/visible_sigfields.pdf"));
-        PDRectangle dim = SigningController.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
+        PDRectangle dim = SignCommonService.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
 
         assertEquals(112, (int)dim.getHeight());
         assertEquals(221, (int)dim.getWidth());

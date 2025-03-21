@@ -164,14 +164,12 @@ public class SignCommonService {
                     logger.severe("Can't log report !!!!!!!!");
                 }
             }
-            if (!parameters.isSignWithExpiredCertificate()) {
-                String subIndication = indications.getSubIndicationLabel();
-                if (CERT_REVOKED.compareTo(subIndication) == 0) {
-                    logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
-                }
-                DataLoadersExceptionLogger.logAndThrow();
-                logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
+            String subIndication = indications.getSubIndicationLabel();
+            if (CERT_REVOKED.compareTo(subIndication) == 0) {
+                logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
             }
+            DataLoadersExceptionLogger.logAndThrow();
+            logAndThrowEx(BAD_REQUEST, INVALID_DOC, String.format("%s, %s", indication, subIndication));
         }
         return signedDoc;
     }
@@ -182,19 +180,16 @@ public class SignCommonService {
 public static PDRectangle checkVisibleSignatureParameters(String psfC, String psfN, PdfSignatureProfile psp, PDDocument pdfDoc) {
     // Check psfN
     if (psfN != null) {
-        try {
-            List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
-            for (PDSignatureField sigField : sigFields) {
-                String name = sigField.getPartialName();
-                if (psfN.equals(name)) {
-                    if (sigField.getSignature() != null) {
-                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature.", null);
-                    }
-                    return sigField.getWidget().getRectangle();
+        List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
+        for (PDSignatureField sigField : sigFields) {
+            String name = sigField.getPartialName();
+            if (psfN.equals(name)) {
+                if (sigField.getSignature() != null) {
+                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature.", null);
                 }
+                // TODO Check get(0); ******************************************************************************************
+                return sigField.getWidgets().get(0).getRectangle();
             }
-        } catch (IOException e) {
-            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Error reading PDF file.", null);
         }
         logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The PDF signature field does exist : " + psfN, null);
     }
@@ -242,7 +237,7 @@ public static PDRectangle checkVisibleSignatureParameters(String psfC, String ps
             logger.info("Signing certificate ID : " + new CertificateToken(signingCrt).getDSSIdAsString());
 
             // Don't do the expiry check if the profile says to ignore it (only used for testing)
-            if (!parameters.isSignWithExpiredCertificate() && now.after(signingCrt.getNotAfter()))
+            if (now.after(signingCrt.getNotAfter()))
                 logAndThrowEx(BAD_REQUEST, SIGN_CERT_EXPIRED, "exp. date = " + logDateTimeFormat.format(signingCrt.getNotAfter()));
         }
         catch (CertificateException e) {
