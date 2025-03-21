@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
-import static com.bosa.signandvalidation.controller.SigningController.KEYS_FOLDER;
+import static com.bosa.signandvalidation.service.TokenSignService.KEYS_FOLDER;
 
 @Service
 public class MinioCleanupJob implements StorageService.BucketCleaner {

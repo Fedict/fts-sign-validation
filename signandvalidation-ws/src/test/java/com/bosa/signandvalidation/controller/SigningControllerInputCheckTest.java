@@ -1,6 +1,7 @@
 package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.*;
+import com.bosa.signandvalidation.service.TokenSignService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -13,11 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SigningControllerInputCheckTest {
 
-    private static SigningController ctrl = new SigningController();
+    private static TokenSignService srv = new TokenSignService();
 
     @BeforeAll
     static void init() {
-        ReflectionTestUtils.setField(ctrl, "defaultTokenTimeout", (Integer)300);
+        ReflectionTestUtils.setField(srv, "defaultTokenTimeout", (Integer)300);
     }
 
     @Test
@@ -143,7 +144,7 @@ public class SigningControllerInputCheckTest {
 
     private void testToken(TokenObject token, String error, String s) {
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
-            ctrl.validateTokenValues(token);
+            srv.validateTokenValues(token);
         });
         boolean verified = exception.getMessage().contains("||" + error + "||" + s);
         if (!verified) {

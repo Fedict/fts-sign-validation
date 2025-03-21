@@ -2,9 +2,10 @@ package com.bosa.signandvalidation;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 @SpringBootApplication
-public class SignAndValidationApplication {
+public class SignAndValidationApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(SignAndValidationApplication.class, args);

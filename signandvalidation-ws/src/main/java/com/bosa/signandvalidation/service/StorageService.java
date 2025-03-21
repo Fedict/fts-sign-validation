@@ -204,23 +204,31 @@ public class StorageService {
                 sb.setLength(0);
                 toDelete.clear();
                 bucketName = bucket.name();
-                Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
-                for (Result<Item> r : results) {
-                    Item i = r.get();
-                    fileName = i.objectName();
-                    if (cleaner.shouldDelete(bucketName, fileName, i.isDir(), i.isDir() ? null : LocalDateTime.from(i.lastModified()))) {
-                        toDelete.add(new DeleteObject(fileName));
-                        sb.append(fileName);
-                        sb.append(", ");
+                try {
+                    Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
+                    for (Result<Item> r : results) {
+                        Item i = r.get();
+                        fileName = i.objectName();
+                        if (cleaner.shouldDelete(bucketName, fileName, i.isDir(), i.isDir() ? null : LocalDateTime.from(i.lastModified()))) {
+                            toDelete.add(new DeleteObject(fileName));
+                            sb.append(fileName);
+                            sb.append(", ");
+                        }
                     }
+                } catch (Exception e) {
+                    LOG.error("Cleanup skipping bucket : " + bucketName + " because of exception :" + e.getMessage());
                 }
                 if (!toDelete.isEmpty()) {
                     sb.setLength(sb.length() - 2);
-                    LOG.warn("Deleting bucket '" + bucketName + "' (" + sb + "')");
-                    Iterable<Result<DeleteError>> deleteErrors = minioClient.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(toDelete).build());
-                    for (Result<DeleteError> deleteError : deleteErrors) {
-                        DeleteError error = deleteError.get();
-                        LOG.warn("Delete error : " + error.objectName() + " - " + error.code());
+                    LOG.info("Deleting bucket '" + bucketName + "' (" + sb + "')");
+                    try {
+                        Iterable<Result<DeleteError>> deleteErrors = minioClient.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(toDelete).build());
+                        for (Result<DeleteError> deleteError : deleteErrors) {
+                            DeleteError error = deleteError.get();
+                            LOG.warn("Delete error : " + error.objectName() + " - " + error.code());
+                        }
+                    } catch (Exception e) {
+                        LOG.error("Cleanup deletion exception :" + e.getMessage());
                     }
                 }
             }

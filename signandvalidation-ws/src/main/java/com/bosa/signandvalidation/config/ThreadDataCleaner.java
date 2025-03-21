@@ -14,7 +14,11 @@ import org.springframework.web.servlet.ModelAndView;
 public class ThreadDataCleaner implements HandlerInterceptor {
 
     @Override
-    public void postHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler, @Nullable ModelAndView modelAndView) throws Exception {
+    public void postHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler, @Nullable ModelAndView modelAndView) {
+        clearAll();
+    }
+
+    public static void clearAll() {
         DataLoadersExceptionLogger.clearThreadExceptions();
         // Clear Token and all other MDC data for this thread
         MDC.clear();

@@ -1,0 +1,16 @@
+{
+  "profileId": "XADES_JUSTACT_CITIZEN_NL_TEST",
+  "digestAlgorithm": "SHA384",
+  "referenceDigestAlgorithm": "SHA512",
+  "signatureLevel": "XAdES_BASELINE_LTA",
+  "signaturePackaging": "DETACHED",
+  "signatureForm": "XAdES",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "trustAnchorBPPolicy": false,
+  "revocationStrategy": "OCSP_ONLY_FOR_LEAF",
+  "policyId": "https://justact-acc.just.fgov.be/epolicies/justact/esign-policy/eSignature_policy_justact_test_nl_v1.1.pdf",
+  "policyDescription": "Federale Overheidsdienst Justitie",
+  "policyDigestAlgorithm": "SHA512",
+  "policyDigestValue": "7DNIR2XMbIi5y7UKfwrC4eByxCxZfOF+b4x19/9sQr5ig0CCPB3G8noSx6MlqrHfIKnk6s0ZxML5amHgWfMX9A==",
+  "signingType": "MultiFileDetached"
+}

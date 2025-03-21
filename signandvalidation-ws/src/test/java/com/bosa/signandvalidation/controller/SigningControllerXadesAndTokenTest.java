@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -183,9 +184,9 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         // Sign file & return its content
         csp.setSigningDate(dataToSign.getSigningDate());
         SignDocumentForTokenDTO sdto = new SignDocumentForTokenDTO(token, 0, csp, signatureValue.getValue());
-        RemoteDocument signedDocument = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, sdto, RemoteDocument.class);
 
-        assertNull(signedDocument);
+        Map documentIsSigned = signSocumentAndWaitForResult(sdto, Map.class);
+        assertTrue((Boolean)documentIsSigned.get("done"));
     }
 
     private static String lastOccurenceOf(String name, char c) {
