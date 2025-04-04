@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -80,9 +81,9 @@ public class ValidationController extends ControllerBase {
     })
 
     @PostMapping(value = "/validateSignatureASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ASyncTaskDTO validateSignatureASync(@RequestBody DataToValidateDTO validateDto) throws IOException {
+    public ASyncTaskDTO validateSignatureASync(HttpSession session, @RequestBody DataToValidateDTO validateDto) throws IOException {
         authorizeCall(features, SigningController.Features.validation);
-        return taskService.addRunningTask(validationService.validateSignatureASync(validateDto), validateDto.getToken());
+        return taskService.addRunningTask(session, validationService.validateSignatureASync(validateDto), validateDto.getToken());
     }
 
     @Operation(summary = "Validate a single document's signatures returning all validation reports", description = "Validate a signed file.<BR>" +

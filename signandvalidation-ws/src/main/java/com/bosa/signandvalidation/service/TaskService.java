@@ -2,6 +2,7 @@ package com.bosa.signandvalidation.service;
 
 import com.bosa.signandvalidation.model.ASyncTaskDTO;
 import com.bosa.signandvalidation.model.ASyncTaskStatusDTO;
+import jakarta.servlet.http.HttpSession;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
@@ -26,8 +27,9 @@ public class TaskService {
 
     //*****************************************************************************************
 
-    public ASyncTaskDTO addRunningTask(Future<Object> future, String token) {
+    public ASyncTaskDTO addRunningTask(HttpSession session, Future<Object> future, String token) {
 
+        session.setAttribute("ASYNC", "ASYNC"); // Force session creation to allow stickiness
         now = new Date();
         UUID taskId = UUID.randomUUID();
         runningTasks.put(taskId, new TaskInfo(future, now, token));
