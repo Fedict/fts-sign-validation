@@ -32,8 +32,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         LOG.info("Adding CORS allowed origins: {}", allowedOrigins);
-        CorsRegistration reg = registry.addMapping("/**")
-                .allowedOriginPatterns(allowedOrigins.split(","));
+        registry.addMapping("/**")
+                .allowedOriginPatterns(allowedOrigins.split(","))
+                .allowCredentials(true);
     }
 
     @Bean
