@@ -16,6 +16,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
+import static com.bosa.signandvalidation.exceptions.Utils.logger;
+
 @Service
 public class TaskService {
 
@@ -32,6 +34,7 @@ public class TaskService {
         session.setAttribute("ASYNC", "ASYNC"); // Force session creation to allow stickiness
         now = new Date();
         UUID taskId = UUID.randomUUID();
+        logger.info("NEW Task status : " + taskId);
         runningTasks.put(taskId, new TaskInfo(future, now, token));
         manageTaskLifeCycle();
         return new ASyncTaskDTO(taskId);
