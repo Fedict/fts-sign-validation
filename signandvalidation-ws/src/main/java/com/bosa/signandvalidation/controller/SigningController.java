@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
+import static com.bosa.signandvalidation.exceptions.Utils.logger;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.*;
@@ -156,6 +157,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public Object getTaskResult(@PathVariable UUID uuid) {
         Object result =  null;
         try {
+            logger.info("Task status : " + uuid);
             result =  taskService.getTaskResult(uuid);
         } catch(ExecutionException exception) {
             Throwable cause = exception.getCause();
