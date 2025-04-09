@@ -1,11 +1,14 @@
 FROM tomcat:10.0
 USER root
 
+COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
+
 RUN  mkdir -p /usr/local/tomcat/conf \
     && chown -R 1001:root  /usr/local/tomcat/conf \
     && chmod -R a+rwx /usr/local/tomcat/conf \
     && chown -R 1001:root /usr/local/tomcat/webapps \
     && chmod -R a+rwx /usr/local/tomcat/webapps \
+    && chmod +x /usr/local/tomcat/bin/catalina_wrapper.sh \
     && chmod -R 777 /tmp/
 
 ## Pentest
@@ -17,7 +20,6 @@ RUN echo 'JAVA_OPTS="$JAVA_OPTS -Dtoken.timeout=$TOKEN_TIMEOUT -Dbucket.cleanup=
 ADD ./signandvalidation-ws/target/*.war /usr/local/tomcat/webapps/signandvalidation.war
 ADD ./parameters /opt/signvalidation/profiles
 ADD ./fonts /opt/signvalidation/fonts
-COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
 
 USER root
 
