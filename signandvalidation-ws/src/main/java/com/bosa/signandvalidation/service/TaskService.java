@@ -30,11 +30,9 @@ public class TaskService {
     //*****************************************************************************************
 
     public ASyncTaskDTO addRunningTask(HttpSession session, Future<Object> future, String token) {
-
-        session.setAttribute("ASYNC", "ASYNC"); // Force session creation to allow stickiness
         now = new Date();
         UUID taskId = UUID.randomUUID();
-        logger.info("NEW Task status : " + taskId);
+        logger.info("TASK status : " + taskId);
         runningTasks.put(taskId, new TaskInfo(future, now, token));
         manageTaskLifeCycle();
         return new ASyncTaskDTO(taskId);
@@ -49,6 +47,7 @@ public class TaskService {
         Future<Object> future = ti.getFuture();
         Object o = ASyncTaskStatusDTO.RUNNING;
         if (future.isDone()) {
+            logger.info("TASK Done : " + uuid);
             runningTasks.remove(uuid);
             o = future.get();
             if (o == null) o = ASyncTaskStatusDTO.DONE;
@@ -62,15 +61,15 @@ public class TaskService {
         try {
             for(Map.Entry<UUID, TaskInfo> entry : runningTasks.entrySet()) {
                 TaskInfo ti = entry.getValue();
-                // Cancel tasks over 5 minutes
+                // Cancel expired tasks
                 if (ti.getDeathDate().before(now)) {
-                    logger.warning("Canceling running Task for Token : " + ti.getToken());
+                    logger.warning("TASK Canceling : " + entry.getKey() + " - " + ti.getToken());
                     ti.getFuture().cancel(true) ;
                     runningTasks.remove(entry.getKey());
                 }
             }
         } catch(Exception e) {
-            logger.severe("Management : " + e.getMessage());
+            logger.severe("TASK Management : " + e.getMessage());
         }
     }
 
