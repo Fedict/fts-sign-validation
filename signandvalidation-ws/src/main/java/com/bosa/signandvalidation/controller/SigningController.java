@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -51,14 +50,20 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String SIGN_DOCUMENT_FOR_TOKEN_URL      = "/signDocumentForToken";
 
     // standard operations
-    public static final String GET_DATA_TO_SIGN_URL             = "/getDataToSign";
-    public static final String SIGN_DOCUMENT_URL                = "/signDocument";
-    public static final String EXTEND_DOCUMENT_URL              = "/extendDocument";
-    public static final String EXTEND_DOCUMENT_MULTIPLE_URL     = "/extendDocumentMultiple";
-    public static final String TIMESTAMP_DOCUMENT_URL           = "/timestampDocument";
-    public static final String TIMESTAMP_DOCUMENT_MULTIPLE_URL  = "/timestampDocumentMultiple";
-    public static final String GET_DATA_TO_SIGN_XADES_MDOC_URL  = "/getDataToSignXades";
-    public static final String SIGN_DOCUMENT_XADES_MDOC_URL     = "/signDocumentXades";
+    public static final String GET_DATA_TO_SIGN_URL                 = "/getDataToSign";
+    public static final String GET_DATA_TO_SIGN_MULTIPLE_URL        = "/getDataToSignMultiple";
+    public static final String SIGN_DOCUMENT_URL                    = "/signDocument";
+    public static final String SIGN_DOCUMENT_ASYNC_URL              = "/signDocumentASync";
+    public static final String SIGN_DOCUMENT_MULTIPLE_URL           = "/signDocumentMultiple";
+    public static final String SIGN_DOCUMENT_MULTIPLE_ASYNC_URL     = "/signDocumentMultipleASync";
+    public static final String EXTEND_DOCUMENT_URL                  = "/extendDocument";
+    public static final String EXTEND_DOCUMENT_ASYNC_URL            = "/extendDocumentASync";
+    public static final String EXTEND_DOCUMENT_MULTIPLE_URL         = "/extendDocumentMultiple";
+    public static final String EXTEND_DOCUMENT_MULTIPLE_ASYNC_URL   = "/extendDocumentMultipleASync";
+    public static final String TIMESTAMP_DOCUMENT_URL               = "/timestampDocument";
+    public static final String TIMESTAMP_DOCUMENT_MULTIPLE_URL      = "/timestampDocumentMultiple";
+    public static final String GET_DATA_TO_SIGN_XADES_MDOC_URL      = "/getDataToSignXades";
+    public static final String SIGN_DOCUMENT_XADES_MDOC_URL         = "/signDocumentXades";
 
     @Autowired
     private SignService signService;
@@ -206,7 +211,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = "/getDataToSignMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = GET_DATA_TO_SIGN_MULTIPLE_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
         authorizeCall(features, Features.signbox);
         return signService.getDataToSignMultiple(dataToSignDto);
@@ -225,7 +230,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = "/signDocument", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = SIGN_DOCUMENT_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
         authorizeCall(features, Features.signbox);
         return signService.signDocument(signDocumentDto);
@@ -244,7 +249,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = "/signDocumentASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = SIGN_DOCUMENT_ASYNC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ASyncTaskDTO signDocumentASync(@RequestBody SignDocumentDTO signDto) {
         authorizeCall(features, Features.signbox);
         return taskService.addRunningTask(signService.signDocumentASync(signDto), signDto.getToken());
@@ -264,7 +269,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = "/signDocumentMultiple", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = SIGN_DOCUMENT_MULTIPLE_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
         authorizeCall(features, Features.signbox);
         return signService.signDocumentMultiple(signDocumentDto);
@@ -284,7 +289,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = "/signDocumentMultipleASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = SIGN_DOCUMENT_MULTIPLE_ASYNC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ASyncTaskDTO signDocumentMultipleAsync(@RequestBody SignDocumentMultipleDTO signDto) {
         authorizeCall(features, Features.signbox);
         return taskService.addRunningTask(signService.signDocumentMultipleASync(signDto), signDto.getToken());
@@ -322,7 +327,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = "/extendDocumentASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = EXTEND_DOCUMENT_ASYNC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ASyncTaskDTO extendDocumentAsync(@RequestBody ExtendDocumentDTO extDocDto) {
         authorizeCall(features, Features.signbox);
         return taskService.addRunningTask(signService.extendDocumentASync(extDocDto), extDocDto.getToken());
@@ -360,7 +365,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
                     content = { @Content(mediaType = "text/plain") })
     })
 
-    @PostMapping(value = "/extendDocumentMultipleASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(value = EXTEND_DOCUMENT_MULTIPLE_ASYNC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ASyncTaskDTO extendDocumentMultipleASync(@RequestBody ExtendDocumentDTO extDocDto) {
         authorizeCall(features, Features.signbox);
         return taskService.addRunningTask(signService.extendDocumentMultipleASync(extDocDto), extDocDto.getToken());
