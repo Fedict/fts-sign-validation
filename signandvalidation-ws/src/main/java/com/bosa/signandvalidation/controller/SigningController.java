@@ -147,7 +147,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ASyncTaskDTO signDocumentForToken(HttpSession session, @RequestBody SignDocumentForTokenDTO signDto) {
         authorizeCall(features, Features.token);
-        return taskService.addRunningTask(session, tokenSignService.signDocumentForTokenAsync(signDto), signDto.getToken());
+        return taskService.addRunningTask(tokenSignService.signDocumentForTokenAsync(signDto), signDto.getToken());
     }
 
     //*****************************************************************************************
@@ -247,7 +247,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ASyncTaskDTO signDocumentASync(HttpSession session, @RequestBody SignDocumentDTO signDto) {
         authorizeCall(features, Features.signbox);
-        return taskService.addRunningTask(session, signService.signDocumentASync(signDto), signDto.getToken());
+        return taskService.addRunningTask(signService.signDocumentASync(signDto), signDto.getToken());
     }
 
     //*****************************************************************************************
@@ -287,7 +287,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/signDocumentMultipleASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ASyncTaskDTO signDocumentMultipleAsync(HttpSession session, @RequestBody SignDocumentMultipleDTO signDto) {
         authorizeCall(features, Features.signbox);
-        return taskService.addRunningTask(session, signService.signDocumentMultipleASync(signDto), signDto.getToken());
+        return taskService.addRunningTask(signService.signDocumentMultipleASync(signDto), signDto.getToken());
     }
 
     //*****************************************************************************************
@@ -325,7 +325,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/extendDocumentASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ASyncTaskDTO extendDocumentAsync(HttpSession session, @RequestBody ExtendDocumentDTO extDocDto) {
         authorizeCall(features, Features.signbox);
-        return taskService.addRunningTask(session, signService.extendDocumentASync(extDocDto), extDocDto.getToken());
+        return taskService.addRunningTask(signService.extendDocumentASync(extDocDto), extDocDto.getToken());
     }
 
     //*****************************************************************************************
@@ -363,7 +363,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @PostMapping(value = "/extendDocumentMultipleASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ASyncTaskDTO extendDocumentMultipleASync(HttpSession session, @RequestBody ExtendDocumentDTO extDocDto) {
         authorizeCall(features, Features.signbox);
-        return taskService.addRunningTask(session, signService.extendDocumentMultipleASync(extDocDto), extDocDto.getToken());
+        return taskService.addRunningTask(signService.extendDocumentMultipleASync(extDocDto), extDocDto.getToken());
     }
 
     //*****************************************************************************************

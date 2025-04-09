@@ -29,7 +29,7 @@ public class TaskService {
 
     //*****************************************************************************************
 
-    public ASyncTaskDTO addRunningTask(HttpSession session, Future<Object> future, String token) {
+    public ASyncTaskDTO addRunningTask(Future<Object> future, String token) {
         now = new Date();
         UUID taskId = UUID.randomUUID();
         logger.info("TASK status : " + taskId);
