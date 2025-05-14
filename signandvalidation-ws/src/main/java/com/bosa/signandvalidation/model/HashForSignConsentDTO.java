@@ -5,20 +5,19 @@
  */
 package com.bosa.signandvalidation.model;
 
-import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- *
- * @author wouter
- */
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetDataToSignForTokenDTO {
+public class HashForSignConsentDTO {
+    private String authenticationSessionId;
     private String token;
-    private int fileIdToSign;
-    private ClientSignatureParameters clientSignatureParameters;
+    private List<InputToBeSigned> inputsToSign;
+    private String signLanguage;
+    private String clientData;
 }

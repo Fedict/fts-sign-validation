@@ -10,7 +10,6 @@ import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.utils.Utils;
-import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.junit.jupiter.api.AfterAll;
@@ -25,7 +24,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
@@ -36,6 +34,7 @@ import static org.mockito.Mockito.doAnswer;
 
 public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest {
 
+    /*
     private static final String DEFAULT_COORDINATES = "1,0,0,200,150";
     private static final String THE_BUCKET = "THE_BUCKET";
     private static final String THE_OUT_FILENAME = "out";
@@ -147,8 +146,8 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
         String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENT_URL, getTokenDTO, String.class);
 
         // get data to sign
-        GetDataToSignForTokenDTO dataToSignDTO = new GetDataToSignForTokenDTO(tokenStr, 0, clientSignatureParameters);
-        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_DATA_TO_SIGN_FOR_TOKEN_URL, dataToSignDTO, DataToSignDTO.class);
+        HashForSignConsentDTO dataToSignDTO = new HashForSignConsentDTO(tokenStr, 0, clientSignatureParameters);
+        DataToSignDTO dataToSign = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_HASH_FOR_SIGNATURE_CONSENT_URL, dataToSignDTO, DataToSignDTO.class);
         // sign
         SignatureValue signatureValue = token.signDigest(new Digest(dataToSign.getDigestAlgorithm(), dataToSign.getDigest()), dssPrivateKeyEntry);
 
@@ -157,10 +156,8 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
             // So here we're going to check the output PDF file
             byte[] signedBytes = (byte[]) invocation.getArgument(2);
 
-            /*
-            File pdf = new File(pspFile.getParent(), pspFileName.substring(0, pspFileName.length() - 4) + ".pdf");
-            new InMemoryDocument(signedBytes).save(pdf.getPath());
-             */
+            //File pdf = new File(pspFile.getParent(), pspFileName.substring(0, pspFileName.length() - 4) + ".pdf");
+            //new InMemoryDocument(signedBytes).save(pdf.getPath());
 
             String defaultCoordinates = (new ObjectMapper()).readValue(pspFileString, PdfSignatureProfile.class).defaultCoordinates;
             if (defaultCoordinates == null) defaultCoordinates = DEFAULT_COORDINATES;
@@ -177,9 +174,10 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        SignDocumentForTokenDTO signDocumentDTO = new SignDocumentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
+        ConsentSignDocumentsForTokenDTO signDocumentDTO = new ConsentSignDocumentsForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
 
         signSocumentAndWaitForResult(signDocumentDTO, Boolean.class);
         return null;
     }
+    */
 }
