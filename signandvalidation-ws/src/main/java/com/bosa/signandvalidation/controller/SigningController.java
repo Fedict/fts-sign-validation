@@ -44,10 +44,10 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_TASK_RESULT_URL              = "/getTaskResult";
     public static final String GET_TOKEN_FOR_DOCUMENT_URL       = "/getTokenForDocument";
     public static final String GET_TOKEN_FOR_DOCUMENTS_URL      = "/getTokenForDocuments";
-    public static final String GET_HASH_FILES_TO_CONSENT_FOR_TOKEN_URL   = "/getHashAndFilesToConsentForToken";
+    public static final String GET_CONSENT_FOR_TOKEN_URL        = "/getConsentDataForToken";
     public static final String GET_METADATA_FOR_TOKEN_URL       = "/getMetadataForToken";
     public static final String GET_FILE_FOR_TOKEN_URL           = "/getFileForToken";
-    public static final String CONSENT_SIGN_DOC_FOR_TOKEN_URL = "/consentSignDocumentsForToken";
+    public static final String CONSENT_FOR_TOKEN_URL            = "/consentForToken";
 
     // standard operations
     public static final String GET_DATA_TO_SIGN_URL                 = "/getDataToSign";
@@ -140,19 +140,19 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     //*****************************************************************************************
 
     @Operation(hidden = true)
-    @PostMapping(value = GET_HASH_FILES_TO_CONSENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public HashForSignatureConsentDTO getHashAndFilesToConsentForToken(@RequestBody HashForSignConsentDTO req) {
+    @PostMapping(value = GET_CONSENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public HashForSignatureConsentDTO getConsentDataForToken(@RequestBody HashForSignConsentDTO req) {
         authorizeCall(features, Features.token);
-        return tokenSignService.getHashAndFilesToConsentForToken(req);
+        return tokenSignService.getConsentDataForToken(req);
     }
 
     //*****************************************************************************************
 
     @Operation(hidden = true)
-    @PostMapping(value = CONSENT_SIGN_DOC_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ASyncTaskDTO consentSignDocumentsForToken(@RequestBody ConsentSignDocumentsForTokenDTO signDto) {
+    @PostMapping(value = CONSENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public ASyncTaskDTO consentForToken(@RequestBody ConsentForTokenDTO signDto) {
         authorizeCall(features, Features.token);
-        return taskService.addRunningTask(tokenSignService.consentSignDocumentsForTokenAsync(signDto), signDto.getToken());
+        return taskService.addRunningTask(tokenSignService.consentForTokenAsync(signDto), signDto.getToken());
     }
 
     //*****************************************************************************************

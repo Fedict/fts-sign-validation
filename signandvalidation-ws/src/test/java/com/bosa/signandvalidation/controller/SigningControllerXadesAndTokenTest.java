@@ -185,7 +185,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
         // Sign file & return its content
         csp.setSigningDate(dataToSign.getSigningDate());
-        ConsentSignDocumentsForTokenDTO sdto = new ConsentSignDocumentsForTokenDTO(token, 0, csp, signatureValue.getValue());
+        ConsentForTokenDTO sdto = new ConsentForTokenDTO(token, 0, csp, signatureValue.getValue());
 
         Map documentIsSigned = signSocumentAndWaitForResult(sdto, Map.class);
         assertTrue((Boolean)documentIsSigned.get("done"));

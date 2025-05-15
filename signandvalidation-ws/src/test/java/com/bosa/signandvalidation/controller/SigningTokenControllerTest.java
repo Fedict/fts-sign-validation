@@ -70,7 +70,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
         // Set time of GetDataToSignForToken 11 seconds ago
         clientSignatureParameters.setSigningDate(new Date(signingTime - 11000));
-        ConsentSignDocumentsForTokenDTO signDocumentDTO = new ConsentSignDocumentsForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
+        ConsentForTokenDTO signDocumentDTO = new ConsentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
 
         // sign document
         Map result = signSocumentAndWaitForResult(signDocumentDTO, Map.class);
@@ -141,7 +141,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        ConsentSignDocumentsForTokenDTO signDocumentDTO = new ConsentSignDocumentsForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
+        ConsentForTokenDTO signDocumentDTO = new ConsentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
         Map documentIsSigned = signSocumentAndWaitForResult(signDocumentDTO, Map.class);
         assertTrue((Boolean)documentIsSigned.get("done"));
     }
@@ -176,7 +176,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        ConsentSignDocumentsForTokenDTO signDocumentDTO = new ConsentSignDocumentsForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
+        ConsentForTokenDTO signDocumentDTO = new ConsentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
         Map documentIsSigned = signSocumentAndWaitForResult(signDocumentDTO, Map.class);
         assertTrue((Boolean)documentIsSigned.get("done"));
     }
@@ -214,7 +214,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        ConsentSignDocumentsForTokenDTO signDocumentDTO = new ConsentSignDocumentsForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
+        ConsentForTokenDTO signDocumentDTO = new ConsentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
 
         Object result = signSocumentAndWaitForResult(signDocumentDTO, Object.class);
         assertNotNull(result);

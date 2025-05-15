@@ -21,7 +21,6 @@ public class HashForSignatureConsentDTO {
     private WalletAuthenticatorInfo wallet;
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date signingDate;
-    private String hashAlgorithmOid;
     private RemoteCertificate signingCertificate;
     private List<RemoteCertificate> certificateChain;
 }

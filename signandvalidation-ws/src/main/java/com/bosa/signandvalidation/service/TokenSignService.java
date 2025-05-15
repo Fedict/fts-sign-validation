@@ -638,13 +638,13 @@ public class TokenSignService extends SignCommonService {
 
     //*****************************************************************************************
 
-    public HashForSignatureConsentDTO getHashAndFilesToConsentForToken(HashForSignConsentDTO req) {
+    public HashForSignatureConsentDTO getConsentDataForToken(HashForSignConsentDTO req) {
         try {
             checkAndRecordMDCToken(req.getToken());
-            logger.info("Entering getHashAndFilesToConsentForToken()");
+            logger.info("Entering getConsentDataForToken()");
 
             TokenObject token = getTokenFromId(req.getToken());
-            SignatureInfo info = getRestTemplate().postForObject(remoteSignUrl + "/getSignatureInfoForAuthentication", new Authentication(req.getAuthenticationSessionId()), SignatureInfo.class);
+            SignatureInfo info = getRestTemplate().postForObject(remoteSignUrl + "/getSignatureInfo", new Authentication(req.getAuthenticationSessionId()), SignatureInfo.class);
 
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
             Date signingDate = signingTime == null ? new Date() : new Date(signingTime);
@@ -721,9 +721,9 @@ public class TokenSignService extends SignCommonService {
 
             HashForSignatureConsentDTO ret = new HashForSignatureConsentDTO(
                     dtc.getConsentSessionId(), hashesToConsent, dtc.getEid(), dtc.getWallet(), signingDate,
-                    digestAlgorithm.getOid(), clientSigParams.getSigningCertificate(), clientSigParams.getCertificateChain());
+                    clientSigParams.getSigningCertificate(), clientSigParams.getCertificateChain());
 
-            logger.info("Returning from getHashAndFilesToConsentForToken()");
+            logger.info("Returning from getConsentDataForToken()");
 
             return ret;
         } catch(NullParameterException e) {
@@ -818,10 +818,10 @@ public class TokenSignService extends SignCommonService {
     //*****************************************************************************************
 
     @Async("asyncTasks")
-    public CompletableFuture<Object> consentSignDocumentsForTokenAsync(ConsentSignDocumentsForTokenDTO signDto) {
+    public CompletableFuture<Object> consentForTokenAsync(ConsentForTokenDTO signDto) {
         CompletableFuture<Object> task = new CompletableFuture<>();
         try {
-            consentSignDocumentsForToken(signDto);
+            consentForToken(signDto);
             task.complete(null);
         } catch(Exception e){
             task.completeExceptionally(e);
@@ -834,14 +834,14 @@ public class TokenSignService extends SignCommonService {
 
     //*****************************************************************************************
 
-        private void consentSignDocumentsForToken(ConsentSignDocumentsForTokenDTO req) {
+        private void consentForToken(ConsentForTokenDTO req) {
         try {
             checkAndRecordMDCToken(req.getToken());
-            logger.info("Entering consentSignDocumentsForToken()");
+            logger.info("Entering consentForToken()");
 
             TokenObject token = getTokenFromId(req.getToken());
 
-            ConsentedData cd = new ConsentedData(req.getConsentSessionId(), req.getHashAlgorithmOid(), req.getEid(), req.getWallet());
+            ConsentedData cd = new ConsentedData(req.getConsentSessionId(), req.getEid(), req.getWallet());
             SignedHashes sh = getRestTemplate().postForObject(remoteSignUrl + "/consentAndSignHashes", cd, SignedHashes.class);
 
             SigningType sigType = token.getSigningType();
@@ -920,7 +920,7 @@ public class TokenSignService extends SignCommonService {
                 signedDoc.setName(getOutFilePath(token, inputToSign));
 
                 MDC.put("fileName", signedDoc.getName());
-                logger.info("consentSignDocumentsForToken(): validating the signed doc");
+                logger.info("consentForToken(): validating the signed doc");
 
                 signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), null, signProfile);
 
@@ -930,7 +930,7 @@ public class TokenSignService extends SignCommonService {
 
             // Log bucket and filename only for this method
             MDC.put("bucket", token.getBucket());
-            logger.info("Returning from consentSignDocumentsForToken().");
+            logger.info("Returning from consentForToken().");
         } catch (Exception e) {
             handleRevokedCertificates(e);
             DataLoadersExceptionLogger.logAndThrow(e);

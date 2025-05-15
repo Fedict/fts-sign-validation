@@ -1,7 +1,7 @@
 package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.ASyncTaskDTO;
-import com.bosa.signandvalidation.model.ConsentSignDocumentsForTokenDTO;
+import com.bosa.signandvalidation.model.ConsentForTokenDTO;
 import com.bosa.signandvalidation.model.SigningType;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
@@ -113,8 +113,8 @@ public class SigningControllerBaseTest extends SignAndValidationBaseTest impleme
         dao.save(profileParams);
     }
 
-    protected <T> T signSocumentAndWaitForResult(ConsentSignDocumentsForTokenDTO signDocumentDTO, Class<T> returnClass) {
-        ASyncTaskDTO taskInfo = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.CONSENT_SIGN_DOC_FOR_TOKEN_URL, signDocumentDTO, ASyncTaskDTO.class);
+    protected <T> T signSocumentAndWaitForResult(ConsentForTokenDTO signDocumentDTO, Class<T> returnClass) {
+        ASyncTaskDTO taskInfo = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.CONSENT_FOR_TOKEN_URL, signDocumentDTO, ASyncTaskDTO.class);
         assertNotNull(taskInfo);
 
         Object result = null;

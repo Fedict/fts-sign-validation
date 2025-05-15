@@ -8,7 +8,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ConsentedData {
     private String consentSessionId;
-    private String hashAlgorithmOid;
     private AuthenticatedEidData eid;
     private AuthenticatedWalletData wallet;
 }

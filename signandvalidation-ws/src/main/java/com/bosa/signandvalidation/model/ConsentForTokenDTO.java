@@ -19,11 +19,10 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConsentSignDocumentsForTokenDTO {
+public class ConsentForTokenDTO {
     private String token;
     private String consentSessionId;
     private String signLanguage;
-    private String hashAlgorithmOid;
     private AuthenticatedEidData eid;
     private AuthenticatedWalletData wallet;
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSZ")

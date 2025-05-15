@@ -174,7 +174,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
 
         // sign document
         clientSignatureParameters.setSigningDate(dataToSign.getSigningDate());
-        ConsentSignDocumentsForTokenDTO signDocumentDTO = new ConsentSignDocumentsForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
+        ConsentForTokenDTO signDocumentDTO = new ConsentForTokenDTO(tokenStr, 0, clientSignatureParameters, signatureValue.getValue());
 
         signSocumentAndWaitForResult(signDocumentDTO, Boolean.class);
         return null;
