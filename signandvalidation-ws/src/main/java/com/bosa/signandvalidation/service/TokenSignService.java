@@ -644,7 +644,7 @@ public class TokenSignService extends SignCommonService {
             logger.info("Entering getConsentDataForToken()");
 
             TokenObject token = getTokenFromId(req.getToken());
-            SignatureInfo info = getRestTemplate().postForObject(remoteSignUrl + "/auth/getSignatureInfo", new Authentication(req.getAuthenticationSessionId()), SignatureInfo.class);
+            SignatureInfo info = getRestTemplate().postForObject(remoteSignUrl + "/rsign/getSignatureInfo", new Authentication(req.getAuthenticationSessionId()), SignatureInfo.class);
 
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
             Date signingDate = signingTime == null ? new Date() : new Date(signingTime);
