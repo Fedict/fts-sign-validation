@@ -644,7 +644,7 @@ public class TokenSignService extends SignCommonService {
             logger.info("Entering getConsentDataForToken()");
 
             TokenObject token = getTokenFromId(req.getToken());
-            SignatureInfo info = getRestTemplate().postForObject(remoteSignUrl + "/getSignatureInfo", new Authentication(req.getAuthenticationSessionId()), SignatureInfo.class);
+            SignatureInfo info = getRestTemplate().postForObject(remoteSignUrl + "/auth/getSignatureInfo", new Authentication(req.getAuthenticationSessionId()), SignatureInfo.class);
 
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
             Date signingDate = signingTime == null ? new Date() : new Date(signingTime);
@@ -717,7 +717,7 @@ public class TokenSignService extends SignCommonService {
             }
 
             InputDataToConsent idtc = new InputDataToConsent(req.getClientData(), req.getAuthenticationSessionId(), digestAlgorithm.getOid(), hashesToSign);
-            DataToConsent dtc = getRestTemplate().postForObject(remoteSignUrl + "/getDataToConsent", idtc, DataToConsent.class);
+            DataToConsent dtc = getRestTemplate().postForObject(remoteSignUrl + "/rsign/getDataToConsent", idtc, DataToConsent.class);
 
             HashForSignatureConsentDTO ret = new HashForSignatureConsentDTO(
                     dtc.getConsentSessionId(), hashesToConsent, dtc.getEid(), dtc.getWallet(), signingDate,
@@ -842,7 +842,7 @@ public class TokenSignService extends SignCommonService {
             TokenObject token = getTokenFromId(req.getToken());
 
             ConsentedData cd = new ConsentedData(req.getConsentSessionId(), req.getEid(), req.getWallet());
-            SignedHashes sh = getRestTemplate().postForObject(remoteSignUrl + "/consentAndSignHashes", cd, SignedHashes.class);
+            SignedHashes sh = getRestTemplate().postForObject(remoteSignUrl + "/rsign/consentAndSignHashes", cd, SignedHashes.class);
 
             SigningType sigType = token.getSigningType();
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
