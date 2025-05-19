@@ -8,5 +8,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Authentication {
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    private String authenticationSessionId;
+    private String authSessionId;
 }

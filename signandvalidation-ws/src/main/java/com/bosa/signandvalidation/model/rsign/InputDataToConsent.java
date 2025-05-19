@@ -9,7 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 public class InputDataToConsent {
     private String clientData;
-    private String authenticationSessionId;
+    private String authSessionId;
     private String hashAlgorithmOID;
     private List<DocumentDigest> hashesToSign;
 }

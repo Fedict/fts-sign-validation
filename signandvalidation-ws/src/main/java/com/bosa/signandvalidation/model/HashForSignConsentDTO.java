@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HashForSignConsentDTO {
-    private String authenticationSessionId;
+    private String authSessionId;
     private String token;
     private List<InputToBeSigned> inputsToSign;
     private String signLanguage;
