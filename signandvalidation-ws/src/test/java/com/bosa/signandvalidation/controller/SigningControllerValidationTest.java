@@ -1,5 +1,6 @@
 package com.bosa.signandvalidation.controller;
 
+import org.apache.pdfbox.Loader;
 import com.bosa.signandvalidation.service.SignCommonService;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -56,7 +57,7 @@ public class SigningControllerValidationTest {
     @Test
     public void testInvalidPageAndBoundaries() throws Exception {
 
-        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/sample.pdf").toPath()), (String) null);
+        PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/sample.pdf"));
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
             SignCommonService.checkPsfC(pdfDoc, "20,1,1,2,2");
         });
@@ -75,7 +76,7 @@ public class SigningControllerValidationTest {
 
     @Test
     public void testMissingPsfN() throws Exception {
-        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/sample.pdf").toPath()), (String) null);
+        PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/sample.pdf"));
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
             SignCommonService.checkVisibleSignatureParameters(null, "Invalid", null, pdfDoc);
         });
@@ -84,7 +85,7 @@ public class SigningControllerValidationTest {
 
     @Test
     public void testPsfNAlreadySigned() throws Exception {
-        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/signed_visible_sigfields.pdf").toPath()), (String) null);
+        PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/signed_visible_sigfields.pdf"));
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
             SignCommonService.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
         });
@@ -93,7 +94,7 @@ public class SigningControllerValidationTest {
 
     @Test
     public void testValidPsfN() throws Exception {
-        PDDocument pdfDoc = PDDocument.load(Files.newInputStream(new File("src/test/resources/visible_sigfields.pdf").toPath()), (String) null);
+        PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/visible_sigfields.pdf"));
         PDRectangle dim = SignCommonService.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
 
         assertEquals(112, (int)dim.getHeight());

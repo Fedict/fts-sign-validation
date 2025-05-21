@@ -11,7 +11,7 @@ import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
 import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
-import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,7 +25,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.bosa.signandvalidation.service.PdfVisibleSignatureService.DEFAULT_STRING;
@@ -166,7 +165,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
             if (defaultCoordinates == null) defaultCoordinates = DEFAULT_COORDINATES;
             String coords[] = defaultCoordinates.split(",");
 
-            BufferedImage actualFirstPageImage = new PDFRenderer(PDDocument.load(signedBytes)).renderImageWithDPI(0, 72);
+            BufferedImage actualFirstPageImage = new PDFRenderer(Loader.loadPDF(signedBytes)).renderImageWithDPI(0, 72);
             BufferedImage actualSignature = actualFirstPageImage.getSubimage(Integer.parseInt(coords[1]), Integer.parseInt(coords[2]), Integer.parseInt(coords[3]), Integer.parseInt(coords[4]));
 
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
