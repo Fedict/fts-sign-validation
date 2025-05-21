@@ -228,6 +228,8 @@ public class DSSBeanConfig {
     @Bean
     public CertificateVerifier certificateVerifier() throws Exception {
         CommonCertificateVerifier certificateVerifier = new ThreadedCertificateVerifier();
+        // In order to allow Timesheet 3rd signature (After : EIDAS_LTA->PKCS7_B) we must diable DSS check
+        certificateVerifier.setAugmentationAlertOnHigherSignatureLevel(null);
         certificateVerifier.setCrlSource(cachedCRLSource());
         certificateVerifier.setOcspSource(cachedOCSPSource());
         CommonsDataLoader dataLoader = new InterceptCommonsDataLoader(DataLoadersExceptionLogger.Types.CERT_VERIFICATION);
