@@ -30,6 +30,7 @@ import eu.europa.esig.dss.xades.reference.DSSReference;
 import eu.europa.esig.dss.xml.common.DocumentBuilderFactoryBuilder;
 import jakarta.servlet.http.HttpServletResponse;
 import net.sf.saxon.BasicTransformerFactory;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.jetbrains.annotations.NotNull;
@@ -285,7 +286,7 @@ public class TokenSignService extends SignCommonService {
             if (psfN == null && psfC == null) continue;
 
             byte[] file = storageService.getFileAsBytes(token.getBucket(), input.getFilePath(), true);
-            PDDocument pdfDoc = PDDocument.load(new ByteArrayInputStream(file), (String) null);
+            PDDocument pdfDoc = Loader.loadPDF(file);
             PdfSignatureProfile psp = getPspFile(input, token.getBucket());
             PDRectangle rect = checkVisibleSignatureParameters(psfC, psfN, psp, pdfDoc);
             if (rect != null) {

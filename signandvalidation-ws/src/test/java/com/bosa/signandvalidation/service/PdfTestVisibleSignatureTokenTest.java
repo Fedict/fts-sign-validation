@@ -163,7 +163,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
             if (defaultCoordinates == null) defaultCoordinates = DEFAULT_COORDINATES;
             String coords[] = defaultCoordinates.split(",");
 
-            BufferedImage actualFirstPageImage = new PDFRenderer(PDDocument.load(signedBytes)).renderImageWithDPI(0, 72);
+            BufferedImage actualFirstPageImage = new PDFRenderer(Loader.loadPDF(signedBytes)).renderImageWithDPI(0, 72);
             BufferedImage actualSignature = actualFirstPageImage.getSubimage(Integer.parseInt(coords[1]), Integer.parseInt(coords[2]), Integer.parseInt(coords[3]), Integer.parseInt(coords[4]));
 
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
