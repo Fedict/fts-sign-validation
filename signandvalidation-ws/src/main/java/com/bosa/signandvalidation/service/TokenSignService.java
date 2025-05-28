@@ -258,10 +258,10 @@ public class TokenSignService extends SignCommonService {
             token.setXmlSignProfile(profileId);
         }
 
-        SigningType signingType = token.getSigningType();
-        if (signingType != null) {
-            if (signingType != signProfile.getSigningType()) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be of the same signingType ('" + signingType + "' != '" +signProfile.getSigningType() + "')." , null);
+        SigningType sigType = token.getSigningType();
+        if (sigType != null) {
+            if (sigType != signProfile.getSigningType()) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "signProfile and altSignProfile must be of the same signingType ('" + sigType + "' != '" +signProfile.getSigningType() + "')." , null);
             }
         }
         token.setSigningType(signProfile.getSigningType());
@@ -302,7 +302,7 @@ public class TokenSignService extends SignCommonService {
 
     public void validateTokenValues(TokenObject token) {
 
-        SigningType signingType = token.getSigningType();
+        SigningType sigType = token.getSigningType();
         String pdfProfileId = token.getPdfSignProfile();
         String xmlProfileId = token.getXmlSignProfile();
 
@@ -343,24 +343,24 @@ public class TokenSignService extends SignCommonService {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "input files must be either XML or PDF", null);
             }
 
-            switch(signingType) {
+            switch(sigType) {
                 case XadesMultiFile:
                     checkValue("XmlEltId", input.getXmlEltId(), false, eltIdPattern, eltIdList);
                     if (input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFilePath() != null) {
-                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for " + signingType, null);
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PsfN, PsfC, SignLanguage and PspFileName must be null for " + sigType, null);
                     }
                     break;
 
                 case MultiFileDetached:
                     if (input.getXmlEltId() != null || input.getPsfN() != null || input.getPsfC() != null || input.getSignLanguage() != null || input.getPspFilePath() != null) {
 
-                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "XmlEltId, PsfN, PsfC, SignLanguage and PspFileName must be null for " + signingType, null);
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "XmlEltId, PsfN, PsfC, SignLanguage and PspFileName must be null for " + sigType, null);
                     }
                     break;
 
                 default:
                     if (input.getXmlEltId() != null) {
-                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'XmlEltId' must be null for " + signingType, null);
+                        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'XmlEltId' must be null for " + sigType, null);
                     }
 
                     if ((isPDF && pdfProfileId == null) || (isXML && xmlProfileId == null)) {
@@ -374,27 +374,27 @@ public class TokenSignService extends SignCommonService {
         }
 
         String prefix = token.getOutPathPrefix();
-        if (signingType == XadesMultiFile) {
+        if (sigType == XadesMultiFile) {
             if (pdfProfileId != null) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "XadesMultiFile must be used only for XML files", null);
             }
             checkValue("outXsltPath", token.getOutXsltPath(), true, null, filenamesList);
         } else {
             if (token.getOutXsltPath() != null) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXsltPath' must be null for " + signingType, null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outXsltPath' must be null for " + sigType, null);
             }
         }
-        if (signingType == Standard) {
+        if (sigType == Standard) {
             if (inputs.size() > 1 && !token.isPreviewDocuments()) {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "previewDocuments must be 'true' for Standard", null);
             }
         } else {
             if (prefix != null) {
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for " + signingType, null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "'outPathPrefix' must be null for " + sigType, null);
             }
             if (token.isSelectDocuments()) {
                 // Non 'Standard' signTypes sign all files at the same time so can't have "cherry picked" files without large changes
-                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Can't individually select documents for " + signingType, null);
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Can't individually select documents for " + sigType, null);
             }
         }
 
@@ -664,6 +664,7 @@ public class TokenSignService extends SignCommonService {
             List<DocumentDigest> hashesToSign = new ArrayList<>();
             List<FileToConsent> hashesToConsent = new ArrayList<>();
 
+            SigningType sigType = token.getSigningType();
             int maxSignatures = info.getMaxSignatures();
             for(InputToBeSigned itbs : req.getInputsToSign()) {
                 int index = itbs.getIndex();
@@ -675,7 +676,7 @@ public class TokenSignService extends SignCommonService {
                 String filePath = token.getOutFilePath();
                 MediaType mediaType = null;
                 String profileId = token.getXmlSignProfile();
-                if (Standard.equals(token.getSigningType())) {
+                if (Standard.equals(sigType)) {
                     filePath = inputToSign.getFilePath();
                     mediaType = MediaTypeUtil.getMediaTypeFromFilename(filePath);
                     if (APPLICATION_PDF.equals(mediaType)) profileId = token.getPdfSignProfile();
@@ -691,7 +692,7 @@ public class TokenSignService extends SignCommonService {
                 else if (!digestAlgorithm.equals(parameters.getDigestAlgorithm())) continue;        // We can only "remote sign" hashes with the same digest algo (See rsign API)
 
                 ToBeSignedDTO dataToSign;
-                switch (token.getSigningType()) {
+                switch (sigType) {
                     case MultiFileDetached:
                         dataToSign = signatureServiceMultiple.getDataToSign(getDocumentsToSign(token), parameters);
                         break;
@@ -714,7 +715,7 @@ public class TokenSignService extends SignCommonService {
                 byte [] bytesToSign = DSSUtils.digest(digestAlgorithm, dataToSign.getBytes());
                 hashesToSign.add(new DocumentDigest(filePath, bytesToSign));
                 hashesToConsent.add(new FileToConsent(filePath, bytesToSign, itbs.getIndex()));
-                if (--maxSignatures == 0) break;
+                if (--maxSignatures == 0 || !sigType.equals(Standard)) break;
             }
 
             InputDataToConsent idtc = new InputDataToConsent(req.getClientData(), req.getAuthSessionId(), digestAlgorithm.getOid(), hashesToSign);
@@ -927,6 +928,7 @@ public class TokenSignService extends SignCommonService {
 
                 // Save signed file
                 storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
+                if (!sigType.equals(Standard)) break;
             }
 
             // Log bucket and filename only for this method
