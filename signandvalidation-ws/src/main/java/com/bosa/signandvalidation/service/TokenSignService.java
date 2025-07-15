@@ -531,6 +531,8 @@ public class TokenSignService extends SignCommonService {
                 inputMetadata.setHasDisplayXslt(input.getDisplayXsltPath() != null);
                 inputMetadata.setDrawSignature(input.getPsfN() == null && input.getPsfC() == null && !input.isInvisible());
                 inputMetadata.setPsfP(input.isPsfP());
+                inputMetadata.setPsfC(input.getPsfC());
+                inputMetadata.setPsfN(input.getPsfN());
                 signedInputsMetadata.add(inputMetadata);
             }
 
