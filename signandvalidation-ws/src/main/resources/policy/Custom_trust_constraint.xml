@@ -644,7 +644,7 @@
 			<!-- Digest algorithms -->
 			<Algo Date="2004-08-01">MD5</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.1.1 -->
 			<!-- SHA1 is still used in for hashing BRCA3 Root EID certs-->
-			<Algo Date="2026">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
+			<Algo Date="2026-01-01">SHA1</Algo> <!-- ETSI TS 102 176-1 (Historical) V2.0.0 -->
 			<Algo Date="2029-01-01">SHA224</Algo> <!-- ETSI TS 119 312 v1.5.1 -->
 			<Algo>SHA256</Algo> <!-- ETSI TS 119 312 v1.5.1 --> <!-- R -->
 			<Algo>SHA384</Algo> <!-- ETSI TS 119 312 v1.5.1 --> <!-- R -->
