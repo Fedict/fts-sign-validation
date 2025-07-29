@@ -1,8 +1,7 @@
 package com.bosa.signandvalidation.service;
 
 import com.bosa.signandvalidation.model.ASyncTaskDTO;
-import com.bosa.signandvalidation.model.ASyncTaskStatusDTO;
-import jakarta.servlet.http.HttpSession;
+import com.bosa.signandvalidation.model.ASyncTaskStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
@@ -15,8 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
-
-import static com.bosa.signandvalidation.exceptions.Utils.logger;
 
 @Service
 public class TaskService {
@@ -45,12 +42,12 @@ public class TaskService {
         TaskInfo ti = runningTasks.get(uuid);
         if (ti == null) return null;
         Future<Object> future = ti.getFuture();
-        Object o = ASyncTaskStatusDTO.RUNNING;
+        Object o = ASyncTaskStatus.RUNNING;
         if (future.isDone()) {
             logger.info("TASK Done : " + uuid);
             runningTasks.remove(uuid);
             o = future.get();
-            if (o == null) o = ASyncTaskStatusDTO.DONE;
+            if (o == null) o = ASyncTaskStatus.DONE;
         } else manageTaskLifeCycle();
         return o;
     }
