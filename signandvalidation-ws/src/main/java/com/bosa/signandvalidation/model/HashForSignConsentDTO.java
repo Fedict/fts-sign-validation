@@ -19,5 +19,4 @@ public class HashForSignConsentDTO {
     private String token;
     private List<InputToBeSigned> inputsToSign;
     private String signLanguage;
-    private String clientData;
 }

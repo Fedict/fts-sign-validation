@@ -643,10 +643,11 @@ public class TokenSignService extends SignCommonService {
 
     public HashForSignatureConsentDTO getConsentDataForToken(HashForSignConsentDTO req) {
         try {
-            checkAndRecordMDCToken(req.getToken());
+            String tokenId = req.getToken();
+            checkAndRecordMDCToken(tokenId);
             logger.info("Entering getConsentDataForToken()");
 
-            TokenObject token = getTokenFromId(req.getToken());
+            TokenObject token = getTokenFromId(tokenId);
             SignatureInfo info = getRestTemplate().postForObject(remoteSignUrl + "/rsign/getSignatureInfo", new Authentication(req.getAuthSessionId()), SignatureInfo.class);
 
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
@@ -720,7 +721,7 @@ public class TokenSignService extends SignCommonService {
                 if (--maxSignatures == 0 || !sigType.equals(Standard)) break;
             }
 
-            InputDataToConsent idtc = new InputDataToConsent(req.getClientData(), req.getAuthSessionId(), digestAlgorithm.getOid(), hashesToSign);
+            InputDataToConsent idtc = new InputDataToConsent(tokenId, req.getAuthSessionId(), digestAlgorithm.getOid(), hashesToSign);
             DataToConsent dtc = getRestTemplate().postForObject(remoteSignUrl + "/rsign/getDataToConsent", idtc, DataToConsent.class);
 
             HashForSignatureConsentDTO ret = new HashForSignatureConsentDTO(
