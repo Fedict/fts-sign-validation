@@ -43,9 +43,11 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public static final String GET_TASK_RESULT_URL              = "/getTaskResult";
     public static final String GET_TOKEN_FOR_DOCUMENT_URL       = "/getTokenForDocument";
     public static final String GET_TOKEN_FOR_DOCUMENTS_URL      = "/getTokenForDocuments";
+    public static final String GET_DATA_TO_SIGN_FOR_TOKEN_URL   = "/getDataToSignForToken";
     public static final String GET_CONSENT_FOR_TOKEN_URL        = "/getConsentDataForToken";
     public static final String GET_METADATA_FOR_TOKEN_URL       = "/getMetadataForToken";
     public static final String GET_FILE_FOR_TOKEN_URL           = "/getFileForToken";
+    public static final String SIGN_DOCUMENT_FOR_TOKEN_URL      = "/signDocumentForToken";
     public static final String CONSENT_FOR_TOKEN_URL            = "/consentForToken";
 
     // standard operations
@@ -139,6 +141,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     //*****************************************************************************************
 
     @Operation(hidden = true)
+    @PostMapping(value = GET_DATA_TO_SIGN_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public DataToSignDTO getDataToSignForToken(@RequestBody GetDataToSignForTokenDTO dataToSignForTokenDto) {
+        authorizeCall(features, Features.token);
+        return tokenSignService.getDataToSignForToken(dataToSignForTokenDto);
+    }
+
+    //*****************************************************************************************
+
+    @Operation(hidden = true)
     @PostMapping(value = GET_CONSENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public HashForSignatureConsentDTO getConsentDataForToken(@RequestBody HashForSignConsentDTO req) {
         authorizeCall(features, Features.token);
@@ -152,6 +163,15 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     public ASyncTaskDTO consentForToken(@RequestBody ConsentForTokenDTO signDto) {
         authorizeCall(features, Features.token);
         return taskService.addRunningTask(tokenSignService.consentForTokenAsync(signDto), signDto.getToken());
+    }
+
+    //*****************************************************************************************
+
+    @Operation(hidden = true)
+    @PostMapping(value = SIGN_DOCUMENT_FOR_TOKEN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    public ASyncTaskDTO signDocumentForToken(@RequestBody SignDocumentForTokenDTO signDto) {
+        authorizeCall(features, Features.token);
+        return taskService.addRunningTask(tokenSignService.signDocumentForTokenAsync(signDto), signDto.getToken());
     }
 
     //*****************************************************************************************
@@ -171,7 +191,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, "Task management " + exception.getMessage());
         }
         if (result == null) throw new ResponseStatusException(NOT_FOUND);
-        if (result instanceof ASyncTaskStatus) throw new ResponseStatusException(ASyncTaskStatus.DONE.equals(result) ? ACCEPTED: NO_CONTENT);
+        if (result instanceof ASyncTaskStatus) throw new ResponseStatusException(ASyncTaskStatus.DONE.equals(result) ? NO_CONTENT : ACCEPTED);
         return result;
     }
 

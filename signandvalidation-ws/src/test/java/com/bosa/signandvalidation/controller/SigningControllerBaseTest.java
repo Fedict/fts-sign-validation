@@ -1,7 +1,7 @@
 package com.bosa.signandvalidation.controller;
 
 import com.bosa.signandvalidation.model.ASyncTaskDTO;
-import com.bosa.signandvalidation.model.ConsentForTokenDTO;
+import com.bosa.signandvalidation.model.SignDocumentForTokenDTO;
 import com.bosa.signandvalidation.model.SigningType;
 import com.bosa.signingconfigurator.model.ClientSignatureParameters;
 import com.bosa.signingconfigurator.model.ProfileSignatureParameters;
@@ -26,6 +26,7 @@ import static eu.europa.esig.dss.enumerations.DigestAlgorithm.*;
 import static eu.europa.esig.dss.enumerations.TimestampContainerForm.PDF;
 import static javax.xml.crypto.dsig.Transform.ENVELOPED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.http.HttpStatus.ACCEPTED;
 
 public class SigningControllerBaseTest extends SignAndValidationBaseTest implements ErrorStrings {
 
@@ -113,17 +114,20 @@ public class SigningControllerBaseTest extends SignAndValidationBaseTest impleme
         dao.save(profileParams);
     }
 
-    protected <T> T signSocumentAndWaitForResult(ConsentForTokenDTO signDocumentDTO, Class<T> returnClass) {
-        ASyncTaskDTO taskInfo = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.CONSENT_FOR_TOKEN_URL, signDocumentDTO, ASyncTaskDTO.class);
+    private static final Integer HTTP_ONGOING = ACCEPTED.value();
+
+    protected <T> T signSocumentAndWaitForResult(SignDocumentForTokenDTO signDocumentDTO, Class<T> returnClass) {
+        ASyncTaskDTO taskInfo = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.SIGN_DOCUMENT_FOR_TOKEN_URL, signDocumentDTO, ASyncTaskDTO.class);
         assertNotNull(taskInfo);
 
         Object result = null;
         int count = 100;
         do {
             result = this.restTemplate.getForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TASK_RESULT_URL + "/" + taskInfo.getUuid(), Object.class);
+            if (result == null) return null;
             if (result instanceof Map) {
-                Object isDone = ((Map)result).get("done");
-                if (isDone == null || (Boolean)isDone) break;
+                Integer status = (Integer)((Map)result).get("status");
+                if (!HTTP_ONGOING.equals(status)) break;
             }
             try {
                 Thread.sleep(100);
