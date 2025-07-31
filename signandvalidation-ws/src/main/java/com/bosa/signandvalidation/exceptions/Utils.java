@@ -87,7 +87,7 @@ public class Utils {
     public static void checkAndRecordMDCToken(String tokenId) {
         if (tokenId != null) {
             int offset = tokenId.length();
-            if (offset >= 20) throw new InvalidParameterException("Invalid Token Value");
+            if (offset >= 24) throw new InvalidParameterException("Invalid Token Value");
 
             while(offset != 0) {
                 char C = tokenId.charAt(--offset);
