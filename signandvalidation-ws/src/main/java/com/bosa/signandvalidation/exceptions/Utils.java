@@ -66,14 +66,10 @@ public class Utils {
         int nbEntries = e == null ? 20 : 10;
         StringBuilder sb = new StringBuilder(logMesg);
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        boolean first = true;
         for (StackTraceElement el : stackTrace) {
-            if (first) { // Skip the 1st element = the 'getStackTrace()' call
-                first = false;
-                continue;
-            }
-            if (--nbEntries == 0 || el.getClassName().contains("springframework"))
-                break; // we're not interested in the Spring calls, and higher
+            String classInStack = el.getClassName();
+            if (classInStack.contains("logAndThrowEx") || classInStack.contains("springframework")) continue;
+            if (--nbEntries == 0) break;
             sb.append("\n  ").append(el.toString());
         }
         logMesg = sb.toString();
