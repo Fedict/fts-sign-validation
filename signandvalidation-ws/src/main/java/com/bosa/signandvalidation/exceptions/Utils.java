@@ -67,9 +67,9 @@ public class Utils {
         StringBuilder sb = new StringBuilder(logMesg);
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         for (StackTraceElement el : stackTrace) {
-            String classInStack = el.getClassName();
-            if (classInStack.contains("logAndThrowEx") || classInStack.contains("springframework")) continue;
-            if (--nbEntries == 0) break;
+            String method = el.getMethodName();
+            if (method.equals("logAndThrowEx") || method.equals("getStackTrace")) continue;
+            if (--nbEntries == 0 || el.getClassName().contains("springframework")) break;
             sb.append("\n  ").append(el.toString());
         }
         logMesg = sb.toString();
