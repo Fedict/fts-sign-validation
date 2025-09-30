@@ -58,8 +58,17 @@ public interface ErrorStrings {
 	/** Error while accessing the storage (S3 / MINIO) service  */
 	String STORAGE_ERROR = "STORAGE_ERROR";
 
-	/** Generated errors  */
-	String ERROR_SUFFIX = "_ERROR";
+    // Timestamping Service Error
+    String TIMESTAMP_ERROR = "TIMESTAMP_ERROR";
+
+    // OCSP Check Service Error
+    String OCSP_ERROR = "OCSP_ERROR";
+
+    // AIA Certificate loading Service Error
+    String CERT_VERIFICATION_ERROR = "CERT_VERIFICATION_ERROR";
+
+    // Multiple services calls failed (TS/OCSP/AIA/...)
+    String MULTIPLE_SERVICE_ERROR = "MULTIPLE_SERVICE_ERROR";
 
 	// API (getToken...) errors
 	/** Returned by the GetToken calls when input is invalid **/
