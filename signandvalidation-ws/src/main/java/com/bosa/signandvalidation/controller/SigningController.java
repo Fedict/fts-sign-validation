@@ -32,25 +32,25 @@ import static org.springframework.http.MediaType.*;
 public class SigningController extends ControllerBase implements ErrorStrings {
 
     // Service URL
-    public static final String ENDPOINT_URL                     = "/signing";
+    public static final String ENDPOINT_URL                         = "/signing";
 
-    public static final String LOGGING_URL                      = "/log";
-    public static final String PING_URL                         = "/ping";
-    public static final String ERROR_URL                        = "/error";
-    public static final String VERSION_URL                      = "/versions";
+    public static final String LOGGING_URL                          = "/log";
+    public static final String PING_URL                             = "/ping";
+    public static final String ERROR_URL                            = "/error";
+    public static final String VERSION_URL                          = "/versions";
 
     // Token operations
-    public static final String GET_TASK_RESULT_URL              = "/getTaskResult";
-    public static final String GET_TOKEN_FOR_DOCUMENT_URL       = "/getTokenForDocument";
-    public static final String GET_TOKEN_FOR_DOCUMENTS_URL      = "/getTokenForDocuments";
-    public static final String GET_DATA_TO_SIGN_FOR_TOKEN_URL   = "/getDataToSignForToken";
-    public static final String GET_CONSENT_FOR_TOKEN_URL        = "/getConsentDataForToken";
-    public static final String GET_METADATA_FOR_TOKEN_URL       = "/getMetadataForToken";
-    public static final String GET_FILE_FOR_TOKEN_URL           = "/getFileForToken";
-    public static final String SIGN_DOCUMENT_FOR_TOKEN_URL      = "/signDocumentForToken";
-    public static final String CONSENT_FOR_TOKEN_URL            = "/consentForToken";
+    public static final String GET_TOKEN_FOR_DOCUMENT_URL           = "/getTokenForDocument";
+    public static final String GET_TOKEN_FOR_DOCUMENTS_URL          = "/getTokenForDocuments";
+    public static final String GET_DATA_TO_SIGN_FOR_TOKEN_URL       = "/getDataToSignForToken";
+    public static final String GET_CONSENT_FOR_TOKEN_URL            = "/getConsentDataForToken";
+    public static final String GET_METADATA_FOR_TOKEN_URL           = "/getMetadataForToken";
+    public static final String GET_FILE_FOR_TOKEN_URL               = "/getFileForToken";
+    public static final String SIGN_DOCUMENT_FOR_TOKEN_URL          = "/signDocumentForToken";
+    public static final String CONSENT_FOR_TOKEN_URL                = "/consentForToken";
 
     // standard operations
+    public static final String GET_TASK_RESULT_URL                  = "/getTaskResult";
     public static final String GET_DATA_TO_SIGN_URL                 = "/getDataToSign";
     public static final String GET_DATA_TO_SIGN_MULTIPLE_URL        = "/getDataToSignMultiple";
     public static final String SIGN_DOCUMENT_URL                    = "/signDocument";

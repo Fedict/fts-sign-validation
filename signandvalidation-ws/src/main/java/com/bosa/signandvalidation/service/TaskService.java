@@ -58,10 +58,9 @@ public class TaskService {
         try {
             for(Map.Entry<UUID, TaskInfo> entry : runningTasks.entrySet()) {
                 TaskInfo ti = entry.getValue();
-                // Cancel expired tasks
+                // Cancel expired tasks DOES NOT WORK because DSS is not interruptible
                 if (ti.getDeathDate().before(now)) {
-                    logger.warning("TASK Canceling : " + entry.getKey() + " - " + ti.getToken());
-                    ti.getFuture().cancel(true) ;
+                    logger.warning("Clearing orphaned TASK : " + entry.getKey() + " - " + ti.getToken());
                     runningTasks.remove(entry.getKey());
                 }
             }
