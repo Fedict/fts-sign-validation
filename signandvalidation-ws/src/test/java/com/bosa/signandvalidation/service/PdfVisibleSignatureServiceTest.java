@@ -148,9 +148,9 @@ public class PdfVisibleSignatureServiceTest {
         if (differentPixelsCount == 0) return;
 
         if (differentPixelsCount < 0) {
-            System.out.printf("Image sizes mismatch: actual : %d x %d - expected : %d x %d%n",
+            System.out.printf("Image sizes mismatch: actual : %d x %d - expected : %d x %d\n",
                     actualImage.getWidth(), actualImage.getHeight(), expectedImage.getWidth(), expectedImage.getHeight());
-        } else System.out.printf("differentPixelsCount : %d", differentPixelsCount);
+        } else System.out.printf("differentPixelsCount : %d\n", differentPixelsCount);
 
         // In case of image size or pixel mismatch, save actual image for quicker analysis
         imageFile = new File(imageFile.getParent(), expectedFileName + "_ACTUAL.png");
