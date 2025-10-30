@@ -74,9 +74,14 @@ public class PdfVisibleSignatureServiceTest {
         if (isWindows) return;
 
         newFilesZip.close();
+
+        byte[] bytes = newFilesBytes.toByteArray();
+        if (bytes.length < 80) return;
+
         Logger logger = Logger.getLogger(PdfVisibleSignatureServiceTest.class.getName());
         logger.severe("Listing Base 64 Zip file of all new PDF signature Images");
-        logger.severe(Base64.encode(newFilesBytes.toByteArray()));
+        logger.severe(Base64.encode(bytes));
+        fail("Some Signature renderings failed. Please update the unit test data");
     }
 
     @Test
