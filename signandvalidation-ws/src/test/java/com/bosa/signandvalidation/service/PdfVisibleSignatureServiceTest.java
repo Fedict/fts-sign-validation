@@ -154,7 +154,14 @@ public class PdfVisibleSignatureServiceTest {
         // In case of image size or pixel mismatch, save actual image for quicker analysis
         imageFile = new File(imageFile.getParent(), expectedFileName + "_ACTUAL.png");
 
-        new InMemoryDocument(actualBytes).save(imageFile.getPath());
+        if (!isWindows) {
+            // A file is changed on Gitlab - we need the file as generated on the server
+            newFilesZip.putNextEntry(new ZipEntry(imageFile.getName()));
+            Utils.copy(new ByteArrayInputStream((actualBytes)), newFilesZip);
+            return;
+        } else {
+            new InMemoryDocument(actualBytes).save(imageFile.getPath());
+        }
 
         if (differentPixelsCount < 0) {
             fail(String.format("Image sizes mismatch: actual : %d x %d - expected : %d x %d\nActual Image is here : %s",
