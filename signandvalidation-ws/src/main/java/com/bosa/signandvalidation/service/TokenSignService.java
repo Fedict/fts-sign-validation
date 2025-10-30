@@ -104,9 +104,6 @@ public class TokenSignService extends SignCommonService {
     @Value("${signing.time}")
     private Long signingTime;
 
-    @Value("${remote.sign.url}")
-    private String remoteSignUrl;
-
     private final SecureRandom secureRandom = new SecureRandom();
 
     //*****************************************************************************************
@@ -648,15 +645,13 @@ public class TokenSignService extends SignCommonService {
             logger.info("Entering getConsentDataForToken()");
 
             TokenObject token = getTokenFromId(tokenId);
-            SignatureInfo info = getRestTemplate().postForObject(remoteSignUrl + "/rsign/getSignatureInfo", new Authentication(req.getAuthSessionId()), SignatureInfo.class);
-
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
             Date signingDate = signingTime == null ? new Date() : new Date(signingTime);
             clientSigParams.setSigningDate(signingDate);
-            clientSigParams.setSigningCertificate(new RemoteCertificate(info.getSigningCertificate()));
+            clientSigParams.setSigningCertificate(new RemoteCertificate(req.getSigningCertificate()));
             List<RemoteCertificate> certChain = new ArrayList<>();
             clientSigParams.setCertificateChain(certChain);
-            for(byte[] cert : info.getCertificateChain()) certChain.add(new RemoteCertificate(cert));
+            for(byte[] cert : req.getCertificateChain()) certChain.add(new RemoteCertificate(cert));
             VisiblePdfSignatureParameters pdfParams = new VisiblePdfSignatureParameters();
             clientSigParams.setPdfSigParams(pdfParams);
 
@@ -668,7 +663,7 @@ public class TokenSignService extends SignCommonService {
             List<FileToConsent> hashesToConsent = new ArrayList<>();
 
             SigningType sigType = token.getSigningType();
-            int maxSignatures = info.getMaxSignatures();
+            int maxSignatures = req.getMaxSignatures();
             for(InputToBeSigned itbs : req.getInputsToSign()) {
                 int index = itbs.getIndex();
                 TokenSignInput inputToSign = token.getInputs().get(index);
@@ -721,16 +716,9 @@ public class TokenSignService extends SignCommonService {
                 if (--maxSignatures == 0 || !sigType.equals(Standard)) break;
             }
 
-            InputDataToConsent idtc = new InputDataToConsent(tokenId, req.getAuthSessionId(), digestAlgorithm.getOid(), hashesToSign);
-            DataToConsent dtc = getRestTemplate().postForObject(remoteSignUrl + "/rsign/getDataToConsent", idtc, DataToConsent.class);
-
-            HashForSignatureConsentDTO ret = new HashForSignatureConsentDTO(
-                    dtc.getConsentSessionId(), hashesToConsent, dtc.getEid(), dtc.getWallet(), signingDate,
-                    clientSigParams.getSigningCertificate(), clientSigParams.getCertificateChain());
-
             logger.info("Returning from getConsentDataForToken()");
 
-            return ret;
+            return new HashForSignatureConsentDTO(hashesToConsent, signingDate, digestAlgorithm.getOid());
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch (ProfileNotFoundException e) {
@@ -1043,9 +1031,6 @@ public class TokenSignService extends SignCommonService {
 
             TokenObject token = getTokenFromId(req.getToken());
 
-            ConsentedData cd = new ConsentedData(req.getConsentSessionId(), req.getEid(), req.getWallet());
-            SignedHashes sh = getRestTemplate().postForObject(remoteSignUrl + "/rsign/consentAndSignHashes", cd, SignedHashes.class);
-
             SigningType sigType = token.getSigningType();
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
             clientSigParams.setSigningDate(req.getSigningDate());
@@ -1085,7 +1070,7 @@ public class TokenSignService extends SignCommonService {
                 setOverrideRevocationStrategy(signProfile);
                 RemoteSignatureParameters parameters = signingConfigService.getSignatureParams(signProfile, clientSigParams);
                 checkCertificates(parameters);
-                SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, sh.getSignatures().get(signedHashIndex++));
+                SignatureValueDTO signatureValueDto = getSignatureValueDTO(parameters, req.getSignatures().get(signedHashIndex++));
 
                 RemoteDocument signedDoc;
                 RemoteDocument fileToSign;
