@@ -130,16 +130,15 @@ public class PdfVisibleSignatureServiceTest {
 
         System.out.println("Expected image file : " + imageFile.getPath());
 
-        // On CI/CD the platform differences create different images, in order to get a copy of them we print the B64
-        // If expected image not yet generated, create it in the resource folder or print it in a stream that will be logged (On servers)
         if (!imageFile.exists()) {
             if (!isWindows) {
+                // On CI/CD the platform differences create different images, in order to get a copy of them we print the B64
+                // If expected image not yet generated, create it in the resource folder or print it in a stream that will be logged (On servers)
+
                 newFilesZip.putNextEntry(new ZipEntry(imageFile.getName()));
                 Utils.copy(new ByteArrayInputStream((actualBytes)), newFilesZip);
-                return;
-            } else {
-                new InMemoryDocument(actualBytes).save(imageFile.getPath());
-            }
+            } else new InMemoryDocument(actualBytes).save(imageFile.getPath());
+            return;
         }
 
         BufferedImage expectedImage = ImageIO.read(imageFile);
@@ -148,8 +147,10 @@ public class PdfVisibleSignatureServiceTest {
         int differentPixelsCount = countMismatchedPixels(actualImage, expectedImage);
         if (differentPixelsCount == 0) return;
 
-        //System.out.println("File to update : " + imageFile.getPath());
-        //System.out.println(java.util.Base64.getEncoder().encodeToString(actualBytes));
+        if (differentPixelsCount < 0) {
+            System.out.printf("Image sizes mismatch: actual : %d x %d - expected : %d x %d%n",
+                    actualImage.getWidth(), actualImage.getHeight(), expectedImage.getWidth(), expectedImage.getHeight());
+        } else System.out.printf("differentPixelsCount : %d", differentPixelsCount);
 
         // In case of image size or pixel mismatch, save actual image for quicker analysis
         imageFile = new File(imageFile.getParent(), expectedFileName + "_ACTUAL.png");
@@ -163,10 +164,7 @@ public class PdfVisibleSignatureServiceTest {
             new InMemoryDocument(actualBytes).save(imageFile.getPath());
         }
 
-        if (differentPixelsCount < 0) {
-            fail(String.format("Image sizes mismatch: actual : %d x %d - expected : %d x %d\nActual Image is here : %s",
-                    actualImage.getWidth(), actualImage.getHeight(), expectedImage.getWidth(), expectedImage.getHeight(), imageFile.getPath()));
-        }
+        if (differentPixelsCount < 0) fail("Image sizes mismatch");
 
         // In case of pixel mismatch, save red painted image for quicker analysis
         imageFile = new File(imageFile.getParent(), expectedFileName + "_INV_PIXELS.png");
