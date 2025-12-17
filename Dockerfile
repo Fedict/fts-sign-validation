@@ -1,4 +1,4 @@
-FROM tomcat:10.0
+FROM tomcat:10.1-jdk21-temurin
 USER root
 
 COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
