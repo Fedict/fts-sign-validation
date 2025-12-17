@@ -4,7 +4,6 @@ USER root
 # Get the latest Root SSL certs
 RUN apt-get update && \
     apt-get upgrade -y ca-certificates && \
-    apt-get install -y ca-certificates-java && \
     update-ca-certificates
 
 #RUN apk update && apk add ca-certificates && update-ca-certificates
