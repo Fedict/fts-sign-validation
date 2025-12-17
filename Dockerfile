@@ -2,7 +2,7 @@ FROM tomcat:10
 USER root
 
   # Get the latest Root SSL certs
-RUN apk update && apk add ca-certificates && update-ca-certificates
+#RUN apk update && apk add ca-certificates && update-ca-certificates
 
 COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
 
