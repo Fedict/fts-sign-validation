@@ -1,5 +1,11 @@
-FROM tomcat:10.1-jdk21-temurin
+FROM tomcat:10.1-jre21-temurin
 USER root
+
+RUN apt-get update && \
+    apt-get upgrade -y ca-certificates && \
+    apt-get install -y ca-certificates-java && \  # Ensures Java keystore integration
+    update-ca-certificates \
+
 
 COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
 
