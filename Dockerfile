@@ -1,4 +1,4 @@
-FROM tomcat:10.1-jre21-temurin
+FROM tomcat:10
 USER root
 
   # Get the latest Root SSL certs
