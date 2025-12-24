@@ -3,7 +3,7 @@ USER root
 
 # Get the latest Root SSL certs
 # Dries told me to do this... Not the most secure IMHO
-RUN echo "Acquire::http::proxy http://iaa-fts-pr:CSO4qoHdtY2wPr3E@dc-proxy.names.belgium.be:3128;\nAcquire::https::proxy https://iaa-fts-pr:CSO4qoHdtY2wPr3E@dc-proxy.names.belgium.be:3128;\n" >/etc/apt/apt.conf
+RUN echo "Acquire::http::proxy \"http://iaa-fts-pr:CSO4qoHdtY2wPr3E@dc-proxy.names.belgium.be:3128\";\nAcquire::https::proxy \"https://iaa-fts-pr:CSO4qoHdtY2wPr3E@dc-proxy.names.belgium.be:3128\";\n" >/etc/apt/apt.conf
 RUN cat /etc/apt/apt.conf
 
 RUN apt-get update && \
