@@ -51,7 +51,7 @@ public class CheckTrusts {
             KeyStoreCertificateSource keystoreCrtSrc = new KeyStoreCertificateSource(keyStoreStream, "PKCS12", PASSWORD_CHARS);
 
             // If some certs in the folder are the same they will be removed from the keystore
-            assertEquals(4, keystoreCrtSrc.getCertificates().size());
+            assertEquals(5, keystoreCrtSrc.getCertificates().size());
 
         } catch (CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
