@@ -1,0 +1,9 @@
+{
+  "profileId": "PADES_LTA_ZETES_TEST",
+  "digestAlgorithm": "SHA256",
+  "signatureLevel": "PAdES_BASELINE_LTA",
+  "signaturePackaging":"ENVELOPED",
+  "signatureForm": "PAdES",
+  "tspServer": "http://tss.eidpki.belgium.be/",
+  "extraTrustFilename": "ZetesSealingNonProd.crt"
+}

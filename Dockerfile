@@ -1,4 +1,4 @@
-FROM tomcat:10.0
+FROM tomcat:10
 USER root
 
 COPY ./catalina_wrapper.sh /usr/local/tomcat/bin
