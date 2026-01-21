@@ -726,7 +726,7 @@ public class TokenSignService extends SignCommonService {
         } catch (PdfVisibleSignatureService.PdfVisibleSignatureException e) {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(ProtectedDocumentException e) {
-            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
+            logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (AlertException e) {
             String message = e.getMessage();
             if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
@@ -894,7 +894,7 @@ public class TokenSignService extends SignCommonService {
         } catch (PdfVisibleSignatureService.PdfVisibleSignatureException e) {
             logAndThrowEx(BAD_REQUEST, ERR_PDF_SIG_FIELD, e.getMessage());
         } catch(ProtectedDocumentException e) {
-            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
+            logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (AlertException e) {
             String message = e.getMessage();
             if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {

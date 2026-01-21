@@ -75,7 +75,7 @@ public class SignService extends SignCommonService {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch(ProtectedDocumentException e) {
-            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
+            logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (AlertException e) {
             String message = e.getMessage();
             if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
@@ -129,7 +129,7 @@ public class SignService extends SignCommonService {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch(ProtectedDocumentException e) {
-            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
+            logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -395,7 +395,7 @@ public class SignService extends SignCommonService {
         } catch(NullParameterException e) {
             logAndThrowEx(BAD_REQUEST, EMPTY_PARAM, e.getMessage());
         } catch(ProtectedDocumentException e) {
-            logAndThrowEx(UNAUTHORIZED, NOT_ALLOWED_TO_SIGN, e.getMessage());
+            logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
