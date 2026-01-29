@@ -27,7 +27,7 @@ public class CertInfo {
     public String getField(Field field) {
         int idx = subjectName.indexOf(field.name() + "=");
         if (-1 == idx)
-            return "?";
+            return "";
         idx += field.name().length() + 1;
         int end = subjectName.indexOf(",", idx);
         return -1 == end ? subjectName.substring(idx) : subjectName.substring(idx, end);
