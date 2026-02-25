@@ -1,9 +1,9 @@
 package com.bosa.signandvalidation.service;
 
-import org.apache.tomcat.util.http.fileupload.impl.SizeException;
 import org.springframework.core.io.ClassPathResource;
 
 import java.awt.*;
+import java.awt.image.BufferedImageOp;
 import java.io.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
@@ -27,15 +27,23 @@ public class PdfImageBuilder {
 	public static final int VALIGN_MIDDLE = 2;
 	public static final int VALIGN_BOTTOM = 3;
 
-	private static final String[] SIGNATURE_FONTS = { "freescpt", "freescpt", "basic"};
-	private static final int[] SIGNATURE_FONT_SIZES = { 10, 20, 20 };
-	private static final int[] LINE_SPACES = { 10, 5, 0 };
-	private static final int PADDING_HOR = 10;
-	private static final int PADDING_VER = 10;
+	private static final int PADDING_HOR = 42;
+	private static final int[] LINE_HEIGHTS = { 75, 152, 211 };
+	private static final String SIGNATURE_FONT = "Roboto";
+	private static final int[] SIGNATURE_FONT_SIZES = { 16, 58, 58 };
 
-	private static final Color REMOTESIGN_TEXT_COLOR = new Color(200, 0x2B, 0x3E, 255);
+	private static final Color REMOTESIGN_TEXT_COLOR = new Color(0, 0x2B, 0x3E, 255);
 
 	private static BufferedImage remoteSignImg;
+	private static File fontDir;
+
+	private static File getFontDir() {
+		if (fontDir == null) {
+			fontDir = new File("/opt/signvalidation/fonts/");
+			if (!fontDir.exists()) fontDir = new File("../fonts/");
+		}
+		return fontDir;
+	}
 
 	public static byte[] makeRemoteSignPdfImage(int targetX, int targetY, String text) throws Exception {
 		if (remoteSignImg == null) {
@@ -43,66 +51,53 @@ public class PdfImageBuilder {
 			remoteSignImg = ImageIO.read(is);
 		}
 
-		// Create the resulting PDF image
-		BufferedImage ret =  new BufferedImage(targetX, targetY, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D graphs = (Graphics2D) ret.getGraphics();
+		// Create internal bitmap for rendering
+		int imgX = remoteSignImg.getWidth();
+		int imgY = remoteSignImg.getHeight();
+		BufferedImage temp =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g2d = (Graphics2D) temp.getGraphics();
 
 		/* Render background as transparent */
-		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
-		graphs.setComposite(comp);
-		graphs.drawImage(remoteSignImg, 0, 0, targetX, targetY, null);
+		g2d.drawImage(remoteSignImg, 0, 0, imgX, imgY, null);
 
 		// Calculate best sizes for fonts
-		int i = 0;
-		char[][] charLines = new char[3][];
-		for (String line : text.split("\n")) charLines[i++] = line.toCharArray();
-
-		int scale = 100;
-		int[] lineHeights = new int[3];
-		int[] minFontSizes = new int[3];
-		while(true) {
-			int index = 0;
-			int vertDrawSize = (PADDING_VER * 2 * 100) / scale;
-			for (char[] charLine : charLines) {
-				int minFontSize = SIGNATURE_FONT_SIZES[index];
-				int lineWidth;
-				int lineHeight;
-
-				// Calc min font size to fit the signature box for this line
-				while(true) {
-					graphs.setFont(getFont(SIGNATURE_FONTS[index], minFontSize));
-					FontMetrics metrics = graphs.getFontMetrics();
-					lineWidth = metrics.charsWidth(charLine, 0, charLine.length);
-					if (lineWidth < targetY - (PADDING_HOR * 2 * 100) / scale) {
-						lineHeight = metrics.getHeight();
-						break;
-					}
-					minFontSize--;
-					if (minFontSize == 0) throw new SizeLimitExceededException("Font size exceeded");
-				}
-				vertDrawSize += lineHeight + (LINE_SPACES[index] * 100) / scale;
-				minFontSizes[index] = minFontSize;
-				lineHeights[index] = lineHeight;
-				index++;
-			}
-			if (vertDrawSize <= targetY) break;
-			scale = (scale * 100) / 80;
-			if (scale < 20) throw new SizeLimitExceededException("No room to display signature");
-		}
-
 		int index = 0;
-		graphs.setColor(REMOTESIGN_TEXT_COLOR);
-		int lineY = (PADDING_VER * 100) / scale;
-		for (char[] charLine : charLines) {
-			graphs.setFont(getFont(SIGNATURE_FONTS[index], minFontSizes[index]));
-			graphs.drawChars(charLine, 0, charLine.length, (PADDING_HOR * 100) / scale, lineY);
-			lineY += lineHeights[index] + (LINE_SPACES[index] * 100) / scale;
+		int[] lineHeights = new int[3];
+		g2d.setColor(REMOTESIGN_TEXT_COLOR);
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		for (String line : text.split("\n")) {
+			char [] charLine = line.toCharArray();
+			int minFontSize = SIGNATURE_FONT_SIZES[index];
+			int lineWidth;
+
+			// Calc min font size to fit the signature box for this line
+			while(true) {
+				g2d.setFont(getFont(SIGNATURE_FONT, minFontSize));
+				FontMetrics metrics = g2d.getFontMetrics();
+				lineWidth = metrics.charsWidth(charLine, 0, charLine.length);
+				if (lineHeights[index] == 0) lineHeights[index] = metrics.getHeight();
+				if (lineWidth < imgX - (PADDING_HOR * 2)) {
+					g2d.drawChars(charLine, 0, charLine.length, PADDING_HOR, LINE_HEIGHTS[index]);
+					break;
+				}
+				minFontSize--;
+				if (minFontSize == 0) throw new SizeLimitExceededException("Font size impossible");
+			}
 			index++;
 		}
+		g2d.dispose();
+
+		// Create the resulting PDF image
+		BufferedImage ret =  new BufferedImage(targetX, targetY, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2dRet = (Graphics2D) ret.getGraphics();
+		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
+		g2dRet.setComposite(comp);
+		g2dRet.drawImage(temp, 0, 0, targetX, targetY, Color.WHITE, null);
 
 		// Convert to a byte array contain a PNG image
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ImageIO.write(ret, "png", baos);
+		g2dRet.dispose();
 		return baos.toByteArray();
 	}
 
@@ -388,7 +383,7 @@ public class PdfImageBuilder {
 		if (fontName.equals("default"))
 			return new Font(null, fontType, fontSize);
 		else {
-			File fontFile = new File("/opt/signvalidation/fonts/" + fontName + ".ttf");
+			File fontFile = new File(getFontDir(), fontName + ".ttf");
 			if (fontFile.exists()) {
 				Font baseFont = Font.createFont(Font.TRUETYPE_FONT, fontFile);
 				return baseFont.deriveFont(fontType, fontSize);

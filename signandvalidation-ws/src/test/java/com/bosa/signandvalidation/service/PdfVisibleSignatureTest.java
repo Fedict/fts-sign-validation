@@ -6,9 +6,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -78,10 +75,16 @@ public class PdfVisibleSignatureTest {
 
         File testFolder = new File(RESOURCE_PATH, "VisibleSignatures");
 
-        byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(200, 150, "Jun 10 2021 10 h 30 UTC\nVerylongFirstNamePerson\nVerylongLastNamePerson");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "image.png");
+        byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(496, 264, "Signed the 24th of June 2024 by\nSimon\nVanleeuw");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "simon");
 
-        BufferedImage actualImage = ImageIO.read(new ByteArrayInputStream(rawPngImage));
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(248, 132, "Signed the 24th of June 2024 by\nSimon\nVanleeuw");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "simon small");
 
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(248, 132, "Signed the 10th of June 2024 at 10h30 UTC\nVerylongFirstNamePerson\nVerylongLastNamePerson");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "image");
+
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(620, 330, "Signed the 10th of June 2024 at 10h30 UTC with a crazy length\nVerylongFirstNamePerson with a crazy length\nVerylongLastNamePerson with a crazy length");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "extreme");
     }
 }
