@@ -9,10 +9,12 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
+import static com.bosa.signandvalidation.service.PdfVisibleSignatureServiceTest.RESOURCE_PATH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -74,8 +76,10 @@ public class PdfVisibleSignatureTest {
     @Test
     public void testRemoteSignSignature() throws Exception {
 
+        File testFolder = new File(RESOURCE_PATH, "VisibleSignatures");
+
         byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(200, 150, "Jun 10 2021 10 h 30 UTC\nVerylongFirstNamePerson\nVerylongLastNamePerson");
-        PdfVisibleSignatureServiceTest.compareImages(rawPngImage, "image.png");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "image.png");
 
         BufferedImage actualImage = ImageIO.read(new ByteArrayInputStream(rawPngImage));
 

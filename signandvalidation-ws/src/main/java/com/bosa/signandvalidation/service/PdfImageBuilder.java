@@ -32,7 +32,8 @@ public class PdfImageBuilder {
 	private static final int[] LINE_SPACES = { 10, 5, 0 };
 	private static final int PADDING_HOR = 10;
 	private static final int PADDING_VER = 10;
-	private static final Color REMOTESIGN_TEXT_COLOR = new Color(200, 200, 200, 255);
+
+	private static final Color REMOTESIGN_TEXT_COLOR = new Color(200, 0x2B, 0x3E, 255);
 
 	private static BufferedImage remoteSignImg;
 

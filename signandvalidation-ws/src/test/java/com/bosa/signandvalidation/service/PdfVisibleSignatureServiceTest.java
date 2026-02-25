@@ -44,12 +44,9 @@ public class PdfVisibleSignatureServiceTest {
     private StorageService storageService;
 
     private static final RemoteCertificate cert = CertInfoTest.getTomTestCertificate();
-    static final String RESOURCE_PATH = "src/test/resources/";
-    public static final File resourcesFile = new File(RESOURCE_PATH);
-    public static final File pdfFile = new File(RESOURCE_PATH, "sample.pdf");
+    public static final String RESOURCE_PATH = "src/test/resources/";
     public static final File pspTestFolder = new File(RESOURCE_PATH, "testPSPs");
-    private static final File pspImagesFolder = new File(RESOURCE_PATH, "PSPImages");
-    private static final File pspImagesFolderWindows = new File(pspImagesFolder, "Windows");
+    public static final File pspImagesFolder = new File(RESOURCE_PATH, "PSPImages");
     private static byte photoBytes[];
 
     @BeforeAll
@@ -105,7 +102,7 @@ public class PdfVisibleSignatureServiceTest {
                 clientSigParams.setPdfSigParams(pdfParams);
                 new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
 
-                compareImages(params.getImageParameters().getImage().getBytes(), fileNameNoExt);
+                compareImages(pspImagesFolder, params.getImageParameters().getImage().getBytes(), fileNameNoExt);
             }
         }
     }
@@ -122,14 +119,14 @@ public class PdfVisibleSignatureServiceTest {
         clientSigParams.setPdfSigParams(pdfParams);
         new PdfVisibleSignatureService(storageService).prepareVisibleSignature(params, 0, 0, clientSigParams);
 
-        compareImages(params.getImageParameters().getImage().getBytes(), "noPSP1");
+        compareImages(pspImagesFolder, params.getImageParameters().getImage().getBytes(), "noPSP1");
     }
 
-    public static void compareImages(byte[] actualBytes, String expectedFileName) throws IOException {
+    public static void compareImages(File imagesFolder, byte[] actualBytes, String expectedFileName) throws IOException {
 
-        File imageFile = new File(pspImagesFolder, expectedFileName + ".png");
+        File imageFile = new File(imagesFolder, expectedFileName + ".png");
         if (isWindows) {
-            File windowsImageFile = new File(pspImagesFolderWindows, imageFile.getName());
+            File windowsImageFile = new File(new File(imagesFolder, "Windows"), imageFile.getName());
             if (windowsImageFile.exists()) imageFile = windowsImageFile;
         }
 
