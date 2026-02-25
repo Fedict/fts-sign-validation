@@ -200,7 +200,7 @@ public static PDRectangle checkVisibleSignatureParameters(String psfC, String ps
     checkPsfC(pdfDoc, psfC);
 
     if (psp != null) {
-        if (psp.version != null && (psp.version == 1 || psp.version == 2)) {
+        if (psp.version == null || psp.version == 1 || psp.version == 2) {
             // Check if all date formats are accepted
             Date now = new Date();
             for(String text : psp.texts.values()) PdfVisibleSignatureService.injectDate(text, now, "en");
