@@ -38,7 +38,6 @@ public class PdfVisibleSignatureServiceTest {
     private static final boolean isWindows = System.getProperty("os.name").startsWith("Windows");
     private static ByteArrayOutputStream newFilesBytes;
     private static ZipOutputStream newFilesZip;
-    private static final String THE_BUCKET = "THE_BUCKET";
 
     @Mock
     private StorageService storageService;
