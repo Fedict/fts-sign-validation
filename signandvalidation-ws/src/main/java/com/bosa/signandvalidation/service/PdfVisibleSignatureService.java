@@ -133,10 +133,10 @@ public class PdfVisibleSignatureService {
         RemoteSignatureImageParameters sigImgParams = new RemoteSignatureImageParameters();
         remoteSigParams.setImageParameters(sigImgParams);
         sigImgParams.setFieldParameters(fieldParams);
-        if (psp.version == 1) {
-                fillParamsForV1AndV3(sigImgParams, psp, text, image);
+        if (psp.version == 2) {
+            fillParamsForV2(sigImgParams, fieldParams, psp, text, image);
         } else {
-                fillParamsForV2(sigImgParams, fieldParams, psp, text, image);
+            fillParamsForV1AndV3(sigImgParams, psp, text, image);
         }
     }
 
@@ -144,7 +144,7 @@ public class PdfVisibleSignatureService {
 
     private void makePspDefaults(PdfSignatureProfile psp) {
         if (psp.version == null) psp.version = 1;
-        else if (psp.version > 2) {
+        else if (psp.version == 3) {
             psp.texts = REMOTE_SIGN_TEXTS;
             return;
         }
