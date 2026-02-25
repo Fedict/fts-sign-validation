@@ -200,19 +200,19 @@ public static PDRectangle checkVisibleSignatureParameters(String psfC, String ps
     checkPsfC(pdfDoc, psfC);
 
     if (psp != null) {
-        // Check if all date formats are accepted
-        Date now = new Date();
-        for(String text : psp.texts.values()) PdfVisibleSignatureService.injectDate(text, now, "en");
+        if (psp.version != null && (psp.version == 1 || psp.version == 2)) {
+            // Check if all date formats are accepted
+            Date now = new Date();
+            for(String text : psp.texts.values()) PdfVisibleSignatureService.injectDate(text, now, "en");
 
-        checkPspColor(psp.bgColor, "bgColor");
-        if (psp.font != null && !pspFontPattern.matcher(psp.font).matches()) {
-            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP font '" + psp.font + "' does not match Regex (" + pspFontPattern.pattern() + ")" , null);
+            checkPspColor(psp.bgColor, "bgColor");
+            if (psp.font != null && !pspFontPattern.matcher(psp.font).matches()) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP font '" + psp.font + "' does not match Regex (" + pspFontPattern.pattern() + ")" , null);
+            }
+            checkPspColor(psp.textColor, "textColor");
+            checkPspColor(psp.bodyBgColor, "bodyBgColor");
         }
-        checkPspColor(psp.textColor, "textColor");
-        if (psp.version != null && psp.version != 1 && psp.version != 2) {
-            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP version invalid : " + psp.version, null);
-        }
-        checkPspColor(psp.bodyBgColor, "bodyBgColor");
+        else if (psp.version != 3) logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP version invalid : " + psp.version, null);
     }
 
     return null;
