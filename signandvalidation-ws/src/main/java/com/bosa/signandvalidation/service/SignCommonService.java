@@ -209,7 +209,7 @@ public static PDRectangle checkVisibleSignatureParameters(String psfC, String ps
             logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP font '" + psp.font + "' does not match Regex (" + pspFontPattern.pattern() + ")" , null);
         }
         checkPspColor(psp.textColor, "textColor");
-        if (psp.version != null && psp.version != 1 && psp.version != 2) {
+        if (psp.version != null && (psp.version < 1 || psp.version > 3)) {
             logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP version invalid : " + psp.version, null);
         }
         checkPspColor(psp.bodyBgColor, "bodyBgColor");

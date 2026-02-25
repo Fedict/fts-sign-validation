@@ -1,13 +1,13 @@
 package com.bosa.signandvalidation.service;
 
+import org.apache.tomcat.util.http.fileupload.impl.SizeException;
+import org.springframework.core.io.ClassPathResource;
+
 import java.awt.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
+import javax.naming.SizeLimitExceededException;
 
 /**
  * Creates a PDF visible signature image based on a text and optionally an image (photo, icon, ...)
@@ -26,6 +26,84 @@ public class PdfImageBuilder {
 	public static final int VALIGN_TOP =    1;
 	public static final int VALIGN_MIDDLE = 2;
 	public static final int VALIGN_BOTTOM = 3;
+
+	private static final String[] SIGNATURE_FONTS = { "freescpt", "freescpt", "basic"};
+	private static final int[] SIGNATURE_FONT_SIZES = { 10, 20, 20 };
+	private static final int[] LINE_SPACES = { 10, 5, 0 };
+	private static final int PADDING_HOR = 10;
+	private static final int PADDING_VER = 10;
+	private static final Color REMOTESIGN_TEXT_COLOR = new Color(200, 200, 200, 255);
+
+	private static BufferedImage remoteSignImg;
+
+	public static byte[] makeRemoteSignPdfImage(int targetX, int targetY, String text) throws Exception {
+		if (remoteSignImg == null) {
+			InputStream is = new ClassPathResource("/remote_sign.png").getInputStream();
+			remoteSignImg = ImageIO.read(is);
+		}
+
+		// Create the resulting PDF image
+		BufferedImage ret =  new BufferedImage(targetX, targetY, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D graphs = (Graphics2D) ret.getGraphics();
+
+		/* Render background as transparent */
+		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
+		graphs.setComposite(comp);
+		graphs.drawImage(remoteSignImg, 0, 0, targetX, targetY, null);
+
+		// Calculate best sizes for fonts
+		int i = 0;
+		char[][] charLines = new char[3][];
+		for (String line : text.split("\n")) charLines[i++] = line.toCharArray();
+
+		int scale = 100;
+		int[] lineHeights = new int[3];
+		int[] minFontSizes = new int[3];
+		while(true) {
+			int index = 0;
+			int vertDrawSize = (PADDING_VER * 2 * 100) / scale;
+			for (char[] charLine : charLines) {
+				int minFontSize = SIGNATURE_FONT_SIZES[index];
+				int lineWidth;
+				int lineHeight;
+
+				// Calc min font size to fit the signature box for this line
+				while(true) {
+					graphs.setFont(getFont(SIGNATURE_FONTS[index], minFontSize));
+					FontMetrics metrics = graphs.getFontMetrics();
+					lineWidth = metrics.charsWidth(charLine, 0, charLine.length);
+					if (lineWidth < targetY - (PADDING_HOR * 2 * 100) / scale) {
+						lineHeight = metrics.getHeight();
+						break;
+					}
+					minFontSize--;
+					if (minFontSize == 0) throw new SizeLimitExceededException("Font size exceeded");
+				}
+				vertDrawSize += lineHeight + (LINE_SPACES[index] * 100) / scale;
+				minFontSizes[index] = minFontSize;
+				lineHeights[index] = lineHeight;
+				index++;
+			}
+			if (vertDrawSize <= targetY) break;
+			scale = (scale * 100) / 80;
+			if (scale < 20) throw new SizeLimitExceededException("No room to display signature");
+		}
+
+		int index = 0;
+		graphs.setColor(REMOTESIGN_TEXT_COLOR);
+		int lineY = (PADDING_VER * 100) / scale;
+		for (char[] charLine : charLines) {
+			graphs.setFont(getFont(SIGNATURE_FONTS[index], minFontSizes[index]));
+			graphs.drawChars(charLine, 0, charLine.length, (PADDING_HOR * 100) / scale, lineY);
+			lineY += lineHeights[index] + (LINE_SPACES[index] * 100) / scale;
+			index++;
+		}
+
+		// Convert to a byte array contain a PNG image
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(ret, "png", baos);
+		return baos.toByteArray();
+	}
 
 	public static byte[] makePdfImage(
 		int xPdfField, int yPdfField,

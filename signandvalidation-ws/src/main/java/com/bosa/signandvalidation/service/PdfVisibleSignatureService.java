@@ -39,6 +39,12 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 @RequiredArgsConstructor
 public class PdfVisibleSignatureService {
 
+    Map<String, String> REMOTE_SIGN_TEXTS = Map.of(
+            "fr", "Le %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "en", "On %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "de", "Am %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "nl", "Op %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%");
+
     public static final String FONTS_PATH_PROPERTY = "fonts.path";
     public static final String DEFAULT_STRING      = "default";
     private static final byte[] DEFAULT_BYTES       = DEFAULT_STRING.getBytes();
@@ -128,17 +134,21 @@ public class PdfVisibleSignatureService {
         remoteSigParams.setImageParameters(sigImgParams);
         sigImgParams.setFieldParameters(fieldParams);
         if (psp.version == 1) {
-            fillParamsForV1(sigImgParams, psp, text, image);
+                fillParamsForV1AndV3(sigImgParams, psp, text, image);
         } else {
-            fillParamsForV2(sigImgParams, fieldParams, psp, text, image);
+                fillParamsForV2(sigImgParams, fieldParams, psp, text, image);
         }
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
     private void makePspDefaults(PdfSignatureProfile psp) {
-
         if (psp.version == null) psp.version = 1;
+        else if (psp.version > 2) {
+            psp.texts = REMOTE_SIGN_TEXTS;
+            return;
+        }
+
         if (psp.bgColor == null) psp.bgColor = "#D0D0D0";   // light gray, same as IMAGE background color;
         if (psp.textSize == null) psp.textSize = 14;
         if (psp.textPadding == null) psp.textPadding = 20;
@@ -168,7 +178,7 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    static String makeText(HashMap<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
+    static String makeText(Map<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
         String text = DEFAULT_TEXT;
         if (texts != null && !texts.isEmpty()) {
             if (lang != null) {
@@ -258,24 +268,28 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    private void fillParamsForV1(RemoteSignatureImageParameters sigImgParams, PdfSignatureProfile psp, String text, byte[] image) throws NullParameterException {
+    private void fillParamsForV1AndV3(RemoteSignatureImageParameters sigImgParams, PdfSignatureProfile psp, String text, byte[] image) throws NullParameterException {
 
         RemoteSignatureFieldParameters fieldParams = sigImgParams.getFieldParameters();
         try {
             RemoteDocument imageDoc = new RemoteDocument();
             sigImgParams.setImage(imageDoc);
 
-            imageDoc.setBytes(PdfImageBuilder.makePdfImage(
-                    fieldParams.getWidth().intValue(), fieldParams.getHeight().intValue(),
-                    psp.bgColor,
-                    psp.textPadding,
-                    text,
-                    psp.textColor,
-                    getTextPos(psp.textPos),
-                    getHorizontalAlign(psp.textAlignH),
-                    getVerticalAlign(psp.textAlignV),
-                    getFont(psp.font, psp.textSize),
-                    image));
+            imageDoc.setBytes(psp.version > 2 ?
+                    PdfImageBuilder.makeRemoteSignPdfImage(
+                        fieldParams.getWidth().intValue(), fieldParams.getHeight().intValue(), text)
+                    :
+                    PdfImageBuilder.makePdfImage(
+                        fieldParams.getWidth().intValue(), fieldParams.getHeight().intValue(),
+                        psp.bgColor,
+                        psp.textPadding,
+                        text,
+                        psp.textColor,
+                        getTextPos(psp.textPos),
+                        getHorizontalAlign(psp.textAlignH),
+                        getVerticalAlign(psp.textAlignV),
+                        getFont(psp.font, psp.textSize),
+                        image));
         }
         catch (Exception e) {
             logger.log(Level.SEVERE, e.toString());

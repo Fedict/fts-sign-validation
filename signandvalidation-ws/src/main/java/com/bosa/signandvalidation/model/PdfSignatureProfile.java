@@ -3,8 +3,8 @@ package com.bosa.signandvalidation.model;
 import eu.europa.esig.dss.enumerations.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Contents of the PDF Signature Profile, a JSON file that is sent by the FPS to the S3 server */
 public class PdfSignatureProfile {
@@ -13,7 +13,7 @@ public class PdfSignatureProfile {
 	@Schema(example = "#D0D0D0", description = "If version=1 : background color of both the text and the signature, if version=2 : background color of the text" )
 	public String bgColor;
 	@Schema(example = "'fr'='Signé par %g', 'en'='Signed by %g'", description = "A map of language and Strings to draw" )
-	public HashMap<String, String> texts = new LinkedHashMap<>();
+	public Map<String, String> texts = new LinkedHashMap<>();
 	@Schema(example = "16", description = "Size of text to draw." )
 	public Integer textSize;
 	@Schema(example = "Serif/bi", description = "Font to use (format : <FontName>/<b><i>)" )

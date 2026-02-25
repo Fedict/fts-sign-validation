@@ -6,6 +6,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -66,5 +69,15 @@ public class PdfVisibleSignatureTest {
         texts.put("en", "%d(MMM d YYYY)% %d(yyyy.MMMMM.dd)%");
         text = PdfVisibleSignatureService.makeText(texts, null, signingDate, signingCert);
         assertEquals("Jun 10 2021 2021.June.10", text);
-   }
+    }
+
+    @Test
+    public void testRemoteSignSignature() throws Exception {
+
+        byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(200, 150, "Jun 10 2021 10 h 30 UTC\nVerylongFirstNamePerson\nVerylongLastNamePerson");
+        PdfVisibleSignatureServiceTest.compareImages(rawPngImage, "image.png");
+
+        BufferedImage actualImage = ImageIO.read(new ByteArrayInputStream(rawPngImage));
+
+    }
 }
