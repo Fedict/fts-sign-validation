@@ -19,7 +19,7 @@ public class CertInfoTest {
     @Test
     public void testGettersNOK() {
         CertInfo ci = new CertInfo(getOtherTestCertificate());
-        assertEquals("?", ci.getField(CertInfo.Field.givenName));
+        assertEquals("", ci.getField(CertInfo.Field.givenName));
     }
 
     @Test()
