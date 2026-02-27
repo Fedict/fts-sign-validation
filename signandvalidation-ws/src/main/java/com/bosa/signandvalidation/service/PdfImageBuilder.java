@@ -57,17 +57,18 @@ public class PdfImageBuilder {
         export const BLACK: SignatureColor = { back: "#0C0F1E", border: "#2A2C39", text: "#FFFFFF", circle: "#0C0F1E", logo: "#2A2C39" };
         export const GREEN: SignatureColor = { back: "#162B20", border: "#293E32", text: "#B5B5B5", circle: "#162D20", logo: "#293E32" };
         export const WHITE: SignatureColor = { back: "#FFFFFF", border: "#E0E5E7", text: "#002B3E", circle: "#FFFFFF", logo: "#E0E5E7" };
-	private static final Color BACKGROUND = Color.WHITE;
-	private static final Color BORDER = new Color(0xE0E5E7);
-	private static final Color TEXT = new Color(0x002B3E);
-	private static final Color CIRCLE = Color.WHITE;
-	private static final Color LOGO = new Color(0xE0E5E7);
-    */
+
 	private static final Color BACKGROUND = new Color(0x162B20);
 	private static final Color BORDER = new Color(0x293E32);
 	private static final Color TEXT = new Color(0xB5B5B5);
 	private static final Color CIRCLE = new Color(0x162D20);
 	private static final Color LOGO = new Color(0x293E32);
+    */
+	private static final Color BACKGROUND = Color.WHITE;
+	private static final Color BORDER = new Color(0xE0E5E7);
+	private static final Color TEXT = new Color(0x002B3E);
+	private static final Color CIRCLE = Color.WHITE;
+	private static final Color LOGO = new Color(0xE0E5E7);
 
 	public static byte[] makeRemoteSignPdfImage2(int imgX, int imgY, String mergedLines) throws Exception {
 		BufferedImage bufferedImage =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
