@@ -70,7 +70,7 @@ public class PdfImageBuilder {
 	private static final Color CIRCLE = Color.WHITE;
 	private static final Color LOGO = new Color(0xE0E5E7);
 
-	public static byte[] makeRemoteSignPdfImage2(int imgX, int imgY, String mergedLines) throws Exception {
+	public static byte[] makeRemoteSignPdfImage(int imgX, int imgY, String mergedLines) throws Exception {
 		BufferedImage bufferedImage =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = (Graphics2D) bufferedImage.getGraphics();
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -179,7 +179,7 @@ public class PdfImageBuilder {
 		return baos.toByteArray();
 	}
 
-	public static byte[] makeRemoteSignPdfImage(int targetX, int targetY, String text) throws Exception {
+	public static byte[] makeRemoteSignPdfImage2(int targetX, int targetY, String text) throws Exception {
 		if (remoteSignImg == null) {
 			InputStream is = new ClassPathResource("/remote_sign.png").getInputStream();
 			remoteSignImg = ImageIO.read(is);
