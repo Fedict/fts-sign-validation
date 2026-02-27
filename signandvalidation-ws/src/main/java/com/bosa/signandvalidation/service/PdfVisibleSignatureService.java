@@ -40,10 +40,10 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 public class PdfVisibleSignatureService {
 
     Map<String, String> REMOTE_SIGN_TEXTS = Map.of(
-            "fr", "Le %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
-            "en", "On %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
-            "de", "Am %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
-            "nl", "Op %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%");
+            "fr", "Date of signature\nLe %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "en", "Date of signature\nOn %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "de", "Date of signature\nAm %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "nl", "Date of signature\nOp %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%");
 
     public static final String FONTS_PATH_PROPERTY = "fonts.path";
     public static final String DEFAULT_STRING      = "default";
