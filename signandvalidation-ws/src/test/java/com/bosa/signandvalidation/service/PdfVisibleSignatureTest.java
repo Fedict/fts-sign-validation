@@ -76,15 +76,24 @@ public class PdfVisibleSignatureTest {
         File testFolder = new File(RESOURCE_PATH, "VisibleSignatures");
 
         byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(496, 264, "Date of signature\nThe 24th of June 2024 by\nSimon\nVanleeuw");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "simon");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "normal");
 
         rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(248, 132, "Date of signature\nThe 24th of June 2024 by\nSimon\nVanleeuw");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "simon small");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "small");
 
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(248, 132, "Date of signature\nThe 10th of June 2024 at 10h30 UTC\nVerylongFirstNamePerson\nVerylongLastNamePerson");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "image");
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(600, 132, "Date of signature\nThe 10th of June 2024 at 10h30 UTC\nVerylongFirstNamePerson\nVerylongLastNamePerson");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "longNames");
 
         rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(620, 330, "Date of signature\nThe 10th of June 2024 at 10h30 UTC with a crazy length\nVerylongFirstNamePerson with a crazy length\nVerylongLastNamePerson with a crazy length");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "extreme");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "veryLongNames");
+
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(150, 200, "Date of signature\nThe 24th of June 2024 by\nSimon\nVanleeuw");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "high");
+
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(300, 600, "Date of signature\nThe 24th of June 2024 by\nSimon\nVanleeuw");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "highLarge");
+
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(140, 200, "Date of signature\nThe 24th of June 2024 by\nAn\nVos");
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "smallName");
     }
 }
