@@ -1,13 +1,14 @@
 package com.bosa.signandvalidation.service;
 
+import eu.europa.esig.dss.model.InMemoryDocument;
 import org.springframework.core.io.ClassPathResource;
 
 import java.awt.*;
+
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.io.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
@@ -73,39 +74,31 @@ public class PdfImageBuilder {
 		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
 		g2d.setComposite(comp);
 
-		// Calculate a general dimension for drawing
+		// Calculate general dimension
 	    float dim = (float) Math.sqrt(imgX * imgY);
 
 		// Background rounded corners
 		float radius = dim / 16;
+		RoundRectangle2D.Float roundRect = new RoundRectangle2D.Float(0, 0, imgX, imgY, (int) radius, (int) radius);
 		g2d.setColor(BACKGROUND);
-		g2d.fillRoundRect(0,0, imgX, imgY, (int) radius, (int) radius);
+		g2d.fill(roundRect);
+		g2d.clip(roundRect);
+
+		// Draw gradient from left of the circle
+		radius = Math.max(imgX, imgY) * 0.6F;
+		float circleX = imgX * 0.3F + radius;
+		float circleY = imgY / 2F;
+
+		drawShadowedCircle(g2d, (int) circleX, (int) circleY, (int) radius);
+		//drawCircleWithShadow(g2d, CIRCLE, LOGO, (int) circleX, (int) circleY, (int) radius);
 
 		// Clipping with rounded corners for circle and logo
 		radius = dim / 20;
-		float curX = dim / 20;
+		float curX = radius;
 		float curY = curX;
 		float curW = imgX - curX * 2;
 		float curH = imgY - curY * 2;
 		g2d.clip(new RoundRectangle2D.Float(curX, curY, curW, curH, (int) radius, (int) radius));
-
-		// Draw gradient from left of the circle
-		radius = Math.max(curH, curW) * 0.6F;
-	    float circleX = curX + curW * 0.3F + radius;
-		float circleY = curY + curH / 2;
-
-		float[] fractions = { 0.0f, 1.0f };
-		Color[] colors = { BACKGROUND, LOGO };
-		LinearGradientPaint gp = new LinearGradientPaint(
-				new Point2D.Float(curX, circleY),
-				new Point2D.Float(circleX - radius * 0.7F, circleY),
-				fractions, colors);
-		g2d.setPaint(gp);
-		g2d.fill(new Rectangle2D.Float(curX, curY, curW, curH));
-
-		// Draw clipped circle
-		g2d.setPaint(CIRCLE);
-		g2d.fillArc((int) (circleX - radius), (int) (circleY - radius), (int) radius * 2, (int) radius * 2, 0, 360);
 
 		// Draw clipped ".be" logo
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -146,6 +139,7 @@ public class PdfImageBuilder {
 		char charLines[][] = new char[4][];
 		for (String line : lines) charLines[i++] = line.toCharArray();
 		char[] firstLine = (lines[2] + " " + lines[3]).toCharArray();
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		while (true) {
 			g2d.setFont(getFont(SIGNATURE_FONT, (int) fontSize));
 			metrics = g2d.getFontMetrics();
@@ -175,6 +169,79 @@ public class PdfImageBuilder {
 		ImageIO.write(bufferedImage, "png", baos);
 		g2d.dispose();
 		return baos.toByteArray();
+	}
+
+
+	public static void drawShadowedCircle(Graphics2D g2d, int x, int y, int radius) {
+		int blurRadius = radius / 2; // Shadow blur is half the circle radius
+		int padding = blurRadius * 2; // Room for blur to expand
+		int size = (radius * 2) + (padding * 2);
+
+		// 1. Create a shadow image
+		BufferedImage shadowImg = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D gShadow = shadowImg.createGraphics();
+		gShadow.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		// Draw the "shadow" (a black circle) in the center of the buffer
+		gShadow.setColor(new Color(0, 0, 0, 150)); // Semi-transparent black
+		gShadow.fill(new Ellipse2D.Double(padding, padding, radius * 2, radius * 2));
+		gShadow.dispose();
+		writeToDisk(shadowImg, "shadow.png");
+
+		// 2. Apply Blur (ConvolveOp)
+		float weight = 1.0f / (blurRadius * blurRadius);
+		float[] data = new float[blurRadius * blurRadius];
+		for (int i = 0; i < data.length; i++) data[i] = weight;
+
+		Kernel kernel = new Kernel(blurRadius, blurRadius, data);
+		ConvolveOp op = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
+		BufferedImage blurredShadow = op.filter(shadowImg, null);
+
+		writeToDisk(blurredShadow, "blurred.png");
+
+		// 3. Draw to Screen
+		// Draw shadow first (offset slightly if a drop shadow is desired)
+		g2d.drawImage(blurredShadow, x - padding, y - padding, null);
+
+		// Draw the actual circle on top
+		g2d.setColor(Color.BLUE);
+		g2d.fill(new Ellipse2D.Double(x, y, radius * 2, radius * 2));
+	}
+
+	private static void drawCircleWithShadow(Graphics2D g2d, Color circleColor, Color shadowColor, int x, int y, int radius) {
+		BufferedImage shadow = new BufferedImage((int) (radius * 2), (int) (radius * 2), BufferedImage.TYPE_INT_ARGB);
+		Graphics2D sg = shadow.createGraphics();
+		sg.setPaint(shadowColor);
+		sg.fillOval(0, 0, radius * 2, radius * 2);
+		sg.dispose();
+		writeToDisk(shadow, "shadow.png");
+
+		// Apply Gaussian blur
+		float[] kernel = {
+				1/16f, 2/16f, 1/16f,
+				2/16f, 4/16f, 2/16f,
+				1/16f, 2/16f, 1/16f
+		};
+		ConvolveOp blur = new ConvolveOp(new Kernel(3, 3, kernel));
+		BufferedImage blurred = blur.filter(shadow, null);
+
+		// Draw shadow
+		writeToDisk(blurred, "blurred.png");
+		g2d.drawImage(blurred, x, y, null);
+
+		// Draw circle
+		g2d.setPaint(circleColor);
+		g2d.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+	}
+
+	private static void writeToDisk(BufferedImage bufferedImage, String imageName) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(bufferedImage, "png", baos);
+			new InMemoryDocument(baos.toByteArray()).save(imageName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 	}
 
 	public static byte[] makeRemoteSignPdfImage(int targetX, int targetY, String text) throws Exception {
