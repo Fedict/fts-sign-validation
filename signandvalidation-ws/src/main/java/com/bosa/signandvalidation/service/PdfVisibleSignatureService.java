@@ -272,15 +272,15 @@ public class PdfVisibleSignatureService {
 
         RemoteSignatureFieldParameters fieldParams = sigImgParams.getFieldParameters();
         try {
-            RemoteDocument imageDoc = new RemoteDocument();
-            sigImgParams.setImage(imageDoc);
-
-            imageDoc.setBytes(psp.version > 2 ?
-                    PdfImageBuilder.makeRemoteSignPdfImage(
-                        fieldParams.getWidth().intValue(), fieldParams.getHeight().intValue(), text)
-                    :
-                    PdfImageBuilder.makePdfImage(
-                        fieldParams.getWidth().intValue(), fieldParams.getHeight().intValue(),
+            byte[] imgBytes;
+            int width = fieldParams.getWidth().intValue();
+            int height = fieldParams.getHeight().intValue();
+            if (psp.version == 3) {
+                sigImgParams.setDpi(600);
+                imgBytes = PdfImageBuilder.makeRemoteSignPdfImage(width, height, text);
+            } else {
+                imgBytes = PdfImageBuilder.makePdfImage(
+                        width, height,
                         psp.bgColor,
                         psp.textPadding,
                         text,
@@ -289,7 +289,11 @@ public class PdfVisibleSignatureService {
                         getHorizontalAlign(psp.textAlignH),
                         getVerticalAlign(psp.textAlignV),
                         getFont(psp.font, psp.textSize),
-                        image));
+                        image);
+            }
+            RemoteDocument imageDoc = new RemoteDocument();
+            sigImgParams.setImage(imageDoc);
+            imageDoc.setBytes(imgBytes);
         }
         catch (Exception e) {
             logger.log(Level.SEVERE, e.toString());

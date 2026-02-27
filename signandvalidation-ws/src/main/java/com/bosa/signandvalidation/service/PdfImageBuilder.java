@@ -3,6 +3,10 @@ package com.bosa.signandvalidation.service;
 import org.springframework.core.io.ClassPathResource;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImageOp;
 import java.io.*;
 import java.awt.image.BufferedImage;
@@ -45,6 +49,134 @@ public class PdfImageBuilder {
 		return fontDir;
 	}
 
+
+	/*
+        export const RED: SignatureColor = { back: "#3B1923", border: "#492D35", text: "#B5B5B5", circle: "#471221", logo: "#542633" };
+        export const BLACK: SignatureColor = { back: "#0C0F1E", border: "#2A2C39", text: "#FFFFFF", circle: "#0C0F1E", logo: "#2A2C39" };
+        export const GREEN: SignatureColor = { back: "#162B20", border: "#293E32", text: "#B5B5B5", circle: "#162D20", logo: "#293E32" };
+        export const WHITE: SignatureColor = { back: "#FFFFFF", border: "#E0E5E7", text: "#002B3E", circle: "#FFFFFF", logo: "#E0E5E7" };
+	private static final Color BACKGROUND = Color.WHITE;
+	private static final Color BORDER = new Color(0xE0E5E7);
+	private static final Color TEXT = new Color(0x002B3E);
+	private static final Color CIRCLE = Color.WHITE;
+	private static final Color LOGO = new Color(0xE0E5E7);
+    */
+	private static final Color BACKGROUND = new Color(0x162B20);
+	private static final Color BORDER = new Color(0x293E32);
+	private static final Color TEXT = new Color(0xB5B5B5);
+	private static final Color CIRCLE = new Color(0x162D20);
+	private static final Color LOGO = new Color(0x293E32);
+
+	public static byte[] makeRemoteSignPdfImage2(int imgX, int imgY, String mergedLines) throws Exception {
+		BufferedImage bufferedImage =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = (Graphics2D) bufferedImage.getGraphics();
+		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
+		g2d.setComposite(comp);
+
+		// Calculate a general dimension for drawing
+	    float dim = (float) Math.sqrt(imgX * imgY);
+
+		// Background rounded corners
+		float radius = dim / 16;
+		g2d.setColor(BACKGROUND);
+		g2d.fillRoundRect(0,0, imgX, imgY, (int) radius, (int) radius);
+
+		// Clipping with rounded corners for circle and logo
+		radius = dim / 20;
+		float curX = dim / 20;
+		float curY = curX;
+		float curW = imgX - curX * 2;
+		float curH = imgY - curY * 2;
+		g2d.clip(new RoundRectangle2D.Float(curX, curY, curW, curH, (int) radius, (int) radius));
+
+		// Draw gradient from left of the circle
+		radius = Math.max(curH, curW) * 0.6F;
+	    float circleX = curX + curW * 0.3F + radius;
+		float circleY = curY + curH / 2;
+
+		float[] fractions = { 0.0f, 1.0f };
+		Color[] colors = { BACKGROUND, LOGO };
+		LinearGradientPaint gp = new LinearGradientPaint(
+				new Point2D.Float(curX, circleY),
+				new Point2D.Float(circleX - radius * 0.7F, circleY),
+				fractions, colors);
+		g2d.setPaint(gp);
+		g2d.fill(new Rectangle2D.Float(curX, curY, curW, curH));
+
+		// Draw clipped circle
+		g2d.setPaint(CIRCLE);
+		g2d.fillArc((int) (circleX - radius), (int) (circleY - radius), (int) radius * 2, (int) radius * 2, 0, 360);
+
+		// Draw clipped ".be" logo
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+	    char[] logo = ".be".toCharArray();
+		g2d.setPaint(LOGO);
+		g2d.setFont(getFont(SIGNATURE_FONT, (int) (dim / 2.5)));
+		FontMetrics metrics = g2d.getFontMetrics();
+		float lineWidth = metrics.charsWidth(logo, 0, logo.length);
+		g2d.drawChars(logo, 0, logo.length, (int) (curX + curW * 0.9 - lineWidth), (int) (curY + curH * 1.02));
+
+		// Get out of the clip
+		g2d.dispose();
+
+		g2d = (Graphics2D) bufferedImage.getGraphics();
+
+		// Draw border with rounded corners
+		float borderSize = dim / 80;
+		if (borderSize > 4) borderSize = 4;
+		g2d.setStroke(new BasicStroke(borderSize));
+
+		radius = dim / 20;
+		g2d.setColor(BORDER);
+		g2d.drawRoundRect((int) curX, (int) curY, (int) curW, (int) curH, (int) radius, (int) radius);
+
+	    float margin = dim / 16;
+		curX += margin;
+		curY += margin;
+		curW -= margin * 4;
+		curH -= margin * 2;
+
+		// We split the text in 2 or 3 equal vertical areas
+		// Find font where we can either draw the fullname on a single line or the first and last name on 2 lines with the same font size
+		float textH;
+		boolean singleLine;
+		float fontSize = dim / 4;
+		String[] lines = mergedLines.split("\n");
+		int i = 0;
+		char charLines[][] = new char[4][];
+		for (String line : lines) charLines[i++] = line.toCharArray();
+		char[] firstLine = (lines[2] + " " + lines[3]).toCharArray();
+		while (true) {
+			g2d.setFont(getFont(SIGNATURE_FONT, (int) fontSize));
+			metrics = g2d.getFontMetrics();
+			textH = metrics.getHeight();
+			singleLine = metrics.charsWidth(firstLine, 0, firstLine.length) < curW && curH > textH * 2;
+			if (singleLine) break;
+			if (curH > textH * 3) {
+				firstLine = charLines[2];
+				char[] charLine = charLines[2].length > charLines[3].length ? charLines[2] : charLines[3];
+				if (metrics.charsWidth(charLine, 0, charLine.length) < curW) break;
+			}
+			fontSize--;
+			if (fontSize < 2) throw new SizeLimitExceededException();
+		}
+
+		g2d.setColor(TEXT);
+		g2d.drawChars(firstLine, 0, firstLine.length, (int) curX, (int) (curY + textH * 2.1F));
+		if (!singleLine) g2d.drawChars(charLines[3], 0, charLines[3].length, (int) curX, (int) (curY + textH * 3.2F));
+
+		g2d.setFont(getFont(SIGNATURE_FONT, (int) (fontSize / 2.2F)));
+		metrics = g2d.getFontMetrics();
+		textH = metrics.getHeight();
+		g2d.drawChars(charLines[0], 0, charLines[0].length, (int) curX, (int) (curY + textH));
+		g2d.drawChars(charLines[1], 0, charLines[1].length, (int) curX, (int) (curY + textH * 2.2F));
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(bufferedImage, "png", baos);
+		g2d.dispose();
+		return baos.toByteArray();
+	}
+
 	public static byte[] makeRemoteSignPdfImage(int targetX, int targetY, String text) throws Exception {
 		if (remoteSignImg == null) {
 			InputStream is = new ClassPathResource("/remote_sign.png").getInputStream();
@@ -54,13 +186,15 @@ public class PdfImageBuilder {
 		// Create internal bitmap for rendering
 		int imgX = remoteSignImg.getWidth();
 		int imgY = remoteSignImg.getHeight();
-		BufferedImage temp =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_RGB);
+		BufferedImage temp =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = (Graphics2D) temp.getGraphics();
+		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
+		g2d.setComposite(comp);
 
 		/* Render background as transparent */
 		g2d.drawImage(remoteSignImg, 0, 0, imgX, imgY, null);
 
-		// Calculate best sizes for fonts
+			// Calculate best sizes for fonts
 		int index = 0;
 		int[] lineHeights = new int[3];
 		g2d.setColor(REMOTESIGN_TEXT_COLOR);
@@ -87,17 +221,9 @@ public class PdfImageBuilder {
 		}
 		g2d.dispose();
 
-		// Create the resulting PDF image
-		BufferedImage ret =  new BufferedImage(targetX, targetY, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2dRet = (Graphics2D) ret.getGraphics();
-		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
-		g2dRet.setComposite(comp);
-		g2dRet.drawImage(temp, 0, 0, targetX, targetY, Color.WHITE, null);
-
-		// Convert to a byte array contain a PNG image
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(ret, "png", baos);
-		g2dRet.dispose();
+		ImageIO.write(temp, "png", baos);
+		g2d.dispose();
 		return baos.toByteArray();
 	}
 

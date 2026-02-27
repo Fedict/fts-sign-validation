@@ -75,16 +75,16 @@ public class PdfVisibleSignatureTest {
 
         File testFolder = new File(RESOURCE_PATH, "VisibleSignatures");
 
-        byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(496, 264, "Signed the 24th of June 2024 by\nSimon\nVanleeuw");
+        byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(496, 264, "Date of signature\nThe 24th of June 2024 by\nSimon\nVanleeuw");
         PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "simon");
 
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(248, 132, "Signed the 24th of June 2024 by\nSimon\nVanleeuw");
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(248, 132, "Date of signature\nThe 24th of June 2024 by\nSimon\nVanleeuw");
         PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "simon small");
 
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(248, 132, "Signed the 10th of June 2024 at 10h30 UTC\nVerylongFirstNamePerson\nVerylongLastNamePerson");
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(248, 132, "Date of signature\nThe 10th of June 2024 at 10h30 UTC\nVerylongFirstNamePerson\nVerylongLastNamePerson");
         PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "image");
 
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(620, 330, "Signed the 10th of June 2024 at 10h30 UTC with a crazy length\nVerylongFirstNamePerson with a crazy length\nVerylongLastNamePerson with a crazy length");
+        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage2(620, 330, "Date of signature\nThe 10th of June 2024 at 10h30 UTC with a crazy length\nVerylongFirstNamePerson with a crazy length\nVerylongLastNamePerson with a crazy length");
         PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "extreme");
     }
 }
