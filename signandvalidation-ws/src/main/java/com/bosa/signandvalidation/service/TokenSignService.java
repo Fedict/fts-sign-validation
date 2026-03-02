@@ -284,7 +284,7 @@ public class TokenSignService extends SignCommonService {
 
             byte[] file = storageService.getFileAsBytes(token.getBucket(), input.getFilePath(), true);
             PDDocument pdfDoc = Loader.loadPDF(file);
-            PdfSignatureProfile psp = getPspFile(input, token.getBucket());
+            PdfSignatureProfile psp = getPspFileForToken(input, token.getBucket());
             PDRectangle rect = checkVisibleSignatureParameters(psfC, psfN, psp, pdfDoc);
             if (rect != null) {
                 // Save for later phases to avoid re-loading the PDF
@@ -781,7 +781,7 @@ public class TokenSignService extends SignCommonService {
             throws NullParameterException, IOException {
 
         VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
-        PdfSignatureProfile psp = getPspFile(input, bucket);
+        PdfSignatureProfile psp = getPspFileForToken(input, bucket);
         pdfParams.setPsp(psp);
         String psfN = input.getPsfN();
         if (psfN != null) pdfParams.setPsfN(psfN);
@@ -794,7 +794,7 @@ public class TokenSignService extends SignCommonService {
 
     //*****************************************************************************************
 
-    public PdfSignatureProfile getPspFile(TokenSignInput input, String bucket) {
+    public PdfSignatureProfile getPspFileForToken(TokenSignInput input, String bucket) {
         PdfSignatureProfile psp = null;
         String pspPath = input.getPspFilePath();
         if (pspPath != null) {
@@ -805,6 +805,11 @@ public class TokenSignService extends SignCommonService {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Error reading or parsing PDF Signature Profile file: ", e);
             }
         }
+        if (psp == null) {
+            psp = new PdfSignatureProfile();
+            psp.version = 3;
+        }
+
         return psp;
     }
 
