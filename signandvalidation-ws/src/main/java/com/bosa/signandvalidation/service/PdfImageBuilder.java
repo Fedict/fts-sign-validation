@@ -148,7 +148,6 @@ public class PdfImageBuilder {
 		char[] lastNameChars = lastName.toCharArray();
 		char[] firstLineChars = firstNames.toCharArray();
 		while (true) {
-			System.out.print((int)fontSize + " - ");
 			g2d.setFont(getFont(SIGNATURE_FONT, (int) fontSize));
 			metrics = g2d.getFontMetrics();
 			textH = metrics.getHeight();
