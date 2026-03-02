@@ -1,15 +1,11 @@
 package com.bosa.signandvalidation.service;
 
-import eu.europa.esig.dss.model.InMemoryDocument;
 import org.springframework.core.io.ClassPathResource;
 
 import java.awt.*;
 
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.Point2D;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.image.ConvolveOp;
-import java.awt.image.Kernel;
 import java.io.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
@@ -69,13 +65,14 @@ public class PdfImageBuilder {
 	private static final Color TEXT = new Color(0x002B3E);
 	private static final Color CIRCLE = Color.WHITE;
 	private static final Color LOGO = new Color(0xE0E5E7);
+	private static final float DATE_LINE_FACTOR = 2.2F;
 
-	public static byte[] makeRemoteSignPdfImage(int imgX, int imgY, String mergedLines) throws Exception {
+	public static byte[] makeRemoteSignPdfImage(int imgX, int imgY, String date1, String date2, String firstNames, String lastName) throws Exception {
 		BufferedImage bufferedImage =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = (Graphics2D) bufferedImage.getGraphics();
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
-		//g2d.setComposite(comp);
+		g2d.setComposite(comp);
 
 		// Calculate general dimension
 	    float dim = (float) Math.sqrt(imgX * imgY);
@@ -107,10 +104,10 @@ public class PdfImageBuilder {
 		g2d.clip(new RoundRectangle2D.Float(curX, curY, curW, curH, (int) radius, (int) radius));
 
 		// Draw clipped ".be" logo
-		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 	    char[] logo = ".be".toCharArray();
 		g2d.setPaint(LOGO);
 		g2d.setFont(getFont(SIGNATURE_FONT, (int) (dim / 2.5)));
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		FontMetrics metrics = g2d.getFontMetrics();
 		float lineWidth = metrics.charsWidth(logo, 0, logo.length);
 		g2d.drawChars(logo, 0, logo.length, (int) (curX + curW * 0.9 - lineWidth), (int) (curY + curH * 1.02));
@@ -137,41 +134,63 @@ public class PdfImageBuilder {
 
 		// We split the text in 2 or 3 equal vertical areas
 		// Find font where we can either draw the fullname on a single line or the first and last name on 2 lines with the same font size
+		int dateH;
 		float textH;
-		boolean singleLine;
-		float fontSize = dim / 6;
-		String[] lines = mergedLines.split("\n");
-		int i = 0;
-		char charLines[][] = new char[4][];
-		for (String line : lines) charLines[i++] = line.toCharArray();
-		char[] firstLine = (lines[2] + " " + lines[3]).toCharArray();
-		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		boolean allFits;
+		boolean okToDraw = true;	// If default fontSize fits, draw.
+		boolean fullnameFits = false;
+		int maxPasses = 15;
+		int minFontSize = 0;
+		int maxFontSize = (int) (dim / 7);
+		int fontSize = maxFontSize;
+		char[] date1Chars = date1.toCharArray();
+		char[] date2Chars = date2.toCharArray();
+		char[] lastNameChars = lastName.toCharArray();
+		char[] firstLineChars = firstNames.toCharArray();
 		while (true) {
+			System.out.print((int)fontSize + " - ");
 			g2d.setFont(getFont(SIGNATURE_FONT, (int) fontSize));
 			metrics = g2d.getFontMetrics();
 			textH = metrics.getHeight();
-			singleLine = metrics.charsWidth(firstLine, 0, firstLine.length) < curW && curH > textH * 2;
-			if (singleLine) break;
-			if (curH > textH * 3) {
-				if (metrics.charsWidth(charLines[2], 0, charLines[2].length) < curW &&
-						metrics.charsWidth(charLines[3], 0, charLines[3].length) < curW) {
-					firstLine = charLines[2];
-					break;
+			int firstNamesW = metrics.charsWidth(firstLineChars, 0, firstLineChars.length);
+			int lastNameW = metrics.charsWidth(lastNameChars, 0, lastNameChars.length);
+			int fullNameW = metrics.charWidth(' ') + firstNamesW + lastNameW;
+
+			g2d.setFont(getFont(SIGNATURE_FONT, (int) (fontSize / DATE_LINE_FACTOR)));
+			metrics = g2d.getFontMetrics();
+			dateH = metrics.getHeight();
+			allFits = metrics.charsWidth(date1Chars, 0, date1Chars.length) <= curW &&
+					metrics.charsWidth(date2Chars, 0, date2Chars.length) <= curW;
+			if (allFits) {
+				allFits = fullNameW <= curW && curH > textH * 2;
+				if (allFits) {
+					if (okToDraw) {
+						firstLineChars = (firstNames + " " + lastName).toCharArray();
+						fullnameFits = true;
+						break;
+					}
+				} else {
+					allFits = firstNamesW <= curW && lastNameW <= curW && curH > textH * 3;
+					if (allFits && okToDraw) break;
 				}
 			}
-			fontSize--;
-			if (fontSize < 2) throw new SizeLimitExceededException();
+			if (allFits) minFontSize = fontSize;
+			else maxFontSize = fontSize;
+
+			fontSize = minFontSize + (maxFontSize - minFontSize) / 2;
+			okToDraw = minFontSize == fontSize || --maxPasses == 0;
 		}
 
-		g2d.setColor(TEXT);
-		g2d.drawChars(firstLine, 0, firstLine.length, (int) curX, (int) (curY + textH * 2.1F));
-		if (!singleLine) g2d.drawChars(charLines[3], 0, charLines[3].length, (int) curX, (int) (curY + textH * 3.2F));
+		if (fontSize < 2) throw new SizeLimitExceededException();
 
-		g2d.setFont(getFont(SIGNATURE_FONT, (int) (fontSize / 2.2F)));
-		metrics = g2d.getFontMetrics();
-		textH = metrics.getHeight();
-		g2d.drawChars(charLines[0], 0, charLines[0].length, (int) curX, (int) (curY + textH));
-		g2d.drawChars(charLines[1], 0, charLines[1].length, (int) curX, (int) (curY + textH * 2.2F));
+		g2d.setColor(TEXT);
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g2d.drawChars(date1Chars, 0, date1Chars.length, (int) curX, (int) (curY + dateH));
+		g2d.drawChars(date2Chars, 0, date2Chars.length, (int) curX, (int) (curY + dateH * 2.2F));
+
+		g2d.setFont(getFont(SIGNATURE_FONT, (int) fontSize));
+		g2d.drawChars(firstLineChars, 0, firstLineChars.length, (int) curX, (int) (curY + textH * 2.1F));
+		if (!fullnameFits) g2d.drawChars(lastNameChars, 0, lastNameChars.length, (int) curX, (int) (curY + textH * 3.2F));
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ImageIO.write(bufferedImage, "png", baos);

@@ -277,7 +277,8 @@ public class PdfVisibleSignatureService {
             int height = fieldParams.getHeight().intValue();
             if (psp.version == 3) {
                 sigImgParams.setDpi(600);
-                imgBytes = PdfImageBuilder.makeRemoteSignPdfImage(width, height, text);
+                String[] bits = text.split("\n");
+                imgBytes = PdfImageBuilder.makeRemoteSignPdfImage(width, height, bits[0], bits[1], bits[2], bits[3]);
             } else {
                 imgBytes = PdfImageBuilder.makePdfImage(
                         width, height,
