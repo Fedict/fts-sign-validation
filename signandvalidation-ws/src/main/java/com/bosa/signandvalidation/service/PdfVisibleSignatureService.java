@@ -147,6 +147,8 @@ public class PdfVisibleSignatureService {
     ///////////////////////////////////////////////////////////////////////////
 
     private void makePspDefaults(PdfSignatureProfile psp) {
+        if (psp.version == null) psp.version = 1;
+
         if (psp.version == 3) {
             psp.texts = REMOTE_SIGN_TEXTS;
             psp.imageScaling = ImageScaling.ZOOM_AND_CENTER;
