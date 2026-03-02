@@ -1,6 +1,7 @@
 package com.bosa.signandvalidation.service;
 
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -73,30 +74,27 @@ public class PdfVisibleSignatureTest {
     @Test
     public void testRemoteSignSignature() throws Exception {
 
+        testRender("normal", 496, 264, "Date of signature", "The 24th of June 2024 by", "Simon", "Du lion");
+
+        testRender("small", 248, 132, "Date of signature", "The 24th of June 2024 by", "Jos", "Vandekasteel");
+
+        testRender("longNames", 600, 132, "Date of signature", "The 10th of June 2024 at 10h30 UTC", "VerylongFirstNamePerson", "VerylongLastNamePerson");
+
+        testRender("veryLongNames", 620, 330, "Date of signature", "The 10th of June 2024 at 10h30 UTC with a crazy length", "VerylongFirstNamePerson with a crazy length", "VerylongLastNamePerson with a crazy length");
+
+        testRender("high", 150, 200, "Date of signature", "The 24th of June 2024 by", "Zaphod", "Beeblebrox");
+
+        testRender("highLarge", 300, 600, "Date of signature", "The 24th of June 2024 by", "", "Marvin");
+
+        testRender("smallName",140, 200, "Date of signature", "The 24th of June 2024 by", "Arthur", "Dent");
+    }
+    
+    private static void testRender(String targetImage, float x, float y, String date1, String date2, String firstNames, String lastName) throws Exception {
         File testFolder = new File(RESOURCE_PATH, "VisibleSignatures");
-
-        byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(496, 264, "Date of signature", "The 24th of June 2024 by", "Simon", "Du lion");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "normal");
-
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(248, 132, "Date of signature", "The 24th of June 2024 by", "Jos", "Vandekasteel");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "small");
-
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(600, 132, "Date of signature", "The 10th of June 2024 at 10h30 UTC", "VerylongFirstNamePerson", "VerylongLastNamePerson");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "longNames");
-
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(620, 330, "Date of signature", "The 10th of June 2024 at 10h30 UTC with a crazy length", "VerylongFirstNamePerson with a crazy length", "VerylongLastNamePerson with a crazy length");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "veryLongNames");
-
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(150, 200, "Date of signature", "The 24th of June 2024 by", "John", "Swissonian");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "high");
-
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(300, 600, "Date of signature", "The 24th of June 2024 by", "Abdel", "AlAbdel");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "highLarge");
-
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(140, 200, "Date of signature", "The 24th of June 2024 by", "An", "Vos");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "smallName");
-
-        rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(20, 10, "Date of signature", "The 24th of June 2024 by", "An", "Vos");
-        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, "tooSmallImage");
+        RemoteSignatureFieldParameters fb = new RemoteSignatureFieldParameters();
+        fb.setWidth(x);
+        fb.setHeight(y);
+        byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(fb, date1 + "\n" + date2 + "\n" + firstNames + "\n" + lastName);
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, targetImage);
     }
 }

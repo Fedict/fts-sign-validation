@@ -1,11 +1,12 @@
 package com.bosa.signandvalidation.service;
 
-import org.springframework.core.io.ClassPathResource;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
 
 import java.awt.*;
 
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.image.DataBufferInt;
 import java.io.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
@@ -65,14 +66,18 @@ public class PdfImageBuilder {
 	private static final Color TEXT = new Color(0x002B3E);
 	private static final Color CIRCLE = Color.WHITE;
 	private static final Color LOGO = new Color(0xE0E5E7);
-	private static final float DATE_LINE_FACTOR = 2.2F;
 
-	public static byte[] makeRemoteSignPdfImage(int imgX, int imgY, String date1, String date2, String firstNames, String lastName) throws Exception {
-		BufferedImage bufferedImage =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2d = (Graphics2D) bufferedImage.getGraphics();
+	private static final float DATE_LINE_FACTOR = 2.2F;
+	private static final float TARGET_TRANSPARENCY = 0.9F;
+
+	//----------------------------------------------------------------------------------------------------------------------------
+
+	public static byte[] makeRemoteSignPdfImage(RemoteSignatureFieldParameters fieldParams, String text) throws Exception {
+		int imgX = fieldParams.getWidth().intValue();
+		int imgY = fieldParams.getHeight().intValue();
+		BufferedImage workImage =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = (Graphics2D) workImage.getGraphics();
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
-		g2d.setComposite(comp);
 
 		// Calculate general dimension
 	    float dim = (float) Math.sqrt(imgX * imgY);
@@ -115,7 +120,7 @@ public class PdfImageBuilder {
 		// Get out of the clip
 		g2d.dispose();
 
-		g2d = (Graphics2D) bufferedImage.getGraphics();
+		g2d = (Graphics2D) workImage.getGraphics();
 
 		// Draw border with rounded corners
 		float borderSize = dim / 80;
@@ -143,10 +148,11 @@ public class PdfImageBuilder {
 		int minFontSize = 0;
 		int maxFontSize = (int) (dim / 7);
 		int fontSize = maxFontSize;
-		char[] date1Chars = date1.toCharArray();
-		char[] date2Chars = date2.toCharArray();
-		char[] lastNameChars = lastName.toCharArray();
-		char[] firstLineChars = firstNames.toCharArray();
+		String[] bits = text.split("\n");
+		char[] date1Chars = bits[0].toCharArray();
+		char[] date2Chars = bits[1].toCharArray();
+		char[] firstLineChars = bits[2].toCharArray();
+		char[] lastNameChars = bits[3].toCharArray();
 		while (true) {
 			g2d.setFont(getFont(SIGNATURE_FONT, (int) fontSize));
 			metrics = g2d.getFontMetrics();
@@ -164,7 +170,10 @@ public class PdfImageBuilder {
 				allFits = fullNameW <= curW && curH > textH * 2;
 				if (allFits) {
 					if (okToDraw) {
-						firstLineChars = (firstNames + " " + lastName).toCharArray();
+						StringBuilder sb = new StringBuilder(bits[2]);
+						if (!sb.isEmpty()) sb.append(' ');
+						sb.append(bits[3]);
+						firstLineChars = sb.toString().toCharArray();
 						fullnameFits = true;
 						break;
 					}
@@ -190,62 +199,22 @@ public class PdfImageBuilder {
 		g2d.setFont(getFont(SIGNATURE_FONT, (int) fontSize));
 		g2d.drawChars(firstLineChars, 0, firstLineChars.length, (int) curX, (int) (curY + textH * 2.1F));
 		if (!fullnameFits) g2d.drawChars(lastNameChars, 0, lastNameChars.length, (int) curX, (int) (curY + textH * 3.2F));
+		g2d.dispose();
+
+		// Make the rendered image transparent
+		int[] pixels = ((DataBufferInt)workImage.getRaster().getDataBuffer()).getData();
+		for (int i = 0; i < pixels.length; i++) {
+			int A = (pixels[i] >>> 24) & 0xFF;
+			pixels[i] = (Math.round(A * TARGET_TRANSPARENCY) << 24) | (pixels[i] & 0x00FFFFFF);
+		}
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(bufferedImage, "png", baos);
-		g2d.dispose();
+		ImageIO.write(workImage, "png", baos);
 		return baos.toByteArray();
 	}
 
-	public static byte[] makeRemoteSignPdfImage2(int targetX, int targetY, String text) throws Exception {
-		if (remoteSignImg == null) {
-			InputStream is = new ClassPathResource("/remote_sign.png").getInputStream();
-			remoteSignImg = ImageIO.read(is);
-		}
+	//----------------------------------------------------------------------------------------------------------------------------
 
-		// Create internal bitmap for rendering
-		int imgX = remoteSignImg.getWidth();
-		int imgY = remoteSignImg.getHeight();
-		BufferedImage temp =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2d = (Graphics2D) temp.getGraphics();
-		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8F );
-		g2d.setComposite(comp);
-
-		/* Render background as transparent */
-		g2d.drawImage(remoteSignImg, 0, 0, imgX, imgY, null);
-
-			// Calculate best sizes for fonts
-		int index = 0;
-		int[] lineHeights = new int[3];
-		g2d.setColor(REMOTESIGN_TEXT_COLOR);
-		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		for (String line : text.split("\n")) {
-			char [] charLine = line.toCharArray();
-			int minFontSize = SIGNATURE_FONT_SIZES[index];
-			int lineWidth;
-
-			// Calc min font size to fit the signature box for this line
-			while(true) {
-				g2d.setFont(getFont(SIGNATURE_FONT, minFontSize));
-				FontMetrics metrics = g2d.getFontMetrics();
-				lineWidth = metrics.charsWidth(charLine, 0, charLine.length);
-				if (lineHeights[index] == 0) lineHeights[index] = metrics.getHeight();
-				if (lineWidth < imgX - (PADDING_HOR * 2)) {
-					g2d.drawChars(charLine, 0, charLine.length, PADDING_HOR, LINE_HEIGHTS[index]);
-					break;
-				}
-				minFontSize--;
-				if (minFontSize == 0) throw new SizeLimitExceededException("Font size impossible");
-			}
-			index++;
-		}
-		g2d.dispose();
-
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(temp, "png", baos);
-		g2d.dispose();
-		return baos.toByteArray();
-	}
 
 	public static byte[] makePdfImage(
 		int xPdfField, int yPdfField,
