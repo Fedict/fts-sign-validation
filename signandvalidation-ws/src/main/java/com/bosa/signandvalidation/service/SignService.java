@@ -94,15 +94,22 @@ public class SignService extends SignCommonService {
     private void prepareVisibleSignature(RemoteSignatureParameters parameters, RemoteDocument pdf, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
         VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
         if (pdfParams != null) {
-            PDRectangle rect = null;
+            float acroformWidth = 0;
+            float acroformHeight = 0;
+            Map<String, AcroformInfo> acroformInfos = null;
             String psfN = pdfParams.getPsfN();
             String psfC = pdfParams.getPsfC();
             if (psfN != null || psfC != null) {
                 PDDocument pdfDoc = Loader.loadPDF(pdf.getBytes());
-                rect = checkVisibleSignatureParameters(psfC, psfN, pdfParams.getPsp(), pdfDoc);
+                acroformInfos = checkVisibleSignatureParameters(psfC, psfN, false, pdfParams.getPsp(), pdfDoc);
+                if (acroformInfos != null) {
+                    AcroformInfo acroformInfo = acroformInfos.get(psfN);
+                    acroformWidth = acroformInfo.getWidth();
+                    acroformHeight = acroformInfo.getHeight();
+                }
                 pdfDoc.close();
             }
-            pdfVisibleSignatureService.prepareVisibleSignature(parameters, rect == null ? 0 : rect.getHeight(), rect == null ? 0 : rect.getWidth(), clientSigParams);
+            pdfVisibleSignatureService.prepareVisibleSignature(parameters, acroformHeight, acroformWidth, clientSigParams);
         }
     }
 

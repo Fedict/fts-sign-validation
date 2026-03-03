@@ -176,22 +176,26 @@ public class SignCommonService {
 
 //*****************************************************************************************
 
-// In order to keep coherence between token and non-toke operations the validation code is the same
-public static PDRectangle checkVisibleSignatureParameters(String psfC, String psfN, PdfSignatureProfile psp, PDDocument pdfDoc) {
-    // Check psfN
-    if (psfN != null) {
+// In order to keep coherence between token and non-token operations the validation code is the same
+
+    public static Map<String, AcroformInfo> checkVisibleSignatureParameters(String psfC, String psfN, boolean isInvisible, PdfSignatureProfile psp, PDDocument pdfDoc) {
+    // Check psfN or get the list of all "signable acroforms"
+    if (psfN != null || (psfC == null && !isInvisible)) {
+        Map<String, AcroformInfo> acroformInfos = new HashMap<>();
         List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
         for (PDSignatureField sigField : sigFields) {
-            String name = sigField.getPartialName();
-            if (psfN.equals(name)) {
-                if (sigField.getSignature() != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature.", null);
-                }
-                // TODO Check get(0); ******************************************************************************************
-                return sigField.getWidgets().get(0).getRectangle();
+            if (sigField.getSignature() == null) {
+                String name = sigField.getPartialName();
+                PDRectangle rect = sigField.getWidgets().get(0).getRectangle();
+                acroformInfos.put(name, new AcroformInfo(rect.getWidth(), rect.getHeight()));
             }
         }
-        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The PDF signature field does exist : " + psfN, null);
+        if (psfN != null) {
+            if (!acroformInfos.containsKey(psfN)) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature or does not exists : " + psfN, null);
+            }
+        }
+        return acroformInfos;
     }
 
     // Check psfC

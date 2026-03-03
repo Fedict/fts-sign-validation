@@ -32,7 +32,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import net.sf.saxon.BasicTransformerFactory;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
@@ -280,17 +279,14 @@ public class TokenSignService extends SignCommonService {
 
             String psfC = input.getPsfC();
             String psfN = input.getPsfN();
-            if (psfN == null && psfC == null) continue;
+            boolean invisibleSignature = input.isInvisible();
+            if (psfN == null && psfC == null && invisibleSignature) continue;
 
             byte[] file = storageService.getFileAsBytes(token.getBucket(), input.getFilePath(), true);
             PDDocument pdfDoc = Loader.loadPDF(file);
             PdfSignatureProfile psp = getPspFileForToken(input, token.getBucket());
-            PDRectangle rect = checkVisibleSignatureParameters(psfC, psfN, psp, pdfDoc);
-            if (rect != null) {
-                // Save for later phases to avoid re-loading the PDF
-                input.setPsfNHeight(rect.getHeight());
-                input.setPsfNWidth(rect.getWidth());
-            }
+
+            input.setAcroformInfos(checkVisibleSignatureParameters(psfC, psfN, invisibleSignature, psp, pdfDoc));
             pdfDoc.close();
         }
     }
@@ -785,17 +781,27 @@ public class TokenSignService extends SignCommonService {
         pdfParams.setPsp(psp);
         String psfN = input.getPsfN();
         if (psfN != null) pdfParams.setPsfN(psfN);
+        else psfN = pdfParams.getPsfN();
+        float acroformWidth = 0;
+        float acroformHeight = 0;
+        if (psfN != null) {
+            AcroformInfo acroformInfo = input.getAcroformInfos().get(psfN);
+            acroformWidth = acroformInfo.getWidth();
+            acroformHeight = acroformInfo.getHeight();
+        }
         String psfC = input.getPsfC();
         if (psfC != null) pdfParams.setPsfC(psfC);
         SigningLanguages signLanguage = input.getSignLanguage();
         if (signLanguage != null) pdfParams.setSignLanguage(signLanguage.name());
-        pdfVisibleSignatureService.prepareVisibleSignature(remoteSigParams, input.getPsfNHeight(), input.getPsfNWidth(), clientSigParams);
+        pdfVisibleSignatureService.prepareVisibleSignature(remoteSigParams, acroformHeight, acroformWidth, clientSigParams);
     }
 
     //*****************************************************************************************
 
     public PdfSignatureProfile getPspFileForToken(TokenSignInput input, String bucket) {
-        PdfSignatureProfile psp = null;
+        PdfSignatureProfile psp = new PdfSignatureProfile();
+        psp.version = 3;
+
         String pspPath = input.getPspFilePath();
         if (pspPath != null) {
             try {
@@ -805,11 +811,6 @@ public class TokenSignService extends SignCommonService {
                 logAndThrowEx(FORBIDDEN, INVALID_PARAM, "Error reading or parsing PDF Signature Profile file: ", e);
             }
         }
-        if (psp == null) {
-            psp = new PdfSignatureProfile();
-            psp.version = 3;
-        }
-
         return psp;
     }
 

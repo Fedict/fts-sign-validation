@@ -1,14 +1,14 @@
 package com.bosa.signandvalidation.controller;
 
+import com.bosa.signandvalidation.model.AcroformInfo;
 import org.apache.pdfbox.Loader;
 import com.bosa.signandvalidation.service.SignCommonService;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
-import java.nio.file.Files;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -78,26 +78,26 @@ public class SigningControllerValidationTest {
     public void testMissingPsfN() throws Exception {
         PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/sample.pdf"));
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
-            SignCommonService.checkVisibleSignatureParameters(null, "Invalid", null, pdfDoc);
+            SignCommonService.checkVisibleSignatureParameters(null, "Invalid", true, null, pdfDoc);
         });
-        assertTrue(exception.getMessage().contains("INVALID_PARAM||The PDF signature field does exist : Invalid"));
+        assertTrue(exception.getMessage().contains("INVALID_PARAM||The specified PDF signature field already contains a signature or does not exists : Invalid"));
     }
 
     @Test
     public void testPsfNAlreadySigned() throws Exception {
         PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/signed_visible_sigfields.pdf"));
         Exception exception = assertThrows(ResponseStatusException.class, () -> {
-            SignCommonService.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
+            SignCommonService.checkVisibleSignatureParameters(null, "signature_1", true,null, pdfDoc);
         });
-        assertTrue(exception.getMessage().contains("INVALID_PARAM||The specified PDF signature field already contains a signature."));
+        assertTrue(exception.getMessage().contains("INVALID_PARAM||The specified PDF signature field already contains a signature or does not exists : signature_1"));
     }
 
     @Test
     public void testValidPsfN() throws Exception {
         PDDocument pdfDoc = Loader.loadPDF(new File("src/test/resources/visible_sigfields.pdf"));
-        PDRectangle dim = SignCommonService.checkVisibleSignatureParameters(null, "signature_1", null, pdfDoc);
+        Map<String, AcroformInfo> info = SignCommonService.checkVisibleSignatureParameters(null, "signature_1", true,null, pdfDoc);
 
-        assertEquals(112, (int)dim.getHeight());
-        assertEquals(221, (int)dim.getWidth());
+        assertEquals(112, (int)info.get("signature_1").getHeight());
+        assertEquals(221, (int)info.get("signature_1").getWidth());
     }
 }
