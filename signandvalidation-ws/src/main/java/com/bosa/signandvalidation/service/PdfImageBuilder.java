@@ -66,7 +66,6 @@ public class PdfImageBuilder {
 	private static final Color CIRCLE = Color.WHITE;
 	private static final Color LOGO = new Color(0xE0E5E7);
 
-	private static final float DATE_LINE_FACTOR = 2.2F;
 	private static final float TARGET_TRANSPARENCY = 0.9F;
 	private static final int MIN_DIMENSION = 380;
 
@@ -91,25 +90,30 @@ public class PdfImageBuilder {
 		int imgY = (int) fImgY;
 		BufferedImage workImage =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = (Graphics2D) workImage.getGraphics();
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		// Clipped rounded corners
 		float radius = dim / 16;
-		RoundRectangle2D.Float roundRect = new RoundRectangle2D.Float(0, 0, imgX, imgY, (int) radius, (int) radius);
-		g2d.clip(roundRect);
+
+		// Draw the picture with full transparency (Avoid edges drawn by Acrobat)
+		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.0f));
+		g2d.fillRect(0, 0, imgX, imgY);
+		g2d.setComposite(AlphaComposite.SrcOver);
+
+		g2d.clip(new RoundRectangle2D.Float(0, 0, imgX, imgY, (int) radius, (int) radius));
 
 		// Draw gradient from left of the circle
 		radius = Math.max(imgX, imgY) * 0.6F;
 		float circleX = imgX * 0.3F + radius;
 		float circleY = imgY / 2F;
 
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setPaint(new GradientPaint(radius, circleY, LOGO, 0, circleY, CIRCLE));
 		g2d.fillRect(0, 0, (int) radius, imgY);
 
 		g2d.setColor(CIRCLE);
 		g2d.fill(new Ellipse2D.Float(circleX - radius, circleY - radius, radius * 2, radius * 2));
 
-		// Clipping with rounded corners for circle and logo
+		// Clipping with rounded corners logo
 		radius = dim / 20;
 		float curX = radius;
 		float curY = curX;
@@ -143,7 +147,7 @@ public class PdfImageBuilder {
 	    float margin = dim / 16;
 		curX += margin;
 		curY += margin;
-		curW -= margin * 4;
+		curW -= margin * 2;
 		curH -= margin * 2;
 
 		// We split the text in 2 or 3 equal vertical areas
@@ -163,14 +167,14 @@ public class PdfImageBuilder {
 		char[] firstLineChars = bits[2].toCharArray();
 		char[] lastNameChars = bits[3].toCharArray();
 		while (true) {
-			g2d.setFont(getFont(SIGNATURE_FONT, (int) fontSize));
+			g2d.setFont(getFont(SIGNATURE_FONT, (int)fontSize));
 			metrics = g2d.getFontMetrics();
 			textH = metrics.getHeight();
 			int firstNamesW = metrics.charsWidth(firstLineChars, 0, firstLineChars.length);
 			int lastNameW = metrics.charsWidth(lastNameChars, 0, lastNameChars.length);
 			int fullNameW = metrics.charWidth(' ') + firstNamesW + lastNameW;
 
-			g2d.setFont(getFont(SIGNATURE_FONT, (int) (fontSize / DATE_LINE_FACTOR)));
+			g2d.setFont(getFont(SIGNATURE_FONT, (int)(fontSize / 2.2F)));
 			metrics = g2d.getFontMetrics();
 			dateH = metrics.getHeight();
 			allFits = metrics.charsWidth(date1Chars, 0, date1Chars.length) <= curW &&
@@ -202,12 +206,12 @@ public class PdfImageBuilder {
 
 		g2d.setColor(TEXT);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		g2d.drawChars(date1Chars, 0, date1Chars.length, (int) curX, (int) (curY + dateH));
-		g2d.drawChars(date2Chars, 0, date2Chars.length, (int) curX, (int) (curY + dateH * 2.2F));
+		g2d.drawChars(date1Chars, 0, date1Chars.length, (int) curX, (int) (curY + dateH * 0.7F));
+		g2d.drawChars(date2Chars, 0, date2Chars.length, (int) curX, (int) (curY + dateH * 1.8F));
 
 		g2d.setFont(getFont(SIGNATURE_FONT, (int) fontSize));
-		g2d.drawChars(firstLineChars, 0, firstLineChars.length, (int) curX, (int) (curY + textH * 2.1F));
-		if (!fullnameFits) g2d.drawChars(lastNameChars, 0, lastNameChars.length, (int) curX, (int) (curY + textH * 3.2F));
+		g2d.drawChars(firstLineChars, 0, firstLineChars.length, (int) curX, (int) (curY + textH * 1.8F));
+		if (!fullnameFits) g2d.drawChars(lastNameChars, 0, lastNameChars.length, (int) curX, (int) (curY + textH * 2.9F));
 		g2d.dispose();
 
 		// Make the rendered image transparent

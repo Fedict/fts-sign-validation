@@ -700,7 +700,7 @@ public class TokenSignService extends SignCommonService {
                         if (APPLICATION_PDF.equals(mediaType)) {
                             // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                             // or in "ImageIO.read" where it is NOT used as a path !
-                            prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                            prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams, true);
                         }
 
                         dataToSign = altSignatureService.altGetDataToSign(getDocumentToSign(token, filePath), parameters, null, applicationName);
@@ -773,11 +773,15 @@ public class TokenSignService extends SignCommonService {
 
     //*****************************************************************************************
 
-    public void prepareVisibleSignatureForToken(RemoteSignatureParameters remoteSigParams, TokenSignInput input, String bucket, ClientSignatureParameters clientSigParams)
+    public void prepareVisibleSignatureForToken(RemoteSignatureParameters remoteSigParams, TokenSignInput input, String bucket, ClientSignatureParameters clientSigParams, boolean remoteSign)
             throws NullParameterException, IOException {
 
         VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
         PdfSignatureProfile psp = getPspFileForToken(input, bucket);
+        if (remoteSign && psp == null) {
+            psp = new PdfSignatureProfile();
+            psp.version = 3;
+        }
         pdfParams.setPsp(psp);
         String psfN = input.getPsfN();
         if (psfN != null) pdfParams.setPsfN(psfN);
@@ -799,9 +803,7 @@ public class TokenSignService extends SignCommonService {
     //*****************************************************************************************
 
     public PdfSignatureProfile getPspFileForToken(TokenSignInput input, String bucket) {
-        PdfSignatureProfile psp = new PdfSignatureProfile();
-        psp.version = 3;
-
+        PdfSignatureProfile psp = null;
         String pspPath = input.getPspFilePath();
         if (pspPath != null) {
             try {
@@ -877,7 +879,7 @@ public class TokenSignService extends SignCommonService {
                     if (APPLICATION_PDF.equals(mediaType)) {
                         // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                         // or in "ImageIO.read" where it is NOT used as a path !
-                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams, false);
                     }
 
                     fileToSign = getDocumentToSign(token, filePath);
@@ -995,7 +997,7 @@ public class TokenSignService extends SignCommonService {
                 if (APPLICATION_PDF.equals(mediaType)) {
                     // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                     // or in "ImageIO.read" where it is NOT used as a path !
-                    prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                    prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams, false);
                 }
 
                 fileToSign = getDocumentToSign(token, filePath);
@@ -1103,7 +1105,7 @@ public class TokenSignService extends SignCommonService {
                     if (APPLICATION_PDF.equals(mediaType)) {
                         // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                         // or in "ImageIO.read" where it is NOT used as a path !
-                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams, true);
                     }
 
                     fileToSign = getDocumentToSign(token, filePath);

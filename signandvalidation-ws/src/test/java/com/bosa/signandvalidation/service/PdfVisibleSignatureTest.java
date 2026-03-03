@@ -76,7 +76,7 @@ public class PdfVisibleSignatureTest {
 
         testRender("normal", 496, 264, "Date of signature", "The 24th of June 2024 by", "Simon", "Du lion");
 
-        testRender("small", 248, 132, "Date of signature", "The 24th of June 2024 by", "Jos", "Vandekasteel");
+        testRender("small", 248, 132, "Date of signature", "The 24th of June 2024 by", "Jos", "Vandekasteelenvos");
 
         testRender("longNames", 600, 132, "Date of signature", "The 10th of June 2024 at 10h30 UTC", "VerylongFirstNamePerson", "VerylongLastNamePerson");
 
