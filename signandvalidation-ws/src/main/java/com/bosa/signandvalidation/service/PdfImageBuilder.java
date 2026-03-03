@@ -48,7 +48,6 @@ public class PdfImageBuilder {
 		return fontDir;
 	}
 
-
 	/*
         export const RED: SignatureColor = { back: "#3B1923", border: "#492D35", text: "#B5B5B5", circle: "#471221", logo: "#542633" };
         export const BLACK: SignatureColor = { back: "#0C0F1E", border: "#2A2C39", text: "#FFFFFF", circle: "#0C0F1E", logo: "#2A2C39" };
@@ -82,11 +81,9 @@ public class PdfImageBuilder {
 		// Calculate general dimension
 	    float dim = (float) Math.sqrt(imgX * imgY);
 
-		// Background rounded corners
+		// Clipped rounded corners
 		float radius = dim / 16;
 		RoundRectangle2D.Float roundRect = new RoundRectangle2D.Float(0, 0, imgX, imgY, (int) radius, (int) radius);
-		g2d.setColor(BACKGROUND);
-		g2d.fill(roundRect);
 		g2d.clip(roundRect);
 
 		// Draw gradient from left of the circle
