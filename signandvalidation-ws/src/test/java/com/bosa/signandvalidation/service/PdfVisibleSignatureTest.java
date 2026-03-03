@@ -87,6 +87,8 @@ public class PdfVisibleSignatureTest {
         testRender("highLarge", 300, 600, "Date of signature", "The 24th of June 2024 by", "", "Marvin");
 
         testRender("smallName",140, 200, "Date of signature", "The 24th of June 2024 by", "Arthur", "Dent");
+
+        testRender("micro",50, 30, "Date of signature", "The 24th of June 2024 by", "Arthur", "Dent");
     }
     
     private static void testRender(String targetImage, float x, float y, String date1, String date2, String firstNames, String lastName) throws Exception {

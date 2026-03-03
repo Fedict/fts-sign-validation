@@ -153,7 +153,6 @@ public class PdfVisibleSignatureService {
             psp.texts = REMOTE_SIGN_TEXTS;
             psp.imageScaling = ImageScaling.ZOOM_AND_CENTER;
             if (psp.rotation == null) psp.rotation = VisualSignatureRotation.AUTOMATIC;
-            psp.imageDpi = 600;
             psp.zoom = 100;
             return;
         }

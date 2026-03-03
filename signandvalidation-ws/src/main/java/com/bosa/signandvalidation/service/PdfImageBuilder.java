@@ -68,18 +68,30 @@ public class PdfImageBuilder {
 
 	private static final float DATE_LINE_FACTOR = 2.2F;
 	private static final float TARGET_TRANSPARENCY = 0.9F;
+	private static final int MIN_DIMENSION = 380;
 
 	//----------------------------------------------------------------------------------------------------------------------------
 
 	public static byte[] makeRemoteSignPdfImage(RemoteSignatureFieldParameters fieldParams, String text) throws Exception {
-		int imgX = fieldParams.getWidth().intValue();
-		int imgY = fieldParams.getHeight().intValue();
+		float fImgX = fieldParams.getWidth();
+		float fImgY = fieldParams.getHeight();
+
+		// Calculate general dimension
+		float dim = (float) Math.sqrt(fImgX * fImgY);
+
+		// Make sure the pixel sizes (impacts resolution) are reasonable
+		if (dim < MIN_DIMENSION) {
+			float scale = MIN_DIMENSION / dim;
+			fImgX *= scale;
+			fImgY *= scale;
+			dim = MIN_DIMENSION;
+		}
+
+		int imgX = (int) fImgX;
+		int imgY = (int) fImgY;
 		BufferedImage workImage =  new BufferedImage(imgX, imgY, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = (Graphics2D) workImage.getGraphics();
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-		// Calculate general dimension
-	    float dim = (float) Math.sqrt(imgX * imgY);
 
 		// Clipped rounded corners
 		float radius = dim / 16;
