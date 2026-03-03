@@ -94,11 +94,6 @@ public class PdfImageBuilder {
 		// Clipped rounded corners
 		float radius = dim / 16;
 
-		// Draw the picture with full transparency (Avoid edges drawn by Acrobat)
-		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.0f));
-		g2d.fillRect(0, 0, imgX, imgY);
-		g2d.setComposite(AlphaComposite.SrcOver);
-
 		g2d.clip(new RoundRectangle2D.Float(0, 0, imgX, imgY, (int) radius, (int) radius));
 
 		// Draw gradient from left of the circle
