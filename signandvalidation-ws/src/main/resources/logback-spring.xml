@@ -39,9 +39,6 @@
             <appender-ref ref="json" />
         </root>
 
-        <!-- Log more details for "Determining signing certificate from certificate candidates list failed" -->
-        <logger name="eu.europa.esig.dss.spi.x509.SignatureIntegrityValidator" level="debug"/>
-
         <!-- EST-592 Disable logging of large number of "CRL Signature cannot be validated : ..." -->
         <logger name="eu.europa.esig.dss.crl.stream.impl.CRLUtilsStreamImpl" level="error"/>
         <!-- ETS-592 Disable logging Font substitution -->
