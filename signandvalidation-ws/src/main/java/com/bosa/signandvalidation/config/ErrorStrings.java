@@ -83,4 +83,7 @@ public interface ErrorStrings {
 
 	// The Visible signature of pdf signature does not fit entirely on the page
 	String SIGNATURE_OUT_OF_BOUNDS = "SIGNATURE_OUT_OF_BOUNDS";
+
+	// Trying to sign over acroforms/links/...
+	String SIGNATURE_OVER_FIELDS = "SIGNATURE_OVER_FIELDS";
 }

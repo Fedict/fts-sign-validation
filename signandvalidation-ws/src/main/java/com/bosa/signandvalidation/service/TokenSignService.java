@@ -51,6 +51,7 @@ import java.text.SimpleDateFormat;
 import static com.bosa.signandvalidation.config.ErrorStrings.*;
 import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static com.bosa.signandvalidation.model.SigningType.*;
+import static com.bosa.signandvalidation.service.SignService.handleInvalidSignaturePositions;
 import static com.bosa.signandvalidation.utils.LoggingInterceptor.logHttpRequest;
 import static com.bosa.signandvalidation.utils.SupportUtils.longToBytes;
 
@@ -724,12 +725,7 @@ public class TokenSignService extends SignCommonService {
         } catch(ProtectedDocumentException e) {
             logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (AlertException e) {
-            String message = e.getMessage();
-            if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
-                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-            }
-            logger.warning(message);
-            logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
+            handleInvalidSignaturePositions(e);
         } catch (Exception e) {
             DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -904,12 +900,7 @@ public class TokenSignService extends SignCommonService {
         } catch(ProtectedDocumentException e) {
             logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (AlertException e) {
-            String message = e.getMessage();
-            if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
-                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-            }
-            logger.warning(message);
-            logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
+            handleInvalidSignaturePositions(e);
         } catch (Exception e) {
             DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);

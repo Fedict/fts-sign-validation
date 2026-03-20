@@ -77,16 +77,26 @@ public class SignService extends SignCommonService {
         } catch(ProtectedDocumentException e) {
             logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (AlertException e) {
-            String message = e.getMessage();
-            if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
-                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-            }
-            logger.warning(message);
-            logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
+            handleInvalidSignaturePositions(e);
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null; // We won't get here
+    }
+
+    //*****************************************************************************************
+
+    public static void handleInvalidSignaturePositions(AlertException e) {
+        String message = e.getMessage();
+        if (message != null) {
+            if (message.startsWith("The new signature field position is outside the page dimensions!")) {
+                logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
+            }
+            if (message.startsWith("The new signature field position overlaps with an existing annotation")) {
+                logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OVER_FIELDS, e);
+            }
+        }
+        logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
     }
 
     //*****************************************************************************************
