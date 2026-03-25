@@ -1029,6 +1029,7 @@ public class TokenSignService extends SignCommonService {
             logger.info("Entering consentForToken()");
 
             TokenObject token = getTokenFromId(req.getToken());
+            MDC.put("bucket", token.getBucket());
 
             SigningType sigType = token.getSigningType();
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
@@ -1105,18 +1106,16 @@ public class TokenSignService extends SignCommonService {
 
                 signedDoc.setName(getOutFilePath(token, inputToSign));
 
-                MDC.put("fileName", signedDoc.getName());
-                logger.info("consentForToken(): validating the signed doc");
-
                 signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), null, signProfile);
 
+                MDC.put("fileName", signedDoc.getName());
+                logger.info("consentForToken(): validating the signed doc");
+                MDC.put("fileName", null);
                 // Save signed file
                 storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
                 if (!sigType.equals(Standard)) break;
             }
 
-            // Log bucket and filename only for this method
-            MDC.put("bucket", token.getBucket());
             logger.info("Returning from consentForToken().");
         } catch (Exception e) {
             handleRevokedCertificates(e);
