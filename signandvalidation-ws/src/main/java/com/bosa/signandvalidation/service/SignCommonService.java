@@ -176,22 +176,26 @@ public class SignCommonService {
 
 //*****************************************************************************************
 
-// In order to keep coherence between token and non-toke operations the validation code is the same
-public static PDRectangle checkVisibleSignatureParameters(String psfC, String psfN, PdfSignatureProfile psp, PDDocument pdfDoc) {
-    // Check psfN
-    if (psfN != null) {
+// In order to keep coherence between token and non-token operations the validation code is the same
+
+    public static Map<String, AcroformInfo> checkVisibleSignatureParameters(String psfC, String psfN, boolean isInvisible, PdfSignatureProfile psp, PDDocument pdfDoc) {
+    // Check psfN or get the list of all "signable acroforms"
+    if (psfN != null || (psfC == null && !isInvisible)) {
+        Map<String, AcroformInfo> acroformInfos = new HashMap<>();
         List<PDSignatureField> sigFields = pdfDoc.getSignatureFields();
         for (PDSignatureField sigField : sigFields) {
-            String name = sigField.getPartialName();
-            if (psfN.equals(name)) {
-                if (sigField.getSignature() != null) {
-                    logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature.", null);
-                }
-                // TODO Check get(0); ******************************************************************************************
-                return sigField.getWidgets().get(0).getRectangle();
+            if (sigField.getSignature() == null) {
+                String name = sigField.getPartialName();
+                PDRectangle rect = sigField.getWidgets().get(0).getRectangle();
+                acroformInfos.put(name, new AcroformInfo(rect.getWidth(), rect.getHeight()));
             }
         }
-        logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The PDF signature field does exist : " + psfN, null);
+        if (psfN != null) {
+            if (!acroformInfos.containsKey(psfN)) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "The specified PDF signature field already contains a signature or does not exists : " + psfN, null);
+            }
+        }
+        return acroformInfos;
     }
 
     // Check psfC
@@ -200,19 +204,19 @@ public static PDRectangle checkVisibleSignatureParameters(String psfC, String ps
     checkPsfC(pdfDoc, psfC);
 
     if (psp != null) {
-        // Check if all date formats are accepted
-        Date now = new Date();
-        for(String text : psp.texts.values()) PdfVisibleSignatureService.injectDate(text, now, "en");
+        if (psp.version == null || psp.version == 1 || psp.version == 2) {
+            // Check if all date formats are accepted
+            Date now = new Date();
+            for(String text : psp.texts.values()) PdfVisibleSignatureService.injectDate(text, now, "en");
 
-        checkPspColor(psp.bgColor, "bgColor");
-        if (psp.font != null && !pspFontPattern.matcher(psp.font).matches()) {
-            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP font '" + psp.font + "' does not match Regex (" + pspFontPattern.pattern() + ")" , null);
+            checkPspColor(psp.bgColor, "bgColor");
+            if (psp.font != null && !pspFontPattern.matcher(psp.font).matches()) {
+                logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP font '" + psp.font + "' does not match Regex (" + pspFontPattern.pattern() + ")" , null);
+            }
+            checkPspColor(psp.textColor, "textColor");
+            checkPspColor(psp.bodyBgColor, "bodyBgColor");
         }
-        checkPspColor(psp.textColor, "textColor");
-        if (psp.version != null && psp.version != 1 && psp.version != 2) {
-            logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP version invalid : " + psp.version, null);
-        }
-        checkPspColor(psp.bodyBgColor, "bodyBgColor");
+        else if (psp.version != 3) logAndThrowEx(FORBIDDEN, INVALID_PARAM, "PSP version invalid : " + psp.version, null);
     }
 
     return null;

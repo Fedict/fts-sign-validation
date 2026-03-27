@@ -1,15 +1,18 @@
 package com.bosa.signandvalidation.service;
 
 import eu.europa.esig.dss.ws.dto.RemoteCertificate;
+import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParameters;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
+import static com.bosa.signandvalidation.service.PdfVisibleSignatureServiceTest.RESOURCE_PATH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -66,5 +69,34 @@ public class PdfVisibleSignatureTest {
         texts.put("en", "%d(MMM d YYYY)% %d(yyyy.MMMMM.dd)%");
         text = PdfVisibleSignatureService.makeText(texts, null, signingDate, signingCert);
         assertEquals("Jun 10 2021 2021.June.10", text);
-   }
+    }
+
+    @Test
+    public void testRemoteSignSignature() throws Exception {
+
+        testRender("normal", 496, 264, "Date of signature", "The 24th of June 2024 by", "Simon", "Du lion");
+
+        testRender("small", 248, 132, "Date of signature", "The 24th of June 2024 by", "Jos", "Vandekasteelenvos");
+
+        testRender("longNames", 600, 132, "Date of signature", "The 10th of June 2024 at 10h30 UTC", "VerylongFirstNamePerson", "VerylongLastNamePerson");
+
+        testRender("veryLongNames", 620, 330, "Date of signature", "The 10th of June 2024 at 10h30 UTC with a crazy length", "VerylongFirstNamePerson with a crazy length", "VerylongLastNamePerson with a crazy length");
+
+        testRender("high", 150, 200, "Date of signature", "The 24th of June 2024 by", "Zaphod", "Beeblebrox");
+
+        testRender("highLarge", 300, 600, "Date of signature", "The 24th of June 2024 by", "", "Marvin");
+
+        testRender("smallName",140, 200, "Date of signature", "The 24th of June 2024 by", "Arthur", "Dent");
+
+        testRender("micro",50, 30, "Date of signature", "The 24th of June 2024 by", "Arthur", "Dent");
+    }
+    
+    private static void testRender(String targetImage, float x, float y, String date1, String date2, String firstNames, String lastName) throws Exception {
+        File testFolder = new File(RESOURCE_PATH, "VisibleSignatures");
+        RemoteSignatureFieldParameters fb = new RemoteSignatureFieldParameters();
+        fb.setWidth(x);
+        fb.setHeight(y);
+        byte[] rawPngImage = PdfImageBuilder.makeRemoteSignPdfImage(fb, date1 + "\n" + date2 + "\n" + firstNames + "\n" + lastName);
+        PdfVisibleSignatureServiceTest.compareImages(testFolder, rawPngImage, targetImage);
+    }
 }

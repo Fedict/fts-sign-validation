@@ -32,7 +32,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import net.sf.saxon.BasicTransformerFactory;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +51,7 @@ import java.text.SimpleDateFormat;
 import static com.bosa.signandvalidation.config.ErrorStrings.*;
 import static com.bosa.signandvalidation.exceptions.Utils.*;
 import static com.bosa.signandvalidation.model.SigningType.*;
+import static com.bosa.signandvalidation.service.SignService.handleInvalidSignaturePositions;
 import static com.bosa.signandvalidation.utils.LoggingInterceptor.logHttpRequest;
 import static com.bosa.signandvalidation.utils.SupportUtils.longToBytes;
 
@@ -280,17 +280,14 @@ public class TokenSignService extends SignCommonService {
 
             String psfC = input.getPsfC();
             String psfN = input.getPsfN();
-            if (psfN == null && psfC == null) continue;
+            boolean invisibleSignature = input.isInvisible();
+            if (psfN == null && psfC == null && invisibleSignature) continue;
 
             byte[] file = storageService.getFileAsBytes(token.getBucket(), input.getFilePath(), true);
             PDDocument pdfDoc = Loader.loadPDF(file);
-            PdfSignatureProfile psp = getPspFile(input, token.getBucket());
-            PDRectangle rect = checkVisibleSignatureParameters(psfC, psfN, psp, pdfDoc);
-            if (rect != null) {
-                // Save for later phases to avoid re-loading the PDF
-                input.setPsfNHeight(rect.getHeight());
-                input.setPsfNWidth(rect.getWidth());
-            }
+            PdfSignatureProfile psp = getPspFileForToken(input, token.getBucket());
+
+            input.setAcroformInfos(checkVisibleSignatureParameters(psfC, psfN, invisibleSignature, psp, pdfDoc));
             pdfDoc.close();
         }
     }
@@ -704,7 +701,7 @@ public class TokenSignService extends SignCommonService {
                         if (APPLICATION_PDF.equals(mediaType)) {
                             // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                             // or in "ImageIO.read" where it is NOT used as a path !
-                            prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                            prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams, true);
                         }
 
                         dataToSign = altSignatureService.altGetDataToSign(getDocumentToSign(token, filePath), parameters, null, applicationName);
@@ -728,12 +725,7 @@ public class TokenSignService extends SignCommonService {
         } catch(ProtectedDocumentException e) {
             logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (AlertException e) {
-            String message = e.getMessage();
-            if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
-                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-            }
-            logger.warning(message);
-            logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
+            handleInvalidSignaturePositions(e);
         } catch (Exception e) {
             DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -777,24 +769,36 @@ public class TokenSignService extends SignCommonService {
 
     //*****************************************************************************************
 
-    public void prepareVisibleSignatureForToken(RemoteSignatureParameters remoteSigParams, TokenSignInput input, String bucket, ClientSignatureParameters clientSigParams)
+    public void prepareVisibleSignatureForToken(RemoteSignatureParameters remoteSigParams, TokenSignInput input, String bucket, ClientSignatureParameters clientSigParams, boolean remoteSign)
             throws NullParameterException, IOException {
 
         VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
-        PdfSignatureProfile psp = getPspFile(input, bucket);
+        PdfSignatureProfile psp = getPspFileForToken(input, bucket);
+        if (remoteSign && psp == null) {
+            psp = new PdfSignatureProfile();
+            psp.version = 3;
+        }
         pdfParams.setPsp(psp);
         String psfN = input.getPsfN();
         if (psfN != null) pdfParams.setPsfN(psfN);
+        else psfN = pdfParams.getPsfN();
+        float acroformWidth = 0;
+        float acroformHeight = 0;
+        if (psfN != null) {
+            AcroformInfo acroformInfo = input.getAcroformInfos().get(psfN);
+            acroformWidth = acroformInfo.getWidth();
+            acroformHeight = acroformInfo.getHeight();
+        }
         String psfC = input.getPsfC();
         if (psfC != null) pdfParams.setPsfC(psfC);
         SigningLanguages signLanguage = input.getSignLanguage();
         if (signLanguage != null) pdfParams.setSignLanguage(signLanguage.name());
-        pdfVisibleSignatureService.prepareVisibleSignature(remoteSigParams, input.getPsfNHeight(), input.getPsfNWidth(), clientSigParams);
+        pdfVisibleSignatureService.prepareVisibleSignature(remoteSigParams, acroformHeight, acroformWidth, clientSigParams);
     }
 
     //*****************************************************************************************
 
-    public PdfSignatureProfile getPspFile(TokenSignInput input, String bucket) {
+    public PdfSignatureProfile getPspFileForToken(TokenSignInput input, String bucket) {
         PdfSignatureProfile psp = null;
         String pspPath = input.getPspFilePath();
         if (pspPath != null) {
@@ -871,7 +875,7 @@ public class TokenSignService extends SignCommonService {
                     if (APPLICATION_PDF.equals(mediaType)) {
                         // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                         // or in "ImageIO.read" where it is NOT used as a path !
-                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams, false);
                     }
 
                     fileToSign = getDocumentToSign(token, filePath);
@@ -896,12 +900,7 @@ public class TokenSignService extends SignCommonService {
         } catch(ProtectedDocumentException e) {
             logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (AlertException e) {
-            String message = e.getMessage();
-            if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
-                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-            }
-            logger.warning(message);
-            logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
+            handleInvalidSignaturePositions(e);
         } catch (Exception e) {
             DataLoadersExceptionLogger.logAndThrow(e);
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
@@ -989,7 +988,7 @@ public class TokenSignService extends SignCommonService {
                 if (APPLICATION_PDF.equals(mediaType)) {
                     // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                     // or in "ImageIO.read" where it is NOT used as a path !
-                    prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                    prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams, false);
                 }
 
                 fileToSign = getDocumentToSign(token, filePath);
@@ -1030,6 +1029,7 @@ public class TokenSignService extends SignCommonService {
             logger.info("Entering consentForToken()");
 
             TokenObject token = getTokenFromId(req.getToken());
+            MDC.put("bucket", token.getBucket());
 
             SigningType sigType = token.getSigningType();
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
@@ -1097,7 +1097,7 @@ public class TokenSignService extends SignCommonService {
                     if (APPLICATION_PDF.equals(mediaType)) {
                         // Below is a Snyk false positive report : The "traversal" is in PdfVisibleSignatureService.getFont
                         // or in "ImageIO.read" where it is NOT used as a path !
-                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams);
+                        prepareVisibleSignatureForToken(parameters, inputToSign, token.getBucket(), clientSigParams, true);
                     }
 
                     fileToSign = getDocumentToSign(token, filePath);
@@ -1106,18 +1106,16 @@ public class TokenSignService extends SignCommonService {
 
                 signedDoc.setName(getOutFilePath(token, inputToSign));
 
-                MDC.put("fileName", signedDoc.getName());
-                logger.info("consentForToken(): validating the signed doc");
-
                 signedDoc = validateResult(signedDoc, detachedDocuments, parameters, token, signedDoc.getName(), null, signProfile);
 
+                MDC.put("fileName", signedDoc.getName());
+                logger.info("consentForToken(): validating the signed doc");
+                MDC.put("fileName", null);
                 // Save signed file
                 storageService.storeFile(token.getBucket(), signedDoc.getName(), signedDoc.getBytes());
                 if (!sigType.equals(Standard)) break;
             }
 
-            // Log bucket and filename only for this method
-            MDC.put("bucket", token.getBucket());
             logger.info("Returning from consentForToken().");
         } catch (Exception e) {
             handleRevokedCertificates(e);

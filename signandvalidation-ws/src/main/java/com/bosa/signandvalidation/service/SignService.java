@@ -77,12 +77,7 @@ public class SignService extends SignCommonService {
         } catch(ProtectedDocumentException e) {
             logAndThrowEx(UNAUTHORIZED, UNSIGNABLE_DOCUMENT, e.getMessage());
         } catch (AlertException e) {
-            String message = e.getMessage();
-            if (message == null || !message.startsWith("The new signature field position is outside the page dimensions!")) {
-                logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
-            }
-            logger.warning(message);
-            logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
+            handleInvalidSignaturePositions(e);
         } catch (RuntimeException | IOException e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
@@ -91,18 +86,40 @@ public class SignService extends SignCommonService {
 
     //*****************************************************************************************
 
+    public static void handleInvalidSignaturePositions(AlertException e) {
+        String message = e.getMessage();
+        if (message != null) {
+            if (message.startsWith("The new signature field position is outside the page dimensions!")) {
+                logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OUT_OF_BOUNDS, e);
+            }
+            if (message.startsWith("The new signature field position overlaps with an existing annotation")) {
+                logAndThrowEx(INTERNAL_SERVER_ERROR, SIGNATURE_OVER_FIELDS, e);
+            }
+        }
+        logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+    }
+
+    //*****************************************************************************************
+
     private void prepareVisibleSignature(RemoteSignatureParameters parameters, RemoteDocument pdf, ClientSignatureParameters clientSigParams) throws NullParameterException, IOException {
         VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
         if (pdfParams != null) {
-            PDRectangle rect = null;
+            float acroformWidth = 0;
+            float acroformHeight = 0;
+            Map<String, AcroformInfo> acroformInfos = null;
             String psfN = pdfParams.getPsfN();
             String psfC = pdfParams.getPsfC();
             if (psfN != null || psfC != null) {
                 PDDocument pdfDoc = Loader.loadPDF(pdf.getBytes());
-                rect = checkVisibleSignatureParameters(psfC, psfN, pdfParams.getPsp(), pdfDoc);
+                acroformInfos = checkVisibleSignatureParameters(psfC, psfN, false, pdfParams.getPsp(), pdfDoc);
+                if (acroformInfos != null) {
+                    AcroformInfo acroformInfo = acroformInfos.get(psfN);
+                    acroformWidth = acroformInfo.getWidth();
+                    acroformHeight = acroformInfo.getHeight();
+                }
                 pdfDoc.close();
             }
-            pdfVisibleSignatureService.prepareVisibleSignature(parameters, rect == null ? 0 : rect.getHeight(), rect == null ? 0 : rect.getWidth(), clientSigParams);
+            pdfVisibleSignatureService.prepareVisibleSignature(parameters, acroformHeight, acroformWidth, clientSigParams);
         }
     }
 

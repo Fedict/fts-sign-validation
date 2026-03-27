@@ -39,6 +39,12 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 @RequiredArgsConstructor
 public class PdfVisibleSignatureService {
 
+    Map<String, String> REMOTE_SIGN_TEXTS = Map.of(
+            "fr", "* Date de la signature\nLe %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "en", "* Date of signature\nOn %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "de", "* Date of signature\nAm %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "nl", "* Datum van signature\nOp %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%");
+
     public static final String FONTS_PATH_PROPERTY = "fonts.path";
     public static final String DEFAULT_STRING      = "default";
     private static final byte[] DEFAULT_BYTES       = DEFAULT_STRING.getBytes();
@@ -123,22 +129,34 @@ public class PdfVisibleSignatureService {
 
         byte image[] = pdfParams.getPhoto();
         if (image == null) image = psp.image;
+        if (psp.version == 3) {
+            try {
+                image = PdfImageBuilder.makeRemoteSignPdfImage(fieldParams, text);
+            } catch (Exception e) {
+                throw new IOException("Can't render visible signature");
+            }
+        }
 
         RemoteSignatureImageParameters sigImgParams = new RemoteSignatureImageParameters();
         remoteSigParams.setImageParameters(sigImgParams);
         sigImgParams.setFieldParameters(fieldParams);
-        if (psp.version == 1) {
-            fillParamsForV1(sigImgParams, psp, text, image);
-        } else {
-            fillParamsForV2(sigImgParams, fieldParams, psp, text, image);
-        }
+        if (psp.version == 1) fillParamsForV1(sigImgParams, psp, text, image);
+        else fillParamsForV2AndV3(sigImgParams, fieldParams, psp, text, image);
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
     private void makePspDefaults(PdfSignatureProfile psp) {
-
         if (psp.version == null) psp.version = 1;
+
+        if (psp.version == 3) {
+            psp.texts = REMOTE_SIGN_TEXTS;
+            psp.imageScaling = ImageScaling.ZOOM_AND_CENTER;
+            if (psp.rotation == null) psp.rotation = VisualSignatureRotation.AUTOMATIC;
+            psp.zoom = 100;
+            return;
+        }
+
         if (psp.bgColor == null) psp.bgColor = "#D0D0D0";   // light gray, same as IMAGE background color;
         if (psp.textSize == null) psp.textSize = 14;
         if (psp.textPadding == null) psp.textPadding = 20;
@@ -168,7 +186,7 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    static String makeText(HashMap<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
+    static String makeText(Map<String,String> texts, String lang, Date signingDate, RemoteCertificate signingCert) throws NullParameterException {
         String text = DEFAULT_TEXT;
         if (texts != null && !texts.isEmpty()) {
             if (lang != null) {
@@ -215,27 +233,30 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    public void fillParamsForV2(RemoteSignatureImageParameters sigImgParams, RemoteSignatureFieldParameters fieldParams, PdfSignatureProfile psp, String text, byte[] image) throws IOException {
+    public void fillParamsForV2AndV3(RemoteSignatureImageParameters sigImgParams, RemoteSignatureFieldParameters fieldParams, PdfSignatureProfile psp, String text, byte[] image) throws IOException {
         RemoteSignatureImageTextParameters textParams = new RemoteSignatureImageTextParameters();
-        sigImgParams.setTextParameters(textParams);
 
-        textParams.setSize(psp.textSize);
-        textParams.setTextWrapping(psp.textWrapping);
-        textParams.setTextColor(makeColor(psp.textColor, false));
-        textParams.setBackgroundColor(makeColor(psp.bgColor, true));
-        textParams.setText(text);
-        textParams.setPadding(psp.textPadding.floatValue());
-        textParams.setSignerTextPosition(psp.textPos);
-        textParams.setSignerTextVerticalAlignment(psp.textAlignV);
-        textParams.setSignerTextHorizontalAlignment(psp.textAlignH);
-        RemoteDocument rd = new RemoteDocument(readFontFromFileOrCache(psp.font), psp.font);
-        textParams.setFont(rd);
+        if (psp.version == 2) {
+            sigImgParams.setTextParameters(textParams);
+
+            textParams.setSize(psp.textSize);
+            textParams.setTextWrapping(psp.textWrapping);
+            textParams.setTextColor(makeColor(psp.textColor, false));
+            textParams.setBackgroundColor(makeColor(psp.bgColor, true));
+            textParams.setText(text);
+            textParams.setPadding(psp.textPadding.floatValue());
+            textParams.setSignerTextPosition(psp.textPos);
+            textParams.setSignerTextVerticalAlignment(psp.textAlignV);
+            textParams.setSignerTextHorizontalAlignment(psp.textAlignH);
+            RemoteDocument rd = new RemoteDocument(readFontFromFileOrCache(psp.font), psp.font);
+            textParams.setFont(rd);
+        }
 
         if (image != null) sigImgParams.setImage(new RemoteDocument(image, "image.png"));
         sigImgParams.setDpi(psp.imageDpi);
 
         sigImgParams.setImageScaling(psp.imageScaling);
-        sigImgParams.setBackgroundColor(makeColor(psp.bodyBgColor, true));
+        if (psp.bodyBgColor != null) sigImgParams.setBackgroundColor(makeColor(psp.bodyBgColor, true));
         sigImgParams.setZoom(psp.zoom);
 
         // Alignment of the signature relative to page borders
@@ -258,15 +279,15 @@ public class PdfVisibleSignatureService {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    private void fillParamsForV1(RemoteSignatureImageParameters sigImgParams, PdfSignatureProfile psp, String text, byte[] image) throws NullParameterException {
+    private void fillParamsForV1(RemoteSignatureImageParameters sigImgParams, PdfSignatureProfile psp, String text, byte[] image) throws IOException {
 
         RemoteSignatureFieldParameters fieldParams = sigImgParams.getFieldParameters();
         try {
-            RemoteDocument imageDoc = new RemoteDocument();
-            sigImgParams.setImage(imageDoc);
-
-            imageDoc.setBytes(PdfImageBuilder.makePdfImage(
-                    fieldParams.getWidth().intValue(), fieldParams.getHeight().intValue(),
+            byte[] imgBytes;
+            int width = fieldParams.getWidth().intValue();
+            int height = fieldParams.getHeight().intValue();
+            imgBytes = PdfImageBuilder.makePdfImage(
+                    width, height,
                     psp.bgColor,
                     psp.textPadding,
                     text,
@@ -275,11 +296,14 @@ public class PdfVisibleSignatureService {
                     getHorizontalAlign(psp.textAlignH),
                     getVerticalAlign(psp.textAlignV),
                     getFont(psp.font, psp.textSize),
-                    image));
+                    image);
+            RemoteDocument imageDoc = new RemoteDocument();
+            sigImgParams.setImage(imageDoc);
+            imageDoc.setBytes(imgBytes);
         }
         catch (Exception e) {
             logger.log(Level.SEVERE, e.toString());
-            throw new NullParameterException(e.getMessage());
+            throw new IOException(e.getMessage());
         }
     }
 
