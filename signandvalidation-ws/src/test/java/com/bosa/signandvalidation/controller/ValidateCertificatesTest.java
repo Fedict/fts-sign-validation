@@ -122,7 +122,7 @@ public class ValidateCertificatesTest extends SignAndValidationBaseTest implemen
         XmlDiagnosticData xmlDiagnosticData = reportsDTO.getDiagnosticData();
         List<XmlCertificate> usedCertificates = xmlDiagnosticData.getUsedCertificates();
         assertTrue(usedCertificates.size() > 1);
-        List<XmlChainItem> chain = reportsDTO.getSimpleCertificateReport().getChain();
+        List<XmlChainItem> chain = reportsDTO.getSimpleCertificateReport().getCertificate().getChain();
         assertTrue(chain.size() > 1);
 
         DiagnosticData diagnosticData = new DiagnosticData(xmlDiagnosticData);

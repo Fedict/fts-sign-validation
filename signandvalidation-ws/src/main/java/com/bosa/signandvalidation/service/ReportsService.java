@@ -47,7 +47,7 @@ public class ReportsService implements ErrorStrings {
 
     public CertificateIndicationsDTO getCertificateIndicationsDTO(CertificateReportsDTO certificateReportsDTO, KeyUsageBit expectedKeyUsage) {
         LOG.info(("Getting indications for certificate report..."));
-        List<XmlChainItem> chain = certificateReportsDTO.getSimpleCertificateReport().getChain();
+        List<XmlChainItem> chain = certificateReportsDTO.getSimpleCertificateReport().getCertificate().getChain();
         String firstCommonName = chain.get(0).getSubject().getCommonName();
         boolean keyUsageCheckOk = chain.get(0).getKeyUsages().contains(expectedKeyUsage);
 

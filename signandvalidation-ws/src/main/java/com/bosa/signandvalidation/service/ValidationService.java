@@ -124,7 +124,7 @@ public class ValidationService {
             CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(dto);
             CertificateIndicationsDTO rv = reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
             if(rv.getIndication() != PASSED) {
-                certificateReportsDTO.getSimpleCertificateReport().getChain().forEach(item -> {
+                certificateReportsDTO.getSimpleCertificateReport().getCertificate().getChain().forEach(item -> {
                     logger.log(Level.SEVERE, "Certificate validation indication = {0}; certificate ID = {1}, issuer ID = {2}", new Object[]{rv.getIndication().toString(), item.getId(), item.getIssuerId()});
                 });
             }
