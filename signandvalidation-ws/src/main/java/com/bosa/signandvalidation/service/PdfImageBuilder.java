@@ -5,6 +5,7 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParame
 import java.awt.*;
 
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.DataBufferInt;
 import java.io.*;
@@ -94,7 +95,10 @@ public class PdfImageBuilder {
 		// Clipped rounded corners
 		float radius = dim / 16;
 
-		g2d.clip(new RoundRectangle2D.Float(0, 0, imgX, imgY, (int) radius, (int) radius));
+		// Using a rounded rectangle creates an erroneous round border in acrobat because aliasing
+		// Besides the signature is always a rectangle, therefore the round is hardly seen in the final signature
+		g2d.clip(new Rectangle2D.Float(0, 0, imgX, imgY));
+
 
 		// Draw gradient from left of the circle
 		radius = Math.max(imgX, imgY) * 0.6F;
