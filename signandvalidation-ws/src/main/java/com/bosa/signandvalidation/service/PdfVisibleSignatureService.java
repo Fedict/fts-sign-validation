@@ -133,6 +133,7 @@ public class PdfVisibleSignatureService {
             try {
                 image = PdfImageBuilder.makeRemoteSignPdfImage(fieldParams, text);
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new IOException("Can't render visible signature " + e.getMessage());
             }
         }
