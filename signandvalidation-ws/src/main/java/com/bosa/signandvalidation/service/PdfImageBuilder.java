@@ -10,6 +10,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.image.DataBufferInt;
 import java.io.*;
 import java.awt.image.BufferedImage;
+import java.security.InvalidParameterException;
 import javax.imageio.ImageIO;
 import javax.naming.SizeLimitExceededException;
 
@@ -161,6 +162,8 @@ public class PdfImageBuilder {
 		int maxFontSize = (int) (dim / 7);
 		int fontSize = maxFontSize;
 		String[] bits = text.split("\n");
+		if (bits.length != 4) throw new InvalidParameterException("Text does not split into 4 lines : " + text);
+
 		char[] date1Chars = bits[0].toCharArray();
 		char[] date2Chars = bits[1].toCharArray();
 		char[] firstLineChars = bits[2].toCharArray();
