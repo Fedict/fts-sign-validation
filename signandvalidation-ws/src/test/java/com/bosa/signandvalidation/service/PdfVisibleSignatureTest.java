@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
@@ -89,6 +90,16 @@ public class PdfVisibleSignatureTest {
         testRender("smallName",140, 200, "Date of signature", "The 24th of June 2024 by", "Arthur", "Dent");
 
         testRender("micro",50, 30, "Date of signature", "The 24th of June 2024 by", "Arthur", "Dent");
+
+        testRender("noFirst",50, 30, "Date of signature", "The 24th of June 2024 by", "", "Dent");
+
+        testRender("noLast",50, 30, "Date of signature", "The 24th of June 2024 by", "First", "");
+
+        try {
+            testRender("noLastFirst",50, 30, "Date of signature", "The 24th of June 2024 by", "", "");
+            fail("Exception exptected");
+        } catch(InvalidParameterException ignored) {
+        }
     }
     
     private static void testRender(String targetImage, float x, float y, String date1, String date2, String firstNames, String lastName) throws Exception {

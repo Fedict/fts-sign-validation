@@ -161,13 +161,16 @@ public class PdfImageBuilder {
 		int minFontSize = 0;
 		int maxFontSize = (int) (dim / 7);
 		int fontSize = maxFontSize;
+
+		// Some people don't have lastname or firstname, text.split() will shift up any field and trim missing ones
 		String[] bits = text.split("\n");
-		if (bits.length != 4) throw new InvalidParameterException("Text does not split into 4 lines : " + text);
+		if (bits.length <= 2) throw new InvalidParameterException("Invalid signature text : " + text);
 
 		char[] date1Chars = bits[0].toCharArray();
 		char[] date2Chars = bits[1].toCharArray();
 		char[] firstLineChars = bits[2].toCharArray();
-		char[] lastNameChars = bits[3].toCharArray();
+		// If missing either lastname or firstname replace by " "
+		char[] lastNameChars = (bits.length == 3 ? " " : bits[3]).toCharArray();
 		while (true) {
 			g2d.setFont(getFont(SIGNATURE_FONT, (int)fontSize));
 			metrics = g2d.getFontMetrics();
@@ -187,7 +190,7 @@ public class PdfImageBuilder {
 					if (okToDraw) {
 						StringBuilder sb = new StringBuilder(bits[2]);
 						if (!sb.isEmpty()) sb.append(' ');
-						sb.append(bits[3]);
+						sb.append(lastNameChars);
 						firstLineChars = sb.toString().toCharArray();
 						fullnameFits = true;
 						break;
