@@ -150,10 +150,12 @@ public class PdfVisibleSignatureService {
         if (psp.version == null) psp.version = 1;
 
         if (psp.version == 3) {
+            logger.severe("TEXTS " + psp.texts);
             if (psp.texts == null) psp.texts = REMOTE_SIGN_TEXTS;
             psp.imageScaling = ImageScaling.ZOOM_AND_CENTER;
             if (psp.rotation == null) psp.rotation = VisualSignatureRotation.AUTOMATIC;
             psp.zoom = 100;
+            logger.severe("TEXTS " + psp.texts);
             return;
         }
 
