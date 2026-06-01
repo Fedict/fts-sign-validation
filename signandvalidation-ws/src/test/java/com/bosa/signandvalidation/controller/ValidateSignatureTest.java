@@ -3,20 +3,29 @@ package com.bosa.signandvalidation.controller;
 import com.bosa.signandvalidation.SignAndValidationBaseTest;
 import com.bosa.signandvalidation.model.*;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.enumerations.SignaturePackaging;
+import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.model.SignatureValue;
+import eu.europa.esig.dss.model.ToBeSigned;
 import eu.europa.esig.dss.spi.DSSUtils;
+import eu.europa.esig.dss.spi.validation.CommonCertificateVerifier;
+import eu.europa.esig.dss.token.DSSPrivateKeyEntry;
+import eu.europa.esig.dss.token.Pkcs12SignatureToken;
 import eu.europa.esig.dss.ws.converter.RemoteDocumentConverter;
 import eu.europa.esig.dss.ws.dto.RemoteDocument;
+import eu.europa.esig.dss.xades.XAdESSignatureParameters;
+import eu.europa.esig.dss.xades.signature.XAdESService;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Map;
 
+import static com.bosa.signandvalidation.model.SignatureLevel.*;
 import static eu.europa.esig.dss.enumerations.Indication.*;
 import static eu.europa.esig.dss.enumerations.SubIndication.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,7 +48,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_lt.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_LT);
+        toValidate.setLevel(XAdES_BASELINE_LT);
 
         // when
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
@@ -55,7 +64,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_lta.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_LTA);
+        toValidate.setLevel(XAdES_BASELINE_LTA);
 
         // when
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
@@ -81,7 +90,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_lt-lta.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_LT);
+        toValidate.setLevel(XAdES_BASELINE_LT);
 
         // when
         Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, Map.class);
@@ -96,7 +105,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_LTA);
+        toValidate.setLevel(XAdES_BASELINE_LTA);
 
         // when
         Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, Map.class);
@@ -111,7 +120,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/pades-lta.pdf"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.PAdES_BASELINE_LTA);
+        toValidate.setLevel(PAdES_BASELINE_LTA);
 
         // when
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
@@ -127,7 +136,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
+        toValidate.setLevel(XAdES_BASELINE_B);
 
         // when
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
@@ -144,7 +153,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/xades-detached.xml"));
         RemoteDocument originalFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
+        toValidate.setLevel(XAdES_BASELINE_B);
 
         // when
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
@@ -162,7 +171,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         FileDocument fileDocument = new FileDocument("src/test/resources/sample.xml");
         RemoteDocument originalFile = new RemoteDocument(DSSUtils.digest(DigestAlgorithm.SHA256, fileDocument), fileDocument.getName());
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
+        toValidate.setLevel(XAdES_BASELINE_B);
 
         // when
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
@@ -180,7 +189,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         RemoteDocument originalFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/sample.xml"));
         RemoteDocument policy = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/policy/constraint.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, originalFile, policy);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
+        toValidate.setLevel(XAdES_BASELINE_B);
 
         // when
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
@@ -195,7 +204,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
     public void signatureWithNoFileProvided() {
         // given
         DataToValidateDTO toValidate = new DataToValidateDTO();
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
+        toValidate.setLevel(XAdES_BASELINE_B);
 
         // when
         Map result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, Map.class);
@@ -210,7 +219,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b.xml"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
+        toValidate.setLevel(XAdES_BASELINE_B);
 
         // when
         SignatureFullValiationDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATUREFULL_ENDPOINT, toValidate, SignatureFullValiationDTO.class);
@@ -224,11 +233,34 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
     }
 
     @Test
-    public void signatureSHA1() {
+    public void signatureSHA1() throws FileNotFoundException {
         // given
-        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/signed_b_sha1.xml"));
+
+        Pkcs12SignatureToken token = new Pkcs12SignatureToken(
+                new FileInputStream("src/test/resources/citizen_nonrep.p12"),
+                new KeyStore.PasswordProtection("123456".toCharArray()));
+
+        DSSPrivateKeyEntry privateKey = token.getKeys().get(0);
+
+        XAdESSignatureParameters parameters = new XAdESSignatureParameters();
+        parameters.setSignatureLevel(eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_B);
+        parameters.setSignaturePackaging(SignaturePackaging.ENVELOPED);
+        parameters.setDigestAlgorithm(DigestAlgorithm.SHA1);
+        parameters.setSigningCertificate(privateKey.getCertificate());
+        parameters.setCertificateChain(privateKey.getCertificateChain());
+
+        CommonCertificateVerifier verifier = new CommonCertificateVerifier();
+        XAdESService service = new XAdESService(verifier);
+
+        FileDocument toSignDocument = new FileDocument(new File("src/test/resources/sample.xml"));
+        ToBeSigned dataToSign = service.getDataToSign(toSignDocument, parameters);
+        SignatureValue signatureValue = token.sign(dataToSign, DigestAlgorithm.SHA1, privateKey);
+
+        DSSDocument signedDocument = service.signDocument(toSignDocument, parameters, signatureValue);
+
+        RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(signedDocument);
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile, (RemoteDocument) null, null);
-        toValidate.setLevel(SignatureLevel.XAdES_BASELINE_B);
+        toValidate.setLevel(XAdES_BASELINE_B);
 
         // when
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
@@ -263,7 +295,7 @@ public class ValidateSignatureTest extends SignAndValidationBaseTest implements 
         // given
         RemoteDocument signedFile = RemoteDocumentConverter.toRemoteDocument(new FileDocument("src/test/resources/pades-lta.pdf"));
         DataToValidateDTO toValidate = new DataToValidateDTO(signedFile);
-        toValidate.setLevel(SignatureLevel.PAdES_BASELINE_LTA);
+        toValidate.setLevel(PAdES_BASELINE_LTA);
 
         // when
         SignatureIndicationsDTO result = this.restTemplate.postForObject(LOCALHOST + port + SIGNATURE_ENDPOINT, toValidate, SignatureIndicationsDTO.class);
