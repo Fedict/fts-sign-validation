@@ -31,7 +31,7 @@
         <openpdf.version>1.3.30</openpdf.version>
         <verapdf.version>1.22.2</verapdf.version>
         <xmlsec.version>2.3.4</xmlsec.version>
-        <bouncycastle.version>1.78</bouncycastle.version>
+        <bouncycastle.version>1.80</bouncycastle.version>
         <jose4j.version>0.9.4</jose4j.version>
 
     </properties>
@@ -187,6 +187,23 @@
                 <groupId>org.bitbucket.b_c</groupId>
                 <artifactId>jose4j</artifactId>
                 <version>${jose4j.version}</version>
+            </dependency>
+
+            <!-- Force BC 1.80 — minio 8.5.10 pulls bcprov 1.78 at depth 2, beating DSS's 1.80 at depth 3 -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcutil-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
