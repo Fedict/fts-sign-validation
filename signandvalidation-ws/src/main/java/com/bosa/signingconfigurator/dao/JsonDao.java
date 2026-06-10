@@ -71,5 +71,7 @@ public abstract class JsonDao {
             }
         }
         isInited = true;
+
+        logger.log(Level.INFO, "PROFILES : " + parameters.keySet());
     }
 }

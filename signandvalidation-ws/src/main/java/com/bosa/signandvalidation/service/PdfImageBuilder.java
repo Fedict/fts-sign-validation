@@ -5,10 +5,12 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteSignatureFieldParame
 import java.awt.*;
 
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.DataBufferInt;
 import java.io.*;
 import java.awt.image.BufferedImage;
+import java.security.InvalidParameterException;
 import javax.imageio.ImageIO;
 import javax.naming.SizeLimitExceededException;
 
@@ -94,7 +96,10 @@ public class PdfImageBuilder {
 		// Clipped rounded corners
 		float radius = dim / 16;
 
-		g2d.clip(new RoundRectangle2D.Float(0, 0, imgX, imgY, (int) radius, (int) radius));
+		// Using a rounded rectangle creates an erroneous round border in acrobat because aliasing
+		// Besides the signature is always a rectangle, therefore the round is hardly seen in the final signature
+		g2d.clip(new Rectangle2D.Float(0, 0, imgX, imgY));
+
 
 		// Draw gradient from left of the circle
 		radius = Math.max(imgX, imgY) * 0.6F;
@@ -156,11 +161,16 @@ public class PdfImageBuilder {
 		int minFontSize = 0;
 		int maxFontSize = (int) (dim / 7);
 		int fontSize = maxFontSize;
+
+		// Some people don't have lastname or firstname, text.split() will shift up any field and trim missing ones
 		String[] bits = text.split("\n");
+		if (bits.length <= 2) throw new InvalidParameterException("Invalid signature text : " + text);
+
 		char[] date1Chars = bits[0].toCharArray();
 		char[] date2Chars = bits[1].toCharArray();
 		char[] firstLineChars = bits[2].toCharArray();
-		char[] lastNameChars = bits[3].toCharArray();
+		// If missing either lastname or firstname replace by " "
+		char[] lastNameChars = (bits.length == 3 ? " " : bits[3]).toCharArray();
 		while (true) {
 			g2d.setFont(getFont(SIGNATURE_FONT, (int)fontSize));
 			metrics = g2d.getFontMetrics();
@@ -180,7 +190,7 @@ public class PdfImageBuilder {
 					if (okToDraw) {
 						StringBuilder sb = new StringBuilder(bits[2]);
 						if (!sb.isEmpty()) sb.append(' ');
-						sb.append(bits[3]);
+						sb.append(lastNameChars);
 						firstLineChars = sb.toString().toCharArray();
 						fullnameFits = true;
 						break;

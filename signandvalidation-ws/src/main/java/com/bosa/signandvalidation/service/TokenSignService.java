@@ -641,6 +641,7 @@ public class TokenSignService extends SignCommonService {
             checkAndRecordMDCToken(tokenId);
             logger.info("Entering getConsentDataForToken()");
 
+            Integer authDetailLeft = req.getAuthDetailsLeft();
             TokenObject token = getTokenFromId(tokenId);
             ClientSignatureParameters clientSigParams = new ClientSignatureParameters();
             Date signingDate = signingTime == null ? new Date() : new Date(signingTime);
@@ -676,6 +677,7 @@ public class TokenSignService extends SignCommonService {
                     mediaType = MediaTypeUtil.getMediaTypeFromFilename(filePath);
                     if (APPLICATION_PDF.equals(mediaType)) profileId = token.getPdfSignProfile();
                 }
+
                 ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(profileId);
                 if (!signProfile.isReturnDigest()) throw new Exception("Token flows only allow' digest' sign");         // TODO
 
@@ -708,6 +710,16 @@ public class TokenSignService extends SignCommonService {
                         break;
                 }
                 byte [] bytesToSign = DSSUtils.digest(digestAlgorithm, dataToSign.getBytes());
+
+                if (authDetailLeft != null) { // Only if field is provided
+                    // Is there still some room in the "authorization_details" object that "srv-remotesign" will create and pass to the FAS ?
+                    authDetailLeft -= req.getDocumentDigestOverhead() + filePath.length() + Base64.getEncoder().encodeToString(bytesToSign).length();
+                    if (authDetailLeft < 0) {
+                        logger.warning("Reaching the limit of authorization details for " + hashesToConsent.size() + " files.");
+                        break;      // No, don't add this file
+                    }
+                }
+
                 hashesToSign.add(new DocumentDigest(filePath, bytesToSign));
                 hashesToConsent.add(new FileToConsent(filePath, bytesToSign, itbs.getIndex()));
                 if (--maxSignatures == 0 || !sigType.equals(Standard)) break;

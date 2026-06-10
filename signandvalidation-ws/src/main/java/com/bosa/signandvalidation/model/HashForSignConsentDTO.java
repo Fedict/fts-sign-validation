@@ -5,6 +5,7 @@
  */
 package com.bosa.signandvalidation.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,4 +24,7 @@ public class HashForSignConsentDTO {
     private int maxSignatures;
     private byte[] signingCertificate;
     private List<byte[]> certificateChain;
+
+    private Integer authDetailsLeft;
+    private Integer documentDigestOverhead;
 }

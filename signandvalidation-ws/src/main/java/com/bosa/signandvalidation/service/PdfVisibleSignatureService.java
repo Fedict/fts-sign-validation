@@ -40,10 +40,10 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 public class PdfVisibleSignatureService {
 
     Map<String, String> REMOTE_SIGN_TEXTS = Map.of(
-            "fr", "* Date de la signature\nLe %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
-            "en", "* Date of signature\nOn %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
-            "de", "* Date of signature\nAm %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
-            "nl", "* Datum van signature\nOp %d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%");
+            "fr", "Date de la signature\n%d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "en", "Date of signature\n%d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "de", "Unterzeichnungsdatum\n%d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%",
+            "nl", "Datum van ondertekening\n%d(HH:mm MMM d YYYY z)%\n%gn%\n%sn%");
 
     public static final String FONTS_PATH_PROPERTY = "fonts.path";
     public static final String DEFAULT_STRING      = "default";
@@ -133,7 +133,7 @@ public class PdfVisibleSignatureService {
             try {
                 image = PdfImageBuilder.makeRemoteSignPdfImage(fieldParams, text);
             } catch (Exception e) {
-                throw new IOException("Can't render visible signature");
+                throw new IOException("Can't render visible signature " + e.getMessage());
             }
         }
 
@@ -150,7 +150,7 @@ public class PdfVisibleSignatureService {
         if (psp.version == null) psp.version = 1;
 
         if (psp.version == 3) {
-            psp.texts = REMOTE_SIGN_TEXTS;
+            if (psp.texts == null || psp.texts.isEmpty()) psp.texts = REMOTE_SIGN_TEXTS;
             psp.imageScaling = ImageScaling.ZOOM_AND_CENTER;
             if (psp.rotation == null) psp.rotation = VisualSignatureRotation.AUTOMATIC;
             psp.zoom = 100;
