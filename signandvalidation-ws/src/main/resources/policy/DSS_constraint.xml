@@ -20,6 +20,7 @@
 		</AcceptableMimeTypeFileContent>
 		<ManifestFilePresent Level="FAIL" />
 		<SignedFilesPresent Level="FAIL" />
+        <FilenameAdherence Level="WARN" />
 		<AllFilesSigned Level="WARN" />
 	</ContainerConstraints>
 	<PDFAConstraints>
@@ -64,16 +65,16 @@
 			<FieldMDP Level="WARN" />
 			<SigFieldLock Level="WARN" />
 			<UndefinedChanges Level="WARN" />
-			<!-- 			<TrustServiceTypeIdentifier Level="WARN"> -->
+            <!-- 			<TrustedServiceTypeIdentifier Level="WARN"> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/Svctype/CA/QC</Id> -->
-			<!-- 			</TrustServiceTypeIdentifier> -->
-			<!-- 			<TrustServiceStatus Level="FAIL"> -->
+            <!-- 			</TrustedServiceTypeIdentifier> -->
+            <!-- 			<TrustedServiceStatus Level="FAIL"> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/undersupervision</Id> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/accredited</Id> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/supervisionincessation</Id> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/granted</Id> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/withdrawn</Id> -->
-			<!-- 			</TrustServiceStatus> -->
+            <!-- 			</TrustedServiceStatus> -->
 			<SigningCertificate>
 				<Recognition Level="FAIL" />
 				<Signature Level="FAIL" />
@@ -96,6 +97,7 @@
 				</KeyUsage>
 				<PolicyTree Level="WARN" />
 				<NameConstraints Level="WARN" />
+                <AuthorityKeyIdentifierPresent Level="WARN" />
 				<NoRevAvail Level="WARN" />
 				<SupportedCriticalExtensions Level="WARN">
 					<Id>2.5.29.15</Id> <!-- keyUsage -->
@@ -142,6 +144,8 @@
 				</KeyUsage>
 				<PolicyTree Level="WARN" />
 				<NameConstraints Level="WARN" />
+                <AuthorityKeyIdentifierPresent Level="WARN" />
+                <SubjectKeyIdentifierPresent Level="FAIL" />
 				<SupportedCriticalExtensions Level="WARN">
 					<Id>2.5.29.15</Id> <!-- keyUsage -->
 					<Id>2.5.29.32</Id> <!-- certificatePolicies -->
@@ -167,6 +171,7 @@
 			<Cryptographic />
 		</BasicSignatureConstraints>
 		<SignedAttributes>
+			<!-- To block Adobe PKCS7 signed PDFs put this to "FAIL" -->
 			<SigningCertificatePresent Level="WARN" />
 			<UnicitySigningCertificate Level="WARN" />
 			<SigningCertificateRefersCertificateChain Level="WARN" />
@@ -176,6 +181,7 @@
 			<IssuerSerialMatch Level="WARN" />
 			<KeyIdentifierMatch Level="WARN" />
 			<SigningTime Level="FAIL" />
+            <SigningTimeInCertRange Level="FAIL" />
 			<MessageDigestOrSignedPropertiesPresent Level="FAIL" />
 			<EllipticCurveKeySize Level="WARN" />
 			<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
@@ -205,16 +211,16 @@
 			<SignatureIntact Level="FAIL" />
 			<SignatureDuplicated Level="FAIL" />
 			<ProspectiveCertificateChain Level="FAIL" />
-			<!-- 			<TrustServiceTypeIdentifier Level="WARN"> -->
+            <!-- 			<TrustedServiceTypeIdentifier Level="WARN"> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/Svctype/CA/QC</Id> -->
-			<!-- 			</TrustServiceTypeIdentifier> -->
-			<!-- 			<TrustServiceStatus Level="FAIL"> -->
+            <!-- 			</TrustedServiceTypeIdentifier> -->
+            <!-- 			<TrustedServiceStatus Level="FAIL"> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/undersupervision</Id> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/accredited</Id> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/supervisionincessation</Id> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/granted</Id> -->
 			<!-- 				<Id>http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/withdrawn</Id> -->
-			<!-- 			</TrustServiceStatus> -->
+            <!-- 			</TrustedServiceStatus> -->
 			<SigningCertificate>
 				<Recognition Level="FAIL" />
 				<Signature Level="FAIL" />
@@ -237,6 +243,7 @@
 				</KeyUsage>
 				<PolicyTree Level="WARN" />
 				<NameConstraints Level="WARN" />
+                <AuthorityKeyIdentifierPresent Level="WARN" />
 				<NoRevAvail Level="WARN" />
 				<SupportedCriticalExtensions Level="WARN">
 					<Id>2.5.29.15</Id> <!-- keyUsage -->
@@ -281,6 +288,8 @@
 				</KeyUsage>
 				<PolicyTree Level="WARN" />
 				<NameConstraints Level="WARN" />
+                <AuthorityKeyIdentifierPresent Level="WARN" />
+                <SubjectKeyIdentifierPresent Level="FAIL" />
 				<SupportedCriticalExtensions Level="WARN">
 					<Id>2.5.29.15</Id> <!-- keyUsage -->
 					<Id>2.5.29.32</Id> <!-- certificatePolicies -->
@@ -306,6 +315,7 @@
 			<Cryptographic />
 		</BasicSignatureConstraints>
 		<SignedAttributes>
+			<!-- To block Adobe PKCS7 signed PDFs put this to "FAIL" -->
 			<SigningCertificatePresent Level="WARN" />
 			<UnicitySigningCertificate Level="WARN" />
 			<SigningCertificateRefersCertificateChain Level="WARN" />
@@ -315,6 +325,7 @@
 			<IssuerSerialMatch Level="WARN" />
 			<KeyIdentifierMatch Level="WARN" />
 			<SigningTime Level="FAIL" />
+            <SigningTimeInCertRange Level="FAIL" />
 			<MessageDigestOrSignedPropertiesPresent Level="FAIL" />
 			<EllipticCurveKeySize Level="WARN" />
 			<!--		<ContentType Level="FAIL" value="1.2.840.113549.1.7.1" />
@@ -368,6 +379,7 @@
 				</ExtendedKeyUsage>
 				<PolicyTree Level="WARN" />
 				<NameConstraints Level="WARN" />
+                <AuthorityKeyIdentifierPresent Level="WARN" />
 				<SupportedCriticalExtensions Level="WARN">
 					<Id>2.5.29.15</Id> <!-- keyUsage -->
 					<Id>2.5.29.32</Id> <!-- certificatePolicies -->
@@ -405,6 +417,8 @@
 				</KeyUsage>
 				<PolicyTree Level="WARN" />
 				<NameConstraints Level="WARN" />
+                <AuthorityKeyIdentifierPresent Level="WARN" />
+                <SubjectKeyIdentifierPresent Level="FAIL" />
 				<SupportedCriticalExtensions Level="WARN">
 					<Id>2.5.29.15</Id> <!-- keyUsage -->
 					<Id>2.5.29.32</Id> <!-- certificatePolicies -->
@@ -443,6 +457,11 @@
 	</Timestamp>
 	<Revocation>
 		<UnknownStatus Level="FAIL" />
+        <ThisUpdatePresent Level="FAIL" />
+        <RevocationIssuerKnown Level="FAIL" />
+        <RevocationIssuerValidAtProductionTime Level="FAIL" />
+        <RevocationAfterCertificateIssuance Level="FAIL" />
+        <RevocationHasInformationAboutCertificate Level="FAIL" />
 		<OCSPResponderIdMatch Level="FAIL" />
 		<SelfIssuedOCSP Level="WARN" />
 		<BasicSignatureConstraints>
@@ -466,6 +485,7 @@
 				<RevocationFreshness Level="IGNORE" Unit="DAYS" Value="0" />
 				<PolicyTree Level="WARN" />
 				<NameConstraints Level="WARN" />
+                <AuthorityKeyIdentifierPresent Level="WARN" />
 				<SupportedCriticalExtensions Level="WARN">
 					<Id>2.5.29.15</Id> <!-- keyUsage -->
 					<Id>2.5.29.32</Id> <!-- certificatePolicies -->
@@ -500,6 +520,8 @@
 				</KeyUsage>
 				<PolicyTree Level="WARN" />
 				<NameConstraints Level="WARN" />
+                <AuthorityKeyIdentifierPresent Level="WARN" />
+                <SubjectKeyIdentifierPresent Level="FAIL" />
 				<SupportedCriticalExtensions Level="WARN">
 					<Id>2.5.29.15</Id> <!-- keyUsage -->
 					<Id>2.5.29.32</Id> <!-- certificatePolicies -->
@@ -618,5 +640,6 @@
 			<Id>5</Id>
 			<Id>6</Id>
 		</TLVersion>
+        <TLStructure Level="WARN" />
 	</eIDAS>
 </ConstraintsParameters>
