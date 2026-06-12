@@ -225,7 +225,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         String outputXades = new String(fileBytesCaptor.getValue());
         System.out.println(outputXades);
 
-        assertTrue(outputXades.contains("URI=\"" + URLEncoder.encode(OID_URI) + "\""));
+        assertTrue(outputXades.contains("URI=\"" + OID_URI + "\""));
         assertTrue(outputXades.contains("URI=\"" + inFile2.getName() + "\""));
     }
 
