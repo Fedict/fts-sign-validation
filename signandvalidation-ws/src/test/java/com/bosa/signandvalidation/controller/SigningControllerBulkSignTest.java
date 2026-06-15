@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
@@ -34,7 +34,7 @@ public class SigningControllerBulkSignTest {
     private static final String THE_PREFIX = "PR_";
     private static final String OUT_FILE_0 = "OUT FILE 0";
     private static final String OUT_FILE_1 = "OUT FILE 1";
-    @MockBean
+    @MockitoBean
     private StorageService storageService;
 
     @Autowired
