@@ -550,7 +550,7 @@ public class TokenSignService extends SignCommonService {
 
     public void getFileForToken(String tokenString,
                                 GetFileType type,
-                                Integer inputIndexes[],
+                                Integer[] inputIndexes,
                                 String forceDownload,
                                 HttpServletResponse response) {
 
@@ -589,15 +589,15 @@ public class TokenSignService extends SignCommonService {
                 contentType = fi.getContentType();
             } else {
                 contentType = APPLICATION_OCTET_STREAM;
-                attachmentName = "FTS" + new SimpleDateFormat("yyyyMMDD HHmmss").format(new Date()) + ".zip";
+                attachmentName = "FTS" + new SimpleDateFormat("yyyyMMdd HHmmss").format(new Date()) + ".zip";
             }
 
-            String contentDisposition = forceDownload != null || !contentType.equals(APPLICATION_PDF) ? "attachment; filename=\"" + attachmentName + "\"" : "inline";
             response.setContentType(contentType.toString());
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Cache-Control", "no-cache");
             response.setHeader("Content-Transfer-Encoding", "binary");
-            // Below is a Snyk false positive report : The value is sanitized
+
+            String contentDisposition = forceDownload != null || !contentType.equals(APPLICATION_PDF) ? "attachment; filename=\"" + attachmentName + "\"" : "inline";
             response.setHeader("Content-Disposition", contentDisposition);
 
             if (singleFilePath != null) {
@@ -843,13 +843,14 @@ public class TokenSignService extends SignCommonService {
 
     //*****************************************************************************************
 
-    public DataToSignDTO getDataToSignForToken(GetDataToSignForTokenDTO dataToSignForTokenDto) {
+    public DataToSignDTO getDataToSignForToken(GetDataToSignForTokenDTO req) {
         try {
-            checkAndRecordMDCToken(dataToSignForTokenDto.getToken());
+            String tokenId = req.getToken();
+            checkAndRecordMDCToken(tokenId);
             logger.info("Entering getDataToSignForToken()");
 
-            TokenObject token = getTokenFromId(dataToSignForTokenDto.getToken());
-            ClientSignatureParameters clientSigParams = dataToSignForTokenDto.getClientSignatureParameters();
+            TokenObject token = getTokenFromId(tokenId);
+            ClientSignatureParameters clientSigParams = req.getClientSignatureParameters();
 
             // Signer allowed to sign ?
             checkNNAllowedToSign(token.getNnAllowedToSign(), clientSigParams.getSigningCertificate());
@@ -862,7 +863,7 @@ public class TokenSignService extends SignCommonService {
             TokenSignInput inputToSign = null;
             String profileId = token.getXmlSignProfile();
             if (Standard.equals(token.getSigningType())) {
-                inputToSign = token.getInputs().get(dataToSignForTokenDto.getFileIdToSign());
+                inputToSign = token.getInputs().get(req.getFileIdToSign());
                 filePath = inputToSign.getFilePath();
                 mediaType = MediaTypeUtil.getMediaTypeFromFilename(filePath);
                 if (APPLICATION_PDF.equals(mediaType)) profileId = token.getPdfSignProfile();
@@ -941,10 +942,11 @@ public class TokenSignService extends SignCommonService {
 
     private void signDocumentForToken(SignDocumentForTokenDTO signDto) {
         try {
-            checkAndRecordMDCToken(signDto.getToken());
+            String tokenId = signDto.getToken();
+            checkAndRecordMDCToken(tokenId);
             logger.info("Entering signDocumentForToken()");
 
-            TokenObject token = getTokenFromId(signDto.getToken());
+            TokenObject token = getTokenFromId(tokenId);
             SigningType sigType = token.getSigningType();
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
 
@@ -1037,10 +1039,11 @@ public class TokenSignService extends SignCommonService {
 
         private void consentForToken(ConsentForTokenDTO req) {
         try {
-            checkAndRecordMDCToken(req.getToken());
+            String tokenId = req.getToken();
+            checkAndRecordMDCToken(tokenId);
             logger.info("Entering consentForToken()");
 
-            TokenObject token = getTokenFromId(req.getToken());
+            TokenObject token = getTokenFromId(tokenId);
             MDC.put("bucket", token.getBucket());
 
             SigningType sigType = token.getSigningType();

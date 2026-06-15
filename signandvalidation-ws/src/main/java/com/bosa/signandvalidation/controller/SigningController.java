@@ -130,11 +130,12 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     @GetMapping(value = GET_FILE_FOR_TOKEN_URL + "/{token}/{type}/{inputIndexes}")
     public void getFileForToken(@PathVariable("token") String tokenString,
                                 @PathVariable GetFileType type,
-                                @PathVariable(required = true) Integer inputIndexes[],
+                                @PathVariable Integer[] inputIndexes,
                                 @RequestParam(required = false)  String forceDownload,
                                 HttpServletResponse response) {
 
         authorizeCall(features, Features.token);
+        // Below is a Snyk false positive report : The value "forceDownload" is sanitized
         tokenSignService.getFileForToken(tokenString, type, inputIndexes, forceDownload, response);
     }
 

@@ -12,11 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -32,7 +31,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
     private static final String THE_BUCKET = "ZeBucket";
 
-    @MockBean
+    @MockitoBean
     private StorageService storageService;
 
     // Warning : Unit tests are running with a fixed "hardcoded" time.

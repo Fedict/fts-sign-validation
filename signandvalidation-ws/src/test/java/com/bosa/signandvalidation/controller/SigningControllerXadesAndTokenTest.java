@@ -14,9 +14,9 @@ import eu.europa.esig.dss.ws.dto.RemoteDocument;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
@@ -34,13 +34,13 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 
 public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTest {
 
-    @MockBean
+    @MockitoBean
     private StorageService storageService;
 
-    @MockBean
+    @MockitoBean
     private ReportsService reportsService;
 
-    @MockBean
+    @MockitoBean
     private BosaRemoteDocumentValidationService validationService;
 
     private static final String THE_BUCKET = "bucket";

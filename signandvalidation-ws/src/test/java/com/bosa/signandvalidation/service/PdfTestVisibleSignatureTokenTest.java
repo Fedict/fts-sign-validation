@@ -39,7 +39,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
     private static final String THE_BUCKET = "THE_BUCKET";
     private static final String THE_OUT_FILENAME = "out";
 
-    @MockBean
+    @MockitoBean
     private StorageService storageService;
 
     private static byte photoBytes[];
