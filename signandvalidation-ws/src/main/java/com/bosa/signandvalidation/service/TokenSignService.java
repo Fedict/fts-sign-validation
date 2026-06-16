@@ -786,7 +786,7 @@ public class TokenSignService extends SignCommonService {
 
         VisiblePdfSignatureParameters pdfParams = clientSigParams.getPdfSigParams();
         PdfSignatureProfile psp = getPspFileForToken(input, bucket);
-        if (remoteSign && psp == null) {
+        if (psp == null) {
             psp = new PdfSignatureProfile();
             psp.version = 3;
         }
