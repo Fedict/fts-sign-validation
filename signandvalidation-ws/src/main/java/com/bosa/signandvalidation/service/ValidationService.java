@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bosa.signandvalidation.config.ErrorStrings.*;
-import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCToken;
+import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCSupportId;
 import static com.bosa.signandvalidation.exceptions.Utils.logAndThrowEx;
 import static eu.europa.esig.dss.enumerations.Indication.PASSED;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -49,7 +49,7 @@ public class ValidationService {
     //*****************************************************************************************
 
     public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
-        checkAndRecordMDCToken(toValidate.getToken());
+        checkAndRecordMDCSupportId(toValidate.getToken());
         SignatureFullValiationDTO report = validateSignatureFull(toValidate);
         SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsAndReportsDto(report);
         logger.info("ValidateSignature is finished");
@@ -75,7 +75,7 @@ public class ValidationService {
     //*****************************************************************************************
 
     public SignatureFullValiationDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
-        checkAndRecordMDCToken(toValidate.getToken());
+        checkAndRecordMDCSupportId(toValidate.getToken());
         if (toValidate.getSignedDocument() == null)
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
         try {
@@ -109,7 +109,7 @@ public class ValidationService {
     //*****************************************************************************************
 
     public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
-        checkAndRecordMDCToken(toValidate.getToken());
+        checkAndRecordMDCSupportId(toValidate.getToken());
         if (toValidate.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 
@@ -139,7 +139,7 @@ public class ValidationService {
     //*****************************************************************************************
 
     public CertificateFullValidationDTO validateCertificateFull(@RequestBody CertificateToValidateDTO toValidate) {
-        checkAndRecordMDCToken(toValidate.getToken());
+        checkAndRecordMDCSupportId(toValidate.getToken());
         if (toValidate.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 

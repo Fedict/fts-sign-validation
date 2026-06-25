@@ -20,7 +20,6 @@ import eu.europa.esig.dss.ws.signature.dto.parameters.RemoteTimestampParameters;
 import eu.europa.esig.dss.xades.reference.DSSReference;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +40,7 @@ public class SignService extends SignCommonService {
 
     public DataToSignDTO getDataToSign(GetDataToSignDTO dataToSignDto) {
         try {
-            checkAndRecordMDCToken(dataToSignDto.getToken());
+            checkAndRecordMDCSupportId(dataToSignDto.getToken());
             RemoteDocument toSignDocument = dataToSignDto.getToSignDocument();
             logger.info("Entering getDataToSign(File : " + toSignDocument.getName() + " - Size : " + toSignDocument.getBytes().length + ")");
 
@@ -127,7 +126,7 @@ public class SignService extends SignCommonService {
 
     public DataToSignDTO getDataToSignMultiple(GetDataToSignMultipleDTO dataToSignDto) {
         try {
-            checkAndRecordMDCToken(dataToSignDto.getToken());
+            checkAndRecordMDCSupportId(dataToSignDto.getToken());
             logger.info("Entering getDataToSignMultiple()");
 
             dataToSignDto.getClientSignatureParameters().setSigningDate(new Date());
@@ -173,7 +172,7 @@ public class SignService extends SignCommonService {
 
     public RemoteDocument signDocument(SignDocumentDTO signDocumentDto) {
         try {
-            checkAndRecordMDCToken(signDocumentDto.getToken());
+            checkAndRecordMDCSupportId(signDocumentDto.getToken());
             RemoteDocument toSignDocument = signDocumentDto.getToSignDocument();
             logger.info("Entering signDocument(File : " + toSignDocument.getName() + " - Size : " + toSignDocument.getBytes().length + ")");
 
@@ -233,7 +232,7 @@ public class SignService extends SignCommonService {
 
     public RemoteDocument signDocumentMultiple(SignDocumentMultipleDTO signDto) {
         try {
-            checkAndRecordMDCToken(signDto.getToken());
+            checkAndRecordMDCSupportId(signDto.getToken());
             logger.info("Entering signDocumentMultiple()");
 
             ClientSignatureParameters clientSigParams = signDto.getClientSignatureParameters();
@@ -282,7 +281,7 @@ public class SignService extends SignCommonService {
 
     public RemoteDocument extendDocumentMultiple(ExtendDocumentDTO extendDocumentDto) {
         try {
-            checkAndRecordMDCToken(extendDocumentDto.getToken());
+            checkAndRecordMDCSupportId(extendDocumentDto.getToken());
             logger.info("Entering extendDocumentMultiple()");
 
             ProfileSignatureParameters extendProfile = signingConfigService.findProfileParamsById(extendDocumentDto.getExtendProfileId());
@@ -323,7 +322,7 @@ public class SignService extends SignCommonService {
 
     public RemoteDocument extendDocument(ExtendDocumentDTO extendDocumentDto) {
         try {
-            checkAndRecordMDCToken(extendDocumentDto.getToken());
+            checkAndRecordMDCSupportId(extendDocumentDto.getToken());
             logger.info("Entering extendDocument()");
 
             ProfileSignatureParameters extendProfile = signingConfigService.findProfileParamsById(extendDocumentDto.getExtendProfileId());
@@ -348,7 +347,7 @@ public class SignService extends SignCommonService {
 
     public RemoteDocument timestampDocument(TimestampDocumentDTO timestampDocumentDto) {
         try {
-            checkAndRecordMDCToken(timestampDocumentDto.getToken());
+            checkAndRecordMDCSupportId(timestampDocumentDto.getToken());
             logger.info("Entering timestampDocument()");
 
             RemoteTimestampParameters parameters = signingConfigService.getTimestampParams(timestampDocumentDto.getProfileId());
@@ -368,7 +367,7 @@ public class SignService extends SignCommonService {
 
     public RemoteDocument timestampDocumentMultiple(TimestampDocumentMultipleDTO timestampDocumentDto) {
         try {
-            checkAndRecordMDCToken(timestampDocumentDto.getToken());
+            checkAndRecordMDCSupportId(timestampDocumentDto.getToken());
             logger.info("Entering timestampDocumentMultiple()");
 
             RemoteTimestampParameters parameters = signingConfigService.getTimestampParams(timestampDocumentDto.getProfileId());
@@ -388,7 +387,7 @@ public class SignService extends SignCommonService {
 
     public DataToSignDTO getDataToSignXades(GetDataToSignXMLElementsDTO getDataToSignDto) {
         try {
-            checkAndRecordMDCToken(getDataToSignDto.getToken());
+            checkAndRecordMDCSupportId(getDataToSignDto.getToken());
             logger.info("Entering getDataToSignXades()");
 
             ClientSignatureParameters clientSigParams = getDataToSignDto.getClientSignatureParameters();
@@ -423,7 +422,7 @@ public class SignService extends SignCommonService {
 
     public RemoteDocument signDocumentXades(SignXMLElementsDTO signDto) {
         try {
-            checkAndRecordMDCToken(signDto.getToken());
+            checkAndRecordMDCSupportId(signDto.getToken());
             logger.info("Entering signDocumentXades()");
 
             ProfileSignatureParameters signProfile = signingConfigService.findProfileParamsById(signDto.getSigningProfileId());

@@ -79,25 +79,31 @@ public class Utils {
         throw new ResponseStatusException(httpStatus, mesg);
     }
 
+    //*****************************************************************************************
+
     // Confirm that the token is valid and store it in the MDC for logging
-    public static void checkAndRecordMDCToken(String tokenId) {
-        if (tokenId != null) {
-            int offset = tokenId.length();
-            if (offset > 48) throw new InvalidParameterException("Invalid Token Value");
+    public static void checkAndRecordMDCSupportId(String supportId) {
+        if (supportId != null) {
+            int offset = supportId.length();
+            if (offset > 48) throw new InvalidParameterException("Invalid supportId Value");
             while(offset != 0) {
-                char C = tokenId.charAt(--offset);
-                // Token must be composed of Base 64 characters only
+                char C = supportId.charAt(--offset);
+                // Token must be composed of Base 64 characters only (Token and Signbox tokens)
                 if (!((C >= 'A' && C <= 'Z') || (C >= 'a' && C <= 'z') || (C >= '0' && C <= '9') || C == '+' || C == '/' || C == '_' || C == '-' || C == '=')) {
-                    throw new InvalidParameterException("Invalid Token Value");
+                    throw new InvalidParameterException("Invalid supportId Value");
                 }
             }
-        } else tokenId = "<null>";
-        MDC.put("token", tokenId);
+        } else supportId = "<null>";
+        MDC.put("token", supportId);
     }
+
+    //*****************************************************************************************
 
     public static void objectToMDC(Object o) throws IllegalAccessException {
         objectToMDC("", o);
     }
+
+    //*****************************************************************************************
 
     private static void objectToMDC(String prefix, Object o) throws IllegalAccessException {
         for(Field f : o.getClass().getDeclaredFields()) {
@@ -111,6 +117,8 @@ public class Utils {
             } else if (value != null) MDC.put(prefix + f.getName(), value.toString());
         }
     }
+
+    //*****************************************************************************************
 
     // Cleanup malicious inputs. Slow when sanitizing, fast when not
     public static String sanitize(String string, int maxSize) {

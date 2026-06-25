@@ -85,7 +85,7 @@ import org.xml.sax.SAXException;
 public class TokenSignService extends SignCommonService {
     protected final Logger logger = Logger.getLogger(TokenSignService.class.getName());
 
-    private static final int SIZE_TOKEN_ID                      = 12;
+    private static final int SIZE_TOKEN_ID                      = 20;
     public static final int DEFAULT_SIGN_DURATION_SECS          = 2 * 60;
     public static final int MAX_NN_ALLOWED_TO_SIGN              = 32;
     private static final Pattern nnPattern                      = Pattern.compile("[0-9]{11}");
@@ -513,7 +513,7 @@ public class TokenSignService extends SignCommonService {
 
     public DocumentMetadataDTO getMetadataForToken(String tokenString) {
         try {
-            checkAndRecordMDCToken(tokenString);
+            checkAndRecordMDCSupportId(tokenString);
             logger.info("Entering getMetadataForToken()");
 
             TokenObject token = getTokenFromId(tokenString);
@@ -557,7 +557,7 @@ public class TokenSignService extends SignCommonService {
         ZipOutputStream out = null;
         InputStream fileStream = null;
         try {
-            checkAndRecordMDCToken(tokenString);
+            checkAndRecordMDCSupportId(tokenString);
             logger.info("Entering getFileForToken()");
 
             TokenObject token = getTokenFromId(tokenString);
@@ -638,7 +638,7 @@ public class TokenSignService extends SignCommonService {
     public HashForSignatureConsentDTO getConsentDataForToken(HashForSignConsentDTO req) {
         try {
             String tokenId = req.getToken();
-            checkAndRecordMDCToken(tokenId);
+            checkAndRecordMDCSupportId(tokenId);
             logger.info("Entering getConsentDataForToken()");
 
             Integer authDetailLeft = req.getAuthDetailsLeft();
@@ -846,7 +846,7 @@ public class TokenSignService extends SignCommonService {
     public DataToSignDTO getDataToSignForToken(GetDataToSignForTokenDTO req) {
         try {
             String tokenId = req.getToken();
-            checkAndRecordMDCToken(tokenId);
+            checkAndRecordMDCSupportId(tokenId);
             logger.info("Entering getDataToSignForToken()");
 
             TokenObject token = getTokenFromId(tokenId);
@@ -943,7 +943,7 @@ public class TokenSignService extends SignCommonService {
     private void signDocumentForToken(SignDocumentForTokenDTO signDto) {
         try {
             String tokenId = signDto.getToken();
-            checkAndRecordMDCToken(tokenId);
+            checkAndRecordMDCSupportId(tokenId);
             logger.info("Entering signDocumentForToken()");
 
             TokenObject token = getTokenFromId(tokenId);
@@ -1040,7 +1040,7 @@ public class TokenSignService extends SignCommonService {
         private void consentForToken(ConsentForTokenDTO req) {
         try {
             String tokenId = req.getToken();
-            checkAndRecordMDCToken(tokenId);
+            checkAndRecordMDCSupportId(tokenId);
             logger.info("Entering consentForToken()");
 
             TokenObject token = getTokenFromId(tokenId);
@@ -1221,10 +1221,10 @@ public class TokenSignService extends SignCommonService {
             byte[] tokenBytes = new byte[SIZE_TOKEN_ID];
             secureRandom.nextBytes(tokenBytes);
             longToBytes(now, tokenBytes, 0, 4);
-            tokenId = Base64.getUrlEncoder().encodeToString(tokenBytes);
+            tokenId = Base64.getUrlEncoder().encodeToString(tokenBytes).replaceAll("[^a-zA-Z0-9]", "");
 
             // Store token in secret bucket
-            ObjectMapper om = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            ObjectMapper om = new ObjectMapper().setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
             storageService.storeFile(null, KEYS_FOLDER + tokenId + JSON_FILENAME_EXTENSION, om.writeValueAsBytes(token));
 
             // Cache token
