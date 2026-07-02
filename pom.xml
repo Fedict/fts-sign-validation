@@ -36,7 +36,6 @@
 
     </properties>
 
-    <!-- https://wiki.fsf.services.belgium.be/artifactory -->
     <repositories>
         <repository>
             <id>cefdigital</id>
