@@ -1,0 +1,19 @@
+<settings>
+    <mirrors>
+        <mirror>
+            <id>artifactory-central-proxy</id>
+            <name>Artifactory Central Proxy</name>
+            <url>https://artifactory.fsf.services.belgium.be/artifactory/iaa-maven-fts</url>
+            <mirrorOf>X</mirrorOf>
+        </mirror>
+    </mirrors>
+
+    <servers>
+        <server>
+            <!-- This ID MUST match the ID of the mirror above -->
+            <id>artifactory-central-proxy</id>
+            <username>${env.ARTIFACTORY_USER}</username>
+            <password>${env.ARTIFACTORY_TOKEN}</password>
+        </server>
+    </servers>
+</settings>
