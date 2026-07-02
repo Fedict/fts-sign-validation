@@ -4,7 +4,7 @@
             <id>artifactory-central-proxy</id>
             <name>Artifactory Central Proxy</name>
             <url>https://artifactory.fsf.services.belgium.be/artifactory/iaa-maven-fts</url>
-            <mirrorOf>X</mirrorOf>
+            <mirrorOf>*</mirrorOf>
         </mirror>
     </mirrors>
 
