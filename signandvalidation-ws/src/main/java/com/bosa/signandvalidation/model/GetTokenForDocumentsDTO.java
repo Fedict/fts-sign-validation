@@ -5,10 +5,12 @@
  */
 package com.bosa.signandvalidation.model;
 
+import com.bosa.signandvalidation.exceptions.Utils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.slf4j.MDC;
 
 import java.util.List;
 
@@ -67,5 +69,41 @@ public class GetTokenForDocumentsDTO {
         this.password = password;
         this.signProfile = signProfile;
         this.outFilePath = outFilePath;
+    }
+
+    public void toMDC() {
+        MDC.put("bucket", bucket);
+        MDC.put("requestDocumentReadConfirm", String.valueOf(requestDocumentReadConfirm));
+        MDC.put("previewDocuments", String.valueOf(previewDocuments));
+        MDC.put("selectDocuments", String.valueOf(selectDocuments));
+        MDC.put("noSkipErrors", String.valueOf(noSkipErrors));
+        MDC.put("outDownload", String.valueOf(outDownload));
+        if (signTimeout != null) MDC.put("signTimeout", String.valueOf(signTimeout));
+        Utils.toMDCIfNotNull("outXsltPath", outXsltPath);
+        Utils.toMDCIfNotNull("outFilePath", outFilePath);
+        Utils.toMDCIfNotNull("outPathPrefix", outPathPrefix);
+        Utils.toMDCIfNotNull("signProfile", signProfile);
+        Utils.toMDCIfNotNull("altSignProfile", altSignProfile);
+        if (nnAllowedToSign != null) {
+            for (int i = 0; i < nnAllowedToSign.size(); i++) {
+                Utils.toMDCIfNotNull("nnAllowedToSign" + "[" + i + "]", nnAllowedToSign.get(i));
+            }
+        }
+        if (inputs != null) {
+            for (int i = 0; i < inputs.size(); i++) {
+                SignInput input = inputs.get(i);
+                String key = "inputs" + "[" + i + "].";
+                MDC.put(key + "psfP", String.valueOf(input.isPsfP()));
+                MDC.put(key + "drawable", String.valueOf(input.getDrawable()));
+                MDC.put(key + "signLanguage", String.valueOf(input.getSignLanguage()));
+                Utils.toMDCIfNotNull(key + "psfC", input.getPsfC());
+                Utils.toMDCIfNotNull(key + "psfN", input.getPsfN());
+                Utils.toMDCIfNotNull(key + "fileURI", input.getFileURI());
+                Utils.toMDCIfNotNull(key + "filePath", input.getFilePath());
+                Utils.toMDCIfNotNull(key + "xmlEltId", input.getXmlEltId());
+                Utils.toMDCIfNotNull(key + "pspFilePath", input.getPspFilePath());
+                Utils.toMDCIfNotNull(key + "displayXsltPath", input.getDisplayXsltPath());
+            }
+        }
     }
 }

@@ -156,7 +156,7 @@ public class TokenSignService extends SignCommonService {
 
             String tokenString = saveToken(token);
             MDC.put("token", tokenString);
-            objectToMDC(tokenData);
+            tokenData.toMDC();
             logger.info("Returning from getTokenForDocument()");
             return tokenString;
         } catch (Exception e) {
@@ -201,7 +201,7 @@ public class TokenSignService extends SignCommonService {
             // Create Token
             String tokenString = saveToken(token);
             MDC.put("token", tokenString);
-            objectToMDC(gtfd);
+            gtfd.toMDC();
             logger.info("Returning from getTokenForDocuments()");
             return tokenString;
         } catch (Exception e) {

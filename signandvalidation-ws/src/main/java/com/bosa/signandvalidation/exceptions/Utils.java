@@ -98,28 +98,6 @@ public class Utils {
     }
 
     //*****************************************************************************************
-
-    public static void objectToMDC(Object o) throws IllegalAccessException {
-        objectToMDC("", o);
-    }
-
-    //*****************************************************************************************
-
-    private static void objectToMDC(String prefix, Object o) throws IllegalAccessException {
-        for(Field f : o.getClass().getDeclaredFields()) {
-            f.setAccessible(true);
-            Object value = f.get(o);
-            if (value instanceof List) {
-                int count = 0;
-                Iterator<?> i = ((List<?>) value).iterator();
-                String nameLevel = prefix + f.getName() + "[";
-                while(i.hasNext()) objectToMDC(nameLevel + count++ + "].", i.next());
-            } else if (value != null) MDC.put(prefix + f.getName(), value.toString());
-        }
-    }
-
-    //*****************************************************************************************
-
     // Cleanup malicious inputs. Slow when sanitizing, fast when not
     public static String sanitize(String string, int maxSize) {
         if (string == null) return null;
@@ -147,6 +125,8 @@ public class Utils {
         return sb.toString();
     }
 
+    //*****************************************************************************************
+
     public static RemoteDocument getPolicyFile(String fileName) throws IOException {
         InputStream genericIs = null;
         try {
@@ -160,6 +140,8 @@ public class Utils {
         }
         return null;
     }
+
+    //*****************************************************************************************
 
     public static TrustSources getGetExtraTrustFile(String fileName) throws IOException {
         InputStream genericIs = null;
@@ -175,5 +157,11 @@ public class Utils {
             if (genericIs != null) genericIs.close();
         }
         return null;
+    }
+
+    //*****************************************************************************************
+
+    public static void toMDCIfNotNull(String name, String value) {
+        if (value != null)  MDC.put(name, value);
     }
 }

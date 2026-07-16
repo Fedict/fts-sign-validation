@@ -5,6 +5,7 @@
  */
 package com.bosa.signandvalidation.model;
 
+import com.bosa.signandvalidation.exceptions.Utils;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.slf4j.MDC;
 
 import java.util.List;
 
@@ -84,4 +86,28 @@ public class GetTokenForDocumentDTO {
     private List<AllowedToSign> allowedToSign;
     @Schema(example = "true", description = "If “true”, display a 'I have read this document' checkbox to the sign user interface that must be checked before signing is allowed")
     private boolean requestDocumentReadConfirm;
+
+    public void toMDC() {
+        Utils.toMDCIfNotNull("name", name);
+        Utils.toMDCIfNotNull("in", in);
+        Utils.toMDCIfNotNull("out", out);
+        Utils.toMDCIfNotNull("prof", prof);
+        Utils.toMDCIfNotNull("xslt", xslt );
+        Utils.toMDCIfNotNull("psp", psp);
+        Utils.toMDCIfNotNull("psfN", psfN );
+        Utils.toMDCIfNotNull("psfC", psfC );
+        Utils.toMDCIfNotNull("psfP", psfP );
+        if (lang != null) MDC.put("lang", lang.name());
+        if (signTimeout != null) MDC.put("signTimeout", String.valueOf(signTimeout));
+        MDC.put("noDownload", String.valueOf(noDownload));
+        MDC.put("requestDocumentReadConfirm", String.valueOf(requestDocumentReadConfirm));
+        if (allowedToSign != null) {
+            for(int i =  0; i < allowedToSign.size(); i++) {
+                AllowedToSign ats = allowedToSign.get(i);
+                if (ats != null) {
+                    Utils.toMDCIfNotNull("allowedToSign" + "[" + i + "].nn", ats.getNn());
+                }
+            }
+        }
+    }
 }
