@@ -143,7 +143,7 @@ public class SignCommonService {
         if (null != token) {
             try {
                 storageService.storeFile(token.getBucket(), outFilePath + ".validationreport.json",
-                        reportsService.createJSONReport(parameters, reportsDto).getBytes());
+                reportsService.createJSONReport(parameters, reportsDto, false).getBytes());
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to serialize or save the validation report", e);
             }
@@ -159,13 +159,17 @@ public class SignCommonService {
             String logReport = System.getProperty("log.validation.report");
             if ("true".equals(logReport)) {
                 try {
-                    logger.severe(reportsService.createJSONReport(parameters, reportsDto));
+                    // !!!!! After call with anonymize = true reportsDto is modified !!!!!!
+
+                    String jsonReport = reportsService.createJSONReport(parameters, reportsDto, true);
+                    if (jsonReport.contains("Christian")) logAndThrowEx(FORBIDDEN, INTERNAL_ERR, "Possible GDPR breach");
+                    logger.severe(jsonReport);
                 } catch (IOException e) {
                     logger.severe("Can't log report !!!!!!!!");
                 }
             }
             String subIndication = indications.getSubIndicationLabel();
-            if (CERT_REVOKED.compareTo(subIndication) == 0) {
+            if (CERT_REVOKED.equals(subIndication)) {
                 logAndThrowEx(BAD_REQUEST, CERT_REVOKED, null, null);
             }
             DataLoadersExceptionLogger.logAndThrow();

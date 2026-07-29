@@ -215,7 +215,7 @@ public class ReportServiceTest {
         validationBasic.setConclusion(basicConclusion);
         basicConclusion.getWarnings();
 
-        NormalizedReport dto = srv.getNormalizedReport(report);
+        NormalizedReport dto = srv.getNormalizedReport(report, false);
 
         assertEquals(1, dto.getSignatures().size());
         NormalizedSignatureInfo theSignature = dto.getSignatures().get(0);

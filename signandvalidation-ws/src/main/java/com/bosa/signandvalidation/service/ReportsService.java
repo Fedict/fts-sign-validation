@@ -80,7 +80,7 @@ public class ReportsService implements ErrorStrings {
         } catch(Exception e) {
             throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Cannot render Detailed Signature report");
         }
-        dto.setNormalizedReport(getNormalizedReport(reportsDto));
+        dto.setNormalizedReport(getNormalizedReport(reportsDto, false));
         return dto;
     }
 
@@ -171,13 +171,14 @@ public class ReportsService implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    public NormalizedReport getNormalizedReport(SignatureFullValiationDTO report) {
+    private static final String ANONYMIZED = "** ANONYMIZED **";
+
+    public NormalizedReport getNormalizedReport(SignatureFullValiationDTO report, boolean anonymize) {
         NormalizedReport result = new NormalizedReport();
         List<NormalizedSignatureInfo> signatures = result.getSignatures();
 
         for(Serializable signOrTsOrCert : report.getDetailedReport().getSignatureOrTimestampOrEvidenceRecord()) {
-            if (!(signOrTsOrCert instanceof eu.europa.esig.dss.detailedreport.jaxb.XmlSignature)) continue;
-            eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signature = (eu.europa.esig.dss.detailedreport.jaxb.XmlSignature) signOrTsOrCert;
+            if (!(signOrTsOrCert instanceof eu.europa.esig.dss.detailedreport.jaxb.XmlSignature signature)) continue;
 
             NormalizedSignatureInfo si = new NormalizedSignatureInfo();
             si.setQualified(SignatureQualification.QESIG.equals(signature.getValidationSignatureQualification().getSignatureQualification()));
@@ -187,27 +188,35 @@ public class ReportsService implements ErrorStrings {
                     si.setValid(true);
                     List<eu.europa.esig.dss.detailedreport.jaxb.XmlMessage> warnings = signature.getValidationProcessBasicSignature().getConclusion().getWarnings();
                     for(eu.europa.esig.dss.detailedreport.jaxb.XmlMessage warning : warnings) {
-                        if (BBB_ICS_ISASCP_ANS.equals(warning.getKey()) && "The signed attribute: 'signing-certificate' is absent!".equals(warning.getValue())) {
+                        if (BBB_ICS_ISASCP_ANS.name().equals(warning.getKey()) &&
+                            "The signed attribute: 'signing-certificate' is absent!".equals(warning.getValue())) {
                             si.setMissingSigningCert(true);
                             break;
                         }
                     }
                 } else si.setSubIndication(conclusion.getSubIndication().name());
             }
-            getSimpleReportInfo(si, report.getSimpleReport(), signature.getId());
-            getDiagnosticInfo(si, report.getDiagnosticData(), signature.getId());
+            getSimpleReportInfo(si, report.getSimpleReport(), signature.getId(), anonymize);
+            getDiagnosticInfo(si, report.getDiagnosticData(), signature.getId(), anonymize);
             signatures.add(si);
         }
 
         return  result;
     }
 
-    private void getSimpleReportInfo(NormalizedSignatureInfo si, XmlSimpleReport simpleReport, String id) {
-        for (XmlToken signatureOrTS : simpleReport.getSignatureOrTimestampOrEvidenceRecord()) {
-            if (!(signatureOrTS instanceof eu.europa.esig.dss.simplereport.jaxb.XmlSignature)) continue;
-            eu.europa.esig.dss.simplereport.jaxb.XmlSignature simpleSignature = (eu.europa.esig.dss.simplereport.jaxb.XmlSignature) signatureOrTS;
+    /*****************************************************************************************/
 
-            if (simpleSignature.getId().equals(id)) {
+    private void getSimpleReportInfo(NormalizedSignatureInfo si, XmlSimpleReport simpleReport, String id, boolean anonymize) {
+        for (XmlToken signatureOrTS : simpleReport.getSignatureOrTimestampOrEvidenceRecord()) {
+            if (!(signatureOrTS instanceof XmlSignature simpleSignature)) continue;
+            if (anonymize) {
+                XmlCertificateChain chain = simpleSignature.getCertificateChain();
+                if (chain != null) {
+                    List<XmlCertificate> certs = chain.getCertificate();
+                    if (certs != null && !certs.isEmpty()) certs.get(0).setQualifiedName(ANONYMIZED);
+                }
+            }
+            if (id.equals(simpleSignature.getId())) {
                 si.setClaimedSigningTime(simpleSignature.getSigningTime());
                 si.setBestSigningTime(simpleSignature.getBestSignatureTime());
                 break;
@@ -215,17 +224,21 @@ public class ReportsService implements ErrorStrings {
         }
     }
 
-    private void getDiagnosticInfo(NormalizedSignatureInfo si, XmlDiagnosticData diagData, String id) {
+    /*****************************************************************************************/
+
+    private void getDiagnosticInfo(NormalizedSignatureInfo si, XmlDiagnosticData diagData, String id, boolean anonymize) {
         for (eu.europa.esig.dss.diagnostic.jaxb.XmlSignature diagSignature : diagData.getSignatures()) {
-            if (diagSignature.getId().equals(id)) {
+            if (id.equals(diagSignature.getId())) {
                 si.setSignatureFormat(SignatureLevel.fromDss(diagSignature.getSignatureFormat()));
                 eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate signingCert = diagSignature.getSigningCertificate().getCertificate();
-                si.setSignerCommonName(signingCert.getCommonName());
+                si.setSignerCommonName(anonymize ? ANONYMIZED : signingCert.getCommonName());
                 if (!isNonRepudiationCert(signingCert)) si.setQualified(false);
                 break;
             }
         }
     }
+
+    /*****************************************************************************************/
 
     private boolean isNonRepudiationCert(eu.europa.esig.dss.diagnostic.jaxb.XmlCertificate cert) {
         for(XmlCertificateExtension ext : cert.getCertificateExtensions()) {
@@ -240,13 +253,15 @@ public class ReportsService implements ErrorStrings {
 
     /*****************************************************************************************/
 
-    public String createJSONReport(RemoteSignatureParameters parameters, SignatureFullValiationDTO reportsDto) throws IOException {
+    public String createJSONReport(RemoteSignatureParameters parameters, SignatureFullValiationDTO reportsDto, boolean anonymize) throws IOException {
         // Instead of saving the entire report, create our own report containing the simple/detailed/normalized reports and the signing cert
 
-        ReportDTO reportDto = new ReportDTO(reportsDto.getSimpleReport(),
+        NormalizedReport normalizedReport = getNormalizedReport(reportsDto, anonymize);
+        ReportDTO reportDto = new ReportDTO(
+                reportsDto.getSimpleReport(),
                 reportsDto.getDetailedReport(),
-                parameters.getSigningCertificate().getEncodedCertificate(),
-                getNormalizedReport(reportsDto));
+                anonymize ? null : parameters.getSigningCertificate().getEncodedCertificate(),
+                normalizedReport);
 
         StringWriter out = new StringWriter();
         ObjectMapper mapper = new ObjectMapper();
