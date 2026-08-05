@@ -214,9 +214,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = GET_DATA_TO_SIGN_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO dataToSignDto) {
+    public DataToSignDTO getDataToSign(@RequestBody GetDataToSignDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.getDataToSign(dataToSignDto);
+        return signService.getDataToSign(req);
     }
 
     //*****************************************************************************************
@@ -233,9 +233,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = GET_DATA_TO_SIGN_MULTIPLE_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO dataToSignDto) {
+    public DataToSignDTO getDataToSignMultiple(@RequestBody GetDataToSignMultipleDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.getDataToSignMultiple(dataToSignDto);
+        return signService.getDataToSignMultiple(req);
     }
 
     //*****************************************************************************************
@@ -252,9 +252,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = SIGN_DOCUMENT_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument signDocument(@RequestBody SignDocumentDTO signDocumentDto) {
+    public RemoteDocument signDocument(@RequestBody SignDocumentDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.signDocument(signDocumentDto);
+        return signService.signDocument(req);
     }
 
     //*****************************************************************************************
@@ -271,9 +271,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = SIGN_DOCUMENT_ASYNC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ASyncTaskDTO signDocumentASync(@RequestBody SignDocumentDTO signDto) {
+    public ASyncTaskDTO signDocumentASync(@RequestBody SignDocumentDTO req) {
         authorizeCall(features, Features.signbox);
-        return taskService.addRunningTask(signService.signDocumentASync(signDto), signDto.getToken());
+        return taskService.addRunningTask(signService.signDocumentASync(req), req.getToken());
     }
 
     //*****************************************************************************************
@@ -291,9 +291,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = SIGN_DOCUMENT_MULTIPLE_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO signDocumentDto) {
+    public RemoteDocument signDocumentMultiple(@RequestBody SignDocumentMultipleDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.signDocumentMultiple(signDocumentDto);
+        return signService.signDocumentMultiple(req);
     }
 
     //*****************************************************************************************
@@ -311,9 +311,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = SIGN_DOCUMENT_MULTIPLE_ASYNC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ASyncTaskDTO signDocumentMultipleAsync(@RequestBody SignDocumentMultipleDTO signDto) {
+    public ASyncTaskDTO signDocumentMultipleAsync(@RequestBody SignDocumentMultipleDTO req) {
         authorizeCall(features, Features.signbox);
-        return taskService.addRunningTask(signService.signDocumentMultipleASync(signDto), signDto.getToken());
+        return taskService.addRunningTask(signService.signDocumentMultipleASync(req), req.getToken());
     }
 
     //*****************************************************************************************
@@ -329,9 +329,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = EXTEND_DOCUMENT_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO extendDocumentDto) {
+    public RemoteDocument extendDocument(@RequestBody ExtendDocumentDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.extendDocument(extendDocumentDto);
+        return signService.extendDocument(req);
     }
 
     //*****************************************************************************************
@@ -367,9 +367,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = EXTEND_DOCUMENT_MULTIPLE_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO extendDocumentDto) {
+    public RemoteDocument extendDocumentMultiple(@RequestBody ExtendDocumentDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.extendDocumentMultiple(extendDocumentDto);
+        return signService.extendDocumentMultiple(req);
     }
 
     //*****************************************************************************************
@@ -387,9 +387,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = EXTEND_DOCUMENT_MULTIPLE_ASYNC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ASyncTaskDTO extendDocumentMultipleASync(@RequestBody ExtendDocumentDTO extDocDto) {
+    public ASyncTaskDTO extendDocumentMultipleASync(@RequestBody ExtendDocumentDTO req) {
         authorizeCall(features, Features.signbox);
-        return taskService.addRunningTask(signService.extendDocumentMultipleASync(extDocDto), extDocDto.getToken());
+        return taskService.addRunningTask(signService.extendDocumentMultipleASync(req), req.getToken());
     }
 
     //*****************************************************************************************
@@ -405,18 +405,18 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = TIMESTAMP_DOCUMENT_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument timestampDocument(@RequestBody TimestampDocumentDTO timestampDocumentDto) {
+    public RemoteDocument timestampDocument(@RequestBody TimestampDocumentDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.timestampDocument(timestampDocumentDto);
+        return signService.timestampDocument(req);
     }
 
     //*****************************************************************************************
 
     @Operation(summary = "Timestamp a list of files and produce a file in ASIC format")
     @PostMapping(value = TIMESTAMP_DOCUMENT_MULTIPLE_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampDocumentMultipleDTO timestampDocumentDto) {
+    public RemoteDocument timestampDocumentMultiple(@RequestBody TimestampDocumentMultipleDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.timestampDocumentMultiple(timestampDocumentDto);
+        return signService.timestampDocumentMultiple(req);
     }
 
     //*****************************************************************************************
@@ -433,9 +433,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = GET_DATA_TO_SIGN_XADES_MDOC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public DataToSignDTO getDataToSignXades(@RequestBody GetDataToSignXMLElementsDTO getDataToSignDto) {
+    public DataToSignDTO getDataToSignXades(@RequestBody GetDataToSignXMLElementsDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.getDataToSignXades(getDataToSignDto);
+        return signService.getDataToSignXades(req);
     }
 
     //*****************************************************************************************
@@ -452,15 +452,9 @@ public class SigningController extends ControllerBase implements ErrorStrings {
     })
 
     @PostMapping(value = SIGN_DOCUMENT_XADES_MDOC_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public RemoteDocument signDocumentXades(@RequestBody SignXMLElementsDTO signDto) {
+    public RemoteDocument signDocumentXades(@RequestBody SignXMLElementsDTO req) {
         authorizeCall(features, Features.signbox);
-        return signService.signDocumentXades(signDto);
-    }
-
-    //*****************************************************************************************
-
-    enum Features {
-        validation,token,signbox
+        return signService.signDocumentXades(req);
     }
 
     //*****************************************************************************************

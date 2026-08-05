@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +19,7 @@ import java.io.IOException;
 
 import java.util.List;
 
+import static com.bosa.signandvalidation.exceptions.Utils.checkAndRecordMDCSupportId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
@@ -59,9 +59,9 @@ public class ValidationController extends ControllerBase {
     })
 
     @PostMapping(value = "/validateSignature", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
-        authorizeCall(features, SigningController.Features.validation);
-        return validationService.validateSignature(toValidate);
+    public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO req) throws IOException {
+        authorizeCall(features, Features.validation);
+        return validationService.validateSignature(req);
     }
 
     @Operation(summary = "Validate a single document's signatures", description = "Validate a signed file.<BR>" +
@@ -81,9 +81,11 @@ public class ValidationController extends ControllerBase {
     })
 
     @PostMapping(value = "/validateSignatureASync", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public ASyncTaskDTO validateSignatureASync(@RequestBody DataToValidateDTO validateDto) throws IOException {
-        authorizeCall(features, SigningController.Features.validation);
-        return taskService.addRunningTask(validationService.validateSignatureASync(validateDto), validateDto.getToken());
+    public ASyncTaskDTO validateSignatureASync(@RequestBody DataToValidateDTO req) {
+        authorizeCall(features, Features.validation);
+        if (req.getToken() == null) req.setToken(Long.toString(System.currentTimeMillis()));
+
+        return taskService.addRunningTask(validationService.validateSignatureASync(req), req.getToken());
     }
 
     @Operation(summary = "Validate a single document's signatures returning all validation reports", description = "Validate a signed file.<BR>" +
@@ -102,9 +104,11 @@ public class ValidationController extends ControllerBase {
     })
 
     @PostMapping(value = "/validateSignatureFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public SignatureFullValiationDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
-        authorizeCall(features, SigningController.Features.validation);
-        return validationService.validateSignatureFull(toValidate);
+    public SignatureFullValiationDTO validateSignatureFull(@RequestBody DataToValidateDTO req) {
+        authorizeCall(features, Features.validation);
+        if (req.getToken() == null) req.setToken(Long.toString(System.currentTimeMillis()));
+
+        return validationService.validateSignatureFull(req);
     }
 
     @Operation(summary = "Validate a single certificate", description = "Validate a certificate.<BR>" +
@@ -117,9 +121,9 @@ public class ValidationController extends ControllerBase {
     })
 
     @PostMapping(value = "/validateCertificate", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
-        authorizeCall(features, SigningController.Features.validation);
-        return validationService.validateCertificate(toValidate);
+    public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO req) {
+        authorizeCall(features, Features.validation);
+        return validationService.validateCertificate(req);
     }
 
     @Operation(summary = "Validate a single certificate returning all validation reports", description = "Validate a certificate.")
@@ -131,9 +135,9 @@ public class ValidationController extends ControllerBase {
     })
 
     @PostMapping(value = "/validateCertificateFull", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public CertificateFullValidationDTO validateCertificateFull(@RequestBody CertificateToValidateDTO toValidate) {
-        authorizeCall(features, SigningController.Features.validation);
-        return validationService.validateCertificateFull(toValidate);
+    public CertificateFullValidationDTO validateCertificateFull(@RequestBody CertificateToValidateDTO req) {
+        authorizeCall(features, Features.validation);
+        return validationService.validateCertificateFull(req);
     }
 
     @Operation(summary = "Validate a list of certificates", description = "Validate a list of certificates returning a list of indications.")
@@ -145,8 +149,8 @@ public class ValidationController extends ControllerBase {
     })
 
     @PostMapping(value = "/validateCertificates", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public IndicationsListDTO validateCertificates(@RequestBody List<CertificateToValidateDTO> toValidateList) {
-        authorizeCall(features, SigningController.Features.validation);
-        return validationService.validateCertificates(toValidateList);
+    public IndicationsListDTO validateCertificates(@RequestBody List<CertificateToValidateDTO> reqs) {
+        authorizeCall(features, Features.validation);
+        return validationService.validateCertificates(reqs);
     }
 }

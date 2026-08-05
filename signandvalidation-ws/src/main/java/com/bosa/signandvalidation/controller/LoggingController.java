@@ -32,15 +32,15 @@ public class LoggingController extends ControllerBase {
 
     @Operation(hidden = true)
     @PostMapping(value = ERROR_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public FrontEndErrorRespDTO errorMesg(@RequestBody FrontEndErrorReqDTO feError) {
-        checkAndRecordMDCSupportId(feError.getToken());
-        feError.sanitize();
+    public FrontEndErrorRespDTO errorMesg(@RequestBody FrontEndErrorReqDTO req) {
+        checkAndRecordMDCSupportId(req.getToken());
+        req.sanitize();
         String ref = logDateTimeFormatter.format(Instant.now());
 
         StringBuilder sb = new StringBuilder();
-        sb.append(ref).append("||").append(feError.getErr())
-            .append("\nresult: ").append(feError.getResult())
-            .append("\nreport: ").append(feError.getReport());
+        sb.append(ref).append("||").append(req.getErr())
+            .append("\nresult: ").append(req.getResult())
+            .append("\nreport: ").append(req.getReport());
 
         logger.log(Level.SEVERE, sb.toString());
 
@@ -48,25 +48,25 @@ public class LoggingController extends ControllerBase {
     }
     @Operation(hidden = true)
     @PostMapping(value = LOGGING_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public FrontEndLogRespDTO logMessage(@RequestBody FrontEndLogReqDTO feLog) {
-        checkAndRecordMDCSupportId(feLog.getToken());
-        feLog.sanitize();
+    public FrontEndLogRespDTO logMessage(@RequestBody FrontEndLogReqDTO req) {
+        checkAndRecordMDCSupportId(req.getToken());
+        req.sanitize();
         String ref = logDateTimeFormatter.format(Instant.now());
 
         StringBuilder sb = new StringBuilder();
-        sb.append(ref).append("||").append("message: ").append(feLog.getMessage());
-        logger.log(feLog.getLevelEnum(), sb.toString());
+        sb.append(ref).append("||").append("message: ").append(req.getMessage());
+        logger.log(req.getLevelEnum(), sb.toString());
 
         return new FrontEndLogRespDTO(ref);
     }
 
     @Operation(hidden = true)
     @PostMapping(value = VERSION_URL, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public String logVersion(@RequestBody VersionLogReqDTO versionLog) throws IllegalAccessException {
-        checkAndRecordMDCSupportId(versionLog.getToken());
-        versionLog.sanitize();
-        versionLog.setToken(null);
-        versionLog.toMDC();
+    public String logVersion(@RequestBody VersionLogReqDTO req) {
+        checkAndRecordMDCSupportId(req.getToken());
+        req.sanitize();
+        req.setToken(null);
+        req.toMDC();
         logger.warning("Versions");
         return applicationVersion;
     }

@@ -48,9 +48,10 @@ public class ValidationService {
 
     //*****************************************************************************************
 
-    public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO toValidate) throws IOException {
-        checkAndRecordMDCSupportId(toValidate.getToken());
-        SignatureFullValiationDTO report = validateSignatureFull(toValidate);
+    public SignatureIndicationsDTO validateSignature(@RequestBody DataToValidateDTO req) throws IOException {
+        checkAndRecordMDCSupportId("VAL_" + req.getToken());
+
+        SignatureFullValiationDTO report = validateSignatureFull(req);
         SignatureIndicationsDTO signDto = reportsService.getSignatureIndicationsAndReportsDto(report);
         logger.info("ValidateSignature is finished");
         return signDto;
@@ -59,10 +60,10 @@ public class ValidationService {
     //*****************************************************************************************
 
     @Async("asyncTasks")
-    public Future<Object> validateSignatureASync(DataToValidateDTO toValidate) {
+    public Future<Object> validateSignatureASync(DataToValidateDTO req) {
         CompletableFuture<Object> task = new CompletableFuture<>();
         try {
-            task.complete(validateSignature(toValidate));
+            task.complete(validateSignature(req));
         } catch(Exception e){
             task.completeExceptionally(e);
         } finally {
@@ -74,14 +75,15 @@ public class ValidationService {
 
     //*****************************************************************************************
 
-    public SignatureFullValiationDTO validateSignatureFull(@RequestBody DataToValidateDTO toValidate) {
-        checkAndRecordMDCSupportId(toValidate.getToken());
-        if (toValidate.getSignedDocument() == null)
+    public SignatureFullValiationDTO validateSignatureFull(@RequestBody DataToValidateDTO req) {
+        checkAndRecordMDCSupportId("VAL_" + req.getToken());
+
+        if (req.getSignedDocument() == null)
             logAndThrowEx(BAD_REQUEST, NO_DOC_TO_VALIDATE, null, null);
         try {
-            SignatureFullValiationDTO reportsDto = remoteDocumentValidationService.validateDocument(toValidate.getSignedDocument(), toValidate.getOriginalDocuments(), toValidate.getPolicy(), toValidate.getTrust());
-            if (toValidate.getLevel() != null && reportsDto.getDiagnosticData() != null) {
-                checkSignatures(toValidate.getLevel().toDSS(), reportsDto);
+            SignatureFullValiationDTO reportsDto = remoteDocumentValidationService.validateDocument(req.getSignedDocument(), req.getOriginalDocuments(), req.getPolicy(), req.getTrust());
+            if (req.getLevel() != null && reportsDto.getDiagnosticData() != null) {
+                checkSignatures(req.getLevel().toDSS(), reportsDto);
             }
             logger.info("ValidateSignatureFull is finished");
             return reportsDto;
@@ -108,9 +110,9 @@ public class ValidationService {
 
     //*****************************************************************************************
 
-    public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO toValidate) {
-        checkAndRecordMDCSupportId(toValidate.getToken());
-        if (toValidate.getCertificate() == null)
+    public CertificateIndicationsDTO validateCertificate(@RequestBody CertificateToValidateDTO req) {
+        checkAndRecordMDCSupportId(req.getToken());
+        if (req.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 
         try {
@@ -118,11 +120,11 @@ public class ValidationService {
             InputStream genericIs = ValidationService.class.getResourceAsStream("/policy/" + VALIDATION_CONSTRAINTS);
             RemoteDocument policy = new RemoteDocument(Utils.toByteArray(genericIs), VALIDATION_CONSTRAINTS);
             eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO dto = new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
-                    toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime());
+                    req.getCertificate(), req.getCertificateChain(), req.getValidationTime());
             dto.setPolicy(policy);
 
             CertificateReportsDTO certificateReportsDTO = remoteCertificateValidationService.validateCertificate(dto);
-            CertificateIndicationsDTO rv = reportsService.getCertificateIndicationsDTO(certificateReportsDTO, toValidate.getExpectedKeyUsage());
+            CertificateIndicationsDTO rv = reportsService.getCertificateIndicationsDTO(certificateReportsDTO, req.getExpectedKeyUsage());
             if(rv.getIndication() != PASSED) {
                 certificateReportsDTO.getSimpleCertificateReport().getCertificate().getChain().forEach(item -> {
                     logger.log(Level.SEVERE, "Certificate validation indication = {0}; certificate ID = {1}, issuer ID = {2}", new Object[]{rv.getIndication().toString(), item.getId(), item.getIssuerId()});
@@ -138,15 +140,15 @@ public class ValidationService {
 
     //*****************************************************************************************
 
-    public CertificateFullValidationDTO validateCertificateFull(@RequestBody CertificateToValidateDTO toValidate) {
-        checkAndRecordMDCSupportId(toValidate.getToken());
-        if (toValidate.getCertificate() == null)
+    public CertificateFullValidationDTO validateCertificateFull(@RequestBody CertificateToValidateDTO req) {
+        checkAndRecordMDCSupportId(req.getToken());
+        if (req.getCertificate() == null)
             logAndThrowEx(BAD_REQUEST, NO_CERT_TO_VALIDATE, null, null);
 
         try {
             CertificateReportsDTO result = remoteCertificateValidationService.validateCertificate(
                 new eu.europa.esig.dss.ws.cert.validation.dto.CertificateToValidateDTO(
-			        toValidate.getCertificate(), toValidate.getCertificateChain(), toValidate.getValidationTime()));
+			        req.getCertificate(), req.getCertificateChain(), req.getValidationTime()));
             logger.info("ValidateCertificateFull is finished");
 
             return new CertificateFullValidationDTO(result.getDiagnosticData(), result.getSimpleCertificateReport(), result.getDetailedReport());
@@ -158,12 +160,12 @@ public class ValidationService {
 
     //*****************************************************************************************
 
-    public IndicationsListDTO validateCertificates(@RequestBody List<CertificateToValidateDTO> toValidateList) {
+    public IndicationsListDTO validateCertificates(@RequestBody List<CertificateToValidateDTO> reqs) {
         try {
             List<CertificateIndicationsDTO> indications = new ArrayList<>();
 
-            for (CertificateToValidateDTO toValidate : toValidateList) {
-                indications.add(validateCertificate(toValidate));
+            for (CertificateToValidateDTO req : reqs) {
+                indications.add(validateCertificate(req));
             }
 
             logger.info("ValidateCertificates is finished");
