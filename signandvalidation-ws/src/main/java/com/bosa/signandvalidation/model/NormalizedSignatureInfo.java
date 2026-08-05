@@ -18,9 +18,9 @@ public class NormalizedSignatureInfo {
     private String      subIndication;
 
     // Signature info
-    @Schema(description = "The time, extracted from the signature, of the signature")
+    @Schema(example = "1785934372000", description = "The time, in Epoch with milliseconds, extracted from the signature, of the signature")
     private Date        claimedSigningTime;
-    @Schema(description = "The time, confirmed by reputable sources (TS, OCSP, CRLs, of the signature")
+    @Schema(example = "1785934372000", description = "The time, in Epoch with milliseconds, confirmed by reputable sources (TS, OCSP, CRLs, of the signature)")
     private Date        bestSigningTime;
     @Schema(description = "The 'common name' found in the signing certificate")
     private String      signerCommonName;
