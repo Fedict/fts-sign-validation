@@ -40,7 +40,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
     @Test
     public void testSigningTimeNOK() throws Exception {
-        Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
+        Mockito.when(storageService.isValidAuth(any(), any(), any(), any())).thenReturn(true);
 
         File inFile = mockGetFile("src/test/resources/sample.pdf");
 
@@ -81,7 +81,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
     @Test
     public void testSigningNotAllowedNN() throws Exception {
-        Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
+        Mockito.when(storageService.isValidAuth(any(), any(), any(), any())).thenReturn(true);
 
         File inFile = mockGetFile("src/test/resources/sample.pdf");
 
@@ -112,7 +112,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
     @Test
     public void testSigningTimeOK() throws Exception {
-        Mockito.when(storageService.isValidAuth(any(), any())).thenReturn(true);
+        Mockito.when(storageService.isValidAuth(any(), any(), any(), any())).thenReturn(true);
 
         File inFile = mockGetFile("src/test/resources/sample.xml");
 
@@ -147,7 +147,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
     @Test
     public void testSigningDetachedProfile() throws Exception {
-        Mockito.when(storageService.isValidAuth(any(), any())).thenReturn(true);
+        Mockito.when(storageService.isValidAuth(any(), any(), any(), any())).thenReturn(true);
 
         File inFile = mockGetFile("src/test/resources/sample.xml");
 
@@ -185,7 +185,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
 
     @Test
     public void testSigningMultifileDetachedProfile() throws Exception {
-        Mockito.when(storageService.isValidAuth(any(), any())).thenReturn(true);
+        Mockito.when(storageService.isValidAuth(any(), any(), any(), any())).thenReturn(true);
 
         File inFile1 = mockGetFile("src/test/resources/sample.xml");
         File inFile2 = mockGetFile("src/test/resources/sample.pdf");
@@ -199,7 +199,7 @@ public class SigningTokenControllerTest extends SigningControllerBaseTest {
         List<SignInput> inFiles = new ArrayList<>(2);
         inFiles.add(new SignInput(inFile1.getName(), null, OID_URI, null, null, null, null, null, false, false));
         inFiles.add(new SignInput(inFile2.getName(), null, null, null, null, null, null, null, false, false));
-        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", SignProfiles.XADES_MULTIFILE_DETACHED.name(), inFiles, OUT_FILENAME);
+        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", null, null, SignProfiles.XADES_MULTIFILE_DETACHED.name(), inFiles, OUT_FILENAME);
         gtfd.setOutDownload(true);
 
         String tokenStr = this.restTemplate.postForObject(LOCALHOST + port + SigningController.ENDPOINT_URL + SigningController.GET_TOKEN_FOR_DOCUMENTS_URL, gtfd, String.class);

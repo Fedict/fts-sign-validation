@@ -110,7 +110,7 @@ public class TokenSignService extends SignCommonService {
 
     public String getTokenForDocument(GetTokenForDocumentDTO tokenData) {
         try {
-            if(!(storageService.isValidAuth(tokenData.getName(), tokenData.getPwd()))) {
+            if(!(storageService.isValidAuth(tokenData.getName(), tokenData.getPwd(), null, null))) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
             // Password not needed anymore (Avoid MDC logging)
@@ -170,11 +170,9 @@ public class TokenSignService extends SignCommonService {
     public String getTokenForDocuments(GetTokenForDocumentsDTO gtfd) throws IllegalAccessException {
         try {
             // Validate input
-            if(!(storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword()))) {
+            if (!storageService.isValidAuth(gtfd.getBucket(), gtfd.getPassword(), gtfd.getAccessToken(), gtfd.getExpiration())) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
-            // Password not needed anymore (Avoid MDC logging)
-            gtfd.setPassword(null);
 
             TokenObject token = new TokenObject();
             token.setBucket(gtfd.getBucket());

@@ -24,8 +24,13 @@ import java.util.List;
 public class GetTokenForDocumentsDTO {
     @Schema(example = "0qtp70go8n3gcxosz88z", requiredMode = Schema.RequiredMode.REQUIRED, description = "The name of the bucket where the files (pdf/xml/xlst/psp) are stored, also the username to authenticate on the S3 server")
     private String bucket;
-    @Schema(example = "S3cr3t!PAsSv0rd", requiredMode = Schema.RequiredMode.REQUIRED, description = "The password to authenticate on the bucket")
+    @Schema(example = "S3cr3t!PAsSv0rd", description = "The password to authenticate on the bucket for user/password authentication")
     private String password;
+    @Schema(example = "eyJhbGciOiJSUzI1NiIsIn.UzI1NiIsInR5.cCIgOiAiSldUIiwia2lk", description = "Tha access token obtained form the oauth server")
+    private String accessToken;
+    @Schema(example = "300", description = "The time, in seconds before the access token expires")
+    private Integer expiration;
+
     @Schema(example = "150", description = "If the time between a user clicks on the 'I want to Sign' button and the moment he signs the document is" +
             " greater than the number of seconds defined by “signTimeout” the signature will be rejected.<BR>Default value : 120 Seconds.")
     private Integer signTimeout;
@@ -63,10 +68,12 @@ public class GetTokenForDocumentsDTO {
     private boolean outDownload;
 
     // Mandatory parameters
-    public GetTokenForDocumentsDTO(String bucket, String password, String signProfile, List<SignInput> inputs, String outFilePath) {
+    public GetTokenForDocumentsDTO(String bucket, String password, String accessToken, Integer expiration, String signProfile, List<SignInput> inputs, String outFilePath) {
         this.inputs = inputs;
         this.bucket = bucket;
         this.password = password;
+        this.expiration = expiration;
+        this.accessToken = accessToken;
         this.signProfile = signProfile;
         this.outFilePath = outFilePath;
     }

@@ -8,6 +8,8 @@ package com.bosa.signandvalidation.service;
 import com.bosa.signandvalidation.model.FileStoreInfo;
 import com.bosa.signandvalidation.utils.MediaTypeUtil;
 import io.minio.*;
+import io.minio.credentials.ClientGrantsProvider;
+import io.minio.credentials.Jwt;
 import io.minio.errors.*;
 import io.minio.messages.Bucket;
 import io.minio.messages.DeleteError;
@@ -21,8 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.SocketTimeoutException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Level;
@@ -65,18 +65,19 @@ public class StorageService {
         return client;
     }
 
-    public boolean isValidAuth(String accesskey, String secretkey) {
-        try {
-            MinioClient testClient = MinioClient.builder()
-                    .endpoint(S3Endpoint)
-                    .credentials(accesskey, secretkey)
-                    .build();
-            return testClient.bucketExists(BucketExistsArgs.builder().bucket(accesskey).build());
-        } catch (ErrorResponseException | InsufficientDataException
-                 | InternalException | InvalidKeyException
-                 | InvalidResponseException | IOException
-                 | NoSuchAlgorithmException | ServerException
-                 | XmlParserException ex) {
+    public boolean isValidAuth(String bucket, String password, String accessToken, Integer expiration) {
+        MinioClient.Builder builder = MinioClient.builder().endpoint(S3Endpoint);
+        if (expiration != null) {
+            builder.credentialsProvider(
+                    new ClientGrantsProvider(() -> new Jwt(accessToken, expiration),
+                    S3Endpoint, null, null, null)
+            );
+        }
+        else builder.credentials(bucket, password);
+
+        try (MinioClient testClient = builder.build()) {
+            return testClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
+        } catch (Exception ex) {
             Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, "Exception :" + ex.toString() + " - Cause:" + ex.getCause() + " - Message :" + ex.getMessage(), ex);
             return false;
         }

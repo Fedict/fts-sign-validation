@@ -99,7 +99,7 @@ public class PdfTestVisibleSignatureTokenTest extends SigningControllerBaseTest 
 
     private String testRenderSignature(File pspFile, boolean forceV2, boolean expectError) throws IOException {
         Mockito.reset(storageService);
-        Mockito.when(storageService.isValidAuth(any(), any())).thenReturn(true);
+        Mockito.when(storageService.isValidAuth(any(), any(), any(), any())).thenReturn(true);
 
         byte[] pdfFileBytes = Utils.toByteArray(Files.newInputStream(pdfFile.toPath()));
         Mockito.when(storageService.getFileAsBytes(any(), eq("sample.pdf"), anyBoolean())).thenReturn(pdfFileBytes);

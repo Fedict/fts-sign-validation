@@ -94,7 +94,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
 
     @Test
     public void testSignCreateToken() throws Exception {
-        Mockito.when(storageService.isValidAuth(any(),any())).thenReturn(true);
+        Mockito.when(storageService.isValidAuth(any(), any(), any(), any())).thenReturn(true);
         Mockito.when(storageService.getFileAsStream(eq(THE_BUCKET),eq(MAIN_XSLT_FILE_NAME))).thenReturn(new ByteArrayInputStream(MAIN_XSLT_FILE.getBytes()));
 
         SignatureFullValiationDTO reportsDto = new SignatureFullValiationDTO();
@@ -138,7 +138,7 @@ public class SigningControllerXadesAndTokenTest extends SigningControllerBaseTes
         unSignedXmlFile += "</" + ROOT_XSLT_ELT + ">";
 
         // Start testing
-        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", SignProfiles.XADES_MDOC_LTA.name(), inFiles, OUT_FILE_NAME);
+        GetTokenForDocumentsDTO gtfd = new GetTokenForDocumentsDTO(THE_BUCKET, "pwd", null, null, SignProfiles.XADES_MDOC_LTA.name(), inFiles, OUT_FILE_NAME);
         gtfd.setOutXsltPath(MAIN_XSLT_FILE_NAME);
         gtfd.setOutDownload(true);
 
