@@ -30,6 +30,7 @@ public class ProfileTimestampParametersDao extends JsonDao {
             }
         }
         if(defParam != null) {
+            logger.log(Level.INFO, "Using default profile :" + defParam.getProfileId());
             return (ProfileTimestampParameters)defParam;
         }
         throw new ProfileNotFoundException("Default profile not found");
@@ -44,10 +45,11 @@ public class ProfileTimestampParametersDao extends JsonDao {
                 throw new ProfileNotFoundException("Profiles could not be loaded");
             }
         }
-        if(parameters.containsKey(id)) {
-            return parameters.get(id);
-        }
-        throw new ProfileNotFoundException(String.format("%s not found",id));
+        logger.log(Level.INFO, "Using profile :" + id);
+
+        if(! parameters.containsKey(id)) throw new ProfileNotFoundException(String.format("%s not found",id));
+
+        return parameters.get(id);
     }
     public void deleteAll() {
         defParam = null;
