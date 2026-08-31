@@ -57,11 +57,8 @@ public abstract class JsonDao {
             logger.log(Level.SEVERE, "Profiles dir is emtpy", folder.getAbsolutePath());
             throw new IOException("No profiles found");
         }
-        logger.log(Level.INFO, "Reading " + profileName + " profiles from " + folder.getAbsolutePath());
-
         ObjectMapper mapper = new ObjectMapper();
         for(final File jsonFile : profileFiles) {
-            logger.log(Level.INFO, "Parsing {0}", jsonFile.getName());
             JsonObject o = mapper.readValue(jsonFile, classType);
             if(!(SKIP_DEV && o.getDevOnlyProfile())) {
                 parameters.put(o.getProfileId(), o);
