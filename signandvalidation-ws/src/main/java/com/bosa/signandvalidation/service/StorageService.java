@@ -78,7 +78,7 @@ public class StorageService {
         try (MinioClient testClient = builder.build()) {
             return testClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
         } catch (Exception ex) {
-            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, "Exception :" + ex.toString() + " - Cause:" + ex.getCause() + " - Message :" + ex.getMessage(), ex);
+            Logger.getLogger(StorageService.class.getName()).log(Level.SEVERE, "Exception :" + ex + " - Cause:" + ex.getCause() + " - Message :" + ex.getMessage(), ex);
             return false;
         }
     }
