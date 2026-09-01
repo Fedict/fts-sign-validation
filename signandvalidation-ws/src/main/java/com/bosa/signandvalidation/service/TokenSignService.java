@@ -203,8 +203,8 @@ public class TokenSignService extends SignCommonService {
             logger.info("Returning from getTokenForDocuments()");
             return tokenString;
         } catch (Exception e) {
-            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
             e.printStackTrace();
+            logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
         }
         return null;
     }
