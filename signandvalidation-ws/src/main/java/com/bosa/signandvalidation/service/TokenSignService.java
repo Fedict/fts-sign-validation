@@ -204,6 +204,7 @@ public class TokenSignService extends SignCommonService {
             return tokenString;
         } catch (Exception e) {
             logAndThrowEx(INTERNAL_SERVER_ERROR, INTERNAL_ERR, e);
+            e.printStackTrace();
         }
         return null;
     }
