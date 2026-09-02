@@ -110,11 +110,9 @@ public class TokenSignService extends SignCommonService {
 
     public String getTokenForDocument(GetTokenForDocumentDTO tokenData) {
         try {
-            if(!(storageService.isValidAuth(tokenData.getName(), tokenData.getPwd(), null, null))) {
+            if (!storageService.isValidAuth(tokenData.getName(), tokenData.getPwd(), tokenData.getAccessToken(), tokenData.getExpiration())) {
                 logAndThrowEx(FORBIDDEN, INVALID_S3_LOGIN, null, null);
             }
-            // Password not needed anymore (Avoid MDC logging)
-            tokenData.setPwd(null);
 
             TokenObject token = new TokenObject();
             token.setSigningType(Standard);
