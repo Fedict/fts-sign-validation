@@ -30,6 +30,10 @@ public class GetTokenForDocumentDTO {
     @Schema(example = "S3cr3t!PAsSv0rd", requiredMode = Schema.RequiredMode.REQUIRED,
             description = "The password to authenticate on the S3 server")
     private String pwd;
+    @Schema(example = "eyJhbGciOiJSUzI1NiIsIn.UzI1NiIsInR5.cCIgOiAiSldUIiwia2lk", description = "Tha access token obtained form the oauth server")
+    private String accessToken;
+    @Schema(example = "300", description = "The time, in seconds before the access token expires")
+    private Integer expiration;
     @Schema(example = "ToBeSigned.xml", requiredMode = Schema.RequiredMode.REQUIRED,
             description = "The name of the file, stored on the bucket, that must be signed")
     private String in;
