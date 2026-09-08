@@ -91,6 +91,7 @@ public class GetTokenForDocumentsDTO {
         Utils.toMDCIfNotNull("outPathPrefix", outPathPrefix);
         Utils.toMDCIfNotNull("signProfile", signProfile);
         Utils.toMDCIfNotNull("altSignProfile", altSignProfile);
+        Utils.toMDCIfNotNull("auth", accessToken == null ? "user-password" : "oauth" );
         if (nnAllowedToSign != null) {
             for (int i = 0; i < nnAllowedToSign.size(); i++) {
                 Utils.toMDCIfNotNull("nnAllowedToSign" + "[" + i + "]", nnAllowedToSign.get(i));

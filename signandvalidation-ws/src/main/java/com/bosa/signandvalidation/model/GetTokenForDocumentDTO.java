@@ -101,6 +101,7 @@ public class GetTokenForDocumentDTO {
         Utils.toMDCIfNotNull("psfN", psfN );
         Utils.toMDCIfNotNull("psfC", psfC );
         Utils.toMDCIfNotNull("psfP", psfP );
+        Utils.toMDCIfNotNull("auth", accessToken == null ? "user-password" : "oauth" );
         if (lang != null) MDC.put("lang", lang.name());
         if (signTimeout != null) MDC.put("signTimeout", String.valueOf(signTimeout));
         MDC.put("noDownload", String.valueOf(noDownload));
