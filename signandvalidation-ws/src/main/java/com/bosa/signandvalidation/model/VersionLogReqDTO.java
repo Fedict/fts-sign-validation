@@ -38,7 +38,6 @@ public class VersionLogReqDTO {
         MDC.put("beID", beID);
         MDC.put("browserExt", browserExt);
         MDC.put("browserStore", browserStore);
-        MDC.put("token", token);
         MDC.put("userAgent", userAgent);
     }
 }
