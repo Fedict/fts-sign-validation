@@ -259,7 +259,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     //*****************************************************************************************
 
-    @Operation(summary = "Create the signed file based on the signed digest", description = "Create the signed file based on the signed digest.<BR>" +
+    @Operation(hidden = true, summary = "Create the signed file based on the signed digest", description = "Create the signed file based on the signed digest.<BR>" +
             "This is the second step in a two step process to sign the file")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "No error",
@@ -298,7 +298,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     //*****************************************************************************************
 
-    @Operation(summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
+    @Operation(hidden = true, summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
             "This is the first step in a two step process to sign the file<BR>" +
             "The signed result will be of the ASIC format<BR>")
     @ApiResponses(value = {
@@ -336,7 +336,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     //*****************************************************************************************
 
-    @Operation(summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
+    @Operation(hidden = true, summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
             "This is the first step in a two step process to sign the file<BR>" +
             "The signed result will be of the ASIC format<BR>")
     @ApiResponses(value = {
@@ -374,7 +374,7 @@ public class SigningController extends ControllerBase implements ErrorStrings {
 
     //*****************************************************************************************
 
-    @Operation(summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
+    @Operation(hidden = true, summary = "Create the signed file based on the signed digest", description = "Create a signed file based on the signed digest of a list of files.<BR>" +
             "This is the first step in a two step process to sign the file<BR>" +
             "The signed result will be of the ASIC format<BR>")
     @ApiResponses(value = {
